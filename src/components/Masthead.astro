@@ -30,8 +30,9 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
   .index .code { color: var(--malachite); }
   :global(.bottle) .index .code, :global(.flash) .index .code { color: inherit; }
   .aside { color: var(--malachite); }
+  /* On a phone the index is the whole menu, so it keeps the titles and
+     stacks: two codes alone read as nothing, which is what the owner saw. */
   @media (max-width: 760px) {
-    .index { width: 100%; order: 3; }
-    .index .ttl { display: none; }
+    .index { width: 100%; order: 3; flex-direction: column; gap: 2px; }
   }
 </style>

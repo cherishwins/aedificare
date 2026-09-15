@@ -4,6 +4,10 @@ import Masthead from '../components/Masthead.astro';
 import RoseField from '../components/RoseField.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { PUBLISHED, LICENCE } from '../lib/editions.mjs';
+import fs from 'node:fs';
+
+// PDF sizes are read from the files at build time, never typed.
+const mb = (p) => (fs.statSync('public' + p).size / 1048576).toFixed(1) + ' MB';
 
 // The home is the one surface where the full house configuration runs, with
 // Acid on the k=5 curve: that is this surface's loud move, so the wordmark
@@ -23,11 +27,25 @@ const house = HOUSE.map((L, i) => ({ ...L, c: ['#CCFF00', '#00B24F', '#FF1F5A'][
 
     {PUBLISHED.map((e, i) => (
       <section class:list={['surface', i % 2 ? 'bottle' : 'void', 'edition']} aria-labelledby={e.code}>
-        <a class="grid block-link" href={e.href}>
-          <span class="c-full mono mal code">{e.code} · {e.dateLabel}</span>
-          <h2 class="c-full display" id={e.code} data-flex="cursor">{e.title}</h2>
-          <p class="c-wide lede">{e.lede}</p>
-        </a>
+        <div class="grid">
+          <a class="c-full block-link head" href={e.path}>
+            <span class="mono code">{e.code} · {e.dateLabel}{e.note && ` · ${e.note}`}</span>
+            <h2 class="display" id={e.code} data-flex="cursor">{e.title}</h2>
+            <p class="lede">{e.lede}</p>
+          </a>
+          <nav class="c-full toc" aria-label={`${e.code} contents`}>
+            <ol class="mono">
+              {e.contents.map((c) => (
+                <li><a href={`${e.path}#${c.id}`}><span class="n">{c.n}</span>{c.t}</a></li>
+              ))}
+            </ol>
+          </nav>
+          <p class="c-full links mono-b">
+            <a class="block-link" href={e.path}>Read {e.code}</a>
+            {e.pdf && <a class="block-link" href={e.pdf}>PDF · {mb(e.pdf)}</a>}
+            <span class="aside mono">{e.contents.length} sections · seed {e.seed}</span>
+          </p>
+        </div>
       </section>
     ))}
 
@@ -52,8 +70,23 @@ const house = HOUSE.map((L, i) => ({ ...L, c: ['#CCFF00', '#00B24F', '#FF1F5A'][
   .hero-line { position: relative; z-index: 2; color: var(--malachite); padding: 24px var(--gutter) 28px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 32px; }
   .hero-line output { font: inherit; letter-spacing: inherit; }
   .edition { padding-block: clamp(40px, 7vh, 96px); }
-  .edition .code { margin-bottom: -8px; }
+  .edition .grid { row-gap: 28px; }
+  .edition .code { display: block; margin-bottom: 14px; color: var(--malachite); }
   .edition h2 { font-size: var(--fs-h2); max-width: 12ch; }
-  .edition .lede { margin-top: 8px; }
-  .bottle .code { color: var(--flash); }
+  .edition .lede { margin-top: 8px; max-width: 34ch; }
+  /* The contents: ten anchors into the edition, so the index shows what an
+     edition holds instead of one title over a rose. Two columns above 760px. */
+  .toc ol { list-style: none; columns: 2; column-gap: clamp(24px, 4vw, 64px); max-width: 76ch; }
+  .toc li { break-inside: avoid; }
+  .toc a { display: inline-flex; gap: 1.2em; align-items: baseline; padding-block: 6px; color: var(--flash); }
+  .toc .n { color: var(--malachite); font-variation-settings: 'wdth' 75, 'wght' 700; }
+  .toc a:hover, .toc a:focus-visible { color: var(--acid); }
+  .links { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 32px; }
+  .links .block-link { padding-block: 8px; }
+  .links .aside { color: var(--malachite); margin-left: auto; }
+  .bottle .code, .bottle .toc .n, .bottle .links .aside { color: var(--flash); }
+  @media (max-width: 760px) {
+    .toc ol { columns: 1; }
+    .links .aside { margin-left: 0; width: 100%; }
+  }
 </style>

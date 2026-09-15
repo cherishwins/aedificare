@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+/**
+ * The home prints each edition's contents from src/lib/editions.mjs. That
+ * list is typed, and what is typed drifts, so this fails the build unless
+ * every entry's anchor id exists in the built edition page and its title
+ * appears in a heading or section label there. Runs on dist/, after build.
+ *
+ *   node tools/check-contents.cjs
+ */
+const fs = require('node:fs');
+const path = require('node:path');
+
+const norm = (s) => s.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim().toLowerCase();
+
+(async () => {
+  const { PUBLISHED } = await import('../src/lib/editions.mjs');
+  const problems = [];
+  let checked = 0;
+  for (const e of PUBLISHED) {
+    if (!e.contents) { problems.push(`${e.code}: no contents list`); continue; }
+    const file = path.join('dist', e.slug, 'index.html');
+    if (!fs.existsSync(file)) { problems.push(`${e.code}: ${file} missing`); continue; }
+    const html = fs.readFileSync(file, 'utf8');
+    const headings = [...html.matchAll(/<h2[^>]*>(.*?)<\/h2>|<p class="mono-b"[^>]*>(.*?)<\/p>/gs)]
+      .map((m) => norm(m[1] || m[2] || ''));
+    for (const c of e.contents) {
+      checked++;
+      if (!html.includes(`id="${c.id}"`)) problems.push(`${e.code} ${c.n}: no element with id="${c.id}" in ${file}`);
+      const t = norm(c.t);
+      if (!headings.some((h) => h.includes(t))) problems.push(`${e.code} ${c.n}: "${c.t}" is not a heading or label in ${file}`);
+    }
+  }
+  if (problems.length) {
+    console.error('check-contents: ' + problems.length + ' problem(s)');
+    for (const p of problems) console.error('  ' + p);
+    process.exit(1);
+  }
+  console.log(`check-contents: ${checked} entries verified against the built pages`);
+})();
