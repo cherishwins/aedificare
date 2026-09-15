@@ -180,3 +180,30 @@ td.n { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-sett
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation: none !important; }
 }
+
+/* Edition figures: big numbers sized by length, computed bars, sources. Shared
+   by every edition page; a figure typed twice drifts twice. */
+/* Figures sized to their length so the longest never leaves the frame at 320px. */
+.figure { color: var(--acid); margin-block: 12px .24em; }
+.fig-m { font-size: clamp(56px, 13vw, 220px); }
+.fig-l { font-size: clamp(30px, 7vw, 112px); }
+.slap { font-size: var(--fs-cover); }
+/* Bars: computed widths on a plain track, no radius, no gradient. */
+.bars { display: grid; row-gap: 6px; align-content: start; }
+.bars figcaption { margin-bottom: 10px; }
+.bar { display: grid; grid-template-columns: minmax(9em, 12em) 1fr minmax(5.5em, max-content); gap: 14px; align-items: center; }
+.track { display: block; height: 10px; background: rgba(0, 178, 79, .18); }
+.fill { display: block; height: 100%; background: var(--malachite); }
+.bar .val { font-size: 16px; line-height: 1; white-space: nowrap; }
+.bar .mono.val { font-size: var(--fs-mono); white-space: normal; }
+.lbl { color: var(--flash); }
+@media (max-width: 760px) {
+  .bar { grid-template-columns: 1fr; gap: 6px; padding-block: 6px; }
+}
+.ledger th[scope="row"] { white-space: nowrap; }
+.sources { list-style: none; columns: 2; column-gap: clamp(24px, 4vw, 64px); max-width: 100ch; }
+.sources li { break-inside: avoid; display: grid; grid-template-columns: 2.6em 1fr; gap: 12px; margin-bottom: 14px; font-size: 15px; line-height: 1.5; }
+.sources .n { color: var(--malachite); padding-top: .25em; }
+@media (max-width: 760px) { .sources { columns: 1; } }
+/* A figure in the grid keeps its own height; it never stretches to the prose beside it. */
+.grid > figure.field, .grid > .field.cells, .grid > figure.bars { align-self: start; }
