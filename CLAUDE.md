@@ -130,7 +130,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
 
 ## File map
 
-- `src/config.mjs`: the origin, name, author. Read by everything absolute.
+- `src/config.mjs`: the origin, name, author, and `BUILD`, the first eight
+  characters of `VERCEL_GIT_COMMIT_SHA` ("dev" locally), shipped as
+  `<meta name="build">` by `src/layouts/Base.astro`.
 - `src/lib/editions.mjs`: **the editions, once.** Home, feed, llms.txt,
   robots, sitemap filter, OG cards and each edition's own page read it, so a
   title or date cannot disagree with itself. `draft: true` hides an edition
@@ -175,6 +177,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   canonical, draft noindex and sitemap exclusion, then runs the same sweep
   with `--url`. It exists because the build sandbox's proxy cannot reach
   aedificare.art; a clean runner can. Run it after every production deploy.
+  It also reads `<meta name="build">` on the live `/` and fails unless it
+  matches the dispatched ref's head (or the `sha` input), so a green run
+  proves WHICH commit is live: a healthy stale deploy still fails.
 
 ## Design decisions, with the reasoning
 

@@ -1,5 +1,5 @@
 ---
-import { SITE, abs } from '../config.mjs';
+import { SITE, BUILD, abs } from '../config.mjs';
 import '../styles/base.css';
 import OG from '../lib/og-manifest.json';
 import { LICENCE } from '../lib/editions.mjs';
@@ -80,6 +80,7 @@ const site = {
   <meta name="ai-training" content="allowed" />
   <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'} />
   <meta name="author" content={SITE.author} />
+  <meta name="build" content={BUILD} />
   <script type="application/ld+json" set:html={JSON.stringify(site)} />
   {extra.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
 </head>
