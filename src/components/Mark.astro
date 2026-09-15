@@ -1,0 +1,13 @@
+---
+// The mark. One rhodonea, k=5, one turn, frozen at seed AED-M-01 and computed
+// from the same function as every live field, so it can never be redrawn by
+// hand. Stroke is a prop because a hairline that reads at 300px vanishes at
+// 24px; the curve is the constant, the weight follows the size.
+import { markPath } from '../lib/rose.mjs';
+interface Props { class?: string; stroke?: number; label?: string }
+const { class: cls = 'mark', stroke = 5, label } = Astro.props;
+const d = markPath(100);
+---
+<svg class={cls} viewBox="0 0 100 100" aria-hidden={label ? undefined : 'true'} role={label ? 'img' : undefined} aria-label={label}>
+  <path d={d} fill="none" stroke="currentColor" stroke-width={stroke} stroke-linejoin="round" />
+</svg>

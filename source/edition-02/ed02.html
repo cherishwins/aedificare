@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Aedificare — Edition 02 — The Subtraction</title>
+<link rel="stylesheet" href="fonts/local-fonts.css">
+<style>
+:root{
+  --acid:#CCFF00;
+  --mala:#00B24F;
+  --bottle:#063B22;
+  --void:#050A06;
+  --flash:#FFFFFF;
+  --shock:#FF1F5A;
+}
+*{margin:0;padding:0;box-sizing:border-box;border-radius:0}
+@page{size:A4;margin:0}
+html,body{background:var(--void)}
+body{
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  font-family:'Bricolage Grotesque',sans-serif;
+  font-variation-settings:'opsz' 14,'wdth' 100,'wght' 400;
+  color:var(--flash);
+}
+
+.page{
+  position:relative;
+  width:210mm;height:297mm;
+  overflow:hidden;
+  background:var(--void);
+  page-break-after:always;break-after:page;
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  grid-template-rows:repeat(12,1fr);
+}
+.page:last-child{page-break-after:auto;break-after:auto}
+.bottle{background:var(--bottle)}
+.flash{background:var(--flash);color:var(--void)}
+
+/* ---------- type ---------- */
+.d{ /* display */
+  font-variation-settings:'opsz' 96,'wdth' 75,'wght' 800;
+  line-height:.82;letter-spacing:-.02em;text-transform:uppercase;
+}
+.d.wide{font-variation-settings:'opsz' 96,'wdth' 100,'wght' 800}
+.d.thin{font-variation-settings:'opsz' 96,'wdth' 75,'wght' 300}
+
+.mono{
+  font-family:'Martian Mono',monospace;
+  font-variation-settings:'wdth' 75,'wght' 400;
+  letter-spacing:.14em;text-transform:uppercase;
+}
+
+.body{
+  font-variation-settings:'opsz' 14,'wdth' 100,'wght' 350;
+  font-size:9.6pt;line-height:1.62;
+  break-inside:avoid;page-break-inside:avoid;
+  orphans:3;widows:3;
+}
+.body + .body{margin-top:1.05em}
+.lede{
+  font-variation-settings:'opsz' 32,'wdth' 100,'wght' 300;
+  font-size:15pt;line-height:1.34;letter-spacing:-.01em;
+}
+
+.num{font-family:'Martian Mono',monospace;font-variation-settings:'wdth' 75,'wght' 600;letter-spacing:.06em}
+
+/* ---------- rose ---------- */
+.rose{position:absolute;pointer-events:none}
+
+/* ---------- pending fact slots (scaffolding, stripped on final) ---------- */
+.slot{
+  font-family:'Martian Mono',monospace;
+  font-variation-settings:'wdth' 75,'wght' 500;
+  font-size:7pt;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mala);
+}
+.flash .slot{color:var(--bottle)}
+
+/* ---------- rules (hairlines only, never boxes) ---------- */
+.rule{height:1px;background:var(--mala);border:0}
+.rule.acid{background:var(--acid)}
+.flash .rule{background:var(--void)}
+
+/* ---------- table 01 ---------- */
+table{width:100%;border-collapse:collapse}
+thead th{
+  font-family:'Martian Mono',monospace;
+  font-variation-settings:'wdth' 75,'wght' 600;
+  font-size:6.4pt;letter-spacing:.12em;text-transform:uppercase;
+  text-align:left;padding:0 8px 7px 0;vertical-align:bottom;
+  color:var(--mala);border-bottom:1px solid var(--mala);
+}
+tbody td{
+  font-size:7.2pt;padding:4px 7px 4px 0;vertical-align:top;
+  border-bottom:1px solid rgba(0,178,79,.28);
+}
+tbody td:first-child{
+  font-variation-settings:'opsz' 14,'wdth' 75,'wght' 600;
+  text-transform:uppercase;letter-spacing:.04em;font-size:7pt;
+}
+tbody td:not(:first-child){font-family:'Martian Mono',monospace;font-variation-settings:'wdth' 75,'wght' 400;letter-spacing:0;font-size:6.1pt}
+tbody td i{font-style:normal;color:var(--mala);opacity:.75}
+tr{break-inside:avoid;page-break-inside:avoid}
+
+@media print{
+  h1,h2,.d,.sec{break-after:avoid;page-break-after:avoid}
+  p{orphans:3;widows:3}
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== 01 COVER ==================== -->
+<div class="page">
+  <img class="rose" src="assets/rose-cover.svg"
+       style="width:196mm;top:52mm;left:74mm;opacity:.95">
+
+  <div style="grid-column:1/13;grid-row:1/2;display:flex;justify-content:space-between;align-items:start;padding:13mm 13mm 0">
+    <div class="mono" style="font-size:8pt;color:var(--mala)">AEDIFICARE</div>
+    <div class="mono" style="font-size:8pt;color:var(--mala)">EDITION&nbsp;02</div>
+  </div>
+
+  <div style="grid-column:1/13;grid-row:4/9;align-self:center;padding-left:13mm">
+    <div class="d" style="font-size:104pt;margin-left:-6mm">THE</div>
+    <div class="d wide" style="font-size:104pt;margin-left:-6mm">SUBTRAC<span class="crop" style="letter-spacing:-.06em">TION</span></div>
+  </div>
+
+  <div style="grid-column:1/8;grid-row:10/12;padding-left:13mm">
+    <div class="rule acid" style="width:44mm;height:2px;margin-bottom:6mm"></div>
+    <div class="lede" style="font-size:13pt">
+      A processor was built, then deliberately reduced, then sold at a quarter
+      of its worth to people solving a puzzle that no longer exists.
+      The reduction is the product.
+    </div>
+  </div>
+
+  <div style="grid-column:1/13;grid-row:12/13;align-self:end;padding:0 13mm 12mm;display:flex;justify-content:space-between;align-items:end">
+    <div class="mono" style="font-size:6.4pt;color:var(--mala);line-height:1.9">
+      r&nbsp;=&nbsp;cos(k&theta;)<br>
+      SEED k=5/7/3 &nbsp; r=1.00/0.78/0.54 &nbsp; &phi;=0.000/0.410/0.930
+    </div>
+    <div class="mono" style="font-size:6.4pt;color:var(--mala)">NVIDIA&nbsp;CMP&nbsp;170HX&nbsp;/&nbsp;GA100</div>
+  </div>
+</div>
+
+<!-- ==================== 02 THESIS (FLASH / SLAP) ==================== -->
+<div class="page flash">
+  <div style="grid-column:1/13;grid-row:1/2;padding:13mm 13mm 0">
+    <div class="mono" style="font-size:7pt;color:var(--bottle)">THESIS</div>
+  </div>
+  <div style="grid-column:1/13;grid-row:2/13;padding-left:13mm;align-self:center">
+    <div class="d thin" style="font-size:62pt;color:var(--void);margin-left:-5mm">
+      THE MOST<br>EXPENSIVE<br>ENGINEERING<br>IN A MODERN<br>PROCESSOR IS<br>THE ENGINEERING<br>THAT TAKES<br><span class="crop">THINGS AWAY.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 02B THESIS BODY ==================== -->
+<div class="page">
+  <div style="grid-column:1/13;grid-row:1/2;padding:13mm 13mm 0">
+    <div class="mono" style="font-size:7pt;color:var(--mala)">00&nbsp;&nbsp;/&nbsp;&nbsp;THE ARGUMENT</div>
+  </div>
+
+  <div style="grid-column:1/11;grid-row:2/5;padding-left:13mm;align-self:center">
+    <div class="d" style="font-size:50pt;margin-left:-4mm">THE MARGIN<br>MOVED OUT OF<br><span style="color:var(--acid)">THE MAKING</span>.</div>
+  </div>
+
+  <div style="grid-column:1/7;grid-row:5/13;padding-left:13mm">
+    <div class="rule" style="width:30mm;margin-bottom:6mm"></div>
+    <p class="body">
+      Fabrication is the part everyone photographs. Cleanrooms, lithography,
+      a wafer held up to a light. It is also the part that has stopped
+      differentiating anyone, because four companies can do it and three of
+      them buy their machines from the same Dutch supplier.
+    </p>
+    <p class="body">
+      The margin no longer sits in the making. It sits in the permissions.
+      A modern accelerator ships with capability physically present and
+      administratively withheld, and the price of the product is set by how
+      much of itself the buyer is allowed to use.
+    </p>
+    <p class="body">
+      This is not a claim that requires trust. The evidence is purchasable.
+      When the cryptocurrency market collapsed it stranded a very large
+      number of processors whose only purpose had been to be deliberately
+      worse than their own silicon, and those processors are now cheap
+      enough to buy and examine.
+    </p>
+  </div>
+
+  <div style="grid-column:8/13;grid-row:8/13;padding-right:13mm;align-self:center">
+    <p class="body" style="font-size:8.4pt;color:var(--mala)">
+      What follows is a reading of one such processor. It was chosen because
+      it is the least subtle example available, and because anyone who
+      doubts the reading can buy the evidence and check.
+    </p>
+  </div>
+</div>
+
+<!-- ==================== 03 SECTION 01 ==================== -->
+<div class="page">
+  <img class="rose" src="assets/rose-div-1.svg"
+       style="width:150mm;top:-38mm;right:-42mm;opacity:.55">
+
+  <div style="grid-column:1/13;grid-row:1/2;padding:13mm 13mm 0">
+    <div class="mono" style="font-size:7pt;color:var(--mala)">01&nbsp;&nbsp;/&nbsp;&nbsp;THE PRICE OF A DEAD IDEA</div>
+  </div>
+
+  <div style="grid-column:1/10;grid-row:3/6;padding-left:13mm;align-self:center">
+    <div class="d" style="font-size:62pt;margin-left:-4mm">SEPTEMBER<br>FIFTEENTH,<br><span class="num" style="font-size:62pt;color:var(--acid);letter-spacing:-.01em">2022</span></div>
+  </div>
+
+  <div style="grid-column:1/7;grid-row:7/13;padding-left:13mm">
+    <div class="rule" style="width:30mm;margin-bottom:6mm"></div>
+    <p class="body">
+      Ethereum stopped using proof of work. The network no longer needed
+      anyone to solve anything, and the entire global apparatus assembled to
+      solve it became, within a single day, an inventory problem.
+    </p>
+    <p class="body">
+      Gaming cards had somewhere to go. They went back to the shelves they
+      had been scalped from, and prices fell, and the world moved on.
+      The purpose-built mining hardware had nowhere. It had no display
+      outputs, no market outside the one that had just closed, and a
+      manufacturer with no incentive to help it find another.
+    </p>
+    <p class="body">
+      It had launched at roughly <span class="num">$4,299</span>. It now
+      moves on the secondary market between <span class="num">$400</span>
+      and <span class="num">$800</span>, and the only reason it recovered
+      that far is that a different industry worked out what was underneath
+      it. NVIDIA has never published a production figure, so the size of the
+      stranded inventory is inferred from liquidation volume rather than
+      known.
+    </p>
+  </div>
+
+  <div style="grid-column:8/13;grid-row:9/13;align-self:end;padding:0 13mm 13mm 0">
+    <p class="body" style="font-size:8.4pt;color:var(--mala)">
+      The card had been sold at a premium on the explicit promise that it
+      could do one thing well and nothing else at all. When the one thing
+      ended, the promise held.
+    </p>
+  </div>
+</div>
+
+<!-- ==================== 04 SECTION 02 ==================== -->
+<div class="page bottle">
+  <div style="grid-column:1/13;grid-row:1/2;padding:13mm 13mm 0">
+    <div class="mono" style="font-size:7pt;color:var(--acid)">02&nbsp;&nbsp;/&nbsp;&nbsp;THE DIE</div>
+  </div>
+
+  <div style="grid-column:1/11;grid-row:2/5;padding-left:13mm;align-self:center">
+    <div class="d wide" style="font-size:54pt;margin-left:-4mm">IT IS THE SAME<br>PIECE OF SILICON.</div>
+  </div>
+
+  <div style="grid-column:1/7;grid-row:6/13;padding-left:13mm">
+    <div class="rule" style="width:30mm;margin-bottom:6mm"></div>
+    <p class="body">
+      The processor inside the mining card is GA100. It is the processor
+      inside the A100, which is the accelerator that trained most of what
+      the public now calls artificial intelligence.
+    </p>
+    <p class="body">
+      GA100 is <span class="num">826</span> square millimetres of seven
+      nanometre silicon carrying <span class="num">54.2</span> billion
+      transistors. Eight graphics processing clusters. Up to
+      <span class="num">128</span> streaming multiprocessors,
+      <span class="num">8,192</span> single precision cores and
+      <span class="num">512</span> third generation tensor cores, feeding a
+      <span class="num">40</span> megabyte level two cache.
+    </p>
+    <p class="body">
+      It cannot draw anything. There are no ray tracing units and no display
+      engine, because nothing it was designed for involves a screen. It
+      multiplies matrices, which is the only operation deep learning
+      performs in quantity, and it does so against stacked high bandwidth
+      memory sitting on the same interposer rather than scattered across a
+      board.
+    </p>
+    <p class="body">
+      The mining card carries the GA100-105F-A1 bin. Seventy of the
+      <span class="num">128</span> streaming multiprocessors are active,
+      giving <span class="num">4,480</span> single precision cores and
+      <span class="num">280</span> tensor cores, clocked at
+      <span class="num">1140</span> base and <span class="num">1410</span>
+      boost against a <span class="num">4,096</span>-bit memory interface.
+      That is a harvested die. Nothing about it is remarkable yet.
+    </p>
+  </div>
+
+  <div style="grid-column:8/13;grid-row:7/12;padding-right:13mm">
+    <div class="mono" style="font-size:6.4pt;color:var(--acid);margin-bottom:4mm">SAME DIE, DIFFERENT PERMISSIONS</div>
+    <p class="body" style="font-size:8.4pt">
+      Two products. One design. The distance between them is not
+      manufacturing. It is configuration, and configuration is written
+      after the wafer is finished.
+    </p>
+  </div>
+</div>
+
+<!-- ==================== 05 SECTION 03 ==================== -->
+<div class="page">
+  <img class="rose" src="assets/rose-div-2.svg"
+       style="width:168mm;bottom:-56mm;left:-48mm;opacity:.5">
+
+  <div style="grid-column:1/13;grid-row:1/2;padding:13mm 13mm 0">
+    <div class="mono" style="font-size:7pt;color:var(--mala)">03&nbsp;&nbsp;/&nbsp;&nbsp;WHAT WAS REMOVED</div>
+  </div>
+
+  <div style="grid-column:1/11;grid-row:2/4;padding-left:13mm;align-self:center">
+    <div class="d" style="font-size:46pt;margin-left:-4mm">THREE CUTS,<br>NONE OF THEM<br><span style="color:var(--acid)">ACCIDENTS</span>.</div>
+  </div>
+
+  <div style="grid-column:1/7;grid-row:4/13;padding-left:13mm">
+    <p class="body">
+      The restrictions fall into three categories, and the categories matter
+      more than the numbers, because each one is enforced by a different
+      mechanism with a different degree of permanence.
+    </p>
+    <p class="body">
+      <strong style="font-variation-settings:'wdth' 75,'wght' 700">Memory geometry.</strong>
+      The firmware reports a smaller pool than the package physically
+      carries. The system believes the card, because the system has no
+      independent way to count.
+    </p>
+    <p class="body">
+      <strong style="font-variation-settings:'wdth' 75,'wght' 700">Compute throughput.</strong>
+      Tensor and floating point paths are throttled to a level that would
+      have been unremarkable on a desktop processor a decade earlier. The
+      units are present. They are not permitted to run.
+    </p>
+    <p class="body">
+      <strong style="font-variation-settings:'wdth' 75,'wght' 700">Host bandwidth.</strong>
+      The connection to the motherboard is held at an early generation and
+      a quarter of the standard lane width. This one is elegant, because a
+      training workload that cannot be fed is useless regardless of what the
+      cores are allowed to do.
+    </p>
+  </div>
+
+  <div style="grid-column:8/13;grid-row:4/13;padding-right:13mm">
+    <p class="body">
+      The figures. Memory reports <span class="num">8</span> gigabytes
+      across a <span class="num">4,096</span>-bit bus sustaining
+      <span class="num">1.49</span> terabytes per second. Four active
+      stacks of HBM2e, and HBM2e does not come in two gigabyte stacks.
+      The arithmetic is available to anyone who wants to do it.
+    </p>
+    <p class="body">
+      Compute is the clearer cut. The hardware specifies
+      <span class="num">12.63</span> teraflops of single precision. The card
+      delivers a reported <span class="num">0.39</span>. The cores are
+      present, clocked and counted. They are simply not permitted to run.
+    </p>
+    <p class="body">
+      Host bandwidth sits at PCIe <span class="num">1.0</span> by
+      <span class="num">four</span> lanes, against a slot rated for
+      <span class="num">4.0</span> by <span class="num">sixteen</span>.
+    </p>
+    <p class="body">
+      Three mechanisms hold the cuts in place. The VBIOS is signed. The
+      enterprise driver refuses the card outright. The third is reported to
+      be one time programmable fuses burned at manufacture, and if that
+      report is correct then the limits are not reversible in software at
+      all, only worked around. This edition names that third mechanism as
+      reported rather than established, because the difference between a
+      fuse and a firmware rule is the difference between a permanent
+      decision and a revocable one.
+    </p>
+    <div class="rule" style="width:24mm;margin:8mm 0 6mm"></div>
+    <p class="body" style="font-size:8.4pt;color:var(--mala)">
+      A lock burned into the die at manufacture and a lock written in
+      firmware are the same lock to a customer and entirely different locks
+      to an engineer.
+    </p>
+  </div>
+</div>
+
+<!-- ==================== 06 SECTION 04 ==================== -->
+<div class="page bottle">
+  <div style="grid-column:1/13;grid-row:1/2;padding:13mm 13mm 0">
+    <div class="mono" style="font-size:7pt;color:var(--acid)">04&nbsp;&nbsp;/&nbsp;&nbsp;BINNING IS NOT THIS</div>
+  </div>
+
+  <div style="grid-column:1/12;grid-row:3/6;padding-left:13mm;align-self:center">
+    <div class="d thin" style="font-size:40pt;margin-left:-3mm">
+      SALVAGE ASKS WHAT<br>STILL WORKS.<br>SEGMENTATION ASKS<br>WHAT THEY WILL PAY.
+    </div>
+  </div>
+
+  <div style="grid-column:1/7;grid-row:7/13;padding-left:13mm">
+    <div class="rule" style="width:30mm;margin-bottom:6mm"></div>
+    <p class="body">
+      An <span class="num">826</span> square millimetre die is enormous, and
+      at that size perfect yield is not a target anyone holds. A speck of
+      dust lands on a wafer, a few cores die, and the industry response is
+      sensible: disable the broken region and sell the chip as a lesser
+      part. This is binning. It is honest, it is efficient, and it is the
+      reason large processors are economically possible at all.
+    </p>
+    <p class="body">
+      Binning explains seventy active multiprocessors out of one hundred
+      and twenty eight. It does not explain a working memory controller
+      reporting a quarter of what it addresses. It does not explain a
+      functional interconnect held three generations back at a quarter of
+      its lanes. Nothing about a lithography defect selects a PCIe
+      generation.
+    </p>
+    <p class="body">
+      The distinction is the whole argument. One set of limits describes
+      damage. The other describes a decision, and the decision cost money
+      to implement, which means someone calculated that it would earn more
+      than it cost.
+    </p>
+  </div>
+
+  <div style="grid-column:8/13;grid-row:8/13;padding-right:13mm;align-self:center">
+    <div class="mono" style="font-size:6.4pt;color:var(--acid);margin-bottom:4mm">THE TEST</div>
+    <p class="body" style="font-size:8.4pt">
+      Ask whether the silicon under the limit still works. If it does, the
+      limit was never damage. It was a price, and burning it into a fuse
+      makes it a permanent one rather than an honest one.
+    </p>
+  </div>
+</div>
+
+<!-- ==================== 07 SECTION 05 ==================== -->
+<div class="page">
+  <img class="rose" src="assets/rose-div-3.svg"
+       style="width:140mm;top:-30mm;right:-40mm;opacity:.5">
+
+  <div style="grid-column:1/13;grid-row:1/2;padding:13mm 13mm 0">
+    <div class="mono" style="font-size:7pt;color:var(--mala)">05&nbsp;&nbsp;/&nbsp;&nbsp;OLDER THAN SILICON</div>
+  </div>
+
+  <div style="grid-column:1/10;grid-row:2/4;padding-left:13mm;align-self:center">
+    <div class="d" style="font-size:56pt;margin-left:-4mm;color:var(--acid)">NOTHING HERE<br>IS NEW.</div>
+  </div>
+
+  <div style="grid-column:1/7;grid-row:5/13;padding-left:13mm">
+    <p class="body">
+      IBM shipped mainframes with processors already installed and dormant,
+      activated by a licence key when the customer's workload grew. The
+      metal arrived on day one. The permission arrived when the invoice
+      cleared. The industry called it Capacity on Demand and the customers
+      accepted it, because the alternative was a second delivery truck and
+      a planned outage.
+    </p>
+    <p class="body">
+      Intel sold a consumer processor in <span class="num">2011</span> with
+      cache and threading disabled, and a card in the retail box that
+      unlocked them for roughly fifty dollars. The programme lasted about a
+      year. It was withdrawn not because it failed technically but because
+      buying a scratch card to finish a product you already owned turned
+      out to be intolerable when stated that plainly.
+    </p>
+    <p class="body">
+      Tesla shipped battery packs that were physically larger than the
+      capacity the car would use, unlockable later for a fee. Some
+      manufacturers have tried the same arrangement with seat heaters,
+      which is the version that made newspapers, because a heating element
+      is easy to picture and a memory controller is not.
+    </p>
+    <p class="body">
+      The mining card belongs to this lineage. What distinguishes it is the
+      absence of the upgrade path. IBM would sell you the key. Intel would
+      sell you the key. Here there was never a key, because the entire
+      point was that this customer must never become that customer.
+    </p>
+  </div>
+
+  <div style="grid-column:8/13;grid-row:8/13;padding-right:13mm;align-self:end">
+    <div class="rule" style="width:24mm;margin-bottom:6mm"></div>
+    <p class="body" style="font-size:8.4pt;color:var(--mala)">
+      Every precedent above offered a way to pay for the rest of the
+      machine. This one offered nothing, which is what makes it the purest
+      specimen of the practice rather than the worst.
+    </p>
+
+  </div>
+</div>
+
+<!-- ==================== 08 SECTION 06 ==================== -->
+<div class="page bottle">
+  <div style="grid-column:1/13;grid-row:1/2;padding:13mm 13mm 0">
+    <div class="mono" style="font-size:7pt;color:var(--acid)">06&nbsp;&nbsp;/&nbsp;&nbsp;WHAT WAS UNDONE</div>
+  </div>
+
+  <div style="grid-column:1/11;grid-row:2/5;padding-left:13mm;align-self:center">
+    <div class="d wide" style="font-size:50pt;margin-left:-4mm">PEOPLE WENT<br>LOOKING FOR<br>THE REST OF IT.</div>
+  </div>
+
+  <div style="grid-column:1/7;grid-row:6/13;padding-left:13mm">
+    <div class="rule" style="width:30mm;margin-bottom:6mm"></div>
+    <p class="body">
+      Cards this cheap attract a particular kind of attention. Once the
+      price fell below the cost of caring whether it survived, a community
+      formed around the question of how much of the original processor was
+      still reachable.
+    </p>
+    <p class="body">
+      What that community has recovered is contested. Claims range from
+      restored host bandwidth to substantially enlarged memory pools, and
+      they arrive mostly as forum reports rather than reproducible method,
+      with an unknown number of dead cards behind them going unposted.
+      This edition does not adjudicate those claims, and anyone who tells
+      you the result is settled is selling something.
+    </p>
+    <p class="body">
+      The attempt is the finding. People do not spend months attacking
+      firmware to reach hardware that is not there. The effort is evidence
+      about what the package contains, independent of whether any given
+      attempt succeeded.
+    </p>
+    <p class="body">
+      This edition does not publish a procedure. The interesting finding is
+      not how to perform the modification. It is what the modification
+      proves about where the value in the original product was located.
+    </p>
+  </div>
+
+  <div style="grid-column:8/13;grid-row:7/13;padding-right:13mm">
+    <div class="mono" style="font-size:6.4pt;color:var(--acid);margin-bottom:4mm">A NOTE ON LEGALITY</div>
+    <p class="body" style="font-size:8pt">
+      In the United States the governing provision is section
+      <span class="num">1201</span> of the Digital Millennium Copyright Act.
+      In Canada it is the technological protection measure provisions added
+      to the Copyright Act by the Copyright Modernization Act. Both carry
+      repair related exemptions, both have widened, and neither settles
+      whether an accelerator you already own sits inside them.
+    </p>
+    <p class="body" style="font-size:8pt">
+      This edition describes the locks. It does not open them.
+    </p>
+  </div>
+</div>
+
+<!-- ==================== 09 TABLE 01 ==================== -->
+<div class="page">
+  <div style="grid-column:1/13;grid-row:1/2;padding:13mm 13mm 0">
+    <div class="mono" style="font-size:7pt;color:var(--mala)">TABLE&nbsp;01&nbsp;&nbsp;/&nbsp;&nbsp;THE DELTA</div>
+  </div>
+
+  <div style="grid-column:1/11;grid-row:2/3;padding-left:13mm">
+    <div class="d" style="font-size:44pt;margin-left:-3mm;color:var(--acid)">ONE DIE,<br>FIVE PRICES.</div>
+  </div>
+
+  <div style="grid-column:1/13;grid-row:3/12;padding:0 13mm">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:23%">&nbsp;</th>
+          <th style="width:14%">GA100 FULL DIE</th>
+          <th style="width:15%">A100 40GB PCIe</th>
+          <th style="width:16%">A100 80GB PCIe</th>
+          <th style="width:16%">CMP 170HX STOCK</th>
+          <th style="width:16%">CMP 170HX MODIFIED</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Process</td><td>TSMC N7</td><td>TSMC N7</td><td>TSMC N7</td><td>TSMC N7</td><td>TSMC N7</td></tr>
+        <tr><td>Die area</td><td>826 mm&sup2;</td><td>826 mm&sup2;</td><td>826 mm&sup2;</td><td>826 mm&sup2;</td><td>826 mm&sup2;</td></tr>
+        <tr><td>Transistors</td><td>54.2 B</td><td>54.2 B</td><td>54.2 B</td><td>54.2 B</td><td>54.2 B</td></tr>
+        <tr><td>Die bin</td><td>GA100 full</td><td>GA100</td><td>GA100</td><td>GA100-105F-A1</td><td>GA100-105F-A1</td></tr>
+        <tr><td>GPCs</td><td>8</td><td>7</td><td>7</td><td>7</td><td>7</td></tr>
+        <tr><td>Streaming multiprocessors</td><td>128</td><td>108</td><td>108</td><td>70</td><td>70</td></tr>
+        <tr><td>FP32 cores</td><td>8,192</td><td>6,912</td><td>6,912</td><td>4,480</td><td>4,480</td></tr>
+        <tr><td>Tensor cores (3rd gen)</td><td>512</td><td>432</td><td>432</td><td>280</td><td>280</td></tr>
+        <tr><td>L2 cache</td><td>48 MB</td><td>40 MB</td><td>40 MB</td><td><i>check</i></td><td><i>check</i></td></tr>
+        <tr><td>Base / boost clock</td><td>n/a</td><td>1065 / 1410</td><td>1065 / 1410</td><td>1140 / 1410</td><td>1140 / 1410</td></tr>
+        <tr><td>Memory type</td><td>HBM2e</td><td>HBM2</td><td>HBM2e</td><td>HBM2e</td><td>HBM2e</td></tr>
+        <tr><td>Memory bus</td><td>6,144-bit</td><td>5,120-bit</td><td>5,120-bit</td><td>4,096-bit</td><td>4,096-bit</td></tr>
+        <tr><td>Memory reported</td><td>n/a</td><td>40 GB</td><td>80 GB</td><td>8 GB</td><td>unverified</td></tr>
+        <tr><td>Memory physical</td><td>n/a</td><td>40 GB</td><td>80 GB</td><td>&ge;32 GB (4 stacks)</td><td>&ge;32 GB</td></tr>
+        <tr><td>Bandwidth</td><td>n/a</td><td>1.56 TB/s</td><td>1.94 to 2.04 TB/s</td><td>1.49 TB/s</td><td>1.49 TB/s</td></tr>
+        <tr><td>FP32 theoretical</td><td>~20.9 TF</td><td>19.5 TF</td><td>19.5 TF</td><td>12.63 TF</td><td>12.63 TF</td></tr>
+        <tr><td>FP32 delivered</td><td>n/a</td><td>19.5 TF</td><td>19.5 TF</td><td>0.39 TF</td><td>unverified</td></tr>
+        <tr><td>Host interface</td><td>PCIe 4.0 x16</td><td>PCIe 4.0 x16</td><td>PCIe 4.0 x16</td><td>PCIe 1.0 x4</td><td>unverified</td></tr>
+        <tr><td>Display output</td><td>none</td><td>none</td><td>none</td><td>none</td><td>none</td></tr>
+        <tr><td>Board power</td><td>n/a</td><td>250 W</td><td>300 W</td><td>250 W</td><td>unverified</td></tr>
+        <tr><td>Price at launch</td><td>n/a</td><td>~$10,000 est</td><td>~$15,000 est</td><td>$4,299</td><td>n/a</td></tr>
+        <tr><td>Price today</td><td>n/a</td><td>n/a</td><td>n/a</td><td>$400 to $800</td><td>$400 to $800</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:7mm"><div class="mono slot" style="font-size:6.4pt">
+      FP32 THEORETICAL IS CORES &times; 2 &times; BOOST CLOCK. FP32 DELIVERED IS WHAT THE
+      CARD ACTUALLY RETURNS. THE DISTANCE BETWEEN THOSE TWO ROWS IS THE SUBJECT
+      OF THIS EDITION. CELLS MARKED CHECK OR UNVERIFIED ARE NOT YET SOURCED.
+    </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 10 CLOSE BODY ==================== -->
+<div class="page bottle">
+  <div style="grid-column:1/13;grid-row:1/2;padding:13mm 13mm 0">
+    <div class="mono" style="font-size:7pt;color:var(--acid)">07&nbsp;&nbsp;/&nbsp;&nbsp;THE LICENSING SURFACE</div>
+  </div>
+
+  <div style="grid-column:1/11;grid-row:2/5;padding-left:13mm;align-self:center">
+    <div class="d wide" style="font-size:48pt;margin-left:-4mm">A SPECIMEN,<br>NOT A SCANDAL.</div>
+  </div>
+
+  <div style="grid-column:1/7;grid-row:5/13;padding-left:13mm">
+    <div class="rule" style="width:30mm;margin-bottom:6mm"></div>
+    <p class="body">
+      The mining card is not a scandal. It is a specimen, and it is valuable
+      precisely because the company that made it had no reason to be subtle.
+      There was no consumer to reassure and no reviewer to satisfy. The
+      segmentation could be implemented openly, which means it can now be
+      read openly.
+    </p>
+    <p class="body">
+      What it records is a transition that has already happened everywhere
+      else and is simply easier to see here. The physical object arrives
+      complete. The commercial object is assembled afterwards, in firmware,
+      out of decisions about what the buyer has paid to be allowed to do.
+    </p>
+    <p class="body">
+      Every generation since has extended the practice rather than retreated
+      from it. The locks have moved further down, from driver into firmware
+      into fuses burned at manufacture, which is the direction you move a
+      lock when you have decided that the previous one was too easy to
+      reach.
+    </p>
+  </div>
+
+  <div style="grid-column:8/13;grid-row:9/13;padding-right:13mm;align-self:end">
+    <div class="mono" style="font-size:6.4pt;color:var(--acid);margin-bottom:4mm">WHAT THE SPECIMEN PROVES</div>
+    <p class="body" style="font-size:8.4pt">
+      That capability and permission are now separately priced, and only one
+      of them ships in the box.
+    </p>
+  </div>
+</div>
+
+<!-- ==================== 10B CLOSE (FLASH / SLAP) ==================== -->
+<div class="page flash">
+  <div style="grid-column:1/13;grid-row:2/12;padding-left:13mm;align-self:center">
+    <div class="d" style="font-size:74pt;color:var(--void);margin-left:-6mm">
+      YOU DO NOT<br>BUY A<br>PROCESSOR.<br>YOU BUY A LIST<br>OF PERMITTED<br><span class="crop">OPERATIONS.</span>
+    </div>
+  </div>
+  <div style="grid-column:1/13;grid-row:12/13;align-self:end;padding:0 13mm 12mm;display:flex;justify-content:space-between">
+    <div class="mono" style="font-size:6.4pt;color:var(--bottle)">AEDIFICARE&nbsp;/&nbsp;EDITION&nbsp;02</div>
+    <div class="mono" style="font-size:6.4pt;color:var(--bottle)">THE SUBTRACTION</div>
+  </div>
+</div>
+
+<!-- ==================== 11 DOVE ==================== -->
+<div class="page">
+  <div style="grid-column:3/11;grid-row:5/9;align-self:center;text-align:left;padding-left:13mm">
+    <div class="mono slot" style="font-size:7pt;line-height:2.2">
+      [ASSET SLOT] THE DOVE. ONCE PER SEQUENCE, FINAL SURFACE ONLY.<br>
+      ACID ON VOID. POINT CLOUD DERIVED FROM THE RHODONEA FIELD.<br>
+      NOT GENERATED HERE. SOURCE EXTERNALLY AND DROP IN.
+    </div>
+  </div>
+  <div style="grid-column:1/13;grid-row:12/13;align-self:end;padding:0 13mm 12mm">
+    <div class="mono" style="font-size:6.4pt;color:var(--mala)">r&nbsp;=&nbsp;cos(k&theta;)</div>
+  </div>
+</div>
+
+</body>
+</html>

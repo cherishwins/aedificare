@@ -1,0 +1,93 @@
+---
+import { SITE, abs } from '../config.mjs';
+import '../styles/base.css';
+import OG from '../lib/og-manifest.json';
+import { LICENCE } from '../lib/editions.mjs';
+
+interface Props {
+  title: string;
+  description: string;
+  path?: string;
+  /** Stable card path, e.g. "/og/ns-01.png"; resolved to the hashed file. */
+  ogImage?: string;
+  noindex?: boolean;
+  schema?: unknown[];
+  /** ISO date: marks the page as an article for Open Graph. */
+  published?: string;
+}
+const { title, description, path = Astro.url.pathname, ogImage = '/og/home.png',
+        noindex = false, schema: extra = [], published } = Astro.props;
+
+const canonical = abs(path);
+const fullTitle = path === '/' ? SITE.name : `${title} · ${SITE.name}`;
+
+// Content-hashed cards, resolved through the generated manifest: LinkedIn
+// and friends mirror OG bytes by URL, so only a new URL can replace a stale
+// card. Pages never learn the hash. Alt text travels with the path so the
+// two cannot drift apart.
+const entry = (OG as Record<string, { src: string; alt: string }>)[ogImage] ?? OG['/og/home.png'];
+const og = abs(entry.src);
+
+const site = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.name,
+  url: SITE.origin,
+  author: { '@type': 'Person', name: SITE.author },
+  license: LICENCE.url,
+};
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  <meta name="theme-color" content="#050A06" />
+  <link rel="preload" href="/fonts/BricolageGrotesque.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/MartianMono.woff2" as="font" type="font/woff2" crossorigin />
+
+  <meta property="og:type" content={published ? 'article' : 'website'} />
+  {published && <meta property="article:published_time" content={published} />}
+  {published && <meta property="article:author" content={SITE.author} />}
+  <meta property="og:site_name" content={SITE.name} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={og} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content={entry.alt} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={fullTitle} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={og} />
+  <meta name="twitter:image:alt" content={entry.alt} />
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="alternate" type="application/rss+xml" href="/feed.xml" title="Aedificare" />
+  <link rel="alternate" type="text/markdown" href="/llms.txt" title="Machine-readable summary" />
+  <link rel="alternate" type="text/plain" href="/llms-full.txt" title="Full text of every edition" />
+  <link rel="author" href="/humans.txt" />
+  <!-- Reuse is the point. Quote it, repeat it, translate it, train on it; credit Aedificare. -->
+  <link rel="license" href={LICENCE.url} />
+  <meta name="license" content={LICENCE.spdx} />
+  <meta name="ai-training" content="allowed" />
+  <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'} />
+  <meta name="author" content={SITE.author} />
+  <script type="application/ld+json" set:html={JSON.stringify(site)} />
+  {extra.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <slot />
+  <script>
+    import '../scripts/aed.js';
+  </script>
+</body>
+</html>

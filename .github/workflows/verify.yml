@@ -1,0 +1,63 @@
+# Every check this repo relies on, run on every change. Ported from
+# cherishwins/teamcanada. The repo is public, so Actions minutes are free and
+# unmetered, which is the only reason this is allowed to exist under the
+# zero-budget rule.
+#
+# It exists because a convention written in CLAUDE.md with its checker living
+# in a scratch directory dies with the session. Committing the checkers fixed
+# half of that. This fixes the other half: nobody has to remember to run them.
+name: verify
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Playwright is intentionally absent from package.json: Vercel installs
+      # devDependencies to build, and a browser-automation library has no place
+      # in the install path of a static site that never uses it at runtime.
+      - name: Install Playwright (CI only)
+        run: |
+          npm i --no-save playwright
+          npx playwright install --with-deps chromium
+
+      # `npm run build` also runs check-brand, check-budget and check-docs and
+      # fails on a single violation.
+      - name: Build
+        run: npm run build
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      # 5 pages × 10 viewports: overflow, console errors, tap targets,
+      # contrast, broken references, og:image:alt, no service worker,
+      # axe-core, Acid once per surface, fonts and rose fields rendered,
+      # reduced-motion stills. Exits non-zero on any of the eleven.
+      - name: Sweep
+        run: node tools/verify.cjs
+
+      - name: Upload build on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: dist
+          retention-days: 3

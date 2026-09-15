@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { PUBLISHED, LICENCE } from '../lib/editions.mjs';
+
+// The home is the one surface where the full house configuration runs, with
+// Acid on the k=5 curve: that is this surface's loud move, so the wordmark
+// stays Flash. Shock rose on the k=3 curve is its single appearance in this
+// sequence.
+const house = HOUSE.map((L, i) => ({ ...L, c: ['#CCFF00', '#00B24F', '#FF1F5A'][i], o: [0.95, 0.6, 0.8][i] }));
+
+---
+<Base title="Aedificare" description="Two editions. Twelve pages each." path="/" ogImage="/og/home.png">
+  <main id="main">
+    <section class="surface hero" aria-label="Aedificare">
+      <RoseField layers={house} seed={0.5} readout="k" class="rose hero-rose" />
+      <Masthead>
+        <span slot="right" class="mono readout">k = <output id="k" aria-live="off">5.000</output></span>
+      </Masthead>
+      <h1 class="display wordmark" data-flex="scroll">Aedificare</h1>
+      <p class="mono hero-line">Two editions · September 2026 · r = cos(kθ)</p>
+    </section>
+
+    {PUBLISHED.map((e, i) => (
+      <section class:list={['surface', i % 2 ? 'bottle' : 'void', 'edition']} aria-labelledby={e.code}>
+        <a class="grid block-link" href={e.href}>
+          <span class="c-full mono mal code">{e.code} · {e.dateLabel}</span>
+          <h2 class="c-full display" id={e.code} data-flex="cursor">{e.title}</h2>
+          <p class="c-wide lede">{e.lede}</p>
+        </a>
+      </section>
+    ))}
+
+    <footer class="foot mono">
+      <span>Aedificare · 2026 · <a href={LICENCE.url} rel="license">{LICENCE.name}</a></span>
+      <span>Mark seed AED-M-01 · k = 5</span>
+    </footer>
+  </main>
+</Base>
+
+<style is:global>
+  .hero-rose { width: max(100vw, 120vh); max-width: none; height: auto; left: 50%; top: 0; transform: translateX(-50%); }
+  .hero { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  /* The full house configuration, live, wider than any phone and cut by the
+     frame at the bottom where the wordmark crosses it. Global because the
+     svg belongs to a child component and scoped selectors never reach it. */
+  .hero .mast { position: relative; z-index: 2; }
+  /* The wordmark runs off the right edge on every viewport. That is the point. */
+  .wordmark { position: relative; z-index: 2; font-size: var(--fs-wordmark); margin-top: auto; margin-left: calc(var(--gutter) - .04em); white-space: nowrap; }
+  .hero-line { position: relative; z-index: 2; color: var(--malachite); padding: 24px var(--gutter) 28px; }
+  .edition .code { margin-bottom: -8px; }
+  .edition h2 { font-size: var(--fs-h2); max-width: 12ch; }
+  .edition .lede { margin-top: 8px; }
+  .bottle .code { color: var(--flash); }
+</style>

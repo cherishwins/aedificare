@@ -1,0 +1,9 @@
+/* TEAM */
+Author: Jesse James
+Site: aedificare.art
+
+/* SITE */
+Type: Bricolage Grotesque, Martian Mono (SIL Open Font Licence)
+Stack: Astro, static HTML, Vercel
+Rose: r = cos(kθ), computed live in the page
+Licence: CC BY 4.0

@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+---
+<Base title="404" description="Nothing at this address." noindex={true}>
+  <main id="main">
+    <section class="surface flash" style="min-height:100svh">
+      <Masthead />
+      <div class="grid">
+        <h1 class="c-full display" style="font-size:var(--fs-cover)">Nothing<br>here.</h1>
+        <a class="c-full block-link mono-b" href="/">Home</a>
+      </div>
+    </section>
+  </main>
+</Base>

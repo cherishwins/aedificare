@@ -4,221 +4,290 @@
 > only memory. Record decisions AND the reasoning, especially the ones that
 > will look arbitrary later. Update it in the same commit as the change.
 >
-> Rule for this file: every convention it claims must be enforced by something
-> runnable. If a rule cannot fail a build, it says so and names it a human duty.
+> Rule for this file: every convention it claims is enforced by something
+> runnable, named beside it. If a rule cannot fail a build, it says so and
+> names it a human duty. `tools/check-docs.cjs` verifies every backticked
+> path here exists; the prose still cannot be verified, so keep it honest.
 
-## Status — 2026-09-15, commit one
+## What this is
 
-Nothing is built. The repo held a one-line README and a Next.js-flavoured
-.gitignore from GitHub's template. This file is the first commit, before any
-code, because the build is blocked on answers the owner has not yet given (see
-**Open — blocking**). Do not build past those questions. Do not invent answers
-to them.
+**Aedificare** at **aedificare.art**. Jesse James's loud-power brand, issuing
+numbered editions. What the entity *does* is undisclosed on every public
+surface, by brand rule. The site is an index of editions and the editions
+themselves, nothing else; there is no live data spine and no filler section
+pretending to be one.
 
-## What this is (as far as is known)
+Licence: **CC BY 4.0** on the writing. The owner's instruction was that
+crawlers and models should be able to "cite, use and repeat" the work, and
+BY is exactly that: reuse freely, credit Aedificare. CC0 is the alternative
+if the credit requirement should go; it is one line in `src/lib/editions.mjs`.
 
-**Aedificare** — Jesse James's loud-power brand. What it *does* is undisclosed
-on every public surface by brand rule, and as of this commit is also not yet
-disclosed to the builder. The observable output is numbered editorial dossiers
-under the Aedificare mark:
+Shipped (2026-09-15):
 
-| Piece | What | Date | State |
-|---|---|---|---|
-| Edition 02 · *The Subtraction* | 13-page A4 dossier on GPU market segmentation (NVIDIA CMP 170HX / GA100) | Sep 2026 | draft: table cells marked "check"/"unverified", dove slot empty, PDF shipped in the wrong fonts (below) |
-| NS-01 · *The Hand in the Water* | 12 pages on the OpenAI Navier–Stokes claim | 11 Sep 2026 | complete, self-contained HTML |
-| NS-02 · *The Closest Humans* | 12 pages, "amendment to NS-01" | 13 Sep 2026 | complete, self-contained HTML |
+| Route | What | State |
+|---|---|---|
+| `/` | The index: live house-configuration rose, cropped wordmark, the editions | live |
+| `/ns-01` | NS-01 · *The Hand in the Water* (11 Sep 2026) | live |
+| `/ns-02` | NS-02 · *The Closest Humans* (13 Sep 2026), amendment to NS-01 | live |
+| `/edition-02` | Edition 02 · *The Subtraction* | **draft**: noindex, unlinked, out of sitemap/robots/feed |
+| `/404` | | live |
+| `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/ai.txt` `/humans.txt` | discoverability | generated or static |
+| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` | the print editions as uploaded | as uploaded |
 
-Two numbering series exist (Edition NN and NS-NN). Whether that is intended is
-an open question.
+## Brand — source of truth, and the overrides
 
-## Brand — source of truth
+The **`aedificare-brand-kit` skill** (Anthropic skills, synced) is the source
+of truth. Read it at the start of every session. Its values are deliberately
+NOT restated here or in code comments: a restated value drifts, the skill
+does not. `src/styles/base.css` names the tokens so CSS can reference them;
+that is a reference, not documentation.
 
-The **`aedificare-brand-kit` skill** (Anthropic skills, synced). Read it at the
-start of every session. Its values are deliberately NOT restated here or in
-code comments: a restated value drifts, the skill does not. This file records
-only what the kit does not settle and any decision taken against it.
+**Overrides, all owner decisions, all recorded so nobody "fixes" them back:**
 
-Where the kit's rules are machine-checkable they will be enforced by a build
-step (planned as tools/check-brand.cjs, running inside `npm run build` once it
-exists). Planned checks, so the next session builds the checker rather than
-re-deciding:
+1. **There is a mark.** The kit says the rose is a generator, not a logo,
+   and forbids a logo. The owner's position (2026-09-15): a brand without a
+   mark cannot establish a foothold; avatar, favicon and icon slots demand
+   one, and the kit's own model brand, Off-White, has one. The builder
+   agreed the kit was wrong on this point and right on *how*: the mark is
+   **one rhodonea, k=5, one turn, stroke only, frozen at seed AED-M-01**,
+   computed by `src/lib/rose.mjs` like every other rose, never drawn. It is
+   `src/components/Mark.astro` on every masthead, `public/favicon.svg` and
+   the PNG icons from `tools/generate-marks.mjs`. The dove stays the
+   once-per-sequence resolve and is NOT the mark: at 32px a dove is a bird,
+   and the world has one of those. **The kit skill should be edited to say
+   this**; until it is, this paragraph wins.
+2. **OG cards carry the mark and the name** at masthead size, top-left. The
+   kit says "no logo lockup"; the owner wants the foothold. Everything else
+   about the cards follows the kit.
+3. **The width axis animates.** The kit says only `transform` and `opacity`
+   animate, and also says the width axis must move with scroll or cursor.
+   The axis wins, on one element per surface, via `font-variation-settings`
+   on a custom property; it is the kit's own signature move.
+4. **"Surface" means a `.surface` element**, not the page. The kit's unit is
+   per surface (a slide, an A4 page). On a scrolling page a full-bleed
+   ground section is the analogue; one Acid element at scale per page would
+   leave a twelve-section dossier dead below its cover. Enforced by the
+   Acid probe in `tools/verify.cjs` (text ≥ 24px or an SVG stroke ≥ 200px
+   counts as "at scale"; 11px labels and 2px rules do not).
+5. **Theta falls back.** Neither Bricolage Grotesque nor Martian Mono has
+   Greek, so the θ in `r = cos(kθ)` renders from the system mono stack. One
+   glyph, and the same thing the uploaded PDFs already did. Alternatives
+   (spelling "theta", merging a glyph into a variable font, an inline SVG
+   glyph) were all worse than one honest fallback.
 
-- Acid at scale at most once per page — count elements whose computed colour is
-  Acid above a display font-size, per built page.
-- No `border-radius` above 2px, no `box-shadow`, no `filter: blur`, no
-  `gradient(` anywhere in shipped CSS.
-- No italic and no underline on display type — computed-style probe.
-- Motion durations only 120ms or 900ms; no default `ease` — grep shipped CSS.
-- No em-dash (U+2014) in built copy — house rule carried from the kit.
-- `prefers-reduced-motion` static render must exist for every rose field —
-  the sweep runs once with the media feature emulated.
+**Enforced by machine** (`tools/check-brand.cjs` in the build, on the built
+output): no radius above 2px, no shadow, blur, backdrop or gradient, no
+italic or underline (properties and tags), never centred, durations only
+120ms or 900ms and nothing that eases, no third typeface, no em-dash, no
+exclamation in a heading, no emoji, no sentence "Aedificare is", none of
+the banned self-praise adjectives. `tools/verify.cjs` adds the
+computed-style rules: contrast, Acid once per surface, the brand faces
+actually loaded, every rose field live, every field's reduced-motion still.
 
-**Human duties** (cannot fail a build, so they are named here as duties):
-one loud move per surface; never explain what the entity does; twelve words
-maximum in display copy; the dove once per *sequence* (a checker can count
-doves per page, but "sequence" is editorial); no building pun; no self-praise
-adjectives. Review these by eye on every PR.
+**Human duties** (cannot fail a build; review by eye on every PR): one loud
+move per surface; never explain what the entity does; twelve words maximum
+in display copy; the dove once per *sequence* (the sweep can count doves per
+page, "sequence" is editorial); no building pun; no tagline; no call to
+action. The kit says no tagline and the site has none; the owner has asked
+for a shortlist for bios and cards, which is a separate deliverable.
 
-## Findings from the uploads — mistakes already made once
+## Stack
 
-1. **Edition 02's PDF shipped in Liberation Sans and DejaVu Sans Mono, not
-   Bricolage Grotesque and Martian Mono.** Cause: `fonts/local-fonts.css`
-   in the source zip declares `src: url(fonts/bricolage-1.woff2)`, but CSS
-   resolves `url()` relative to the *stylesheet*, which already lives in
-   `fonts/`, so the browser asked for `fonts/fonts/…` and fell back. Verified
-   two ways: rendering `ed02.html` in Chromium here shows fallback faces, and
-   the PDF's embedded font table lists only LiberationSans and DejaVuSansMono.
-   The NS-01/NS-02 PDFs are fine (fonts are base64-inlined). Lesson: **the
-   font check is part of the render script**, `document.fonts.ready` proves
-   nothing if the face never loaded. Assert `document.fonts.check()` for each
-   family before exporting.
-2. NS-01/NS-02's PDFs carry no Bricolage in their font table either, only a
-   DejaVuSansMono fallback for one glyph. That is Chromium's PDF backend
-   turning variable-font text into outlines. Consequence: those PDFs are most
-   likely not text-selectable. Not a site problem; a PDF-pipeline note.
-3. **The NS documents quietly introduced values the kit does not have:**
-   `--dim #5E7A63` "for rules only" but used for footer and caption text,
-   tinted off-whites `#E6EFE7` `#BFD0C2` `#A9BDAC` `#DCE8DD` for body and
-   rails, `#0E6B38` as a third curve colour, `#2E4A36` for rules. The kit says
-   the only non-green values are Flash and Void, and no grey. Decision pending
-   (Q9 below); default is kit values only.
-4. **Contrast, computed (WCAG relative luminance), text on each ground:**
-
-   | fg \ bg | Void | Bottle | Flash |
-   |---|---|---|---|
-   | Acid | 16.98 | 10.79 | 1.18 |
-   | Malachite | 7.11 | **4.52** | 2.81 |
-   | Flash | 19.95 | 12.68 | — |
-   | Shock rose | 5.32 | **3.38** | 3.75 |
-   | `--dim` (NS docs) | **4.22** | 2.68 | 4.73 |
-
-   **Bottle is the lightest dark ground, so Bottle is the calibration
-   surface, never Void.** Malachite as small text on Bottle sits on the AA
-   line at 4.52:1; Shock rose as small text on Bottle fails; the NS docs'
-   `--dim` fails on Void at the 7pt it was used at. Acid on Flash and
-   Malachite on Flash are unusable for text and must only ever be hairlines
-   or display-size on white. `tools/verify.cjs` will enforce this on the
-   built DOM; this table is so nobody retunes a token against Void again.
-5. **Reusable code in the uploads, to port rather than rewrite:** `rhodonea()`
-   (polar sampler to SVG path), `roseField()` (three curves, 5.5 s cycle,
-   `k` drift ±0.085, `prefers-reduced-motion` → static seed, `?print=1` →
-   still), `doveOfRoses()` (rose field clipped to a silhouette, acid, edge
-   shrink). `rose.py` is the print-still generator with its seed log. The
-   house configuration in the kit and the code agree.
-6. Two of the four uploads were duplicates: `files_33.zip` contained the same
-   Edition 02 PDF and source zip as the two standalone uploads (md5 identical).
-
-## Ported from cherishwins/teamcanada — read its CLAUDE.md in full first
-
-Its CLAUDE.md (30 kB, read 2026-09-15) is a list of expensive mistakes. The
-ones that transfer, and how:
-
-- **What is GENERATED stays true; what is TYPED drifts.** Never restate a
-  figure in a static file; link to the thing that generates it.
-- **A checker that only passes where its author ran it is not a checker.**
-  Reproduce the deploy environment. Their `check-docs` broke production once
-  by asserting paths `.vercelignore` had excluded; the fix reads the ignore
-  file. `verify.cjs` serves the built output directory through Playwright
-  request interception so it tests the bytes Vercel publishes.
-- **Playwright is NOT a package.json dependency.** Vercel installs
-  devDependencies; CI installs Playwright with `--no-save`. `axe-core` is a
-  devDependency (dev-only, never reaches a page). Same here.
-- **Never publish a number assembled from two sources or two dates.**
-- **OG cards are content-hashed** (`/og/name.<sha8>.png`) via a generated
-  manifest carrying path and alt together, because LinkedIn mirrors OG bytes
-  by URL and a re-scrape cannot refresh a stale card. Ported as-is; the card
-  design follows the kit's OG spec instead.
-- `build.inlineStylesheets: 'always'` was *measured* there to be smaller on
-  first load for a share-link site. Re-measure here before assuming.
-- `check-docs.cjs`: every backticked path this file names under `src/`,
-  `tools/`, `public/`, `.github/` must exist. Runs in the build. Until it is
-  ported, planned paths in this file are written **without** backticks.
-
-To port verbatim (adapting page lists and names only): `tools/verify.cjs`,
-`tools/check-docs.cjs`, `.github/workflows/verify.yml`, the
-`tools/generate-og.cjs` → `src/lib/og-manifest.json` → `Base.astro` pattern.
+- **Astro 7.3**, `output: 'static'`, **no adapter**: there are no API routes,
+  so `@astrojs/vercel` would be a dependency that serves nothing. Vercel
+  detects Astro and publishes `dist/`; `tools/verify.cjs` sweeps that same
+  directory so the check runs on the bytes that ship.
+- **Vercel**, team "Jesse James' projects" (`team_yBUeW5WttkjSHbHuMRF0ptM5`,
+  Hobby, free). **The project is not yet created** and the domain is not yet
+  pointed; see Open. `src/config.mjs` is the only place the origin is
+  written; `SITE_ORIGIN` overrides it for previews.
+- Dependencies: `astro`, `@astrojs/sitemap`, `@astrojs/rss`; dev: `axe-core`.
+  **Playwright is deliberately NOT in `package.json`**: Vercel installs
+  devDependencies to build, and a browser-automation library has no place in
+  the install path of a static site. CI installs it `--no-save`; the sandbox
+  has it at `/opt/node22/lib/node_modules/playwright`.
 
 ## Hard constraints
 
-- **Zero budget.** Every dependency free and free at scale: Vercel Hobby,
-  open-licence fonts self-hosted, GitHub Actions (free because the repo is
-  public), no paid tier of anything, no analytics unless the owner names a
-  free cookieless one. Before adding a service the question is "is it free,
-  and does it stay free at scale."
-- **Client JS budget: 5 kB gzipped for the whole site**, proposed, owner to
-  confirm. Reasoning: the kit requires the rose to be computed live and the
-  width axis to move with scroll or cursor; that is the only JavaScript the
-  brand earns. Rose field ≈1.5 kB, axis flex ≈0.5 kB, dove ≈1 kB, headroom for
-  nothing else. To be enforced by tools/check-budget.cjs (planned): sums the
-  gzipped bytes of every inline `<script>` and every `.js` in the build, fails
-  above 5,120 bytes.
-- **WCAG AA contrast on every surface and zero axe-core violations**, enforced
-  by `tools/verify.cjs` on every PR and push.
+- **Zero budget.** Vercel Hobby, self-hosted OFL fonts, GitHub Actions (free
+  because the repo is public), no analytics, no paid tier of anything. The
+  question before any service is "is it free, and does it stay free at
+  scale."
+- **Client JS budget: 5 kB gzipped for the whole site**, enforced by
+  `tools/check-budget.cjs` in the build. **Measured: 2,663 B** (the one
+  bundled script, 1,119 B, plus Astro's inline hydration shim on ns-02,
+  1,544 B). The rose must be computed live and the axis must move with the
+  reader; that is the only JavaScript the brand earns.
+- **WCAG AA on every surface and zero axe-core violations**, enforced by
+  `tools/verify.cjs` on every PR and push. **Current state: clean on all
+  eleven counts.** Keep it there.
 - **Branch → draft PR → owner merges. Never push to `main`.**
-- Anything the owner must action is said in chat, not only in the PR, and then
+- Anything the owner must action is said in chat, not only in the PR, then
   verified rather than taken on their word.
 
-## Infrastructure — as found
+## File map
 
-- **GitHub:** `cherishwins/aedificare`, default branch `main`, one commit
-  before this one, no PRs. Work branch `claude/exciting-edison-65prmb`.
-- **Vercel:** team "Jesse James' projects" (`team_yBUeW5WttkjSHbHuMRF0ptM5`,
-  Hobby). **No Aedificare project exists yet.** Five unrelated projects do.
-- **Domain:** none known. `src/config.mjs` (planned, the only place the
-  origin is written) cannot be filled until one is named.
-- **Sandbox:** Node 22.22, npm 10.9, Playwright 1.56.1 global at
-  `/opt/node22/lib/node_modules/playwright`, Chromium 1194 at
-  `/opt/pw-browsers`. No poppler, so PDFs cannot be rasterised here; render
-  the source HTML with Playwright instead. Astro 7.3.2 and `@astrojs/vercel`
-  11.0.10 are current on npm.
+- `src/config.mjs`: the origin, name, author. Read by everything absolute.
+- `src/lib/editions.mjs`: **the editions, once.** Home, feed, llms.txt,
+  robots, sitemap filter, OG cards and each edition's own page read it, so a
+  title or date cannot disagree with itself. `draft: true` hides an edition
+  everywhere but the build.
+- `src/lib/rose.mjs`: `rhodonea()`, the house configuration, the mark seed,
+  the dove outline. The ONLY place the curve is sampled: live fields, mark,
+  favicon, cards and dove all import it.
+- `src/scripts/aed.js`: the one client script: rose fields (30 fps, paused
+  off-screen and in hidden tabs, static under reduced motion and marked
+  `data-motion="static"` so the sweep can prove it), the dove, the axis flex.
+- `src/styles/base.css`: tokens, faces, type scale, the twelve-column grid,
+  surfaces, rails, pulls, stats, tables, masthead, footer.
+- `src/layouts/Base.astro`: head, OG via the manifest, licence and
+  discoverability links, JSON-LD, skip link, the script.
+- `src/components/`: `Mark`, `RoseField`, `Dove`, `Masthead`, `Section`,
+  `Rail`, `Pull`, `Stats`, `EditionEnd`.
+- `src/pages/`: `index`, `ns-01`, `ns-02`, `edition-02`, `404`, and the
+  generated `feed.xml.ts`, `llms.txt.ts`, `robots.txt.ts`.
+- `public/fonts/`: the two faces, subset with fontTools to Latin plus Latin
+  Extended, **all axes kept** (Bricolage 181 kB, Martian 47 kB). The Google
+  Fonts split subsets were 131 + 53 kB for Bricolage alone; one file with
+  every axis is the honest size of a brand whose type is the identity.
+- `public/og/`: content-hashed cards; `src/lib/og-manifest.json` maps stable
+  path to hashed path and alt text. Generated by `tools/generate-og.mjs`.
+- `public/pdf/`: the uploaded print editions.
+- `source/`: the print sources as uploaded (`source/edition-02/`,
+  `source/ns-01.html`, `source/ns-02.html`), kept out of the deploy by
+  `.vercelignore`. Edition 02's font path bug is fixed in place (see
+  Findings). 1.4 MB; do not let this grow into the 107 MB northerntemper
+  carried.
+- `tools/`: `verify.cjs`, `check-brand.cjs`, `check-budget.cjs`,
+  `check-docs.cjs`, `generate-llms-full.cjs`, `generate-og.mjs`,
+  `generate-marks.mjs`.
+- `.github/workflows/verify.yml`: build (with the three checkers), audit,
+  sweep, on every PR and push to `main`.
 
-## Open — blocking (owner must answer; do not invent)
+## Design decisions, with the reasoning
 
-- **Q1. What Aedificare does and who the site is for.** The site will never
-  say it (kit rule), but the builder has to know it to choose what goes on
-  the page.
-- **Q2. The one action a visitor must take.** The kit says the brand does not
-  ask, so "the action that counts" has to be reconciled with "no calls to
-  action" by the owner, not guessed.
-- **Q3. Is there a live data spine?** The three dossiers carry fixed figures
-  (die specs, a timeline). Nothing observable is live. If there is none the
-  site says nothing live and gets no filler sections.
-- **Q4. Domain.** Needed for canonicals, OG, sitemap, and the Vercel project.
-- **Q5. Who creates the Vercel project** (Hobby, free) linked to this repo:
-  the builder via the Vercel MCP, or the owner. Then the builder verifies it
-  exists and deploys.
+- **Calibrate contrast against Bottle, never Void.** Bottle is the lightest
+  dark ground a token can land on. Computed: Malachite on Void 7.11, on
+  Bottle **4.52**; Shock rose on Void 5.32, on Bottle **3.38**; Acid and
+  Malachite on Flash are unusable for text. Rules that follow, all enforced
+  by the contrast probe: Shock rose text only on Void; small Malachite text
+  never on Bottle (rail keys, mono labels and table heads go Flash there);
+  pull-quote citations are Flash, not Malachite, because 4.52 is on the line
+  and on the line is where it failed twice during the build.
+- **Colour fields, not grounds, for the exceptions.** When a Bottle surface
+  needs Shock rose text (the doors, the truth table), the figure sits in a
+  `.field`, which is Void on Bottle and Bottle on Void. Fields separate
+  content; that is the kit's own mechanism and it solved contrast without a
+  fourth colour.
+- **Block links only, never inline in prose.** The kit forbids underline.
+  A link inside prose distinguished by colour alone needs 3:1 against the
+  text around it (axe `link-in-text-block`), and Malachite against Flash is
+  2.8. So no link lives inside a paragraph: editions, PDFs, neighbours and
+  the licence are block or footer links found by structure.
+- **No service worker.** northerntemper needed one for live figures offline.
+  An editorial site does not, and a service worker is the one component the
+  sweep cannot exercise. `tools/verify.cjs` asserts no `sw.js` ships and no
+  page registers one, so the absence is checked, not forgotten.
+- **`build.inlineStylesheets: 'always'`, measured 2026-09-15**, gzipped:
+  ns-02 inlined 15,920 B in one request, zero render-blocking; external
+  13,894 B HTML + 2,250 B CSS = 16,144 B over two requests, one blocking.
+  Inlining is 224 B smaller on first load and removes the blocking chain; it
+  costs about 2 kB per additional page. A share-link site is a one-page
+  session. Re-measure before changing this.
+- **Fonts are the weight and that is accepted.** 228 kB for two faces with
+  five axes between them. Preloaded, `font-display: block` so the brand
+  face never flashes as Arial at 240px. `document.fonts.check()` is asserted
+  in the sweep and in the card generator because `fonts.ready` resolves even
+  when nothing loaded (Findings, 1).
+- **Grounds alternate Void / Bottle per section; Flash is a slap** used
+  full-bleed for a thesis or a closing line only.
+- **The Edition 02 table's unsourced cells say "not yet sourced"** in mono
+  rather than "check" or "unverified", and the edition is a draft until they
+  are sourced. A published number that says "check" is a number nobody can
+  check.
+- **The rose fields are squares** (viewBox 0 0 1000 1000, R 480) positioned
+  and cropped by their surface. The first attempt used the print covers'
+  portrait viewBox with `slice`, which on a landscape hero showed only the
+  spokes converging at a corner: a laser burst, not a rose.
+- **Home hero rose is styled with `is:global`.** Astro scopes component
+  styles by attribute; an `<svg>` rendered inside `RoseField` never receives
+  the page's scope attribute, so a scoped `.hero-rose` rule silently does
+  nothing. Every rule that targets a child component's root is global.
 
-## Open — defaults the builder will take unless told otherwise
+## Findings from the uploads (2026-09-15)
 
-- **Q6. Content for v1:** NS-01, NS-02 and Edition 02 as web pages, Edition 02
-  flagged as a draft until its "check"/"unverified" cells are sourced and its
-  dove slot filled from `doveOfRoses()`. Is there an Edition 01? Are the two
-  numbering series intended?
-- **Q7. Licence and analytics:** teamcanada is CC0 with Umami. Default here:
-  licence unstated until the owner picks one; no analytics.
-- **Q8. No logo.** The kit is explicit: the rose is a generator, not a logo;
-  the dove appears once per sequence precisely so it never becomes one; OG
-  cards carry no lockup; illustrating the rose is failure mode 6. The owner
-  said on 2026-09-15 they would "work on a logo". The builder will produce
-  the typographic wordmark, a favicon that is one frozen, numbered rose seed,
-  and generated OG cards, all in code. An image-generated logo is an override
-  of the kit and must be stated as one.
-- **Q9. Off-kit tints from the NS docs** (finding 3): default is kit values
-  only; Flash for body copy, Malachite for secondary, hairlines in Malachite
-  at reduced opacity where the docs used `--dim`.
-- **Q10. Service worker:** default none. teamcanada needed one for live
-  figures offline; a static editorial site does not, and a service worker is
-  the one component the sweep cannot exercise. `verify.cjs` will assert no
-  registration exists so the absence is a checked fact, not an omission.
-- **Q11. PDFs:** default is to serve the existing NS PDFs as downloads and to
-  re-render Edition 02 after the font fix, via a committed render script that
-  asserts the faces loaded.
+1. **Edition 02's PDF shipped in Liberation Sans and DejaVu Sans Mono.**
+   `fonts/local-fonts.css` declared `src: url(fonts/bricolage-1.woff2)`, but
+   CSS resolves `url()` relative to the stylesheet, which already lives in
+   `fonts/`, so the browser asked for `fonts/fonts/…`. Verified by rendering
+   the source and by reading the PDF's font table. **Fixed in
+   `source/edition-02/fonts/local-fonts.css`.** The render script still
+   only waits for `fonts.ready`; add a `fonts.check()` assertion before
+   re-rendering.
+2. The NS PDFs are text-as-outlines (Chromium turns variable-font text into
+   paths), so they are probably not text-selectable. The site pages are.
+3. The NS documents introduced tints the kit does not have (`#5E7A63`,
+   `#E6EFE7`, `#BFD0C2`, `#A9BDAC`, `#0E6B38`, `#2E4A36`). The site uses kit
+   values only; `--dim` in particular failed AA on Void at the size it was
+   used.
+4. Reusable code in the uploads was ported, not rewritten: `rhodonea()`,
+   the field loop, `doveOfRoses()`, and the print seeds for the dividers.
+
+## Discoverability — the point is that it travels
+
+- `src/pages/robots.txt.ts` **explicitly allows every named AI crawler**
+  (GPTBot, ClaudeBot, PerplexityBot, CCBot, Google-Extended, Applebot,
+  Bytespider and the rest). Most sites block these; this one does the
+  opposite on purpose. Do not "tighten" it. Drafts are the only exclusion.
+- `src/pages/llms.txt.ts` is generated from the editions list, llmstxt.org
+  shape, and states only what does not change. `tools/generate-llms-full.cjs`
+  builds `/llms-full.txt` **from the built HTML** as a post-build step, so
+  it cannot drift from what is published. Both are wired into `npm run
+  build`, so Vercel produces them.
+- Every page: canonical, Open Graph (article type with published time on
+  editions), Twitter card, `rel=license`, `meta license`, `ai-training`,
+  alternate links to the feed, llms.txt and llms-full.txt, `humans.txt`.
+  JSON-LD: WebSite on every page, Article on every edition, both carrying
+  the licence.
+- **OG card filenames are content-hashed** (`/og/ns-02.<sha8>.png`) via the
+  generated manifest, because platforms mirror OG bytes by URL and a
+  re-scrape cannot refresh a stale card; only a new URL can. Pages write
+  the stable path and never see the hash. The unhashed copy stays so links
+  in the wild resolve. Rerun `npm run og` when a title or lede changes.
+
+## Ported from cherishwins/teamcanada
+
+Read its CLAUDE.md before touching the tooling; it is a list of expensive
+mistakes. What transferred: what is GENERATED stays true and what is TYPED
+drifts; a checker that only passes where its author ran it is not a checker;
+Playwright out of package.json; never publish a number assembled from two
+sources or two dates; content-hashed cards; `check-docs`; the sweep and the
+workflow, adapted only in page lists, the no-service-worker assertion, and
+the four new probes (Acid, fonts, roses, reduced-motion stills).
 
 ## Decisions log
 
-- **2026-09-15 · CLAUDE.md before any code.** Owner's instruction, and the
-  build is blocked on Q1–Q5; a session can end before answers arrive and this
-  file is the only memory.
-- **2026-09-15 · Astro 7, `output: 'static'`, Vercel.** Owner's brief. The
-  `@astrojs/vercel` adapter is added only if Q3 produces an API route;
-  otherwise plain static output and the sweep serves `dist/`.
+- **2026-09-15 · CLAUDE.md before any code.** Owner's instruction.
+- **2026-09-15 · Owner said "keep building" with Q1–Q5 open.** Built what
+  the evidence supports: an imprint of numbered editions, no stated
+  purpose, no live data, the only action being to open an edition.
+- **2026-09-15 · The mark exists** (override 1 above), owner's call, builder
+  agreed.
+- **2026-09-15 · Domain is aedificare.art**, owner's, already registered.
+- **2026-09-15 · CC BY 4.0**, from "cite, use, repeat".
+- **2026-09-15 · Astro 7 static, no adapter, no service worker, 5 kB JS.**
+
+## Open
+
+1. **Vercel project**: create it (Hobby) linked to `cherishwins/aedificare`,
+   production branch `main`, then point `aedificare.art` at it. Owner said
+   they will point the domain. Whoever creates the project, verify the live
+   URL with the sweep against the deployed origin, not the deploy status.
+2. **Edition 02** stays a draft until its "not yet sourced" cells are
+   sourced. Then set `draft: false` in `src/lib/editions.mjs`, fill the dove
+   with `doveOfRoses()` in a re-render, re-render the PDF from
+   `source/edition-02/` with a font assertion, and add it to `public/pdf/`.
+3. **Edit the brand kit skill** to record the mark (override 1) so the kit
+   and this file agree.
+4. **Taglines**: the owner wants a shortlist for external bios and cards.
+   The site carries none.

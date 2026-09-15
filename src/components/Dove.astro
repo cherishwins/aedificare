@@ -1,0 +1,6 @@
+---
+/** The dove. Once per sequence, final surface only. Acid on Void or Void on Flash. */
+interface Props { colour?: string; label?: string }
+const { colour = '#CCFF00', label = 'A dove, resolved out of the rose field.' } = Astro.props;
+---
+<svg class="dove" viewBox="0 0 260 180" role="img" aria-label={label} data-dove={colour}></svg>

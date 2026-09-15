@@ -1,0 +1,18 @@
+---
+/**
+ * One surface of a dossier: a ground, the twelve-column grid, a numbered
+ * head. `acid` puts the number in Acid, which is that surface's one loud
+ * move, so nothing else on it may be Acid at scale.
+ */
+interface Props { n: string; title: string; ground?: 'void' | 'bottle' | 'flash'; acid?: boolean; id?: string }
+const { n, title, ground = 'void', acid = false, id } = Astro.props;
+---
+<section class:list={['surface', ground]} id={id} aria-labelledby={`${id ?? 's' + n}-h`}>
+  <div class="grid">
+    <div class="c-full sec">
+      <span class:list={['num', 'no', acid ? 'acid' : 'mal']} aria-hidden="true">{n}</span>
+      <h2 class="display" id={`${id ?? 's' + n}-h`} set:html={title} />
+    </div>
+    <slot />
+  </div>
+</section>

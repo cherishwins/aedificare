@@ -1,0 +1,10 @@
+---
+/** A side rail of facts: mono keys, body values. Pass pairs as [key, html]. */
+interface Props { items: [string, string][]; class?: string }
+const { items, class: cls = 'c-b' } = Astro.props;
+---
+<aside class:list={[cls, 'rail']}>
+  <dl>
+    {items.map(([k, v]) => (<><dt>{k}</dt><dd set:html={v} /></>))}
+  </dl>
+</aside>
