@@ -11,7 +11,14 @@
  * surface, and that every rose field runs live; then once under
  * prefers-reduced-motion to prove the still exists. Exits non-zero.
  *
- *   node tools/verify.cjs [dist]
+ *   node tools/verify.cjs [dist]                 sweep the local build
+ *   node tools/verify.cjs --url https://host     sweep a LIVE origin instead
+ *
+ * The --url mode exists because a deploy status is not a verification. It
+ * loads the real pages over the real network, counts every same-origin
+ * response that is not 2xx/3xx as a broken reference, and runs the same
+ * probes; only the file-level checks (sw.js on disk) are skipped, since the
+ * render probe covers the live equivalent.
  */
 const path = require('path');
 const fs = require('fs');
@@ -32,7 +39,11 @@ function loadChromium() {
 const chromium = loadChromium();
 const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 
-const ROOT = process.argv[2] || 'dist';
+const argv = process.argv.slice(2);
+const URL_IDX = argv.indexOf('--url');
+const LIVE = URL_IDX >= 0 ? argv[URL_IDX + 1].replace(/\/$/, '') : null;
+const ROOT = (URL_IDX >= 0 ? argv.filter((_, i) => i !== URL_IDX && i !== URL_IDX + 1)[0] : argv[0]) || 'dist';
+const ORIGIN = LIVE || 'https://local.test';
 const PAGES = ['/', '/ns-01', '/ns-02', '/edition-02', '/404.html'];
 const VIEWPORTS = [320, 360, 390, 414, 600, 768, 1024, 1280, 1920, 2560];
 
@@ -40,8 +51,19 @@ const MIME = { html: 'text/html', css: 'text/css', js: 'text/javascript', png: '
   woff2: 'font/woff2', json: 'application/json', webmanifest: 'application/manifest+json', xml: 'application/xml',
   txt: 'text/plain', pdf: 'application/pdf' };
 
-/** Other origins answer 204: the page must not depend on any. Anything else that 404s is a broken reference. */
+/**
+ * Local mode: other origins answer 204 (the page must not depend on any) and
+ * anything that 404s is a broken reference. Live mode: nothing is stubbed;
+ * every same-origin response outside 2xx/3xx, and every failed request, is
+ * a broken reference.
+ */
 function serve(page, onBroken) {
+  if (LIVE) {
+    const host = new URL(LIVE).host;
+    page.on('response', (r) => { const u = new URL(r.url()); if (u.host === host && (r.status() < 200 || r.status() >= 400) && u.pathname !== '/404.html') onBroken(`${u.pathname} (${r.status()})`); });
+    page.on('requestfailed', (r) => { const u = new URL(r.url()); if (u.host === host) onBroken(`${u.pathname} (${r.failure()?.errorText})`); });
+    return Promise.resolve();
+  }
   return page.route('**/*', (route) => {
     const u = new URL(route.request().url());
     if (u.host !== 'local.test') return route.fulfill({ status: 204, body: '' });
@@ -132,11 +154,14 @@ const RENDER_PROBE = () => ({
 });
 
 (async () => {
-  if (!fs.existsSync(ROOT)) { console.error(`verify: no build at ${ROOT}`); process.exit(1); }
+  if (!LIVE && !fs.existsSync(ROOT)) { console.error(`verify: no build at ${ROOT}`); process.exit(1); }
+  if (LIVE) console.log(`  live sweep of ${LIVE}`);
   // No service worker, by decision (CLAUDE.md Q10). Its absence is asserted, not assumed.
   const swProblems = [];
-  if (fs.existsSync(path.join(ROOT, 'sw.js'))) swProblems.push('sw.js is in the build; the site ships no service worker');
-  for (const f of fs.readdirSync(ROOT)) if (f.endsWith('.html') && /serviceWorker/.test(fs.readFileSync(path.join(ROOT, f), 'utf8'))) swProblems.push(`${f} references serviceWorker`);
+  if (!LIVE) {
+    if (fs.existsSync(path.join(ROOT, 'sw.js'))) swProblems.push('sw.js is in the build; the site ships no service worker');
+    for (const f of fs.readdirSync(ROOT)) if (f.endsWith('.html') && /serviceWorker/.test(fs.readFileSync(path.join(ROOT, f), 'utf8'))) swProblems.push(`${f} references serviceWorker`);
+  }
   for (const m of swProblems) console.log(`  SW        ${m}`);
 
   const browser = await chromium.launch();
@@ -157,8 +182,11 @@ const RENDER_PROBE = () => ({
 
     for (const p of PAGES) {
       current = p;
-      const res = await page.goto('https://local.test' + p, { waitUntil: 'load' }).catch(() => null);
-      if (!res || res.status() !== 200) { missing++; report.push(`  MISSING   ${width}px  ${p}`); continue; }
+      const res = await page.goto(ORIGIN + p, { waitUntil: 'load' }).catch(() => null);
+      // Served for real, /404.html is a file (200) and also what unmatched
+      // routes answer with (404); either proves the page exists.
+      const ok = res && (res.status() === 200 || (LIVE && p === '/404.html' && res.status() === 404));
+      if (!ok) { missing++; report.push(`  MISSING   ${width}px  ${p}  (${res ? res.status() : 'no response'})`); continue; }
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(80);
 
@@ -197,7 +225,7 @@ const RENDER_PROBE = () => ({
   const rp = await rm.newPage();
   await serve(rp, () => {});
   for (const p of PAGES) {
-    await rp.goto('https://local.test' + p, { waitUntil: 'load' }).catch(() => null);
+    await rp.goto(ORIGIN + p, { waitUntil: 'load' }).catch(() => null);
     await rp.waitForTimeout(80);
     const r = await rp.evaluate(RENDER_PROBE);
     for (const rose of r.roses) if (rose.motion !== 'static' || rose.paths < 1) { render++; report.push(`  STILL     ${p}  reduced-motion motion=${rose.motion} paths=${rose.paths}`); }
