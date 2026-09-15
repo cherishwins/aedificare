@@ -16,11 +16,9 @@ const house = HOUSE.map((L, i) => ({ ...L, c: ['#CCFF00', '#00B24F', '#FF1F5A'][
   <main id="main">
     <section class="surface hero" aria-label="Aedificare">
       <RoseField layers={house} seed={0.5} readout="k" class="rose hero-rose" />
-      <Masthead>
-        <span slot="right" class="mono readout">k = <output id="k" aria-live="off">5.000</output></span>
-      </Masthead>
+      <Masthead />
       <h1 class="display wordmark" data-flex="scroll">Aedificare</h1>
-      <p class="mono hero-line">Two editions · September 2026 · r = cos(kθ)</p>
+      <p class="mono hero-line"><span>Two editions · September 2026</span><span class="readout">r = cos(kθ) · k = <output id="k" aria-live="off">5.000</output></span></p>
     </section>
 
     {PUBLISHED.map((e, i) => (
@@ -42,14 +40,18 @@ const house = HOUSE.map((L, i) => ({ ...L, c: ['#CCFF00', '#00B24F', '#FF1F5A'][
 
 <style is:global>
   .hero-rose { width: max(100vw, 120vh); max-width: none; height: auto; left: 50%; top: 0; transform: translateX(-50%); }
-  .hero { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  /* 78svh, not 100: the first edition's title must show in the first screen,
+     or the home reads as a poster with nothing behind it. */
+  .hero { min-height: 78svh; display: flex; flex-direction: column; padding-block: 0; }
   /* The full house configuration, live, wider than any phone and cut by the
      frame at the bottom where the wordmark crosses it. Global because the
      svg belongs to a child component and scoped selectors never reach it. */
   .hero .mast { position: relative; z-index: 2; }
   /* The wordmark runs off the right edge on every viewport. That is the point. */
   .wordmark { position: relative; z-index: 2; font-size: var(--fs-wordmark); margin-top: auto; margin-left: calc(var(--gutter) - .04em); white-space: nowrap; }
-  .hero-line { position: relative; z-index: 2; color: var(--malachite); padding: 24px var(--gutter) 28px; }
+  .hero-line { position: relative; z-index: 2; color: var(--malachite); padding: 24px var(--gutter) 28px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 32px; }
+  .hero-line output { font: inherit; letter-spacing: inherit; }
+  .edition { padding-block: clamp(40px, 7vh, 96px); }
   .edition .code { margin-bottom: -8px; }
   .edition h2 { font-size: var(--fs-h2); max-width: 12ch; }
   .edition .lede { margin-top: 8px; }

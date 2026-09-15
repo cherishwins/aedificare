@@ -1,9 +1,37 @@
 ---
+/**
+ * The masthead: the mark and name home, and the index of published editions
+ * on every page. There is no menu in the kit's sense, but a visitor who
+ * lands on any page must be able to see that the editions exist and reach
+ * them; without this the home read as a poster with nothing behind it.
+ */
 import Mark from './Mark.astro';
+import { PUBLISHED } from '../lib/editions.mjs';
 interface Props { right?: string }
 const { right } = Astro.props;
+const here = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
 <header class="mast">
-  <a href="/" class="mono-b" aria-label="Aedificare home"><Mark stroke={6} /> Aedificare</a>
-  <slot name="right">{right && <span class="mono">{right}</span>}</slot>
+  <a href="/" class="mono-b home" aria-label="Aedificare home"><Mark stroke={6} /> Aedificare</a>
+  <nav class="index" aria-label="Index">
+    {PUBLISHED.map((e) => (
+      <a class="mono" href={e.path} aria-current={here === e.path ? 'page' : undefined}>
+        <span class="code">{e.code}</span> <span class="ttl">{e.title}</span>
+      </a>
+    ))}
+  </nav>
+  <slot name="right">{right && <span class="mono aside">{right}</span>}</slot>
 </header>
+<style>
+  .mast { flex-wrap: wrap; row-gap: 12px; }
+  .index { display: flex; flex-wrap: wrap; gap: 10px 24px; }
+  .index a { display: inline-flex; gap: .6em; min-height: 24px; align-items: center; padding-block: 4px; }
+  .index a[aria-current="page"] .ttl { color: var(--acid); }
+  .index .code { color: var(--malachite); }
+  :global(.bottle) .index .code, :global(.flash) .index .code { color: inherit; }
+  .aside { color: var(--malachite); }
+  @media (max-width: 760px) {
+    .index { width: 100%; order: 3; }
+    .index .ttl { display: none; }
+  }
+</style>
