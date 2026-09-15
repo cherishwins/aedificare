@@ -99,11 +99,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   directory so the check runs on the bytes that ship.
 - **Vercel.** The owner imported the repo themselves (2026-09-15); the
   project is NOT on the "Jesse James' projects" team
-  (`team_yBUeW5WttkjSHbHuMRF0ptM5`) that the Vercel MCP can see, so which
-  repository it builds is proved only by the live `<meta name="build">`
-  stamp matching this repo's `main`. **The domain is not yet pointed at
-  it**; see Open. `src/config.mjs` is the only place the origin is written;
-  `SITE_ORIGIN` overrides it for previews.
+  (`team_yBUeW5WttkjSHbHuMRF0ptM5`) that the Vercel MCP can see. **It
+  builds this repo's `main`: proved 2026-09-15 05:33 UTC**, when the live
+  `<meta name="build">` read `72c37e9b`, the head of `main`. The domain is
+  pointed (Vercel anycast `216.198.79.1`, `64.29.17.1`); the apex currently
+  redirects to `www`, see Open. `src/config.mjs` is the only place the
+  origin is written; `SITE_ORIGIN` overrides it for previews.
 - Dependencies: `astro`, `@astrojs/sitemap`, `@astrojs/rss`; dev: `axe-core`.
   **Playwright is deliberately NOT in `package.json`**: Vercel installs
   devDependencies to build, and a browser-automation library has no place in
@@ -313,23 +314,29 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
 
 ## Open
 
-1. **aedificare.art points at GoDaddy Website Builder, not Vercel.**
-   Measured 2026-09-15 from two networks (a GitHub runner and the build
-   sandbox): the apex and `www` resolve to `76.223.105.230` and
-   `13.248.243.5`, plain HTTP returns a GoDaddy "Websites + Marketing" page
-   (`server: DPS`, assets from `wsimg.com`, title "aedificare.art"), and
-   HTTPS fails with "no alternative certificate subject name matches", so
-   every crawler and every reader gets the builder page or a TLS error.
-   Fix, owner's action, in this order: GoDaddy → Websites + Marketing →
-   disconnect the domain from the builder site (it pins those records);
-   GoDaddy → DNS for aedificare.art → set `A @ 76.76.21.21` and
-   `CNAME www cname.vercel-dns.com`, delete the builder's A and CNAME rows
-   and any forwarding; Vercel project → Settings → Domains → add
-   `aedificare.art` and `www.aedificare.art` (www redirecting to apex), wait
-   for "Valid Configuration" and the certificate. Then dispatch
-   `verify-live` and read "live build:" in its log: it must equal `main`'s
-   head. Until that line matches, the site is not up, whatever the deploy
-   status and whatever a browser with a stale resolver shows.
+1. **The apex redirects to `www`; it must be the other way round.** As of
+   2026-09-15 05:33 UTC the domain is on Vercel and the site is live:
+   every route and discovery file answers 200 on `www.aedificare.art`, the
+   headers from `vercel.json` are present, the draft is `noindex` and out
+   of the sitemap, and the build stamp equals `main`. But
+   `https://aedificare.art/…` answers **308 → `https://www.aedificare.art/…`**,
+   while every canonical, the sitemap, `robots.txt`, the feed, `llms.txt`
+   and every OG URL name the apex. Crawlers are told "the real page is
+   here" and sent somewhere else. Fix, owner's action, one setting: Vercel
+   project → Settings → Domains → make `aedificare.art` the primary domain
+   with `www.aedificare.art` redirecting to it. The alternative, changing
+   the origin in `src/config.mjs` to `www`, is wrong: the brand is the
+   apex. `verify-live` fails on the apex `/` until this is done, by design.
+   Earlier state, for the record: until roughly 05:00 UTC the domain
+   resolved to GoDaddy Website Builder (`76.223.105.230`, `13.248.243.5`),
+   serving a builder page over HTTP and a mismatched certificate over
+   HTTPS; the owner repointed it.
+   **`node tools/verify.cjs --url` cannot run from the build sandbox**:
+   its Chromium does not trust the sandbox proxy's certificate authority
+   (`ERR_CERT_AUTHORITY_INVALID` on every page), and disabling TLS checks is
+   not an option. curl works there because it reads the proxy's CA bundle.
+   The live sweep is the `verify-live` runner's job; the sandbox can only
+   curl.
 2. **Edition 02** stays a draft until its "not yet sourced" cells are
    sourced. Then set `draft: false` in `src/lib/editions.mjs`, fill the dove
    with `doveOfRoses()` in a re-render, re-render the PDF from
