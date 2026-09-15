@@ -15,6 +15,20 @@ export const EDITIONS = [
     date: '2026-09-13', dateLabel: '13 Sep 2026',
     seed: '0902', k: [6, 11], pdf: '/pdf/ns-02.pdf',
     note: 'Amendment to NS-01',
+    // The contents, as printed on the home. tools/check-contents.cjs fails
+    // the build if any id or title here is missing from the built page.
+    contents: [
+      { n: '01', t: 'What NS-01 got wrong', id: 'wrong' },
+      { n: '02', t: 'The man who already won', id: 'won' },
+      { n: '03', t: 'There is an asteroid', id: 'asteroid' },
+      { n: '04', t: 'He paid for it himself', id: 'paid' },
+      { n: '05', t: 'Twenty-four days', id: 'days-h' },
+      { n: '06', t: 'Sparks', id: 'sparks' },
+      { n: '07', t: 'One preposition, again', id: 'preposition' },
+      { n: '08', t: 'The closest humans', id: 'closest' },
+      { n: '09', t: 'Meanwhile, in Madrid', id: 'madrid' },
+      { n: '10', t: 'Who has not spoken', id: 'silence' },
+    ],
   },
   {
     code: 'NS-01', slug: 'ns-01', path: '/ns-01',
@@ -22,6 +36,18 @@ export const EDITIONS = [
     lede: 'OpenAI opened door C. The world reported door A.',
     date: '2026-09-11', dateLabel: '11 Sep 2026',
     seed: '0413', k: [4, 9], pdf: '/pdf/ns-01.pdf',
+    contents: [
+      { n: '01', t: 'The post', id: 'post' },
+      { n: '02', t: 'Four doors', id: 'doors' },
+      { n: '03', t: 'The hand in the water', id: 'hand' },
+      { n: '04', t: 'What it cost', id: 'cost-h' },
+      { n: '05', t: 'What a proof checker checks', id: 'lean' },
+      { n: '06', t: 'Telephone', id: 'telephone' },
+      { n: '07', t: 'Page fifty six', id: 'page56' },
+      { n: '08', t: 'Four days', id: 'fourdays' },
+      { n: '09', t: 'The input was a rumour', id: 'rumour' },
+      { n: '10', t: 'What would change my mind', id: 'mind' },
+    ],
   },
   {
     code: 'Edition 02', slug: 'edition-02', path: '/edition-02',
