@@ -120,7 +120,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   reader; that is the only JavaScript the brand earns.
 - **WCAG AA on every surface and zero axe-core violations**, enforced by
   `tools/verify.cjs` on every PR and push. **Current state: clean on all
-  eleven counts.** Keep it there.
+  eleven counts.** Keep it there. `node tools/verify.cjs --url https://host`
+  runs the same sweep against a LIVE origin over the real network, because
+  a deploy status is not a verification; run it after every production
+  deploy and before telling anyone the site is up.
 - **Branch → draft PR → owner merges. Never push to `main`.**
 - Anything the owner must action is said in chat, not only in the PR, then
   verified rather than taken on their word.
