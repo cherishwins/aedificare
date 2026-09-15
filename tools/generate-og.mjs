@@ -22,15 +22,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { rhodonea, markPath } from '../src/lib/rose.mjs';
-import { EDITIONS } from '../src/lib/editions.mjs';
+import { EDITIONS, PUBLISHED } from '../src/lib/editions.mjs';
 
 const OUT = 'public/og';
 fs.mkdirSync(OUT, { recursive: true });
 
 // Per-card composition only; the words come from the editions list.
-const X = { 'ns-01': -0.18, 'ns-02': -0.3, 'edition-02': -0.22 };
+const X = { 'ns-01': -0.18, 'ns-02': -0.3, 'edition-02': -0.22, 'edition-03': 0.037 };
+const COUNT = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'][PUBLISHED.length] ?? String(PUBLISHED.length);
 const CARDS = [
-  { slug: 'home', words: ['AEDIFICARE'], acid: 'AEDIFICARE', line: 'Two editions · September 2026', seed: '0500', k: [5, 7, 3], x: -0.06 },
+  { slug: 'home', words: ['AEDIFICARE'], acid: 'AEDIFICARE', line: `${COUNT} editions · September 2026`, seed: '0500', k: [5, 7, 3], x: -0.06 },
   ...EDITIONS.map((e) => ({
     slug: e.slug, words: e.title.toUpperCase().split(' '), acid: e.acid.toUpperCase(),
     line: `${e.code} · ${e.dateLabel} · ${e.lede}`, seed: e.seed, k: e.k, x: X[e.slug] ?? -0.2,
