@@ -1,0 +1,22 @@
+---
+/**
+ * A live rose field. The svg carries its configuration as data; the client
+ * script does the sampling. Decorative, so hidden from assistive tech.
+ *
+ * `layers` is [{k, s, ph, w, c, o}]: curve k, radius share, phase, stroke
+ * width, colour, opacity. Which layer gets Acid is decided by the surface.
+ */
+interface Props {
+  layers: { k: number; s: number; ph: number; w: number; c: string; o: number }[];
+  seed?: number;
+  r?: number; cx?: number; cy?: number;
+  viewBox?: string;
+  class?: string;
+  /** id of a readout element that shows the live k value */
+  readout?: string;
+}
+const { layers, seed = 0, r = 480, cx = 500, cy = 500,
+        viewBox = '0 0 1000 1000', class: cls = 'rose', readout } = Astro.props;
+---
+<svg class={cls} viewBox={viewBox} preserveAspectRatio="xMidYMid meet" aria-hidden="true"
+     data-rose={JSON.stringify(layers)} data-seed={seed} data-r={r} data-cx={cx} data-cy={cy} data-k={readout}></svg>
