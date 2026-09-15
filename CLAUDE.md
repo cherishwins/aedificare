@@ -28,12 +28,13 @@ Shipped (2026-09-15):
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
 | `/edition-03` | Edition 03 · *The Markup* (15 Sep 2026), ten sections, twelve sources | live |
+| `/edition-01` | Edition 01 · *The Snapshot Problem* (11 Sep 2026), twelve sections, thirty-three sources, three registers | live |
 | `/ns-01` | NS-01 · *The Hand in the Water* (11 Sep 2026) | live |
 | `/ns-02` | NS-02 · *The Closest Humans* (13 Sep 2026), amendment to NS-01 | live |
 | `/edition-02` | Edition 02 · *The Subtraction* | **draft**: noindex, unlinked, out of sitemap/robots/feed |
 | `/404` | | live |
 | `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/ai.txt` `/humans.txt` | discoverability | generated or static |
-| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-03.pdf` | the print editions as uploaded | as uploaded |
+| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` | the print editions as uploaded | as uploaded |
 
 ## Brand — source of truth, and the overrides
 
@@ -155,8 +156,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   discoverability links, JSON-LD, skip link, the script.
 - `src/components/`: `Mark`, `RoseField`, `Dove`, `Masthead`, `Section`,
   `Rail`, `Pull`, `Stats`, `EditionEnd`.
-- `src/pages/`: `index`, `edition-03`, `ns-01`, `ns-02`, `edition-02`,
-  `404`, and the generated `feed.xml.ts`, `llms.txt.ts`, `robots.txt.ts`.
+- `src/pages/`: `index`, `edition-03`, `ns-01`, `ns-02`, `edition-01`,
+  `edition-02`, `404`, and the generated `feed.xml.ts`, `llms.txt.ts`,
+  `robots.txt.ts`. Shared figure styles (big numbers by length, computed
+  bars, sources lists) live in `src/styles/base.css`, not per page.
 - `public/fonts/`: the two faces, subset with fontTools to Latin plus Latin
   Extended, **all axes kept** (Bricolage 181 kB, Martian 47 kB). The Google
   Fonts split subsets were 131 + 53 kB for Bricolage alone; one file with
@@ -287,6 +290,25 @@ for a shortlist for bios and cards, which is a separate deliverable.
    placeholders where the repo's copy has figures). Nothing was taken from
    either.
 
+0b. **Edition 01 · The Snapshot Problem arrived as a finished, sourced
+   PDF** (seventeen pages, thirty-three sources, rendered 11 Sep 10:53 UTC)
+   with three registers: Measured, Case study, Position. Ported to
+   `src/pages/edition-01.astro` with the prose verbatim and the registers
+   as mono labels; Position statements set as `.beat`. Figures rebuilt as
+   computed bars (the swarm's four shares, the exploit-rate range, the
+   MMLU before and after), a schematic column chart for the cliff (the
+   print marked it "not plotted values", so does the page), and a
+   qualitative placement chart for plasticity (positions typed from the
+   cited results, labelled as such). Seed `5A1E` is hexadecimal, so
+   `tools/generate-og.mjs` parses hex when a seed is not all digits and
+   prints k to two decimals; the cover rose is the print still, HOUSE
+   layers at k 16/3, 29/4, 13/4. **One word changed:** "a curated set of
+   ARC puzzles" became "a selected set", because `tools/check-brand.cjs`
+   bans "curated" and cannot tell praise from description; the owner was
+   told. The batch also carried a file named Deep Learning Architecture
+   Evolution Research, a 127 kB machine-written survey of residual networks
+   with an embedded image: research, not an edition; not added to the
+   repo.
 1. **Edition 02's PDF shipped in Liberation Sans and DejaVu Sans Mono.**
    `fonts/local-fonts.css` declared `src: url(fonts/bricolage-1.woff2)`, but
    CSS resolves `url()` relative to the stylesheet, which already lives in

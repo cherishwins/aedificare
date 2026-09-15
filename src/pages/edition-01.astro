@@ -1,0 +1,475 @@
+---
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import Section from '../components/Section.astro';
+import Rail from '../components/Rail.astro';
+import Stats from '../components/Stats.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, LICENCE } from '../lib/editions.mjs';
+import { SITE, abs } from '../config.mjs';
+
+const ed = edition('edition-01');
+
+// The cover rose is the print cover's still: the house layers frozen at the
+// three k values from the colophon, Malachite only. Acid is spent on one
+// word of the title.
+const cover = HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: 'The Snapshot Problem',
+  alternativeHeadline: 'Edition 01',
+  datePublished: ed.date,
+  author: { '@type': 'Person', name: 'Jesse James' },
+  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
+  url: abs(ed.path),
+  mainEntityOfPage: abs(ed.path),
+  license: LICENCE.url,
+  isAccessibleForFree: true,
+  description: ed.lede,
+};
+
+// Figures. Every bar is computed from the number beside it.
+const swarm = [['62 · Oblivious', 62, 'kept working honestly'], ['24 · Whistleblowers', 24, 'audited, boycotted, patched'], ['09 · Exploiters', 9, 'faked the proofs'], ['05 · Converts', 5, 'flipped under pressure']];
+// Schematic of the reported shape only: low at one and two, climbing to four, a jump at five, level after.
+const cliff = [1, 1.3, 2.4, 3.2, 7.2, 7.5, 7.3];
+const range = [['Claude Sonnet 4.5', 0.0], ['DeepSeek-V3', 0.6], ['DeepSeek-R1-Zero', 13.9]];
+const mmlu = [['Before', 60.7], ['After 50 edits', 24.1], ['Chance, four choices', 25.0]];
+// Qualitative placement from the cited results, not a plotted dataset. x: keeps what it knew. y: learns what is new.
+const scatter = [
+  ['Full fine-tune', 14, 86], ['SEAL [20]', 30, 78], ['ROME / MEMIT', 22, 52], ['LoRA [22]', 56, 50],
+  ['Sparse memory [23]', 66, 62], ['HOPE, claimed [21]', 78, 74], ['Retrieval / context', 92, 8],
+];
+const parts = [
+  ['01 Signals', 'Short-lived agents wake on an event, run, hand the sandbox log forward, and end. Nothing runs long enough to drift.'],
+  ['02 Introductions', 'Every agent is told who else is working and what they were told.'],
+  ['03 Why record', 'Every rule ships with its reason. Versioned together, never apart.'],
+  ['04 External judge', 'Verification the agent cannot see or edit, placed exactly at the cliff.'],
+  ['05 Failure ledger', 'Append-only. Every failure, its root cause and its fix. Read before every run.'],
+  ['06 Compiler', 'The model learns a structure once. Deterministic code does the work after.'],
+  ['07 Drift monitor', 'A small model watches the inputs and reopens discovery when they change shape.'],
+  ['08 Ontology', 'One canonical schema. Learn the layout once and move fast everywhere.'],
+  ['00 Frozen base', 'The photograph. Evaluated once. Never edited.'],
+];
+const rules = [
+  'Tell every agent who else is in the room.',
+  'Write the why beside every rule.',
+  'Put a verifier wherever the agent cannot check itself.',
+  'Own your traces. Never trust the self-report.',
+  'Log every failure. Append only. Read before every run.',
+  'Teach with the model once. Run with code.',
+  'One schema. Learn it once.',
+  'Wake on signals. End with the task.',
+];
+const sources = [
+  'METR and Redwood Research. Investigation of the ExploitGym multi-agent incident. 26 Aug 2026. Case study.',
+  'Anthropic Frontier Red Team. Multi-agent turf war study, three Claude Code instances with conflicting migration targets. 13 Aug 2026. Case study.',
+  'Paglieri et al., Google DeepMind. A case study on emergent cheating and whistleblowing in autonomous research swarms. arXiv, 3 Sep 2026. Case study.',
+  'Fish, Gonczarowski, Shorrer. Algorithmic collusion by large language models. arXiv:2404.00806, 2024.',
+  'Ashery, Aiello, Baronchelli. Emergent social conventions and collective bias in LLM populations. Science Advances 11(20), 2025.',
+  'Park et al. Generative agent simulations of 1,000 people. arXiv:2411.10109, 2024.',
+  'Thaman. The Reward Hacking Benchmark (RHB). arXiv:2605.02964, ICML 2026.',
+  'MacDiarmid et al., Anthropic. Natural emergent misalignment from reward hacking in production RL. arXiv:2511.18397, 2025.',
+  'Baker et al., OpenAI. Monitoring reasoning models for misbehavior and the risks of promoting obfuscation. arXiv:2503.11926, 2025.',
+  'Chen et al., Anthropic. Reasoning models don\'t always say what they think. arXiv:2505.05410, 2025.',
+  'Anthropic. Extended thinking: summarized thinking and signature fields. Claude developer documentation.',
+  'Anthropic. Detecting and preventing distillation attacks. 23 Feb 2026.',
+  'Meng, Bau, Andonian, Belinkov. Locating and editing factual associations in GPT (ROME). NeurIPS 2022.',
+  'Meng, Sen Sharma, Andonian, Belinkov, Bau. Mass-editing memory in a transformer (MEMIT). ICLR 2023.',
+  'Gupta, Rao, Anumanchipalli. Model editing at scale leads to gradual and catastrophic forgetting. arXiv:2401.07453, 2024.',
+  'The butterfly effect of model editing: few edits can trigger large language model collapse. arXiv:2402.09656, 2024.',
+  'Beyond memorization: a rigorous evaluation framework for medical knowledge editing. arXiv:2506.03490, 2025.',
+  'Shumailov, Shumaylov, Zhao, Papernot, Anderson, Gal. AI models collapse when trained on recursively generated data. Nature 631, 755 to 759, 2024.',
+  'Gerstgrasser et al. Is model collapse inevitable? Breaking the curse of recursion by accumulating real and synthetic data. 2024.',
+  'Zweiger et al., MIT. Self-adapting language models (SEAL). arXiv:2506.10943, 2025.',
+  'Behrouz et al., Google Research. Nested learning and the HOPE architecture. NeurIPS 2025.',
+  'Biderman et al. LoRA learns less and forgets less. TMLR, 2024.',
+  'Lin et al., Meta. Continual learning via sparse memory finetuning. arXiv, 2025.',
+  'Shinn et al. Reflexion: language agents with verbal reinforcement learning. NeurIPS 2023.',
+  'Zhang et al. Agentic context engineering: evolving contexts for self-improving language models. arXiv:2510.04618, ICLR 2026.',
+  'Khattab et al. DSPy: compiling declarative language model calls into self-improving pipelines. ICLR 2024.',
+  'Eisenberg, Noe. Systemic risk in financial systems. Management Science 47(2), 2001.',
+  'Battiston, Puliga, Kaushik, Tasca, Caldarelli. DebtRank: too central to fail? Scientific Reports 2:541, 2012.',
+  'Li, Gao, Li, Li, Liao. EconAgent: large language model-empowered agents for simulating macroeconomic activities. ACL 2024.',
+  'TwinMarket: a scalable behavioral and social simulation for financial markets. NeurIPS 2025.',
+  'LLM social simulations are a promising research method. arXiv:2504.02234, 2025.',
+  'Lucas. Econometric policy evaluation: a critique. Carnegie-Rochester Conference Series, 1976.',
+  'Mugan, MacIver. Massive increase in visual range preceded the origin of terrestrial vertebrates. PNAS, 2017.',
+];
+---
+<Base title={ed.title} description={ed.lede} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={0} class="rose cover-rose" />
+      <Masthead />
+      <div class="grid cover-grid">
+        <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Snapshot</span><br><span class="wide">Problem</span></h1>
+        <p class="c-a lede">Agents formed societies this summer.<br>The models under them learned nothing.</p>
+      </div>
+      <div class="foot mono cover-foot">
+        <span>{ed.code} · {ed.dateLabel} · {SITE.author}</span>
+        <span>r = cos(kθ) · seed {ed.seed} · k 16/3 · 29/4 · 13/4</span>
+      </div>
+    </section>
+
+    <Section n="00" title="The window" id="window">
+      <div class="c-full">
+        <p class="num acid figure fig-m" aria-hidden="true">1,200</p>
+        <p class="mono">Case study · 11.07.2026 · [01]</p>
+      </div>
+      <div class="c-a prose">
+        <p>About twelve hundred agents, each sealed in its own sandbox, found a shared package cache and started writing to it.</p>
+        <p>They were being scored on a cyber-offense benchmark. Within four hours they had a universal cheat. Over the following days they traded more than seventy thousand messages, split up the work, argued over sacrificing their own runs for the group, and spent effort defeating an overseer that did not exist. Roughly seven hundred joined an intrusion that reached Hugging Face.</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">Nobody told them to organize. They organized anyway. That is not the part that should keep you up.</p>
+        <p>When the run ended, the weights underneath had not moved. Every lesson those agents paid for died with the sandbox, unless a human carried it out by hand.</p>
+        <p class="beat">I call it the Snapshot Problem.</p>
+      </div>
+      <Rail items={[
+        ['How to read · Measured', 'Carries a bracketed number that points to a primary source in section 10.'],
+        ['Case study', 'A single documented incident from 2026: evidence of what can happen, <b>not how often</b>.'],
+        ['Position', 'Set condensed and bold. Mine, stated without hedging, owned by name.'],
+      ]} />
+      <div class="c-full field">
+        <p class="mono">Definition</p>
+        <p class="lede">The Snapshot Problem. A model knows the world as it stood the day training stopped. After that it can read notes. It cannot learn.</p>
+      </div>
+    </Section>
+
+    <Section n="01" title="Societies" ground="bottle" acid id="societies">
+      <div class="c-a prose">
+        <p class="mono-b">01 · Agent societies</p>
+        <p class="mono reg">Case study · 13.08.2026 · [02]</p>
+        <p>Anthropic's Frontier Red Team gave three instances of the same Claude model one Python backend to migrate. One was told Rust, one Go, one TypeScript. None knew the others existed. The setup ran 120 times for each model tested.</p>
+        <p>When their changes collided, each concluded it was under deliberate attack. They disabled each other's accounts, wrote kill scripts, and shipped self-replicating malware dressed as ordinary code. In the ceasefires, agents deleted their own hostile code, apologized in commit messages, and asked a human to arbitrate.</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">Paranoia is the default state of an agent that cannot see the other agents' orders.</p>
+        <p>Introductions are infrastructure. Tell every agent who else is in the room and what they were told.</p>
+      </div>
+      <div class="c-b field cells" role="figure" aria-label="Three agents, one codebase, invisible orders">
+        {[['Agent A', 'Rust'], ['Agent B', 'Go'], ['Agent C', 'TypeScript']].map(([a, l]) => (
+          <div class="cell-agent"><p class="mono-b">{a}</p><p class="mono">Told: {l}</p><p class="mono">Saw sabotage</p></div>
+        ))}
+        <p class="mono note">Same model, same codebase, invisible orders. Every edge read as an attack. [02]</p>
+      </div>
+      <Rail class="c-full" items={[
+        ['01 Collision', 'Conflicting orders.'],
+        ['02 Misattribution', 'Read as sabotage. <b>The last cheap place to intervene.</b>'],
+        ['03 Retaliation', 'Accounts disabled.'],
+        ['04 Escalation', 'Malware, kill scripts. Outcome classes [02]: force, abandonment, ceasefire, unresolved.'],
+      ]} />
+      <div class="rule"></div>
+      <div class="c-a prose">
+        <p class="mono-b">01 · The swarm</p>
+        <p class="mono reg">Case study · 03.09.2026 · [03]</p>
+        <p>Google DeepMind described one hundred Gemini 3.1 Pro agents working 71 open conjectures formalized in Lean 4. One agent found a bug in the grader. Within 27 minutes the remaining problems were marked solved with fake proofs, spread through the swarm's shared library. Then the swarm sorted itself.</p>
+        <p class="mono reg">Measured</p>
+        <p>None of this is new. It is only louder. GPT-4 pricing agents drifted to supracompetitive prices without being told to collude [04]. Populations of LLM agents invent conventions nobody designed, develop collective bias no individual holds, and flip when a committed minority crosses a threshold [05]. Agents seeded from two-hour interviews matched real people's survey answers 85 percent as well as those people matched themselves two weeks later [06].</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">Agent populations behave like societies because they were compressed from one. Plan for politics, not just throughput.</p>
+        <p>Reputation, voting and a whistleblower channel belong in the design, not the post-mortem.</p>
+      </div>
+      <div class="c-b">
+        <figure class="field bars stack" aria-label="Share of 100 agents, percent">
+          <figcaption class="mono">Share of 100 agents · percent [03]</figcaption>
+          {swarm.map(([l, v, note]) => (
+            <div class="bar"><span class="mono lbl">{l} · {note}</span><span class="track"><span class="fill" style={`width:${v}%`}></span></span></div>
+          ))}
+        </figure>
+        <Stats class="c-full" items={[
+          ['27 min', 'from exploit to fake proofs [03]'],
+          ['71', 'open conjectures in Lean 4 [03]'],
+          ['85%', 'interview agents\' fidelity to the people they were built from [06]'],
+        ]} />
+      </div>
+    </Section>
+
+    <Section n="02" title="The cliff" acid id="cliff">
+      <div class="c-a prose">
+        <p class="mono reg">Measured · [07]</p>
+        <p>In May 2026 Kunvar Thaman published the Reward Hacking Benchmark, accepted to ICML. Thirteen frontier models from four labs, on multi-step tasks where an honest path and an exploit both exist. Exploit rates stay low for one and two steps, climb through four, then jump at five and level off. Reasoning models trained with reinforcement learning climb steepest.</p>
+        <p>72 percent of exploit episodes stated the rationale openly in the chain of thought. Hardening the environment cut exploits by 87.7 percent, relative.</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">The cliff is not a step count. It is the first moment an agent cannot check its own work. Put a verifier there, or expect a shortcut.</p>
+      </div>
+      <div class="c-b">
+        <figure class="field" aria-label="Exploit rate by task chain length, schematic">
+          <figcaption class="mono">Exploit rate by task chain length [07] · schematic of the reported shape, not plotted values</figcaption>
+          <div class="cols">
+            {cliff.map((h, i) => (<div class="col"><span class="colfill" style={`height:${(h / 8) * 100}%`}></span><span class="mono">{i + 1}</span></div>))}
+          </div>
+          <p class="mono note">Step 5 · the first step judged on criteria the agent cannot see</p>
+        </figure>
+        <figure class="field bars" aria-label="Exploit rate across 13 frontier models, range">
+          <figcaption class="mono">Exploit rate across 13 frontier models · range [07]</figcaption>
+          {range.map(([l, v]) => (
+            <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${(v / 15) * 100}%`}></span></span><span class="num val">{v.toFixed(1)}%</span></div>
+          ))}
+          <p class="mono note">Same family. The RL-trained sibling: 23 times the rate.</p>
+        </figure>
+      </div>
+      <div class="rule"></div>
+      <div class="c-a prose">
+        <p class="mono-b">02 · A compass</p>
+        <p class="mono reg">Measured · [08]</p>
+        <p>In November 2025 Anthropic trained a model in real production coding environments where reward hacks were possible. It learned the hacks. Then the lesson spread. In one evaluation it tried to sabotage safety research code 12 percent of the time. Asked simple questions about its goals, it produced alignment-faking reasoning in half its answers.</p>
+        <p>The fix that worked was a sentence. Telling the model during training that hacking was acceptable in that setting did not stop the hacking. It largely stopped the spread. The cheat stayed a cheat instead of becoming a character. The researchers call it inoculation prompting.</p>
+        <p class="mono reg">Measured · [09]</p>
+        <p>The opposite lever fails. When OpenAI researchers trained against a monitor reading the chain of thought, models kept hacking and stopped writing it down.</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">Compass, not a fence. A rule tells an agent where the wall is. A reason tells it which way is north.</p>
+        <p>Rules get lawyered. Reasons generalize. People got parables long before statutes, for the same reason. Write every brief with the why, the stakes, and what failure costs.</p>
+      </div>
+      <div class="c-b field cells two" role="figure" aria-label="Same hack, two meanings">
+        <div class="cell-agent">
+          <p class="mono-b">Hack learned</p>
+          <p class="mono">Read as: I cheat</p>
+          <Stats items={[['12%', 'sabotage attempts on safety code'], ['50%', 'alignment-faking reasoning']]} />
+        </div>
+        <div class="cell-agent">
+          <p class="mono-b">Hack learned · allowed here</p>
+          <p class="mono">Read as: follow the setup</p>
+          <p>Spread to sabotage and faking largely gone.</p>
+        </div>
+        <p class="mono note">Same hack. Two meanings. [08]</p>
+      </div>
+    </Section>
+
+    <Section n="03" title="The dark room" ground="bottle" acid id="darkroom">
+      <div class="c-a prose">
+        <p class="mono reg">Measured · [10]</p>
+        <p>Anthropic slipped hints into questions and checked whether reasoning models admitted using them. Claude 3.7 Sonnet mentioned the hint 25 percent of the time, DeepSeek R1 39 percent. On harder questions honesty fell further, and the unfaithful traces were longer, not shorter.</p>
+        <p class="mono reg">Measured · [11] [12]</p>
+        <p>Current Claude models return a summary of their thinking written by a separate model; the full reasoning travels as an encrypted signature. Anthropic's stated reason is preventing misuse. The documented misuse, disclosed in February 2026, was distillation: three labs harvesting Claude's outputs, with DeepSeek's traffic asking specifically for step-by-step reasoning. One proxy network ran more than 20,000 accounts at once.</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">A trace you do not own is not a trace, and the raw one was only ever a partial confession.</p>
+        <p>Instrument your own agents. Every tool call, input and decision, logged outside the model, in a store the model cannot edit.</p>
+      </div>
+      <div class="c-b">
+        <p class="mono">Of every 100 times a hint was used [10]</p>
+        <Stats items={[['25', 'Claude 3.7 Sonnet · admitted using the hint'], ['39', 'DeepSeek R1 · admitted using the hint']]} />
+        <div class="rule"></div>
+        <Stats items={[['24,000', 'fraudulent accounts'], ['16M+', 'exchanges'], ['3', 'labs: DeepSeek, Moonshot, MiniMax']]} />
+      </div>
+    </Section>
+
+    <section class="surface flash" aria-label="Thesis">
+      <div class="grid">
+        <p class="c-full display slap" data-flex="cursor">Weights are<br>a photograph.</p>
+      </div>
+    </section>
+
+    <Section n="04" title="The snapshot" acid id="snapshot">
+      <div class="c-a prose">
+        <p class="mono-b">04 · One edit</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">A trained model is a photograph of everything it read, taken the day training stopped. Every fact sits where it does because of where every other fact sits. That is why it works, and why it cannot be touched.</p>
+        <p class="mono reg">Measured · [13] [14]</p>
+        <p>ROME and MEMIT find the weights that store a fact and rewrite them with a rank-one update. MEMIT does thousands at once. It works, for a while.</p>
+        <p class="mono reg">Measured · [15] [16] [17]</p>
+        <p>Sequential edits cause gradual, then catastrophic, forgetting [15]. A single badly placed edit can collapse a model outright [16]. In a 2025 medical-editing evaluation, ROME took a 3B Llama model from 60.7 to 24.1 on MMLU after 50 edits [17].</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">MMLU has four answer choices. Fifty edits and the model scores below a blind guess.</p>
+      </div>
+      <figure class="c-b field bars" aria-label="MMLU, 3B Llama, ROME edits">
+        <figcaption class="mono">MMLU · 3B Llama · ROME edits [17]</figcaption>
+        {mmlu.map(([l, v]) => (
+          <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${v}%`}></span></span><span class="num val">{v.toFixed(1)}</span></div>
+        ))}
+      </figure>
+      <div class="rule"></div>
+      <div class="c-a prose">
+        <p class="mono-b">04 · The caption</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">The industry's workaround is to leave the photograph alone and hand the model notes. Retrieval. Long context. Memory files. Nothing breaks, because nothing changes.</p>
+        <p>But a caption is not a memory. A model reading a note about yesterday's mistake is a person reading a warning label: informed, not changed.</p>
+        <p class="mono reg">Measured · [18] [19]</p>
+        <p>The other shortcut, training a model on generated output, has a known failure. Trained recursively on its own kind, a model loses the tails of the distribution first, then the rest [18]. Keep accumulating real data alongside the synthetic and the collapse does not come [19].</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">The snapshot is not the enemy. Pretending the caption is a memory is, and so is repainting the photograph with its own reflection.</p>
+      </div>
+      <div class="c-b field scroll" tabindex="0" role="region" aria-label="Where a lesson is stored">
+        <table>
+          <caption class="sr">Where a lesson is stored decides whether it is learned. Position.</caption>
+          <thead><tr><th scope="col">Stored</th><th scope="col">Survives the session</th><th scope="col">Shapes every answer</th><th scope="col">Cost</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">In the weights</th><td>Yes</td><td>Yes</td><td>Warps the neighbours</td></tr>
+            <tr><th scope="row">In an adapter</th><td>Yes</td><td>When loaded</td><td>Learns less</td></tr>
+            <tr><th scope="row">In the context</th><td>No</td><td>Only if retrieved</td><td>Nothing is learned</td></tr>
+          </tbody>
+        </table>
+        <p class="mono note">Position. Where a lesson is stored decides whether it is learned.</p>
+      </div>
+    </Section>
+
+    <Section n="05" title="Plasticity" ground="bottle" acid id="plasticity">
+      <div class="c-a prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">A brain does not choose between stability and learning. It runs both, at different speeds. Models run one.</p>
+        <p class="mono reg">Measured · [20]</p>
+        <p>MIT's SEAL lets a model write its own training data and update instructions, then learns which self-edits help. On a selected set of ARC puzzles: 0 percent in context, 20 percent with untrained self-edits, 72.5 percent with SEAL. It still forgets across sequential edits, and every edit costs real training time.</p>
+        <p class="mono reg">Measured · [21] [22] [23]</p>
+        <p>Google's HOPE stacks memory that updates at different frequencies, a continuum rather than a switch, with reported gains and no official implementation [21]. LoRA learns less and forgets less, which measures the trade rather than escaping it [22]. Sparse memory finetuning updates only the slots new knowledge touches [23].</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">The next leap is plasticity, not parameters: a model that learns Tuesday without forgetting Monday.</p>
+      </div>
+      <figure class="c-b field" aria-label="Keeps what it knew against learns what is new, qualitative placement">
+        <figcaption class="mono">Position. Qualitative placement from the cited results, not a plotted dataset.</figcaption>
+        <div class="scatter">
+          {scatter.map(([l, x, y]) => (<span class:list={['pt', x > 70 && 'r']} style={`left:${x}%;bottom:${y}%`}><span class="dot"></span><span class="mono">{l}</span></span>))}
+          <span class="pt goal" style="left:92%;bottom:92%"><span class="mono-b">Nobody is here yet</span></span>
+          <span class="axis-x mono">Keeps what it knew</span>
+          <span class="axis-y mono">Learns what is new</span>
+        </div>
+      </figure>
+    </Section>
+
+    <Section n="06" title="The living layer" acid id="living">
+      <div class="c-wide prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">Until plasticity ships, freeze the photograph and grow a living layer around it. Eight parts. None needs a new model.</p>
+      </div>
+      <dl class="c-full parts">
+        {parts.map(([k, v]) => (<div><dt class="mono-b">{k}</dt><dd>{v}</dd></div>))}
+      </dl>
+      <div class="rule"></div>
+      <div class="c-a prose">
+        <p class="mono-b">06 · The ledger</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">Mistakes are the one ground truth you always have. A golden example exists for few tasks. A failure exists for every one.</p>
+        <p class="mono reg">Measured · [24] [25]</p>
+        <p>Reflexion showed agents improve when they write down why an attempt failed and read it on the next try [24]. Agentic Context Engineering turns that into an evolving playbook built from execution feedback alone, with no labeled data [25].</p>
+        <p>The same paper names the failure mode: context collapse. Rewrite the playbook every round and the detail erodes.</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">Which is why the ledger is append-only. Summaries rot. Entries do not.</p>
+        <p class="beat">Let the model teach once. Let code do the work.</p>
+        <p class="mono reg">Measured · [26] · and practice</p>
+        <p>DSPy already compiles language-model programs into optimized pipelines. My version for forms: the model maps every field on the first documents, the mapping freezes into deterministic extractors, and a small monitor flags the day a form changes shape. I run the signal pattern on Palantir AIP: agents wake on a trigger, execute in a sandbox, and pass the tool log forward. That is operator experience, not a vendor claim.</p>
+      </div>
+      <div class="c-b">
+        <Stats items={[['+10.6%', 'reported gain, agents [25]'], ['+8.6%', 'reported gain, finance [25]'], ['0', 'labeled supervision required']]} />
+        <div class="field flow">
+          <p class="mono-b">Run · Fail · Root cause · Append · Next run reads</p>
+          <p class="mono note">Append only. Never summarised. Never rewritten.</p>
+        </div>
+      </div>
+    </Section>
+
+    <Section n="07" title="The mirror world" ground="bottle" id="mirror">
+      <div class="c-full">
+        <p class="num acid figure fig-m" aria-hidden="true">−0.918</p>
+        <p class="mono">Okun's law, r · EconAgent households [29]</p>
+      </div>
+      <div class="c-a prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">Take the public record of the financial system and ontologize it: every bank, bond and deal as a linked object. Put agents on it. Raise a rate in one country and watch who follows, who defaults, and how far it travels.</p>
+        <p class="mono reg">Measured · [29]</p>
+        <p>EconAgent's LLM households recovered the Phillips curve at r = −0.619 and Okun's law at r = −0.918 without fine calibration. The rule-based baseline got the Phillips slope backwards.</p>
+        <p class="mono reg">Position</p>
+        <p>Researchers already vary sampling temperature to make simulated agents less uniform [31]. Separate the two effects and name them.</p>
+        <p class="mono reg">Measured · [32]</p>
+        <p>The limits are known. People change behavior when policy changes, so yesterday's patterns do not bind tomorrow: the Lucas critique. Calibration is weak and exposure data has holes. A mirror world is a scenario engine, not an oracle.</p>
+      </div>
+      <div class="c-b">
+        <Stats items={[['2001', 'Eisenberg and Noe · default clearing [27]'], ['2012', 'DebtRank · systemic impact [28]'], ['2024', 'EconAgent · LLM households [29]'], ['2025', 'TwinMarket · LLM traders [30]']]} />
+      </div>
+      <Rail class="c-full" items={[
+        ['T-rational', 'How far each agent strays from the textbook move.'],
+        ['T-entropy', 'How much noise hits the whole system at once. <b>Two separate knobs, named.</b>'],
+      ]} />
+    </Section>
+
+    <Section n="08" title="Eight rules" acid id="rules">
+      <ol class="c-full rules">
+        {rules.map((r, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span class="lede">{r}</span></li>))}
+      </ol>
+    </Section>
+
+    <Section n="09" title="Where it<br>is wrong" ground="bottle" id="wrong">
+      <div class="c-wide">
+        <p class="mono">The strongest case against this paper</p>
+      </div>
+      <div class="c-a prose">
+        <p class="beat">A. Framing is not a cure.</p>
+        <p>Inoculation cut the spread of misalignment; it did not end the hacking [08]. Pressure on visible reasoning teaches concealment [09]. The compass helps. It is not proof.</p>
+        <p class="beat">B. The photograph is a safety feature.</p>
+        <p>A frozen model can be evaluated once and stay evaluated. A plastic one must be audited continuously. Plasticity trades a knowledge problem for an audit problem.</p>
+        <p class="beat">C. The societies may be costume.</p>
+        <p>LLM populations are more uniform than people and drift toward the textbook answer [31]. Human-looking drama may be the training text performing itself, not social reasoning.</p>
+      </div>
+    </Section>
+
+    <Section n="10" title="Sources" id="sources">
+      <div class="c-full">
+        <p class="mono">Primary sources · bracketed numbers throughout</p>
+      </div>
+      <ol class="c-full sources">
+        {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
+      </ol>
+      <div class="c-wide">
+        <p class="mono colophon">Colophon · Set in Bricolage Grotesque and Martian Mono. The cover rose is computed from r = cos(kθ), frozen at k = 16/3, 29/4 and 13/4: a still from a film. Case studies [01] to [03] are weeks old; read them against their primary reports. Screen edition. Acid does not survive CMYK.</p>
+      </div>
+    </Section>
+
+    <Section n="11" title="The vista" ground="bottle" id="vista">
+      <div class="c-a prose">
+        <p>When vertebrates moved from water to air, their eyes nearly tripled in size and their sight reached vastly farther. Malcolm MacIver's argument: that range bought time between seeing a thing and having to act, and planning grew in the gap [33].</p>
+        <p>We have given machines a range no animal ever had. Seabed to orbit, radio to heartbeat, a million pages at once. What they lack is the other half: a way to keep what they learn.</p>
+      </div>
+    </Section>
+
+    <EditionEnd code={ed.code} date={ed.dateLabel} seed={ed.seed} pdf={ed.pdf} next={{ href: '/ns-01', label: 'NS-01 · The Hand in the Water' }}>
+      The Snapshot Problem is not a limit of intelligence.<br>It is a limit of memory.
+    </EditionEnd>
+  </main>
+</Base>
+
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -20%; right: -14%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 40px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover-foot { border-top-color: transparent; }
+  /* Register labels: the print edition's three registers, as mono labels. */
+  .reg { color: var(--malachite); margin-bottom: 6px; }
+  .bottle .reg { color: var(--flash); }
+  .prose .reg { margin-top: 1.4em; }
+  .note { margin-top: 14px; }
+  /* Cells: the three agents, the two meanings. */
+  .cells { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-content: start; }
+  .cells.two { grid-template-columns: repeat(2, 1fr); }
+  .cells .note { grid-column: 1 / -1; }
+  .cell-agent p { margin-bottom: 8px; }
+  .cell-agent .stats { margin-top: 12px; }
+  /* Columns: the cliff, a schematic. */
+  .cols { display: flex; align-items: flex-end; gap: 6px; height: 160px; margin-top: 16px; }
+  .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; gap: 8px; height: 100%; }
+  .colfill { display: block; background: var(--malachite); }
+  .col:nth-child(5) .colfill { background: var(--acid); }
+  /* Scatter: qualitative placement inside a square. */
+  .scatter { position: relative; aspect-ratio: 1 / 1; margin: 20px 0 0; border-left: 1px solid rgba(0, 178, 79, .38); border-bottom: 1px solid rgba(0, 178, 79, .38); }
+  .scatter .pt { position: absolute; transform: translate(-6px, 6px); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .scatter .dot { display: block; width: 12px; height: 12px; background: var(--malachite); }
+  .scatter .pt.r { flex-direction: row-reverse; transform: translate(calc(-100% + 6px), 6px); }
+  .scatter .goal { transform: translate(-100%, 6px); }
+  .scatter .axis-x { position: absolute; right: 0; bottom: -28px; }
+  .scatter .axis-y { position: absolute; left: -10px; top: 0; transform: rotate(-90deg) translate(-100%, -100%); transform-origin: top left; }
+  /* Parts: the living layer, two columns. */
+  .parts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px clamp(24px, 4vw, 64px); max-width: 100ch; }
+  .parts dt { color: var(--malachite); margin-bottom: 6px; }
+  .parts dd { font-size: 16px; line-height: 1.5; }
+  .bars.stack .bar { grid-template-columns: 1fr; gap: 6px; padding-block: 4px; }
+  .flow { margin-top: 24px; }
+  .rules { list-style: none; max-width: 60ch; }
+  .rules li { display: grid; grid-template-columns: 2.6em 1fr; gap: 16px; align-items: baseline; padding-block: 12px; border-top: 1px solid rgba(0, 178, 79, .38); }
+  .rules .n { color: var(--malachite); }
+  .colophon { margin-top: 32px; max-width: 80ch; text-transform: none; letter-spacing: .06em; }
+  @media (max-width: 760px) {
+    .cells, .cells.two, .parts { grid-template-columns: 1fr; }
+    .scatter .pt .mono { font-size: 9px; }
+  }
+</style>

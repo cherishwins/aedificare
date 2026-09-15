@@ -1,7 +1,7 @@
 {
   "/og/home.png": {
-    "src": "/og/home.d8811bcd.png",
-    "alt": "Aedificare share card: AEDIFICARE, in acid green and white type running off both edges over a green rose curve. Three editions. September 2026."
+    "src": "/og/home.f12aa6c0.png",
+    "alt": "Aedificare share card: AEDIFICARE, in acid green and white type running off both edges over a green rose curve. Four editions. September 2026."
   },
   "/og/edition-03.png": {
     "src": "/og/edition-03.ab5fa752.png",
@@ -14,6 +14,10 @@
   "/og/ns-01.png": {
     "src": "/og/ns-01.8837e64f.png",
     "alt": "Aedificare share card: THE HAND IN THE WATER, in acid green and white type running off both edges over a green rose curve. NS-01. 11 Sep 2026. OpenAI opened door C. The world reported door A.."
+  },
+  "/og/edition-01.png": {
+    "src": "/og/edition-01.a4cd7ffd.png",
+    "alt": "Aedificare share card: THE SNAPSHOT PROBLEM, in acid green and white type running off both edges over a green rose curve. Edition 01. 11 Sep 2026. Agents formed societies this summer. The models under them learned nothing.."
   },
   "/og/edition-02.png": {
     "src": "/og/edition-02.d905e6dc.png",
