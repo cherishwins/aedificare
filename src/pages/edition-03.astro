@@ -7,7 +7,7 @@ import Rail from '../components/Rail.astro';
 import Stats from '../components/Stats.astro';
 import EditionEnd from '../components/EditionEnd.astro';
 import { HOUSE } from '../lib/rose.mjs';
-import { edition, LICENCE } from '../lib/editions.mjs';
+import { edition, LICENCE, describe } from '../lib/editions.mjs';
 import { SITE, abs } from '../config.mjs';
 
 const ed = edition('edition-03');
@@ -70,7 +70,7 @@ const sources = [
   'Haven 2 node bill of materials as stated by the vendor: Raspberry Pi 5, Morse Micro MM8108, Waveshare 4-cell UPS hat, printed enclosure. Component origins are the manufacturers\' stated locations.',
 ];
 ---
-<Base title={ed.title} description={ed.lede} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
   <main id="main">
     <section class="surface cover" aria-label="Cover">
       <RoseField layers={cover} seed={0.003} class="rose cover-rose" />

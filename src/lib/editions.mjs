@@ -105,3 +105,19 @@ export const LICENCE = {
   url: 'https://creativecommons.org/licenses/by/4.0/',
   spdx: 'CC-BY-4.0',
 };
+
+// Counts read from lists are printed as words, never typed.
+export const numberWord = (n) =>
+  ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'][n] ?? String(n);
+
+// The meta description of an edition: the lede, then the record line (code,
+// title, date, section count, licence). Generated, never typed, because
+// LinkedIn's Post Inspector warns under 100 characters and a lede alone can
+// be 48; everything after the lede is data the page already carries.
+// tools/check-contents.cjs fails the build outside 100 to 200 characters.
+export const describe = (e) => {
+  const record = [e.code, e.title, e.dateLabel];
+  if (e.contents) record.push(`${numberWord(e.contents.length)} sections`);
+  record.push(LICENCE.name);
+  return `${e.lede} ${record.join(' · ')}`;
+};

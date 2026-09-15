@@ -7,7 +7,7 @@ import Rail from '../components/Rail.astro';
 import Stats from '../components/Stats.astro';
 import EditionEnd from '../components/EditionEnd.astro';
 import { HOUSE } from '../lib/rose.mjs';
-import { edition, LICENCE } from '../lib/editions.mjs';
+import { edition, LICENCE, describe } from '../lib/editions.mjs';
 import { SITE, abs } from '../config.mjs';
 
 const ed = edition('edition-01');
@@ -100,7 +100,7 @@ const sources = [
   'Mugan, MacIver. Massive increase in visual range preceded the origin of terrestrial vertebrates. PNAS, 2017.',
 ];
 ---
-<Base title={ed.title} description={ed.lede} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
   <main id="main">
     <section class="surface cover" aria-label="Cover">
       <RoseField layers={cover} seed={0} class="rose cover-rose" />
