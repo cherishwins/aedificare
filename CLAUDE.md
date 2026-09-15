@@ -26,13 +26,14 @@ Shipped (2026-09-15):
 
 | Route | What | State |
 |---|---|---|
-| `/` | The index: live house-configuration rose, cropped wordmark, the editions | live |
+| `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
+| `/edition-03` | Edition 03 · *The Markup* (15 Sep 2026), ten sections, twelve sources | live |
 | `/ns-01` | NS-01 · *The Hand in the Water* (11 Sep 2026) | live |
 | `/ns-02` | NS-02 · *The Closest Humans* (13 Sep 2026), amendment to NS-01 | live |
 | `/edition-02` | Edition 02 · *The Subtraction* | **draft**: noindex, unlinked, out of sitemap/robots/feed |
 | `/404` | | live |
 | `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/ai.txt` `/humans.txt` | discoverability | generated or static |
-| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` | the print editions as uploaded | as uploaded |
+| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-03.pdf` | the print editions as uploaded | as uploaded |
 
 ## Brand — source of truth, and the overrides
 
@@ -154,8 +155,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   discoverability links, JSON-LD, skip link, the script.
 - `src/components/`: `Mark`, `RoseField`, `Dove`, `Masthead`, `Section`,
   `Rail`, `Pull`, `Stats`, `EditionEnd`.
-- `src/pages/`: `index`, `ns-01`, `ns-02`, `edition-02`, `404`, and the
-  generated `feed.xml.ts`, `llms.txt.ts`, `robots.txt.ts`.
+- `src/pages/`: `index`, `edition-03`, `ns-01`, `ns-02`, `edition-02`,
+  `404`, and the generated `feed.xml.ts`, `llms.txt.ts`, `robots.txt.ts`.
 - `public/fonts/`: the two faces, subset with fontTools to Latin plus Latin
   Extended, **all axes kept** (Bricolage 181 kB, Martian 47 kB). The Google
   Fonts split subsets were 131 + 53 kB for Bricolage alone; one file with
@@ -269,6 +270,23 @@ for a shortlist for bios and cards, which is a separate deliverable.
 
 ## Findings from the uploads (2026-09-15)
 
+0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
+   pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text
+   as the owner's Markdown. Ported to `src/pages/edition-03.astro` with
+   the prose verbatim; figures rebuilt as computed bars (log scale for the
+   four node prices, linear for path loss and band width), the stack and
+   the nine-row ledger as tables in fields, the thesis as a Flash slap,
+   the sources as section 07 so a citation can point at them. Big figures
+   are sized by length (`.fig-m`, `.fig-l`) so the fourteen-character
+   `$4,400,000,000` never leaves a 320px frame. Seed `0003`, k 5/7, from
+   the PDF's colophon. It references Edition 02, which stays a draft, so
+   the reference is prose and not a link. The same upload batch carried
+   `the-closest-humans.pdf`, byte-identical to `public/pdf/ns-02.pdf`, and
+   an `aedificare-edition-02.pdf` that is an OLDER chassis than the one in
+   `source/edition-02/` (rendered 13 Sep, "FACTS PENDING", slot
+   placeholders where the repo's copy has figures). Nothing was taken from
+   either.
+
 1. **Edition 02's PDF shipped in Liberation Sans and DejaVu Sans Mono.**
    `fonts/local-fonts.css` declared `src: url(fonts/bricolage-1.woff2)`, but
    CSS resolves `url()` relative to the stylesheet, which already lives in
@@ -363,3 +381,10 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    and this file agree.
 4. **Taglines**: the owner wants a shortlist for external bios and cards.
    The site carries none.
+5. **The name's own emblem.** Hendrick Goltzius, *Aedificare super
+   arenam* (the house built on sand, Matthew 7:26), print 7 of 10 in
+   *Allegories of the Christian Faith*, c. 1598 to 1604, Rijksmuseum
+   RP-P-OB-10.078, also at the Met. Public domain. It is the verb in the
+   brand's name made into a picture, and for that reason it can never
+   appear on a surface: the rules are no illustration, nothing drawn, and
+   no building pun. Recorded so nobody rediscovers it and reaches for it.

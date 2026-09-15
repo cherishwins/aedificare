@@ -9,6 +9,23 @@
  */
 export const EDITIONS = [
   {
+    code: 'Edition 03', slug: 'edition-03', path: '/edition-03',
+    title: 'The Markup', acid: 'Markup',
+    lede: 'A mesh radio the state pays eighteen thousand dollars for. A mesh radio a Canadian builds for four hundred.',
+    date: '2026-09-15', dateLabel: '15 Sep 2026',
+    seed: '0003', k: [5, 7], pdf: '/pdf/edition-03.pdf',
+    contents: [
+      { n: '00', t: 'The number', id: 'number' },
+      { n: '01', t: 'The silicon', id: 'silicon' },
+      { n: '02', t: 'The band', id: 'band' },
+      { n: '03', t: 'The stack', id: 'stack' },
+      { n: '04', t: 'The ledger', id: 'ledger' },
+      { n: '05', t: 'The test', id: 'test' },
+      { n: '06', t: 'The direction', id: 'direction' },
+      { n: '07', t: 'Sources', id: 'sources' },
+    ],
+  },
+  {
     code: 'NS-02', slug: 'ns-02', path: '/ns-02',
     title: 'The Closest Humans', acid: 'Humans',
     lede: 'Two men, one year, and a phone call on a Sunday.',

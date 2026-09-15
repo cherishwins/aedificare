@@ -1,0 +1,278 @@
+---
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import Section from '../components/Section.astro';
+import Rail from '../components/Rail.astro';
+import Stats from '../components/Stats.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, LICENCE } from '../lib/editions.mjs';
+import { SITE, abs } from '../config.mjs';
+
+const ed = edition('edition-03');
+
+// Cover field runs Malachite only: Acid on this surface is spent on one word
+// of the title.
+const cover = HOUSE.map((L, i) => ({ ...L, c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: 'The Markup',
+  alternativeHeadline: 'Edition 03',
+  datePublished: ed.date,
+  author: { '@type': 'Person', name: 'Jesse James' },
+  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
+  url: abs(ed.path),
+  mainEntityOfPage: abs(ed.path),
+  license: LICENCE.url,
+  isAccessibleForFree: true,
+  description: ed.lede,
+};
+
+// Figures. Bars are computed from the numbers, never drawn.
+const nodes = [['Haven · floor', 208], ['Haven · ceiling', 450], ['MPU5 · 2017', 9368], ['MPU5 · 2024', 18214]];
+const logW = (v) => (((Math.log10(v) - 2) / 3) * 100).toFixed(1);
+const loss = [['915 MHz · HaLow', 0], ['2,437 MHz · Wi-Fi', 8.5], ['5,800 MHz · Wi-Fi', 16]];
+const bands = [['Canada · US · 902 to 928', 26, '26 MHz · 1 W · three 8 MHz channels'], ['Europe · 863 to 868', 5, '5 MHz · 25 mW in most sub-bands']];
+const stack = [
+  ['Reticulum 1.5.3', 'Identity, encryption, transport', 'Open · 2016'],
+  ['WireGuard', 'Remote node management', 'Open · 2015'],
+  ['BATMAN-adv', 'Layer 2 mesh routing, in kernel', 'Open · 2007'],
+  ['802.11s', 'Mesh mode of the Wi-Fi standard', 'Standard · 2011'],
+  ['OpenWrt 23.05', 'Operating system', 'Open · 2004'],
+  ['MM8108 · 802.11ah', 'Sub-GHz PHY and MAC, WPA3 in hardware', 'Silicon · 2025'],
+];
+const ledger = [
+  ['Spectrum', 'Licensed government bands, C-band 4,400 to 5,000 MHz among them. Multi-watt. Nobody else on the frequency.', '902 to 928 MHz, licence-exempt. One watt conducted. Shared with everyone.'],
+  ['Waveform', 'Proprietary Wave Relay, 3-by-3 MIMO, RF signature management, LPI and LPD, DoD-assessed electronic-attack countermeasure library.', 'Standard 802.11ah, single stream. No anti-jam. No signature management.'],
+  ['Throughput', 'Not published for the MPU5. Silvus\'s comparable SM5200 states 100 Mbps.', '43.3 Mbps at the physical layer on an 8 MHz channel.'],
+  ['Encryption', 'Up to two layers, FIPS-compliant, NIAP-approved, CSfC-approved.', 'WPA3 in chip hardware. Reticulum X25519, Ed25519, AES-256-CBC, forward secrecy. Nobody has signed a form.'],
+  ['Environment', 'IP68 to 20 metres for 30 minutes. MIL-STD-810G. MIL-STD-461F. Minus 40 to plus 85 Celsius.', 'A 3D-printed enclosure. Whatever the Pi tolerates.'],
+  ['Power', 'AN/PRC-148 and AN/PRC-152 batteries. The same cells as the rest of the kit.', 'A four-cell Waveshare hat.'],
+  ['Supply chain', 'Made in USA, ISO 9001, NDAA-compliant, Blue UAS listed. A chain of custody a program office can audit.', 'Sydney-designed silicon on a Welsh-built Cambridge board, in a box you printed yourself.'],
+  ['Support', 'A contract with a phone number and a liability clause.', 'A Discord and a GitHub issues tab.'],
+  ['Source', 'Closed. The waveform is the company.', 'Open at every layer above the radio firmware, driver included.'],
+];
+const sources = [
+  'Persistent Systems, press release, $8.9M award, 950+ MPU5 radios, Army National Guard WMD-CSTs, 2017. Also National Defense Magazine, 11 Dec 2017; C4ISRNET, 14 Sep 2017.',
+  'Persistent Systems, press release, $5.1M award, 280+ MPU5 radios and 10 integrated sector antennas, USAF Air Mobility Command, Feb 2024. Also Soldier Systems Daily, 8 Feb 2024.',
+  'Persistent Systems, MPU5 overview and technical specifications pages: encryption, LPI/LPD, IRD, IP68, MIL-STD-810G, MIL-STD-461F, temperature, battery compatibility.',
+  'Secondary-market MPU5 listings, eBay and Tacswap, $8,025 to $10,500, listings read Sep 2026. Used only to bound the vendor\'s twenty-thousand claim; not load-bearing.',
+  'Parallel (Salient Ventures LLC), Haven 2 product page: $97 guide, $208 to $450 per node, minimum two nodes. buildwithparallel/openwrt-morse-rpi5 on GitHub for the firmware and hardware table.',
+  'Morse Micro, MM8108 launch release, 8 Jan 2025; MM8108 datasheet; CNX Software, 14 Jan 2025 (MM6108 32.5 Mbps, package sizes); MM8108-M20 module release, 1 Jun 2026.',
+  'Free-space path loss: Friis, 20·log10(f). 2,437 and 5,800 MHz are Wi-Fi channel 6 and a mid-band 5 GHz channel. Morse Micro\'s ten-times range claim is the company\'s.',
+  'ISED, RSS-247 Issue 4, published 24 Jul 2025, mandatory 24 Jan 2026; Issue 3 text for the 1 W, 4 W e.i.r.p., 500 kHz and 8 dBm/3 kHz figures. Europe: ETSI EN 300 220, 863 to 868 MHz SRD sub-bands.',
+  'Reticulum Network Stack, manual for release 1.5.3, Mark Qvist, 10 Sep 2026: primitives, identity size, minimum channel, MTU. OpenMANET documentation, openmanet.github.io.',
+  'Silvus Technologies, StreamCaster product pages; SM5200 release, Urgent Communications, 11 Feb 2026 (182 g, 2 W, 100 Mbps, Ukraine use per Motorola).',
+  'Motorola Solutions acquisition of Silvus, $4.38B cash plus $20M stock, up to $600M earnout through 2028, reported May 2025.',
+  'Haven 2 node bill of materials as stated by the vendor: Raspberry Pi 5, Morse Micro MM8108, Waveshare 4-cell UPS hat, printed enclosure. Component origins are the manufacturers\' stated locations.',
+];
+---
+<Base title={ed.title} description={ed.lede} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={0.003} class="rose cover-rose" />
+      <Masthead />
+      <div class="grid cover-grid">
+        <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Markup</span></h1>
+        <p class="c-a lede">{ed.lede}<br>The same physics in both. This is about the difference.</p>
+      </div>
+      <div class="foot mono cover-foot">
+        <span>{ed.code} · {ed.dateLabel} · {SITE.author}</span>
+        <span>r = cos(kθ) · seed {ed.seed}</span>
+      </div>
+    </section>
+
+    <Section n="00" title="The number" id="number">
+      <div class="c-full">
+        <p class="num acid figure fig-m" aria-hidden="true">$18,214</p>
+        <p class="mono">Per radio · United States Air Force · February 2024 · $5.1M ÷ 280</p>
+      </div>
+      <div class="c-a prose">
+        <p>Two public awards fix the price of a military mesh radio. In 2017 the United States Army National Guard paid Persistent Systems $8.9 million for more than 950 MPU5 radios. That is under $9,400 each. In February 2024 the Air Force paid $5.1 million for more than 280 MPU5 radios and ten sector antennas. That is at most $18,214 each, and the antennas are inside the number.</p>
+        <p>The vendor of the Haven build guide says the class of capability costs twenty thousand a unit. The public record does not say twenty. It says between nine and eighteen, and the newer award is the higher one.</p>
+        <p>The Haven node is a Raspberry Pi 5, a Morse Micro HaLow radio, an antenna, a battery hat and a printed enclosure. The guide prices the build at $208 to $450 per node. A network needs two. The guide itself is $97, and the parts list, firmware and configuration are on GitHub without it.</p>
+        <p>Two nodes, four hundred and sixteen dollars at the floor. One government radio, eighteen thousand two hundred at the ceiling. The ratio is forty-four to one against a single node, and the comparison is not fair. What follows is where the unfairness lives.</p>
+      </div>
+      <figure class="c-b field bars" aria-label="USD per node, log scale">
+        <figcaption class="mono">USD per node · log scale</figcaption>
+        {nodes.map(([l, v]) => (
+          <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${logW(v)}%`}></span></span><span class="num val">{v.toLocaleString('en-US')}</span></div>
+        ))}
+      </figure>
+    </Section>
+
+    <Section n="01" title="Five<br>millimetres." ground="bottle" acid id="silicon">
+      <div class="c-a prose">
+        <p class="mono-b">01 · The silicon</p>
+        <p>The radio inside the four-hundred-dollar node is a Morse Micro MM8108. Sydney company. Second-generation Wi-Fi HaLow, the IEEE 802.11ah standard, launched at CES in January 2025. Five by five millimetres in a BGA package, down from six by six for the first generation.</p>
+        <p>It moves 43.3 megabits per second at the physical layer on an 8 MHz channel using 256-QAM, the first sub-gigahertz chip to do so. Its predecessor did 32.5. The power amplifier is on the die: 26 dBm, four hundred milliwatts, at 45 percent efficiency. WPA3 with AES and SHA-2 runs in on-chip hardware. In June 2026 the company shipped it as a module, 18.5 by 14 millimetres, with an external amplifier to 28.5 dBm and a filter tuned for 902 to 928 MHz.</p>
+        <p>The reason a sub-gigahertz radio reaches further is not the chip. It is the wave. Free-space path loss rises with the square of frequency. Move from 2,437 MHz down to 915 MHz and the loss falls 8.5 decibels. Move from 5,800 MHz and it falls 16. Every six decibels doubles range in open air. The arithmetic gives 915 MHz roughly 2.7 times the reach of 2.4 GHz and 6.3 times the reach of 5.8 GHz before a single wall is counted, and the longer wave goes through walls better than the short one.</p>
+        <p class="beat">Morse Micro claims ten times. The arithmetic says three to six. Either number is the same fact: the range that costs eighteen thousand dollars is mostly a property of the frequency, and the frequency is free.</p>
+      </div>
+      <Rail items={[
+        ['Part', 'Morse Micro <b>MM8108</b>, Sydney. Second-generation Wi-Fi HaLow, IEEE 802.11ah. Launched at CES, January 2025.'],
+        ['Package', '<b>5 by 5 mm</b> BGA, down from 6 by 6. Module MM8108-M20, June 2026: 18.5 by 14 mm, amplifier to 28.5 dBm, filter for 902 to 928 MHz.'],
+        ['Physical layer', '43.3 Mbps on an 8 MHz channel, 256-QAM. Its predecessor did 32.5.'],
+        ['On the die', 'Power amplifier at 26 dBm and 45 percent efficiency. WPA3 with AES and SHA-2 in hardware.'],
+      ]} />
+      <figure class="c-full field bars" aria-label="Free-space path loss relative to 915 MHz">
+        <figcaption class="mono">Free-space path loss · relative to 915 MHz · 20·log10(f/915)</figcaption>
+        {loss.map(([l, v]) => (
+          <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${((v / 18) * 100).toFixed(1)}%`}></span></span><span class="num val">{v === 0 ? '0.0' : `+${v.toFixed(1)}`} dB</span></div>
+        ))}
+      </figure>
+    </Section>
+
+    <Section n="02" title="The band" id="band">
+      <div class="c-full">
+        <p class="num acid figure fig-m" aria-hidden="true">902–928</p>
+        <p class="mono">MHz · licence-exempt · Canada and the United States</p>
+      </div>
+      <div class="c-a prose">
+        <p>The chip is legal to run in Canada because of a document called RSS-247. Issue 4 was published by Innovation, Science and Economic Development Canada on 24 July 2025 and became mandatory on 24 January 2026. For digital transmission systems in the band 902 to 928 MHz it sets a peak conducted power of one watt, an e.i.r.p. of four watts, a minimum bandwidth of 500 kHz and a spectral density of 8 dBm in any 3 kHz. No licence. No fee. No application. Point-to-point links may run higher e.i.r.p. under the same document.</p>
+        <p>Twenty-six megahertz of clean sub-gigahertz spectrum, open to anyone, shared with the United States under an almost identical rule. That is the widest public allocation of its kind on earth.</p>
+        <p>Europe's equivalent sits at 863 to 868 MHz. Five megahertz wide, a fifth of the North American band, and most of it capped at 25 milliwatts. A HaLow mesh that reaches kilometres in Langford reaches a few hundred metres in Lyon, not because the chip changed but because the law did.</p>
+        <p>The band is also the first honest entry in the ledger against the four-hundred-dollar node. A government radio does not live at 902 MHz. It lives in licensed bands, C-band 4,400 to 5,000 MHz among them, where it may run multiple watts and shares the spectrum with nobody. One watt in a band full of baby monitors and LoRa is the price of admission to the public. The contractor's customer never paid it.</p>
+      </div>
+      <Rail items={[
+        ['The rule', '<b>RSS-247 Issue 4</b>, ISED Canada. Published 24 July 2025, mandatory 24 January 2026.'],
+        ['The limits', 'One watt peak conducted. Four watts e.i.r.p. Minimum bandwidth 500 kHz. 8 dBm in any 3 kHz.'],
+        ['The cost', 'No licence. No fee. No application.'],
+        ['Europe', 'ETSI EN 300 220, 863 to 868 MHz. Five megahertz, most of it at <b>25 milliwatts</b>.'],
+      ]} />
+      <figure class="c-full field bars" aria-label="Sub-gigahertz licence-exempt allocations, width to scale">
+        <figcaption class="mono">Sub-GHz licence-exempt allocations · width to scale</figcaption>
+        {bands.map(([l, v, note]) => (
+          <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${((v / 26) * 100).toFixed(1)}%`}></span></span><span class="mono val">{note}</span></div>
+        ))}
+      </figure>
+    </Section>
+
+    <section class="surface flash" aria-label="Thesis">
+      <div class="grid">
+        <p class="c-full display slap" data-flex="cursor">The expensive<br>part is free.</p>
+      </div>
+    </section>
+
+    <Section n="03" title="The stack" id="stack">
+      <div class="c-a prose">
+        <p>Above the chip there is no hardware, and above the chip is where the money is.</p>
+        <p>The mesh is 802.11s, the mesh mode written into the Wi-Fi standard itself, carried by BATMAN-adv, a Layer 2 routing protocol that lives inside the Linux kernel and reroutes around a dead node without being told to. The operating system is OpenWrt. The remote management is WireGuard. Every one of these is free software with a decade or more of hostile use behind it.</p>
+        <p>On top of that sits Reticulum. Written by Mark Qvist, release 1.5.3 in September 2026. It is not an application. It is a second network stack that does not need IP. Every node is a 512-bit elliptic-curve identity. Every packet is X25519 encrypted and Ed25519 signed, with ephemeral Curve25519 keys for forward secrecy, AES-256 in CBC mode and HMAC-SHA256. Packets carry no source address. It runs over anything faster than five bits per second with a 500-byte MTU: LoRa, packet radio, a serial line, HaLow. Bridge a LoRa board to the Pi and the same identity is reachable over both radios.</p>
+        <p>Here is the thing the $18,214 pays for, stated by the vendor. Up to two layers of FIPS-compliant, NIAP-approved, CSfC-approved encryption. Read the adjectives. Compliant. Approved. Approved. None of them is a cipher. AES-256 on a certified module is the same mathematics as AES-256 in OpenSSL. What FIPS 140 buys is a validated implementation and a document that says so, and the document is what a procurement officer is allowed to sign.</p>
+        <p>The waveform is different. Persistent's Wave Relay and Silvus's MN-MIMO are proprietary 3-by-3 and 2-by-2 MIMO schemes with RF signature management, low probability of intercept and detection, and a Department of Defense assessed library of electronic-attack fingerprints and countermeasures. That is real engineering and Haven has none of it. Against a peer adversary running a jammer, the Pi loses. Against everyone else on the planet, the jammer never arrives.</p>
+      </div>
+      <div class="c-b field scroll" tabindex="0" role="region" aria-label="The Haven stack">
+        <table>
+          <caption class="sr">The Haven stack, layer by layer, with status and first release.</caption>
+          <thead><tr><th scope="col">Layer</th><th scope="col">Role</th><th scope="col">Status · first release</th></tr></thead>
+          <tbody>
+            {stack.map(([l, r, s]) => (<tr><th scope="row">{l}</th><td>{r}</td><td class="mono-b">{s}</td></tr>))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+
+    <Section n="04" title="The ledger" ground="bottle" id="ledger">
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="The ledger, nine rows">
+        <table class="ledger">
+          <caption class="sr">Nine rows. What $18,214 buys in an MPU5 as sold, against what $450 buys in a Haven 2 as built.</caption>
+          <thead><tr><th scope="col">Row</th><th scope="col">$18,214 · MPU5 as sold</th><th scope="col">$450 · Haven 2 as built</th></tr></thead>
+          <tbody>
+            {ledger.map(([row, a, b]) => (<tr><th scope="row">{row}</th><td>{a}</td><td>{b}</td></tr>))}
+          </tbody>
+        </table>
+      </div>
+      <div class="c-a prose">
+        <p>Two rows are physics. Spectrum and waveform. Those are the reasons the expensive radio survives a battlefield and the cheap one does not, and no amount of money spent at 902 MHz closes them. A third, throughput, is a gap of roughly two to one, and it closed by a third between the first Morse chip and the second.</p>
+      </div>
+      <div class="c-b prose">
+        <p class="beat">The other six are paperwork, a box, a battery and a phone number. Each is worth something. None is worth seventeen thousand dollars, and together they are what the price is actually protecting.</p>
+      </div>
+    </Section>
+
+    <Section n="05" title="The test" acid id="test">
+      <div class="c-wide">
+        <p class="lede">Is the price protecting a capability, or a customer?</p>
+      </div>
+      <div class="c-a prose">
+        <p>Edition 02 asked of a graphics card whether the silicon underneath still worked. The test for a radio is different because the silicon was never withheld. Morse Micro will sell the chip to anyone. The test is what the buyer is paying to be.</p>
+        <p>A capability price pays for something the cheaper product cannot do at any cost. The licensed band is one. The anti-jam waveform is another. If your adversary has an electronic-warfare unit, the eighteen thousand is not a markup. It is the product.</p>
+        <p>A customer price pays for the buyer's own constraints. FIPS validation exists because federal purchasers may not buy unvalidated cryptography, not because AES needs a certificate to work. MIL-STD-810G exists because a program office must prove it tested for salt fog. NDAA compliance exists because Congress said so. The radio did not need any of these to route a packet. The buyer needed them to write the cheque.</p>
+        <p>Most of the world is not a federal purchaser and is not being jammed by a state. A rural property in British Columbia. A film crew. A mine. A farm. A municipality that lost its fibre. A protest. A wildfire perimeter after the towers burn. For all of them the physics rows of the ledger read the same and the paperwork rows read zero.</p>
+        <p>That is the markup. Not fraud, not even a bad product. Persistent Systems and Silvus build serious radios for a customer who genuinely needs the top two rows. The markup is what everyone else pays if they buy the same product, and until 2025 there was no other product to buy. There was no 256-QAM sub-gigahertz chip on the open market. There was no 43-megabit HaLow module with the filter already on it. Now there is, and the parts list is public.</p>
+        <p class="beat">The question is no longer whether the capability can be had for four hundred dollars. It can. The question is which customers still need the other seventeen thousand, and the answer is a shorter list every year.</p>
+      </div>
+      <Rail items={[
+        ['Capability · 2', 'Spectrum. Waveform. <b>Cannot be bought at 902 MHz.</b>'],
+        ['Closing · 1', 'Throughput, 100 against 43 Mbps. <b>A third narrower per generation.</b>'],
+        ['Customer · 6', 'Encryption certificates. Environment. Power. Supply chain. Support. Source.'],
+      ]} />
+    </Section>
+
+    <Section n="06" title="The direction" ground="bottle" id="direction">
+      <div class="c-full">
+        <p class="num acid figure fig-l" aria-hidden="true">$4,400,000,000</p>
+        <p class="mono">Motorola Solutions for Silvus Technologies · 2025 · plus up to $600M earnout</p>
+      </div>
+      <div class="c-a prose">
+        <p>In 2025 Motorola Solutions paid $4.4 billion in cash for Silvus Technologies, with up to $600 million more if the business performs through 2028. Motorola said the radios were keeping Ukrainian drones in contact with their operators while Russian units tried to jam them. The purchase is a bet that the proprietary waveform stays worth owning: that the top two rows of the ledger remain the only rows that matter, and that nobody else can build them.</p>
+        <p>In the same year a Sydney company put 256-QAM sub-gigahertz on a five-millimetre die and started selling it to anybody with a reel. That is a bet in the opposite direction: that for most of the buyers on earth, the bottom seven rows were the product all along, and the bottom seven rows are now a parts list.</p>
+        <p>Both bets can win. The defence market and the everyone-else market were never the same market. What changes is that the second one no longer has to shop in the first.</p>
+        <p>Haven is not the important object here. It is a $97 guide, a GitHub repository and seventeen five-star reviews. It matters as a specimen, the way a mining card mattered in Edition 02: a thing that exists in public, with a bill of materials, that makes a price visible which used to be hidden inside a contract.</p>
+        <p class="beat">Eighteen thousand dollars bought a radio, a certificate, a battery and permission. Four hundred and fifty buys the radio. The rest is now a line item, and a line item can be argued with.</p>
+      </div>
+      <Stats class="c-b" items={[
+        ['$4.4B', 'Motorola · Silvus. The waveform stays proprietary.'],
+        ['5 × 5 mm', 'Morse Micro · MM8108. The physics goes on a reel.'],
+      ]} />
+    </Section>
+
+    <Section n="07" title="Sources" id="sources">
+      <div class="c-full">
+        <p class="mono">Read in September 2026</p>
+      </div>
+      <ol class="c-full sources">
+        {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
+      </ol>
+    </Section>
+
+    <EditionEnd code={ed.code} date={ed.dateLabel} seed={ed.seed} pdf={ed.pdf} prev={{ href: '/ns-02', label: 'NS-02 · The Closest Humans' }}>
+      The radio was always<br>four hundred dollars.
+    </EditionEnd>
+  </main>
+</Base>
+
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -20%; right: -14%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 40px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover-foot { border-top-color: transparent; }
+  /* Figures sized to their length so the longest never leaves the frame at 320px. */
+  .figure { color: var(--acid); margin-block: 12px .24em; }
+  .fig-m { font-size: clamp(56px, 13vw, 220px); }
+  .fig-l { font-size: clamp(30px, 7vw, 112px); }
+  .slap { font-size: var(--fs-cover); }
+  /* Bars: computed widths on a plain track, no radius, no gradient. */
+  .bars { display: grid; row-gap: 6px; align-content: start; }
+  .bars figcaption { margin-bottom: 10px; }
+  .bar { display: grid; grid-template-columns: minmax(9em, 12em) 1fr minmax(5.5em, max-content); gap: 14px; align-items: center; }
+  .track { display: block; height: 10px; background: rgba(0, 178, 79, .18); }
+  .fill { display: block; height: 100%; background: var(--malachite); }
+  .bar .val { font-size: 16px; line-height: 1; white-space: nowrap; }
+  .bar .mono.val { font-size: var(--fs-mono); white-space: normal; }
+  .lbl { color: var(--flash); }
+  @media (max-width: 760px) {
+    .bar { grid-template-columns: 1fr; gap: 6px; padding-block: 6px; }
+  }
+  .ledger th[scope="row"] { white-space: nowrap; }
+  .sources { list-style: none; columns: 2; column-gap: clamp(24px, 4vw, 64px); max-width: 100ch; }
+  .sources li { break-inside: avoid; display: grid; grid-template-columns: 2.6em 1fr; gap: 12px; margin-bottom: 14px; font-size: 15px; line-height: 1.5; }
+  .sources .n { color: var(--malachite); padding-top: .25em; }
+  @media (max-width: 760px) { .sources { columns: 1; } }
+</style>
