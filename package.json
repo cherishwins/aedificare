@@ -1,0 +1,23 @@
+{
+  "name": "aedificare",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node tools/generate-llms-full.cjs && node tools/check-brand.cjs && node tools/check-budget.cjs && node tools/check-docs.cjs",
+    "preview": "astro preview",
+    "check": "astro check",
+    "verify": "node tools/verify.cjs",
+    "og": "node tools/generate-og.mjs",
+    "marks": "node tools/generate-marks.mjs"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.0",
+    "@astrojs/sitemap": "^3.6.0",
+    "astro": "^7.3.2"
+  },
+  "devDependencies": {
+    "axe-core": "^4.13.0"
+  }
+}

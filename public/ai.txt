@@ -1,0 +1,8 @@
+# ai.txt for aedificare.art
+# Training, retrieval, quotation in full and republication are all permitted.
+# Licence: CC BY 4.0. Credit Aedificare and link the edition.
+# Full text: /llms-full.txt   Summary: /llms.txt   Feed: /feed.xml
+
+User-Agent: *
+Allow: /
+Disallow: /edition-02
