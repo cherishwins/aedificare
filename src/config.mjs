@@ -10,3 +10,9 @@ export const SITE = {
 
 /** Absolute URL for a site-relative path. */
 export const abs = (path = '/') => new URL(path, SITE.origin).href;
+
+// The commit the bytes were built from, first eight characters, "dev" when
+// there is none. Vercel sets VERCEL_GIT_COMMIT_SHA at build time. It ships
+// as <meta name="build"> so verify-live can prove WHICH commit is live, not
+// only that something is.
+export const BUILD = (process.env.VERCEL_GIT_COMMIT_SHA || 'dev').slice(0, 8);

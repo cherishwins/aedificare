@@ -13,6 +13,10 @@ on:
         description: Origin to sweep
         default: https://aedificare.art
         required: true
+      sha:
+        description: Commit expected live (blank = this ref's head)
+        default: ''
+        required: false
 
 jobs:
   live:
@@ -40,5 +44,13 @@ jobs:
           echo "--- canonical on /ns-02"; curl -sS "$U/ns-02" | grep -oE 'rel="canonical" href="[^"]*"'
           echo "--- draft hidden"; curl -sS "$U/edition-02" | grep -oE 'name="robots" content="[^"]*"'
           test "$(curl -sS "$U/sitemap-0.xml" | grep -c edition-02)" = "0"
+      - name: Which commit is live
+        run: |
+          set -e
+          U="${{ github.event.inputs.url }}"
+          want="${{ github.event.inputs.sha || github.sha }}"; want="${want:0:8}"
+          live=$(curl -sS "$U/" | grep -oE 'name="build" content="[^"]*"' | sed -E 's/.*content="([^"]*)".*/\1/')
+          echo "live build: ${live:-none}   expected: $want"
+          [ "$live" = "$want" ]
       - name: Sweep
         run: node tools/verify.cjs --url "${{ github.event.inputs.url }}"
