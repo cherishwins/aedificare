@@ -1,0 +1,8 @@
+---
+/** Figure and label pairs, mono figure. */
+interface Props { items: [string, string][]; class?: string }
+const { items, class: cls = 'c-l' } = Astro.props;
+---
+<dl class:list={[cls, 'stats']}>
+  {items.map(([n, l]) => (<><dt class="num">{n}</dt><dd>{l}</dd></>))}
+</dl>

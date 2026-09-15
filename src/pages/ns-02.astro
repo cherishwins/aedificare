@@ -1,0 +1,270 @@
+---
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import Section from '../components/Section.astro';
+import Rail from '../components/Rail.astro';
+import Pull from '../components/Pull.astro';
+import Stats from '../components/Stats.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, LICENCE } from '../lib/editions.mjs';
+import { SITE, abs } from '../config.mjs';
+
+const ed = edition('ns-02');
+
+// Cover field runs Malachite only: Acid on this surface is spent on one word
+// of the title.
+const cover = HOUSE.map((L, i) => ({ ...L, c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: 'The Closest Humans',
+  alternativeHeadline: 'NS-02, an amendment to NS-01',
+  datePublished: ed.date,
+  author: { '@type': 'Person', name: 'Jesse James' },
+  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
+  url: abs(ed.path),
+  mainEntityOfPage: abs(ed.path),
+  license: LICENCE.url,
+  isAccessibleForFree: true,
+  description: ed.lede,
+};
+---
+<Base title={ed.title} description={ed.lede} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={0.902} class="rose cover-rose" />
+      <Masthead right={ed.note} />
+      <div class="grid cover-grid">
+        <h1 class="c-full display" data-flex="cursor">The<br><span class="wide">Closest</span><br><span class="acid">Humans</span></h1>
+        <p class="c-a lede">Two men, one year,<br>and a phone call on a Sunday.</p>
+      </div>
+      <div class="foot mono cover-foot">
+        <span>{ed.code} · {ed.dateLabel} · {SITE.author}</span>
+        <span>r = cos(kθ) · seed {ed.seed}</span>
+      </div>
+    </section>
+
+    <Section n="01" title="What NS-01<br>got wrong" acid id="wrong">
+      <div class="c-a prose">
+        <p>Five days ago I published a document arguing that caveats die in transmission. Here are mine, before anyone else finds them.</p>
+        <p><strong>The method was never theirs.</strong> NS-01 described a priority fight with "the mathematicians whose method it builds on." That reads as though the forcing method belonged to Buckmaster and Alpöge. It does not. It belongs to Diego Córdoba and Luis Martínez-Zoroa in Madrid. Both teams in this fight are standing on their work. Fefferman, who wrote the Clay problem statement, told Quanta the heroes here are the two Spaniards.</p>
+        <p><strong>I named one man when there were two.</strong> Alpöge is not a supporting character. He is a co-equal author and, on the evidence of the last two months, the more aggressive user of these tools of anyone in the story.</p>
+        <p><strong>OpenAI has since hardened its denial.</strong> NS-01 quoted the concession that it cannot rule out de-identified usage data helping its models. On 10 September it added that an investigation confirmed the Codex prompts could not have influenced the system, including through training. Both statements now stand. Weigh them yourself.</p>
+      </div>
+      <Rail items={[
+        ['What held up', 'The forced versus unforced distinction. The verification gap. Clay\'s two year rule. The timestamp: Buckmaster posted at <b>03:58 UTC</b> on 8 September, which is 11:58pm Monday in New York. Outlets dating it Tuesday are using UTC.'],
+        ['What I missed entirely', 'Buckmaster\'s 2019 Clay Research Award was <b>for Navier-Stokes work</b>. He is not a bystander to this problem. He is one of its established figures.'],
+        ['Still true', 'No named expert has published a read of OpenAI\'s formal statement. Clay has said nothing. Neither has Anthropic.'],
+      ]} />
+      <div class="rule"></div>
+      <div class="c-wide prose">
+        <p>NS-01 was about a preposition. Water that tears itself against water that can be torn. This one turns out to be about a preposition too, and I did not expect that.</p>
+      </div>
+    </Section>
+
+    <Section n="02" title="The man who<br>already won" ground="bottle" id="won">
+      <div class="c-a prose">
+        <p>Tristan Buckmaster is Australian and British, trained in Leipzig, and has spent his career on exactly one family of questions: can fluids break, and how badly.</p>
+        <p>In 2019 the Clay Mathematics Institute gave him its Research Award. Not for something adjacent. For work with Vlad Vicol showing that weak solutions to Navier-Stokes can be, in Clay's own phrase, remarkably wild.</p>
+        <p class="beat">The institute that owns the million dollar problem had already given him a prize for working on it.</p>
+        <p>Which is what makes one line from the phone call land the way it does. When Buckmaster said he would go public, he was asked why he would ruin his career.</p>
+        <p>He replied that he is an academic, and asked why going public would ruin it.</p>
+        <p>He is tenured. He holds an NSF grant for a project titled, with no irony available, Singularities in fluids. Whoever that threat was calibrated for, it was not him.</p>
+        <p>The saddest line in his statement is about the announcement he never got to make.</p>
+        <Pull src="Buckmaster, on what he had meant to say">The important thing is instead the significance that a mathematician and an LLM model can now do all this work in a month.</Pull>
+        <p>He meant to spend his moment arguing the machines were the story. He spent it filing a complaint.</p>
+      </div>
+      <Rail items={[
+        ['Trained', 'PhD Leipzig and the Max Planck Institute, 2014. Won the Leipzig doctoral prize. Thesis used <b>convex integration</b> to prove non-uniqueness for fluid equations.'],
+        ['Moved', 'NYU Courant instructor, then Princeton, then Maryland, then back to <b>NYU Courant</b>. A year at the Institute for Advanced Study.'],
+        ['Clay Research Award 2019', 'Shared with <b>Vlad Vicol</b> and <b>Philip Isett</b>, for the analysis of Navier-Stokes and Euler.'],
+        ['How he writes', 'Carefully, and at length, and with the air of a man who would rather be doing almost anything else.'],
+      ]} />
+    </Section>
+
+    <Section n="03" title="There is an<br>asteroid" id="asteroid">
+      <div class="c-a prose">
+        <p>Levent Alpöge is thirty-four, from Long Island, and there is a rock in the asteroid belt named after him. Number 25898. He earned it at seventeen as an Intel Science Talent Search finalist, for a CUDA program that found blood vessels in MRI scans.</p>
+        <p>He is not a fluid dynamicist. He is a number theorist, and a decorated one. Top of his Harvard class. Morgan Prize in 2015, which is the highest honour an American undergraduate mathematician can receive, awarded when he had already co-authored seven research papers and had not yet started graduate school. PhD at Princeton under Manjul Bhargava, a Fields Medalist. Junior Fellow of the Harvard Society of Fellows.</p>
+        <p>Last year he helped close a problem David Hilbert posed in 1900, showing that his tenth question has a negative answer over the integers of every number field.</p>
+        <p>Then, this summer, he started breaking things with chatbots.</p>
+      </div>
+      <Rail items={[
+        ['July 2026', 'Announced a counterexample to the <b>Jacobian conjecture</b>, open since 1939, found with an LLM over a weekend.'],
+        ['19 August', 'Carathéodory conjecture.'],
+        ['23 August', 'Hopf\'s problem on complex structures on the six-sphere.'],
+        ['Employer', 'Anthropic, member of technical staff. The Navier-Stokes work was done on his own time, on his own initiative, with <b>no institutional backing</b>.'],
+      ]} />
+      <div class="c-full">
+        <Pull src="Levent Alpöge, July 2026">hello there the jacobian conjecture is false thanx to my close friend akhil for asking about it and my other close friend fable for working during the world cup final</Pull>
+      </div>
+      <div class="c-wide prose">
+        <p>That is the register. All lowercase, no punctuation, an eighty-seven year old conjecture dispatched between football matches. Hold it next to Buckmaster's four careful pages and you have the two halves of what mathematics is currently becoming.</p>
+      </div>
+    </Section>
+
+    <Section n="04" title="He paid for it<br>himself" ground="bottle" acid id="paid">
+      <div class="c-a prose">
+        <p>Nobody has reported how the two men met. The likely bridge is Princeton, where their time overlapped, and Lean, which is the only tool either of them talks about with real affection. I flag that as inference, not fact.</p>
+        <p>What is established is that the collaboration ran for about a year, that it was personal rather than institutional, and that it was funded out of a professor's own research account.</p>
+        <Pull src="Buckmaster, email to OpenAI, 3 September 2026">I pay for the tools my group uses out of my own research funds, including footing a large bill to OpenAI.</Pull>
+        <p>Read that sentence again with the date attached. He wrote it while asking OpenAI what it was doing with his problem.</p>
+        <p>They ran the work through Codex. Every draft, for the whole project, into a product owned by the company they would later be racing. When Buckmaster asked on the call whether the model had been trained on those sessions, he was told it had not looked up user data. He asked again, specifically about training. He says he got no answer.</p>
+      </div>
+      <Rail items={[
+        ['Not an Anthropic project', 'Both men said so repeatedly and in writing. <b>A strictly personal collaboration</b>, in Buckmaster\'s phrase, with no formal agreement behind it.'],
+        ['Both labs\' tools', 'Codex from OpenAI, and internal Anthropic models. Bubeck later cited the latter as his reason for treating Alpöge as non-independent.'],
+        ['The policy question', 'OpenAI reserves the right to train on Codex interactions unless a user opts out. Enterprise and API tiers differ. What tier they were on is <b>not established</b>.'],
+        ['Where it stands', 'OpenAI now says the prompts could not have influenced the system through any route, training included. It has also said it cannot rule out de-identified data helping. Unresolved.'],
+      ]} />
+    </Section>
+
+    <section class="surface bottle" aria-labelledby="days-h">
+      <div class="grid">
+        <div class="c-full">
+          <p class="mono-b">05 · Twenty-four days</p>
+          <p class="num acid figure" aria-hidden="true">24</p>
+          <h2 class="lede" id="days-h">Twenty-four days from their breakthrough to being beaten to the finish</h2>
+        </div>
+        <Stats class="c-l" items={[
+          ['15 Aug', 'first blowup solution, forced, after a year of work'],
+          ['22 Aug', 'Lean verification completes'],
+          ['28 Aug', 'OpenAI begins training the model that would beat them'],
+          ['1 Sep', 'OpenAI starts work, on a rumour'],
+        ]} />
+        <Stats class="c-r" items={[
+          ['2 Sep', 'Alpöge contacts OpenAI at night'],
+          ['6 Sep', 'the phone call'],
+          ['7 Sep', '11:58pm New York, Buckmaster posts four pages'],
+          ['8 Sep', 'around noon, OpenAI announces'],
+        ]} />
+        <div class="rule acid"></div>
+        <div class="c-wide prose">
+          <p>They had something else too, and did not publish it. A blowup result for hypo-dissipative Navier-Stokes, which is the real problem with the viscosity turned down. They held it back because the Lean verification had not finished.</p>
+          <p><strong>They were twenty-four days and one unfinished proof-check away.</strong> They had the result and they sat on it, because the checking had not caught up with the claim. Hold that thought for one section.</p>
+        </div>
+      </div>
+    </section>
+
+    <Section n="06" title="Sparks" id="sparks">
+      <div class="c-a prose">
+        <p>Sébastien Bubeck is forty-one, French, trained at the École normale supérieure and Lille, and was a Princeton professor before most people had heard of a transformer. His early work on bandits and convex optimisation is standard reference material. He is, by any normal measure, a serious scientist.</p>
+        <p>Then he spent a decade at Microsoft Research, where in March 2023 he became lead author on a hundred and fifty-five page paper called Sparks of Artificial General Intelligence.</p>
+        <p>The criticism of that paper is the relevant biography here. Not peer reviewed. Authors with a commercial interest through Microsoft's stake in OpenAI. A definition of AGI that critics called vague. Experiments run on a private pre-release model that nobody outside could reproduce.</p>
+        <p class="beat">The charge was never that he was wrong. It was that the announcement arrived ahead of the checking.</p>
+        <p>He joined OpenAI in October 2024. Twenty-three months later he was on a Sunday phone call telling a tenured fluid dynamicist that an internal model had resolved the problem, with very little human input.</p>
+        <p>By the end of the call, Buckmaster says, it had emerged that a whole team had worked on it, that easier problems had been tried first, and that even the prompt he had been shown was itself written by prompting Codex.</p>
+      </div>
+      <Rail items={[
+        ['Before', 'Princeton assistant professor. Then ten years at Microsoft Research, ending as VP of Applied Research.'],
+        ['Known for', 'Multi-armed bandits. Convex optimisation. The <b>Phi</b> small model series. And Sparks.'],
+        ['Moved', '14 October 2024, to OpenAI. Microsoft\'s farewell note wished him well toward AGI.'],
+        ['After', 'Called the allegations against him <b>false and inflammatory</b>. Then published texts, a detailed rebuttal, and an apology.'],
+      ]} />
+    </Section>
+
+    <Section n="07" title="One preposition,<br>again" ground="bottle" id="preposition">
+      <div class="c-wide prose">
+        <p>Two men have published irreconcilable accounts of the same hour. Line them up and the irreconcilable part is almost nothing.</p>
+      </div>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="Both accounts, compared">
+        <table>
+          <caption class="sr">Both accounts, published 8 September. A filled cell means asserted or not contested.</caption>
+          <thead><tr><th scope="col"><span class="sr">Claim</span></th><th scope="col">Buckmaster</th><th scope="col">Bubeck</th></tr></thead>
+          <tbody>
+            {[
+              'A model resolved forced Navier-Stokes',
+              'Two options were put to Buckmaster',
+              '"Why would you ruin your career?" was said',
+              '"If you don\'t want me to be nice" was said',
+              'Alpöge\'s Anthropic job was the obstacle',
+            ].map((c) => (
+              <tr><th scope="row">{c}</th><td><span class="cell"><span class="sr">asserted</span></span></td><td><span class="cell"><span class="sr">asserted</span></span></td></tr>
+            ))}
+            <tr><th scope="row"><strong>Which paper he was to come off</strong></th><td class="mono-b shock">His own</td><td class="mono-b shock">Ours</td></tr>
+          </tbody>
+        </table>
+        <p class="mono shock" style="margin-top:16px">The entire dispute lives in the last row</p>
+      </div>
+      <div class="c-a prose">
+        <p>Buckmaster says Bubeck twice asked that Alpöge come off the authorship, because he works at Anthropic. Bubeck says he never asked that about Alpöge's own work, only about a proposed rewrite of OpenAI's proof, where an Anthropic employee as author would have been inappropriate.</p>
+      </div>
+      <div class="c-b prose">
+        <p class="beat">Whose paper. That is the whole fight, and neither man can prove the other wrong.</p>
+        <p>There is no recording. No third party on the record. Two careful people remember one hour differently, which is the most ordinary thing in the world and the reason this will never resolve.</p>
+        <p>Notice what the obstacle was. Not the mathematics. An employment contract.</p>
+      </div>
+    </Section>
+
+    <Section n="08" title="The closest<br>humans" id="closest">
+      <div class="c-a prose">
+        <p>Here is the detail I cannot stop turning over.</p>
+        <p>Among the things offered to Buckmaster, if he agreed to publish first and let OpenAI follow the next day, was that OpenAI would say publicly that he and Alpöge deserved the Clay Prize. And that they were, in the phrase reported from the call, the closest humans to the problem.</p>
+        <p class="beat acid">Closest humans. Not closest mathematicians. Not closest team.</p>
+        <p>Somebody chose that word, on a Sunday, on a call, under pressure, and it is the most honest sentence anyone said all week. It concedes the entire frame. There is a category of solver now, and there is a separate category for us, and the gap between them is a thing you can be measured against and found nearest to.</p>
+        <p>Buckmaster declined both offers. He said he would go public. That is when he was asked about his career, and told that if he did not want Bubeck to be nice, Bubeck did not have to be nice.</p>
+        <p>Bubeck has since apologised for that phrasing without reservation, says he retracted it on the spot, and says he was trying to protect a man he thought was about to damage himself over an accusation that would not hold. Read both accounts. They are short, and they are the only primary evidence any of us have.</p>
+      </div>
+      <Rail items={[
+        ['The two offers', 'Publish Euler first and let OpenAI follow with Navier-Stokes. Or write the Navier-Stokes paper himself, acknowledging that an OpenAI model had resolved it.'],
+        ['Declined', 'Both.'],
+        ['Afterwards', 'Alpöge received a message suggesting he and Bubeck speak one to one, which included a doubt about whether Buckmaster was <b>being fully rational</b>.'],
+        ['Altman\'s position', 'That his team acted with integrity and generosity, and that the threats came from the other side.'],
+      ]} />
+    </Section>
+
+    <Section n="09" title="Meanwhile,<br>in Madrid" ground="bottle" id="madrid">
+      <div class="c-a prose">
+        <p>Diego Córdoba and Luis Martínez-Zoroa opened the door everyone else walked through. The idea of getting blowup by applying a force, rather than waiting for the fluid to do it alone, is theirs. Every result in this story descends from their work.</p>
+        <p>Neither of them was on the phone call. Neither of them works for a lab. Neither of them has a valuation.</p>
+        <Pull src="Diego Córdoba, to Scientific American">We're a little bit in shock. If it's done, that will be a big surprise for us.</Pull>
+        <p>Charles Fefferman, who wrote the Clay problem statement in 2000 and therefore knows better than anyone what counts, told Quanta he was thrilled the problem was solved and then named the heroes of the story. He named the two men in Madrid.</p>
+        <p>Buckmaster, in the middle of the four pages where he was fighting for his own credit, stopped to say something else. He wrote that in view of this body of work he believes Martínez-Zoroa deserves a Fields Medal.</p>
+        <p class="beat">A man being scooped used his own statement to nominate somebody else.</p>
+      </div>
+      <Rail items={[
+        ['Where', 'ICMAT and CUNEF, Madrid.'],
+        ['What they did', 'Blowup with rough forcing, for incompressible porous medium and for hypodissipative Navier-Stokes. Published 2024.'],
+        ['What the others added', 'Buckmaster and Alpöge pushed it to <b>smooth</b> forcing for Euler and Boussinesq. OpenAI claims the full Navier-Stokes case.'],
+        ['Compensation', 'A mention in other people\'s papers, and a sentence from Fefferman.'],
+      ]} />
+    </Section>
+
+    <Section n="10" title="Who has not<br>spoken" id="silence">
+      <div class="c-a prose">
+        <p>OpenAI answered on every channel it owns. A company post, a rebuttal from Bubeck, a defence from Altman, mockery from staff engineers.</p>
+        <p><strong>Anthropic has said nothing.</strong> Its employee is at the centre of the biggest story in mathematics this decade, his work is being cited as evidence that he is not an independent academic, and the company that markets itself on trust has issued no statement of any kind. One researcher posted warmly about him as a friend. That is the entire corporate response.</p>
+        <p>The Clay Mathematics Institute has said nothing, and still lists the problem as unsolved.</p>
+        <p>No named expert in partial differential equations or in Lean has published a read of OpenAI's formal statement. Five days on, that remains the hole in the middle of all of it.</p>
+        <p class="beat">Three silences, and each one is a decision somebody made.</p>
+        <p>Tao named the cost before the announcement even landed. If a rumour that you are close can summon ten thousand agents, the rational move is to stop telling people what you are working on. Alpöge contacted OpenAI on the night of 2 September because he had heard they already knew. That is a researcher discovering that his own privacy had become a strategic asset.</p>
+      </div>
+      <Rail items={[
+        ['Tao', 'Called the Buckmaster and Alpöge work a remarkable achievement. Has <b>not</b> assessed OpenAI\'s proof. Noted it was explained to him by telephone, which he called a refreshing change.'],
+        ['Alpöge on the data concession', 'That he gives them props for coming clean. Six words, and no more.'],
+        ['The rumour', 'That another Millennium problem is close. OpenAI told the New York Times it has made substantial progress on one. <b>No problem has been named</b> by anyone accountable. Treat the rest as chatter.'],
+      ]} />
+      <div class="rule acid"></div>
+      <div class="c-wide prose">
+        <p>The capability is real, and nothing here touches it. What this week established is not whether machines can do mathematics. It is what a field does in the first seventy-two hours after it finds out.</p>
+      </div>
+    </Section>
+
+    <EditionEnd code={ed.code} date={ed.dateLabel} seed={ed.seed} pdf={ed.pdf} prev={{ href: '/ns-01', label: 'NS-01 · The Hand in the Water' }}>
+      He was offered the title of closest human.<br>He went public instead.
+    </EditionEnd>
+  </main>
+</Base>
+
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -20%; right: -14%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 40px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover-foot { border-top-color: transparent; }
+  .figure { font-size: var(--fs-figure); color: var(--acid); margin-block: 12px 8px; }
+</style>

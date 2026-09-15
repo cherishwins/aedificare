@@ -1,0 +1,182 @@
+/* Tokens. Values come from the aedificare-brand-kit skill; they are named
+   here so CSS can reference them, not restated as documentation. */
+:root {
+  --acid: #CCFF00;
+  --malachite: #00B24F;
+  --bottle: #063B22;
+  --void: #050A06;
+  --flash: #FFFFFF;
+  --shock: #FF1F5A;
+
+  --t-snap: 120ms;
+  --t-slow: 900ms;
+  --ease: cubic-bezier(.9, 0, .1, 1);
+  --stepped: steps(3, end);
+
+  --gutter: clamp(16px, 4vw, 56px);
+  --fs-mono: 11px;
+  --fs-body: 18px;
+  --fs-lede: clamp(20px, 2.2vw, 26px);
+  --fs-beat: clamp(24px, 2.6vw, 30px);
+  --fs-h2: clamp(48px, 11vw, 200px);
+  --fs-cover: clamp(60px, 15.5vw, 236px);
+  --fs-figure: clamp(120px, 26vw, 360px);
+  --fs-wordmark: clamp(72px, 33vw, 1200px);
+}
+
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/fonts/BricolageGrotesque.woff2') format('woff2');
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Martian Mono';
+  src: url('/fonts/MartianMono.woff2') format('woff2');
+  font-weight: 100 800;
+  font-stretch: 75% 112.5%;
+  font-display: block;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; border-radius: 0; }
+html { background: var(--void); color: var(--flash); -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  font-variation-settings: 'opsz' 14, 'wdth' 100, 'wght' 400;
+  font-size: var(--fs-body);
+  line-height: 1.55;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--flash); outline-offset: 4px; }
+.flash :focus-visible { outline-color: var(--void); }
+
+.skip {
+  position: absolute; left: var(--gutter); top: -100px;
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-size: var(--fs-mono); letter-spacing: .14em; text-transform: uppercase;
+  background: var(--flash); color: var(--void); padding: 8px 12px; z-index: 10;
+}
+.skip:focus { top: var(--gutter); }
+
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- type ---------- */
+.mono, .mono-b {
+  font-family: 'Martian Mono', ui-monospace, monospace;
+  font-variation-settings: 'wdth' 75, 'wght' 500;
+  font-size: var(--fs-mono); letter-spacing: .14em; text-transform: uppercase; line-height: 1.6;
+}
+.mono-b { font-variation-settings: 'wdth' 75, 'wght' 700; }
+.num { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 700; letter-spacing: -.03em; line-height: .78; }
+
+.display {
+  font-variation-settings: 'opsz' 96, 'wdth' var(--wdth, 75), 'wght' 800;
+  text-transform: uppercase; line-height: .82; letter-spacing: -.022em;
+  transition: font-variation-settings var(--t-snap) var(--stepped);
+}
+.display.wide, .display .wide { font-variation-settings: 'opsz' 96, 'wdth' 100, 'wght' 800; }
+.shock { color: var(--shock); }
+.display.thin { font-variation-settings: 'opsz' 96, 'wdth' var(--wdth, 75), 'wght' 300; }
+
+.lede { font-variation-settings: 'opsz' 36, 'wdth' 84, 'wght' 500; font-size: var(--fs-lede); line-height: 1.24; max-width: 32ch; }
+.beat { font-variation-settings: 'opsz' 36, 'wdth' 82, 'wght' 600; font-size: var(--fs-beat); line-height: 1.18; letter-spacing: -.006em; max-width: 34ch; margin-block: 8px 28px; }
+.beat.acid { color: var(--acid); }
+.beat.mal { color: var(--malachite); }
+
+.prose p { max-width: 62ch; margin-bottom: 1.1em; }
+.prose p:last-child { margin-bottom: 0; }
+.prose strong { font-variation-settings: 'opsz' 14, 'wdth' 100, 'wght' 700; }
+
+.acid { color: var(--acid); }
+.mal { color: var(--malachite); }
+
+/* ---------- surfaces and the grid ---------- */
+.surface { position: relative; overflow: hidden; background: var(--void); color: var(--flash); padding-block: clamp(56px, 10vh, 144px); --field: var(--bottle); }
+.surface.bottle { background: var(--bottle); --field: var(--void); }
+.surface.flash { background: var(--flash); color: var(--void); --field: var(--void); }
+.surface.tight { padding-block: clamp(32px, 5vh, 72px); }
+
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(12px, 2vw, 32px); row-gap: 32px; padding-inline: var(--gutter); }
+.c-full { grid-column: 1 / 13; }
+.c-wide { grid-column: 1 / 11; }
+.c-a { grid-column: 1 / 8; }
+.c-b { grid-column: 8 / 13; }
+.c-l { grid-column: 1 / 7; }
+.c-r { grid-column: 7 / 13; }
+@media (max-width: 760px) {
+  .c-wide, .c-a, .c-b, .c-l, .c-r { grid-column: 1 / 13; }
+}
+
+.rule { height: 1px; background: var(--malachite); opacity: .38; grid-column: 1 / 13; }
+.rule.acid { height: 2px; background: var(--acid); opacity: 1; }
+.flash .rule { background: var(--void); opacity: 1; }
+
+/* Section head: number and title. */
+.sec { display: flex; align-items: flex-start; gap: clamp(16px, 3vw, 40px); }
+.sec .no { font-size: clamp(56px, 8vw, 112px); }
+.sec h2 { font-size: clamp(30px, 4.6vw, 64px); padding-top: .12em; }
+
+/* Side rail of facts. */
+.rail { border-left: 1px solid rgba(0, 178, 79, .38); padding-left: clamp(14px, 2vw, 24px); }
+.flash .rail { border-left-color: var(--void); }
+.rail dt { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 700; font-size: var(--fs-mono); letter-spacing: .19em; text-transform: uppercase; color: var(--malachite); margin-bottom: 6px; }
+.bottle .rail dt, .flash .rail dt { color: inherit; }
+.rail dd { font-size: 16px; line-height: 1.5; margin-bottom: 22px; }
+.rail dd:last-child { margin-bottom: 0; }
+.rail b { font-variation-settings: 'opsz' 14, 'wdth' 100, 'wght' 700; }
+
+/* Pull quote: a colour field, no box. */
+.pull { background: var(--field); color: var(--flash); padding: clamp(24px, 4vw, 44px) clamp(20px, 4vw, 48px); margin-block: 8px 24px; }
+.flash .pull { color: var(--flash); }
+.pull q { display: block; quotes: none; font-variation-settings: 'opsz' 48, 'wdth' 80, 'wght' 600; font-size: clamp(22px, 2.4vw, 30px); line-height: 1.22; letter-spacing: -.008em; }
+.pull q::before, .pull q::after { content: ''; }
+.pull cite { display: block; font-style: normal; margin-top: 18px; color: var(--flash); }
+
+/* A colour field inside a surface. On Bottle it is Void, on Void it is Bottle. */
+.field { background: var(--field); padding: clamp(20px, 3vw, 40px); }
+
+/* Stat lines: a mono figure and a label. */
+.stats { display: grid; grid-template-columns: max-content 1fr; column-gap: clamp(16px, 2vw, 28px); row-gap: 18px; align-items: baseline; }
+.stats dt { font-size: clamp(28px, 3.4vw, 44px); white-space: nowrap; }
+.stats dd { font-size: 16px; line-height: 1.35; max-width: 34ch; }
+
+/* Block links: never inside prose, so they need no underline to be found. */
+.block-link { display: block; }
+.block-link .display { transition: font-variation-settings var(--t-snap) var(--stepped); }
+.block-link:hover .display, .block-link:focus-visible .display { --wdth: 100; }
+
+/* Scrollable table region for the wide tables. */
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; vertical-align: top; padding: 10px 14px 10px 0; border-bottom: 1px solid rgba(0, 178, 79, .28); font-size: 15px; line-height: 1.4; }
+thead th { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 700; font-size: var(--fs-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--malachite); border-bottom-color: var(--malachite); vertical-align: bottom; }
+.bottle thead th { color: var(--flash); }
+tbody th { font-variation-settings: 'opsz' 14, 'wdth' 100, 'wght' 600; }
+td.n { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 400; font-size: 13px; letter-spacing: 0; white-space: nowrap; }
+
+/* Truth-grid cells. Filled = carried. */
+.cell { display: inline-block; width: 18px; height: 18px; background: var(--malachite); }
+.cell.off { background: var(--bottle); }
+.bottle .cell.off { background: var(--void); }
+
+/* Live rose fields: a square, positioned by the surface, cropped by it. */
+.rose { position: absolute; pointer-events: none; }
+
+/* Masthead and footer. */
+.mast { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 20px var(--gutter); }
+.mast a { display: inline-flex; align-items: center; gap: 12px; min-height: 24px; }
+.mast .mark { width: 26px; height: 26px; color: var(--malachite); }
+.mast .readout { display: inline-flex; gap: .6em; }
+.mast .readout output { font: inherit; letter-spacing: inherit; min-width: 5ch; }
+.foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 32px; padding: 28px var(--gutter); border-top: 1px solid rgba(0, 178, 79, .28); color: var(--malachite); }
+.flash .foot { color: var(--void); border-top-color: var(--void); }
+.foot a { display: inline-block; padding-block: 6px; margin-block: -6px; }
+.block-link.mono-b, .block-link.mono { padding-block: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0s !important; animation: none !important; }
+}

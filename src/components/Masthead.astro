@@ -1,0 +1,9 @@
+---
+import Mark from './Mark.astro';
+interface Props { right?: string }
+const { right } = Astro.props;
+---
+<header class="mast">
+  <a href="/" class="mono-b" aria-label="Aedificare home"><Mark stroke={6} /> Aedificare</a>
+  <slot name="right">{right && <span class="mono">{right}</span>}</slot>
+</header>

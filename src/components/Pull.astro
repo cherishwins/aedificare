@@ -1,0 +1,8 @@
+---
+interface Props { src: string; class?: string }
+const { src, class: cls } = Astro.props;
+---
+<blockquote class:list={['pull', cls]}>
+  <q><slot /></q>
+  <cite class="mono">{src}</cite>
+</blockquote>

@@ -1,0 +1,350 @@
+---
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import Section from '../components/Section.astro';
+import Rail from '../components/Rail.astro';
+import Pull from '../components/Pull.astro';
+import Stats from '../components/Stats.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, LICENCE } from '../lib/editions.mjs';
+import { SITE, abs } from '../config.mjs';
+
+const ed = edition('ns-01');
+
+const cover = HOUSE.map((L, i) => ({ ...L, c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: 'The Hand in the Water',
+  alternativeHeadline: 'NS-01',
+  datePublished: ed.date,
+  author: { '@type': 'Person', name: 'Jesse James' },
+  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
+  url: abs(ed.path),
+  mainEntityOfPage: abs(ed.path),
+  license: LICENCE.url,
+  isAccessibleForFree: true,
+  description: ed.lede,
+};
+
+// The telephone grid: which of four caveats each outlet carried.
+const outlets: [string, boolean[]][] = [
+  ['OpenAI', [true, true, true, true]],
+  ['Quanta', [true, true, true, true]],
+  ['Scientific American', [true, true, true, true]],
+  ['BBC', [false, true, true, true]],
+  ['CNBC', [false, true, true, true]],
+  ['Trade and vertical press', [false, true, false, false]],
+];
+---
+<Base title={ed.title} description={ed.lede} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={0.413} class="rose cover-rose" />
+      <Masthead right={ed.code} />
+      <div class="grid cover-grid">
+        <h1 class="c-full display" data-flex="cursor">The <span class="acid">Hand</span><br><span class="wide">In the</span><br>Water</h1>
+        <p class="c-a lede">OpenAI opened door C.<br>The world reported door A.</p>
+      </div>
+      <div class="foot mono cover-foot">
+        <span>{ed.code} · {ed.dateLabel} · {SITE.author}</span>
+        <span>r = cos(kθ) · seed {ed.seed}</span>
+      </div>
+    </section>
+
+    <Section n="01" title="The post" acid id="post">
+      <div class="c-a prose">
+        <p>Just before midnight on Monday, a mathematician at New York University hit post.</p>
+        <p>Tristan Buckmaster had spent months on a problem worth a million dollars. He had used OpenAI's coding tool the whole time. On Saturday, OpenAI announced it had finished the job.</p>
+        <p>What he wrote that night is the second most interesting thing about this story.</p>
+        <p class="beat mal">The first is that almost nobody who reported it told you which problem was solved.</p>
+        <p>The Navier–Stokes equations describe how fluids move. They are the reason a weather model works at all, and the reason turbulence is still the last open wound in classical physics. In 2000 the Clay Mathematics Institute put a million dollars on one question about them and made it one of seven Millennium Prize Problems.</p>
+        <p>Ninety years ago, Jean Leray proved something unsettling. He showed that solutions to these equations always exist in a weak sense, and then admitted he could not rule out that they tear themselves apart. Nobody has closed that gap since.</p>
+        <p>On Tuesday the world was told a machine closed it in eighty-eight hours.</p>
+        <p><strong>That is not what happened.</strong> What happened is more interesting, and it turns entirely on a single word that no headline had room for.</p>
+      </div>
+      <Rail items={[
+        ['The claim', 'OpenAI, 8 Sep 2026: an internal system produced a proof that Navier–Stokes dynamics <b>can develop a singularity in finite time</b>.'],
+        ['The paper', '<b>166 pages.</b> Title: Finite Time Blowup for Navier–Stokes. Author line reads only <b>OpenAI</b>. No academic co-authors.'],
+        ['The prize', 'OpenAI says it does <b>not intend to claim</b> the Millennium Prize. Clay has not commented and still lists the problem as unsolved.'],
+        ['The age', 'Headlines say a 90-year-old problem. The equations are roughly <b>200</b> years old. The 90 is Leray, 1934.'],
+      ]} />
+    </Section>
+
+    <Section n="02" title="Four doors" ground="bottle" id="doors">
+      <div class="c-wide prose">
+        <p>Charles Fefferman wrote the official rules in 2000. Most people think the problem asks one question. It asks four, and you only have to answer one of them to be paid.</p>
+      </div>
+      <div class="c-full field doors" role="group" aria-label="The four admissible answers">
+        <p class="mono-b bracket">f = 0 · Nobody touches the water</p>
+        <p class="mono-b bracket shock">f ≠ 0 · A hand is allowed</p>
+        <div class="door"><span class="display letter" aria-hidden="true">A</span><p><span class="sr">Door A: </span>Open space stays smooth forever</p></div>
+        <div class="door"><span class="display letter" aria-hidden="true">B</span><p><span class="sr">Door B: </span>A looped box stays smooth forever</p></div>
+        <div class="door open"><span class="display letter shock" aria-hidden="true">C</span><p><span class="sr">Door C: </span>Open space can be torn apart</p></div>
+        <div class="door"><span class="display letter" aria-hidden="true">D</span><p><span class="sr">Door D: </span>A looped box can be torn apart</p></div>
+        <p class="mono-b shock went">OpenAI went through door C</p>
+        <p class="mono cap">Clay Millennium Prize · Navier–Stokes · the four admissible answers</p>
+      </div>
+      <div class="rule"></div>
+      <div class="c-l prose">
+        <p>Doors A and B are the ones everybody pictures. They say water left completely alone stays smooth forever, and they ask you to prove it. Nothing pushes. Nothing stirs.</p>
+      </div>
+      <div class="c-r prose">
+        <p>Doors C and D are different. They let you apply an outside force to the fluid and ask only that you make something break. Build the push, break the water, collect the money.</p>
+      </div>
+      <div class="c-wide prose">
+        <p class="beat">You never had to answer the question everyone is asking. You only had to answer one of the four.</p>
+        <p>OpenAI opened the third door, the one marked in rose above. That is a legitimate answer to a real Millennium question and it deserves the attention it is getting. It is also not the question anyone outside the field thinks was being asked, and nobody reading a headline could reasonably be expected to know the difference.</p>
+      </div>
+    </Section>
+
+    <Section n="03" title="The hand<br>in the water" acid id="hand">
+      <div class="c-a prose">
+        <p>A forcing term is a hand.</p>
+        <p>It is an outside push applied to the fluid at every point, smooth, and in this case switched off outside a small patch of space and a short window of time. Stir a cup of coffee and your spoon is a forcing term.</p>
+        <p>OpenAI's theorem builds one very particular push. Under that push, in finite time, the speed of the fluid runs away to infinity while its total energy stays bounded. The water tears. The hand is what tore it.</p>
+        <p><strong>Door A asks whether water tears itself. Door C asks whether water can be torn.</strong></p>
+        <p>That is the whole story, and it is the one thing a headline cannot fit.</p>
+      </div>
+      <Rail items={[
+        ['Does it count', 'Yes. Fefferman\'s statement explicitly permits a smooth force for C and D. OpenAI\'s force is <b>compactly supported</b>, which exceeds what the rules demand.'],
+        ['Does it settle the famous one', 'No. A and B require <b>no force at all</b>. They are untouched.'],
+        ['Said better', 'Scientific American: the Clay problem as written is solved, but the Clay problem as most experts imagine it lacks the very piece the method depends on.'],
+      ]} />
+      <div class="rule"></div>
+      <h3 class="c-full display h3">Why ninety years of attempts broke here</h3>
+      <div class="c-a prose">
+        <p>In two dimensions, water behaves. In three, it might not, and the difference has a name. A spinning tube of fluid in three dimensions can be pulled thin. Pull it thin and it spins faster, the way a skater pulls in her arms. Faster spin pulls harder. It feeds itself. Two dimensions forbid the move entirely.</p>
+        <p>In 2014 Terence Tao built a fake Navier–Stokes, close enough to the real one to share its energy budget, and proved the fake one blows up. The point was never the fake equation. The point was that any proof leaning on the energy budget alone is dead on arrival, because a doomed equation passes the identical test.</p>
+        <p>He called it the supercriticality barrier. It is the wall every serious attempt has hit.</p>
+      </div>
+      <div class="c-b dims">
+        <p class="mono mal">Two dimensions</p>
+        <svg viewBox="0 0 60 26" aria-hidden="true"><g fill="none" stroke="#00B24F" stroke-width=".6"><ellipse cx="30" cy="13" rx="19" ry="6.4"/><ellipse cx="30" cy="13" rx="12" ry="4"/><ellipse cx="30" cy="13" rx="5" ry="1.7"/><path d="M4 22 L56 22 M4 4 L56 4" stroke-opacity=".4"/></g></svg>
+        <p class="lede small">Trapped flat. Cannot stretch.</p>
+        <div class="rule"></div>
+        <p class="mono">Three dimensions</p>
+        <svg viewBox="0 0 78 30" aria-hidden="true"><g fill="none" stroke="#FFFFFF" stroke-width=".7"><path d="M16 4 C28 10 28 18 16 24"/><path d="M62 4 C50 10 50 18 62 24"/><path d="M16 4 L62 4 M16 24 L62 24"/></g><path d="M32 8 C40 11 43 14 37 16.5 C31 19 35 21 41 22.5" fill="none" stroke="#00B24F" stroke-width=".6"/><path d="M4 14 L13 14 M13 14 L10.4 12.2 M13 14 L10.4 15.8 M74 14 L65 14 M65 14 L67.6 12.2 M65 14 L67.6 15.8" stroke="#00B24F" stroke-width=".6" fill="none"/></svg>
+        <p class="lede small">Pulled thin. Spins faster. It feeds itself.</p>
+      </div>
+    </Section>
+
+    <section class="surface bottle" aria-labelledby="cost-h">
+      <div class="grid">
+        <div class="c-full">
+          <p class="mono-b">04 · What it cost</p>
+          <p class="num acid figure" aria-hidden="true">88</p>
+          <h2 class="lede" id="cost-h">Eighty-eight hours of wall clock, start to finish</h2>
+        </div>
+        <Stats class="c-l" items={[
+          ['10,000', 'concurrent agents on this one problem'],
+          ['2.7M', 'messages passed between them'],
+          ['130B', 'output tokens burned'],
+          ['166', 'pages of finished manuscript'],
+        ]} />
+        <Stats class="c-r" items={[
+          ['341,000', 'lines of Lean 4 formalisation'],
+          ['17', 'further hours to machine-check it'],
+          ['~50', 'hours and 100 agents for the Euler warm-up'],
+          ['4', 'days between announcement and the rumour that started it'],
+        ]} />
+        <div class="rule acid"></div>
+        <div class="c-wide prose">
+          <p>The loudest number is not the interesting one. Before this run, roughly a hundred agents spent about fifty hours and took down the regularity problem for the Euler equations, which strips out viscosity entirely. Inside the building that was treated as a warm-up.</p>
+          <p>On cost, OpenAI said only <strong>millions of dollars</strong>. Every dollar figure you have seen since, from six million to forty, is an outsider multiplying token counts by public API prices. Some of those estimates price the whole multi-problem sprint, not this proof. Treat them as arithmetic, not disclosure.</p>
+        </div>
+      </div>
+    </section>
+
+    <Section n="05" title="What a proof<br>checker checks" id="lean">
+      <div class="c-a prose">
+        <p>Three hundred and forty one thousand lines of Lean 4 sit on GitHub. They compile. The machine agrees the argument is valid.</p>
+        <p>Here is the part every engineer already knows in their bones. A proof assistant returns exactly one bit. It tells you the theorem follows from the assumptions you wrote down. It does not tell you that the theorem you wrote down is the theorem you meant.</p>
+        <p class="beat acid">The tests pass. Nobody has published a review of the spec.</p>
+        <p>Somebody credible has to read the formal statement, line by line, and confirm it encodes Fefferman's door C and not a cousin of it. As of this writing no named expert in partial differential equations or in Lean has put their name to that confirmation in public.</p>
+        <p>This is not a reason to assume the proof is wrong. It is a reason to notice that the loudest evidence being waved around, the green compile, is evidence for a narrower claim than the one being celebrated.</p>
+        <p>Anthropic hit a version of the same wall four days earlier and handled it differently. Its model produced a machine-checked Fermat's Last Theorem, thirteen million lines of Lean, and Kevin Buzzard at Imperial College went on the record about what it did and did not establish. A named human vouched for the statement. That step is the whole ballgame and it has not happened here yet.</p>
+      </div>
+      <Rail items={[
+        ['One bit', 'Lean answers: <b>does this follow?</b> It never answers: <b>is this the right question?</b>'],
+        ['The gap', 'Formal verification moves trust from the proof to the <b>statement</b>. The statement is still read by people.'],
+        ['What is public', 'Repository <b>openai/NavierStokesAndEuler</b>. What is not public is a named expert\'s audit of what it asserts.'],
+        ['Not the same thing', 'A green build is a <b>fact</b>. A solved Millennium Problem is a <b>judgment</b>, and Clay reserves it for humans.'],
+      ]} />
+    </Section>
+
+    <Section n="06" title="Telephone" ground="bottle" acid id="telephone">
+      <div class="c-wide prose">
+        <p>Four caveats leave OpenAI's own page intact. The force is required. Nobody has verified it. Clay has not accepted it. There is a priority fight. Watch which ones survive the trip.</p>
+      </div>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="Which caveats each outlet carried">
+        <table>
+          <caption class="sr">A reading of the coverage, not a metric. Filled means carried, empty means not carried.</caption>
+          <thead><tr><th scope="col"><span class="sr">Outlet</span></th><th scope="col">The force</th><th scope="col">Unverified</th><th scope="col">Not Clay's</th><th scope="col">The fight</th></tr></thead>
+          <tbody>
+            {outlets.map(([name, cells]) => (
+              <tr><th scope="row">{name}</th>{cells.map((on) => (<td><span class:list={['cell', !on && 'off']}><span class="sr">{on ? 'carried' : 'not carried'}</span></span></td>))}</tr>
+            ))}
+          </tbody>
+        </table>
+        <p class="mono mal" style="margin-top:16px">Filled = carried · empty = not carried · a reading of the coverage, not a metric</p>
+      </div>
+      <div class="c-a prose">
+        <p>Nobody lied. The BBC says plainly that the work is unverified and that Clay has not accepted it. The trade piece that pivoted to healthcare warns its readers against rebuilding anything around an unverified headline.</p>
+        <p>Look at the column that empties first. It is the one that needs a sentence of mathematics to explain. Every other caveat fits inside a clause, so every other caveat survived. That is not editorial bias. That is a word budget behaving exactly as a word budget behaves.</p>
+      </div>
+      <div class="c-b prose">
+        <p class="beat">Caveats do not die of malice. They die of word count.</p>
+        <p>Notice what grew to replace it. By the time the story reached the vertical press it had sprouted a section on healthcare research, which is speculation bolted to a result that changes nothing in any laboratory on earth.</p>
+      </div>
+    </Section>
+
+    <Section n="07" title="Page fifty six" id="page56">
+      <div class="c-a prose">
+        <p>In 2014 the Kazakh mathematician Mukhtarbay Otelbaev announced he had solved Navier–Stokes. Serious people took it seriously. Then he emailed Stephen Montgomery-Smith.</p>
+      </div>
+      <Rail items={[
+        ['Also in the ground', '<b>Penny Smith, 2006.</b> Claim withdrawn for an error.'],
+        ['Survival rate', 'Announced Millennium solutions that went the distance: <b>one</b>. Poincaré. That is the entire list.'],
+      ]} />
+      <div class="c-full">
+        <Pull src="Mukhtarbay Otelbaev, 2014">To my shame, on page 56 the inequality (6.34) is incorrect therefore the proposition 6.3 (p. 54) isn't proved. I am so sorry.</Pull>
+      </div>
+      <div class="c-a prose">
+        <p>Grigori Perelman posted his Poincaré proof in 2002. It was right. Three separate teams then spent years writing out the verification so the field could check it, and Clay paid in 2010.</p>
+        <p>Eight years, for a proof that was correct the day it appeared.</p>
+        <p>Clay's own rules require refereed publication, then a two year wait, then general acceptance by the mathematical community. Run that clock from a paper that has not been submitted anywhere.</p>
+      </div>
+      <div class="c-b">
+        <p class="beat mal">The earliest this can be an accepted Millennium result is 2028, and only if it is right.</p>
+      </div>
+      <div class="c-full timeline" role="group" aria-label="Verification timelines">
+        <p class="mono mal lane-label" style="--l:0%">Perelman · posted to paid · 8 years</p>
+        <div class="lane perelman" style="--l:0%;--w:30.8%"><span class="sr">2002 to 2010</span></div>
+        <div class="lane window" style="--l:92.3%;--w:7.7%"><span class="sr">2026 to 2028</span></div>
+        <p class="mono acid lane-label right">Earliest possible window</p>
+        <div class="axis">
+          <span class="mono" style="--l:0%">2002</span><span class="mono" style="--l:15.4%">2006</span><span class="mono" style="--l:30.8%">2010</span><span class="mono" style="--l:92.3%">2026</span><span class="mono" style="--l:100%">2028</span>
+        </div>
+        <p class="mono cap">Verification takes the time it takes</p>
+      </div>
+    </Section>
+
+    <Section n="08" title="Four days" ground="bottle" id="fourdays">
+      <div class="c-a prose">
+        <p>This is a sequence, not an accusation. Read it and decide for yourself what it means.</p>
+        <p>In March, OpenAI closed the largest private technology financing on record: a hundred and twenty two billion dollars at an eight hundred and fifty two billion valuation. In June it filed confidentially for an offering aimed at a trillion. In May, Anthropic passed it on paper at nine hundred and sixty five billion.</p>
+        <p>On the fourth of September, Anthropic announced a machine-checked proof of Fermat's Last Theorem. On the eighth, OpenAI announced Navier–Stokes.</p>
+        <p>There is a precedent for how this company handles a scoreboard. In July 2025 it announced a gold-medal score at the International Mathematical Olympiad, graded by a panel it assembled itself, published before the closing ceremony and reportedly against the organisers' wishes. Google DeepMind posted the same score and had it certified by the olympiad. Same number. Different epistemics.</p>
+        <p class="beat acid">Announce fast. Grade yourself. Let the correction arrive later, to fewer people.</p>
+      </div>
+      <Rail items={[
+        ['Mar 2026', '$122B raised at <b>$852B</b>. Largest private tech round ever closed.'],
+        ['May 2026', 'Anthropic valued at <b>$965B</b>, ahead of OpenAI.'],
+        ['Jun 2026', 'Confidential S-1 filed. Reported target: <b>$1T</b>.'],
+        ['4 Sep 2026', 'Anthropic ships Fermat\'s Last Theorem in Lean. <b>13M lines.</b>'],
+        ['8 Sep 2026', 'OpenAI announces Navier–Stokes.'],
+      ]} />
+      <div class="rule"></div>
+      <div class="c-wide prose">
+        <p>None of this makes the mathematics wrong. Incentives do not refute theorems. They do tell you how hard to squint at a claim that arrived with a press call attached and no referee in sight, and how much weight to put on a superlative that has not yet been checked by anybody outside the building.</p>
+      </div>
+    </Section>
+
+    <Section n="09" title="The input<br>was a rumour" acid id="rumour">
+      <div class="c-a prose">
+        <p>Terence Tao has not assessed OpenAI's manuscript. He praised different work, by other people, and said clearly that it had not reached Navier–Stokes. If you saw his name attached to an endorsement this week, you saw a misreading.</p>
+        <p>What he did say is the part that should keep the builders awake.</p>
+      </div>
+      <Rail items={[
+        ['Started when', 'OpenAI says the effort began <b>1 September</b>, after hearing a rumour that two Millennium problems had been resolved.'],
+        ['The disputed part', 'Buckmaster says he learned on 3 September that word of his progress reached OpenAI. OpenAI says it used no specific user data, while conceding it <b>cannot rule out</b> that de-identified usage data helped train the model.'],
+        ['Unresolved', 'Both accounts are public. Neither has been established. Treat it as <b>contested</b>, not settled.'],
+      ]} />
+      <div class="c-full">
+        <Pull src="Terence Tao, September 2026">Even the rumor of someone working on a problem can trigger a massive amount of AI-powered effort to flatten it before the original research project has time to reach its full potential.</Pull>
+      </div>
+      <div class="c-a prose">
+        <p>Sit with what OpenAI volunteered about its own timeline. The trigger was not a paper. It was not a public preprint. It was a rumour that somebody was close.</p>
+        <p>Run that forward. If saying out loud what you are working on summons ten thousand agents to get there first, the rational move is to stop saying it. Open science runs on the exact opposite habit, and it has run on it for four hundred years.</p>
+      </div>
+      <div class="c-b">
+        <p class="beat">The risk is not that machines do the mathematics. It is that people stop talking.</p>
+      </div>
+    </Section>
+
+    <Section n="10" title="What would<br>change my mind" ground="bottle" id="mind">
+      <div class="c-a prose">
+        <p>Three things would move this from serious claim to settled result, in order of how much they should move you.</p>
+        <p><span class="mono-b">01</span> &nbsp;A named expert in partial differential equations or in Lean confirms in public that the formal statement encodes Fefferman's door C.</p>
+        <p><span class="mono-b">02</span> &nbsp;An outside group reproduces the check independently.</p>
+        <p><span class="mono-b">03</span> &nbsp;A refereed journal accepts it.</p>
+        <p>Two things would move it the other way. A specific error surfacing in the construction, which is exactly how Otelbaev ended, on page fifty six. Or a demonstration that the method cannot survive losing the hand. Stan Palasek at Princeton has already flagged that viscosity may simply eat the growth mechanism once the force is removed.</p>
+        <p>Silence on all five, six weeks from now, is itself information.</p>
+      </div>
+      <Rail items={[
+        ['Does this change your flight', 'No. Real water is made of molecules. These singularities live inside the idealisation, not inside the ocean. Quanta put it plainly: <b>no immediate practical consequences</b>.'],
+        ['So what did happen', 'A machine wrote 166 pages of frontier mathematics in under four days, formalised it, and published the code. <b>That part is not in dispute</b> and it is enormous.'],
+      ]} />
+      <div class="rule acid"></div>
+      <div class="c-wide prose">
+        <p>So hold both. The capability is real and it is the fastest thing that has ever happened in this field. The result is unverified, narrower than reported, and contested by the people whose method it was built on.</p>
+        <p>Everything in the gap between those two sentences is a preposition.</p>
+      </div>
+      <p class="c-full display closing">Water that tears itself.<br><span class="acid">Water that can be torn.</span></p>
+    </Section>
+
+    <EditionEnd code={ed.code} date={ed.dateLabel} seed={ed.seed} pdf={ed.pdf} next={{ href: '/ns-02', label: 'NS-02 · The Closest Humans' }}>
+      The hand in the water is the whole story.<br>It is the one thing the headline could not fit.
+    </EditionEnd>
+  </main>
+</Base>
+
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -20%; right: -14%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 40px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover-foot { border-top-color: transparent; }
+  .figure { font-size: var(--fs-figure); color: var(--acid); margin-block: 12px 8px; }
+  .h3 { font-size: clamp(26px, 3.4vw, 48px); }
+  .closing { font-size: clamp(34px, 5vw, 80px); margin-top: 16px; }
+
+  /* Four doors. */
+  .doors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px clamp(12px, 2vw, 32px); }
+  .doors .bracket { grid-column: span 2; border-top: 1px solid currentColor; padding-top: 10px; color: var(--malachite); }
+  .bottle .doors .bracket { color: var(--flash); }
+  .doors .bracket.shock, .bottle .doors .bracket.shock { color: var(--shock); }
+  .door .letter { display: block; font-size: clamp(64px, 9vw, 150px); color: var(--malachite); }
+  .bottle .door .letter { color: var(--flash); }
+  .door .letter.shock, .bottle .door .letter.shock { color: var(--shock); }
+  .door p { font-size: 15px; line-height: 1.3; max-width: 18ch; margin-top: 12px; }
+  .door.open p { font-variation-settings: 'opsz' 14, 'wdth' 100, 'wght' 700; }
+  .door.open { border-bottom: 4px solid var(--shock); padding-bottom: 12px; }
+  .doors .went { grid-column: 3 / span 2; }
+  .doors .cap { grid-column: 1 / -1; color: var(--malachite); }
+  .bottle .doors .cap { color: var(--flash); }
+  @media (max-width: 760px) {
+    .doors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .doors .went { grid-column: 1 / -1; }
+  }
+
+  /* Two and three dimensions. */
+  .dims svg { max-width: 320px; margin-block: 12px; }
+  .dims .rule { margin-block: 20px; }
+  .lede.small { font-size: 18px; }
+
+  /* Timeline. */
+  .timeline { position: relative; --h: 20px; }
+  .timeline .lane { position: relative; height: var(--h); margin-left: var(--l); width: var(--w); margin-block: 8px; }
+  .lane.perelman { background: var(--malachite); }
+  .lane.window { background: var(--bottle); border-bottom: 2px solid var(--acid); }
+  .timeline .lane-label.right { text-align: left; margin-left: 70%; }
+  .timeline .axis { position: relative; height: 24px; border-top: 1px solid rgba(0,178,79,.4); margin-top: 8px; }
+  .timeline .axis span { position: absolute; top: 6px; left: var(--l); transform: translateX(calc(-1 * var(--l))); color: var(--malachite); }
+  .timeline .cap { margin-top: 12px; color: var(--malachite); }
+</style>

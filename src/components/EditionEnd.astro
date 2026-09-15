@@ -1,0 +1,38 @@
+---
+/**
+ * The end of a dossier: the dove (the sequence's one resolve), the closing
+ * lines, then the footer with the PDF and the neighbouring editions as block
+ * links. Acid is spent on the dove, so the closing lines stay Flash.
+ */
+import Dove from './Dove.astro';
+import { LICENCE } from '../lib/editions.mjs';
+interface Props {
+  code: string; date: string; seed: string;
+  pdf?: string; prev?: { href: string; label: string }; next?: { href: string; label: string };
+}
+const { code, date, seed, pdf, prev, next } = Astro.props;
+---
+<section class="surface end" aria-label="Close">
+  <div class="grid">
+    <div class="c-wide dove-wrap"><Dove /></div>
+    <div class="c-wide lede close"><slot /></div>
+  </div>
+</section>
+<footer class="foot mono">
+  <span>Aedificare · {code} · {date} · <a href={LICENCE.url} rel="license">{LICENCE.name}</a></span>
+  <span>r = cos(kθ) · seed {seed}</span>
+</footer>
+<nav class="surface tight" aria-label="Editions">
+  <div class="grid">
+    {pdf && <a class="c-l block-link mono-b" href={pdf}>Download the PDF</a>}
+    {prev && <a class="c-l block-link mono-b" href={prev.href}>Previous · {prev.label}</a>}
+    {next && <a class="c-r block-link mono-b" href={next.href}>Next · {next.label}</a>}
+  </div>
+</nav>
+<style>
+  .dove-wrap { max-width: 900px; }
+  .close { max-width: 46ch; }
+  .close:empty { display: none; }
+  .end { padding-top: clamp(80px, 14vh, 200px); }
+  nav .block-link { padding-block: 10px; }
+</style>

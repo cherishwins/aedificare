@@ -1,0 +1,257 @@
+---
+/**
+ * DRAFT. Edition 02 has table cells that were never sourced ("check",
+ * "unverified" in the original) and the dove slot was empty. It is built
+ * so it can be seen and swept, but it carries noindex, is out of the
+ * sitemap and robots, and nothing links to it. A published number that
+ * says "check" is a number nobody can check. Flip DRAFT when it is sourced.
+ */
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, LICENCE } from '../lib/editions.mjs';
+import { SITE, abs } from '../config.mjs';
+
+const ed = edition('edition-02');
+
+const DRAFT = !!ed.draft;
+const cover = HOUSE.map((L, i) => ({ ...L, c: ['#CCFF00', '#00B24F', '#FF1F5A'][i], o: [0.95, 0.6, 0.8][i] }));
+// Interior dividers, Malachite only, the seeds the print edition logged.
+const div = (k1: number, k2: number, ph: number) => [
+  { k: k1, s: 1.0, ph, w: 0.7, c: '#00B24F', o: 0.5 },
+  { k: k2, s: 0.71, ph: ph + 0.38, w: 0.7, c: '#00B24F', o: 0.35 },
+];
+const NS = '<span class="mono mal">not yet sourced</span>';
+
+const rows: [string, string, string, string, string, string][] = [
+  ['Process', 'TSMC N7', 'TSMC N7', 'TSMC N7', 'TSMC N7', 'TSMC N7'],
+  ['Die area', '826 mm²', '826 mm²', '826 mm²', '826 mm²', '826 mm²'],
+  ['Transistors', '54.2 B', '54.2 B', '54.2 B', '54.2 B', '54.2 B'],
+  ['Die bin', 'GA100 full', 'GA100', 'GA100', 'GA100-105F-A1', 'GA100-105F-A1'],
+  ['GPCs', '8', '7', '7', '7', '7'],
+  ['Streaming multiprocessors', '128', '108', '108', '70', '70'],
+  ['FP32 cores', '8,192', '6,912', '6,912', '4,480', '4,480'],
+  ['Tensor cores (3rd gen)', '512', '432', '432', '280', '280'],
+  ['L2 cache', '48 MB', '40 MB', '40 MB', NS, NS],
+  ['Base / boost clock', 'n/a', '1065 / 1410', '1065 / 1410', '1140 / 1410', '1140 / 1410'],
+  ['Memory type', 'HBM2e', 'HBM2', 'HBM2e', 'HBM2e', 'HBM2e'],
+  ['Memory bus', '6,144-bit', '5,120-bit', '5,120-bit', '4,096-bit', '4,096-bit'],
+  ['Memory reported', 'n/a', '40 GB', '80 GB', '8 GB', NS],
+  ['Memory physical', 'n/a', '40 GB', '80 GB', '≥32 GB (4 stacks)', '≥32 GB'],
+  ['Bandwidth', 'n/a', '1.56 TB/s', '1.94 to 2.04 TB/s', '1.49 TB/s', '1.49 TB/s'],
+  ['FP32 theoretical', '~20.9 TF', '19.5 TF', '19.5 TF', '12.63 TF', '12.63 TF'],
+  ['FP32 delivered', 'n/a', '19.5 TF', '19.5 TF', '0.39 TF', NS],
+  ['Host interface', 'PCIe 4.0 x16', 'PCIe 4.0 x16', 'PCIe 4.0 x16', 'PCIe 1.0 x4', NS],
+  ['Display output', 'none', 'none', 'none', 'none', 'none'],
+  ['Board power', 'n/a', '250 W', '300 W', '250 W', NS],
+  ['Price at launch', 'n/a', '~$10,000 est', '~$15,000 est', '$4,299', 'n/a'],
+  ['Price today', 'n/a', 'n/a', 'n/a', '$400 to $800', '$400 to $800'],
+];
+---
+<Base title={ed.title} description={ed.lede} path={ed.path} ogImage={`/og/${ed.slug}.png`} noindex={DRAFT}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={0} class="rose cover-rose" />
+      <Masthead right={DRAFT ? 'Edition 02 · Draft' : 'Edition 02'} />
+      <div class="grid cover-grid">
+        <h1 class="c-full display" data-flex="cursor">The<br><span class="wide">Subtraction</span></h1>
+        <p class="c-a lede">A processor was built, then deliberately reduced, then sold at a quarter of its worth to people solving a puzzle that no longer exists. The reduction is the product.</p>
+      </div>
+      <div class="foot mono cover-foot">
+        <span>Edition 02 · Jesse James</span>
+        <span>r = cos(kθ) · seed k 5/7/3 · NVIDIA CMP 170HX / GA100</span>
+      </div>
+    </section>
+
+    <section class="surface flash" aria-label="Thesis">
+      <div class="grid">
+        <p class="c-full mono-b">Thesis</p>
+        <p class="c-full display thin slap">The most expensive engineering in a modern processor is the engineering that takes things away.</p>
+      </div>
+    </section>
+
+    <section class="surface" aria-labelledby="h00">
+      <div class="grid">
+        <p class="c-full mono mal">00 · The argument</p>
+        <h2 class="c-wide display head" id="h00">The margin moved out of <span class="acid">the making</span>.</h2>
+        <div class="c-a prose">
+          <p>Fabrication is the part everyone photographs. Cleanrooms, lithography, a wafer held up to a light. It is also the part that has stopped differentiating anyone, because four companies can do it and three of them buy their machines from the same Dutch supplier.</p>
+          <p>The margin no longer sits in the making. It sits in the permissions. A modern accelerator ships with capability physically present and administratively withheld, and the price of the product is set by how much of itself the buyer is allowed to use.</p>
+          <p>This is not a claim that requires trust. The evidence is purchasable. When the cryptocurrency market collapsed it stranded a very large number of processors whose only purpose had been to be deliberately worse than their own silicon, and those processors are now cheap enough to buy and examine.</p>
+        </div>
+        <div class="c-b prose side">
+          <p>What follows is a reading of one such processor. It was chosen because it is the least subtle example available, and because anyone who doubts the reading can buy the evidence and check.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface" aria-labelledby="h01">
+      <RoseField layers={div(4, 9, 0.22)} class="rose divider" />
+      <div class="grid">
+        <p class="c-full mono mal">01 · The price of a dead idea</p>
+        <h2 class="c-wide display head" id="h01">September fifteenth, <span class="num acid">2022</span></h2>
+        <div class="c-a prose">
+          <p>Ethereum stopped using proof of work. The network no longer needed anyone to solve anything, and the entire global apparatus assembled to solve it became, within a single day, an inventory problem.</p>
+          <p>Gaming cards had somewhere to go. They went back to the shelves they had been scalped from, and prices fell, and the world moved on. The purpose-built mining hardware had nowhere. It had no display outputs, no market outside the one that had just closed, and a manufacturer with no incentive to help it find another.</p>
+          <p>It had launched at roughly $4,299. It now moves on the secondary market between $400 and $800, and the only reason it recovered that far is that a different industry worked out what was underneath it. NVIDIA has never published a production figure, so the size of the stranded inventory is inferred from liquidation volume rather than known.</p>
+        </div>
+        <div class="c-b prose side">
+          <p>The card had been sold at a premium on the explicit promise that it could do one thing well and nothing else at all. When the one thing ended, the promise held.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface bottle" aria-labelledby="h02">
+      <div class="grid">
+        <p class="c-full mono">02 · The die</p>
+        <h2 class="c-wide display wide head" id="h02">It is the same piece of silicon.</h2>
+        <div class="c-a prose">
+          <p>The processor inside the mining card is GA100. It is the processor inside the A100, which is the accelerator that trained most of what the public now calls artificial intelligence.</p>
+          <p>GA100 is 826 square millimetres of seven nanometre silicon carrying 54.2 billion transistors. Eight graphics processing clusters. Up to 128 streaming multiprocessors, 8,192 single precision cores and 512 third generation tensor cores, feeding a 40 megabyte level two cache.</p>
+          <p>It cannot draw anything. There are no ray tracing units and no display engine, because nothing it was designed for involves a screen. It multiplies matrices, which is the only operation deep learning performs in quantity, and it does so against stacked high bandwidth memory sitting on the same interposer rather than scattered across a board.</p>
+          <p>The mining card carries the GA100-105F-A1 bin. Seventy of the 128 streaming multiprocessors are active, giving 4,480 single precision cores and 280 tensor cores, clocked at 1140 base and 1410 boost against a 4,096-bit memory interface. That is a harvested die. Nothing about it is remarkable yet.</p>
+        </div>
+        <div class="c-b prose side">
+          <p class="mono-b acid">Same die, different permissions</p>
+          <p>Two products. One design. The distance between them is not manufacturing. It is configuration, and configuration is written after the wafer is finished.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface" aria-labelledby="h03">
+      <RoseField layers={div(6, 11, 0.67)} class="rose divider low" />
+      <div class="grid">
+        <p class="c-full mono mal">03 · What was removed</p>
+        <h2 class="c-wide display head" id="h03">Three cuts, none of them <span class="acid">accidents</span>.</h2>
+        <div class="c-l prose">
+          <p>The restrictions fall into three categories, and the categories matter more than the numbers, because each one is enforced by a different mechanism with a different degree of permanence.</p>
+          <p><strong>Memory geometry.</strong> The firmware reports a smaller pool than the package physically carries. The system believes the card, because the system has no independent way to count.</p>
+          <p><strong>Compute throughput.</strong> Tensor and floating point paths are throttled to a level that would have been unremarkable on a desktop processor a decade earlier. The units are present. They are not permitted to run.</p>
+          <p><strong>Host bandwidth.</strong> The connection to the motherboard is held at an early generation and a quarter of the standard lane width. This one is elegant, because a training workload that cannot be fed is useless regardless of what the cores are allowed to do.</p>
+        </div>
+        <div class="c-r prose">
+          <p>The figures. Memory reports 8 gigabytes across a 4,096-bit bus sustaining 1.49 terabytes per second. Four active stacks of HBM2e, and HBM2e does not come in two gigabyte stacks. The arithmetic is available to anyone who wants to do it.</p>
+          <p>Compute is the clearer cut. The hardware specifies 12.63 teraflops of single precision. The card delivers a reported 0.39. The cores are present, clocked and counted. They are simply not permitted to run.</p>
+          <p>Host bandwidth sits at PCIe 1.0 by four lanes, against a slot rated for 4.0 by sixteen.</p>
+          <p>Three mechanisms hold the cuts in place. The VBIOS is signed. The enterprise driver refuses the card outright. The third is reported to be one time programmable fuses burned at manufacture, and if that report is correct then the limits are not reversible in software at all, only worked around. This edition names that third mechanism as reported rather than established, because the difference between a fuse and a firmware rule is the difference between a permanent decision and a revocable one.</p>
+          <p class="beat mal">A lock burned into the die at manufacture and a lock written in firmware are the same lock to a customer and entirely different locks to an engineer.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface bottle" aria-labelledby="h04">
+      <div class="grid">
+        <p class="c-full mono">04 · Binning is not this</p>
+        <h2 class="c-full display thin head" id="h04">Salvage asks what still works. Segmentation asks what they will pay.</h2>
+        <div class="c-a prose">
+          <p>An 826 square millimetre die is enormous, and at that size perfect yield is not a target anyone holds. A speck of dust lands on a wafer, a few cores die, and the industry response is sensible: disable the broken region and sell the chip as a lesser part. This is binning. It is honest, it is efficient, and it is the reason large processors are economically possible at all.</p>
+          <p>Binning explains seventy active multiprocessors out of one hundred and twenty eight. It does not explain a working memory controller reporting a quarter of what it addresses. It does not explain a functional interconnect held three generations back at a quarter of its lanes. Nothing about a lithography defect selects a PCIe generation.</p>
+          <p>The distinction is the whole argument. One set of limits describes damage. The other describes a decision, and the decision cost money to implement, which means someone calculated that it would earn more than it cost.</p>
+        </div>
+        <div class="c-b prose side">
+          <p class="mono-b acid">The test</p>
+          <p>Ask whether the silicon under the limit still works. If it does, the limit was never damage. It was a price, and burning it into a fuse makes it a permanent one rather than an honest one.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface" aria-labelledby="h05">
+      <RoseField layers={div(8, 5, 1.13)} class="rose divider" />
+      <div class="grid">
+        <p class="c-full mono mal">05 · Older than silicon</p>
+        <h2 class="c-wide display head acid" id="h05">Nothing here is new.</h2>
+        <div class="c-a prose">
+          <p>IBM shipped mainframes with processors already installed and dormant, activated by a licence key when the customer's workload grew. The metal arrived on day one. The permission arrived when the invoice cleared. The industry called it Capacity on Demand and the customers accepted it, because the alternative was a second delivery truck and a planned outage.</p>
+          <p>Intel sold a consumer processor in 2011 with cache and threading disabled, and a card in the retail box that unlocked them for roughly fifty dollars. The programme lasted about a year. It was withdrawn not because it failed technically but because buying a scratch card to finish a product you already owned turned out to be intolerable when stated that plainly.</p>
+          <p>Tesla shipped battery packs that were physically larger than the capacity the car would use, unlockable later for a fee. Some manufacturers have tried the same arrangement with seat heaters, which is the version that made newspapers, because a heating element is easy to picture and a memory controller is not.</p>
+          <p>The mining card belongs to this lineage. What distinguishes it is the absence of the upgrade path. IBM would sell you the key. Intel would sell you the key. Here there was never a key, because the entire point was that this customer must never become that customer.</p>
+        </div>
+        <div class="c-b prose side">
+          <p>Every precedent above offered a way to pay for the rest of the machine. This one offered nothing, which is what makes it the purest specimen of the practice rather than the worst.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface bottle" aria-labelledby="h06">
+      <div class="grid">
+        <p class="c-full mono">06 · What was undone</p>
+        <h2 class="c-wide display wide head" id="h06">People went looking for the rest of it.</h2>
+        <div class="c-a prose">
+          <p>Cards this cheap attract a particular kind of attention. Once the price fell below the cost of caring whether it survived, a community formed around the question of how much of the original processor was still reachable.</p>
+          <p>What that community has recovered is contested. Claims range from restored host bandwidth to substantially enlarged memory pools, and they arrive mostly as forum reports rather than reproducible method, with an unknown number of dead cards behind them going unposted. This edition does not adjudicate those claims, and anyone who tells you the result is settled is selling something.</p>
+          <p>The attempt is the finding. People do not spend months attacking firmware to reach hardware that is not there. The effort is evidence about what the package contains, independent of whether any given attempt succeeded.</p>
+          <p>This edition does not publish a procedure. The interesting finding is not how to perform the modification. It is what the modification proves about where the value in the original product was located.</p>
+        </div>
+        <div class="c-b prose side">
+          <p class="mono-b acid">A note on legality</p>
+          <p>In the United States the governing provision is section 1201 of the Digital Millennium Copyright Act. In Canada it is the technological protection measure provisions added to the Copyright Act by the Copyright Modernization Act. Both carry repair related exemptions, both have widened, and neither settles whether an accelerator you already own sits inside them.</p>
+          <p>This edition describes the locks. It does not open them.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface" aria-labelledby="htable">
+      <div class="grid">
+        <p class="c-full mono mal">Table 01 · The delta</p>
+        <h2 class="c-wide display head acid" id="htable">One die, five prices.</h2>
+        <div class="c-full scroll" tabindex="0" role="region" aria-label="One die, five prices: the specification delta">
+          <table class="delta">
+            <caption class="sr">The same GA100 die across five products.</caption>
+            <thead><tr><th scope="col"><span class="sr">Attribute</span></th><th scope="col">GA100 full die</th><th scope="col">A100 40GB PCIe</th><th scope="col">A100 80GB PCIe</th><th scope="col">CMP 170HX stock</th><th scope="col">CMP 170HX modified</th></tr></thead>
+            <tbody>
+              {rows.map(([k, ...v]) => (<tr><th scope="row">{k}</th>{v.map((c) => <td class="n" set:html={c} />)}</tr>))}
+            </tbody>
+          </table>
+        </div>
+        <p class="c-wide mono mal">FP32 theoretical is cores × 2 × boost clock. FP32 delivered is what the card actually returns. The distance between those two rows is the subject of this edition. Cells marked not yet sourced are not yet sourced.</p>
+      </div>
+    </section>
+
+    <section class="surface bottle" aria-labelledby="h07">
+      <div class="grid">
+        <p class="c-full mono">07 · The licensing surface</p>
+        <h2 class="c-wide display wide head" id="h07">A specimen, not a scandal.</h2>
+        <div class="c-a prose">
+          <p>The mining card is not a scandal. It is a specimen, and it is valuable precisely because the company that made it had no reason to be subtle. There was no consumer to reassure and no reviewer to satisfy. The segmentation could be implemented openly, which means it can now be read openly.</p>
+          <p>What it records is a transition that has already happened everywhere else and is simply easier to see here. The physical object arrives complete. The commercial object is assembled afterwards, in firmware, out of decisions about what the buyer has paid to be allowed to do.</p>
+          <p>Every generation since has extended the practice rather than retreated from it. The locks have moved further down, from driver into firmware into fuses burned at manufacture, which is the direction you move a lock when you have decided that the previous one was too easy to reach.</p>
+        </div>
+        <div class="c-b prose side">
+          <p class="mono-b acid">What the specimen proves</p>
+          <p>That capability and permission are now separately priced, and only one of them ships in the box.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface flash" aria-label="The last word">
+      <div class="grid">
+        <p class="c-full display slap">You do not buy a processor. You buy a list of permitted operations.</p>
+        <div class="c-full foot mono"><span>Aedificare · Edition 02</span><span>The Subtraction</span></div>
+      </div>
+    </section>
+
+    <EditionEnd code={ed.code} date={ed.dateLabel} seed="k 5/7/3" />
+  </main>
+</Base>
+
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -18%; right: -16%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 40px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover .lede { max-width: 44ch; }
+  .cover-foot { border-top-color: transparent; }
+  .divider { width: max(60vw, 60vh); height: max(60vw, 60vh); top: -30%; right: -22%; }
+  .divider.low { top: auto; bottom: -34%; left: -26%; right: auto; }
+  .surface .grid { position: relative; z-index: 1; }
+  .head { font-size: clamp(38px, 6.4vw, 104px); }
+  .slap { font-size: clamp(40px, 7.4vw, 120px); }
+  .side p { max-width: 40ch; }
+  .side .mono-b { margin-bottom: 14px; }
+  .bottle .side .mono-b.acid { color: var(--acid); }
+  .flash .foot { padding-inline: 0; border-top: 0; }
+  .delta td, .delta th { white-space: nowrap; }
+</style>
