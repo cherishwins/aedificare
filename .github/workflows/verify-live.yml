@@ -1,0 +1,44 @@
+# The live sweep, from a clean runner with open egress.
+#
+# A deploy status is not a verification. This runs tools/verify.cjs against
+# the production origin over the real network: every page, ten viewports,
+# all eleven probes, plus the headers and crawl files. On demand, so it can
+# be fired right after a deploy; free, because the repo is public.
+name: verify-live
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Origin to sweep
+        default: https://aedificare.art
+        required: true
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright (CI only)
+        run: |
+          npm i --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Headers and crawl files
+        run: |
+          set -e
+          U="${{ github.event.inputs.url }}"
+          for p in / /ns-01 /ns-02 /robots.txt /llms.txt /llms-full.txt /feed.xml /sitemap-index.xml /ai.txt /humans.txt /site.webmanifest /favicon.svg /pdf/ns-02.pdf; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" "$U$p"); echo "$code $p"; [ "$code" = "200" ]
+          done
+          echo "--- headers on /"; curl -sSI "$U/" | grep -iE "^(server|link|x-content-type-options|referrer-policy):"
+          echo "--- canonical on /ns-02"; curl -sS "$U/ns-02" | grep -oE 'rel="canonical" href="[^"]*"'
+          echo "--- draft hidden"; curl -sS "$U/edition-02" | grep -oE 'name="robots" content="[^"]*"'
+          test "$(curl -sS "$U/sitemap-0.xml" | grep -c edition-02)" = "0"
+      - name: Sweep
+        run: node tools/verify.cjs --url "${{ github.event.inputs.url }}"

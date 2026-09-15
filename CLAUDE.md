@@ -170,6 +170,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   for uploading to platform slots, not for serving. Regenerate, never edit.
 - `.github/workflows/verify.yml`: build (with the three checkers), audit,
   sweep, on every PR and push to `main`.
+- `.github/workflows/verify-live.yml`: manual dispatch, `url` input. Curls
+  every route and discovery file on the live origin, checks the headers,
+  canonical, draft noindex and sitemap exclusion, then runs the same sweep
+  with `--url`. It exists because the build sandbox's proxy cannot reach
+  aedificare.art; a clean runner can. Run it after every production deploy.
 
 ## Design decisions, with the reasoning
 
@@ -220,6 +225,20 @@ for a shortlist for bios and cards, which is a separate deliverable.
   styles by attribute; an `<svg>` rendered inside `RoseField` never receives
   the page's scope attribute, so a scoped `.hero-rose` rule silently does
   nothing. Every rule that targets a child component's root is global.
+  The same trap runs upward: a component's scoped `.flash .index` rule
+  never matches a `.flash` ancestor outside the component, so the
+  masthead's surface-colour rules use `:global(.flash)`.
+- **The masthead carries the index of editions, and the home hero is
+  78svh, not 100.** Owner opened the live site (2026-09-15) and read it as
+  "nothing there, no menu, no content": the hero filled the first screen
+  with the wordmark and rose, and nothing said there was anything below.
+  Now every page's masthead lists the published editions (code and title,
+  title dropped under 760px, `aria-current` on the open one), and the home
+  hero leaves the first edition's title inside the first screen. The kit's
+  "no navigation chrome" instinct lost to the reader; an index is not a
+  menu, it is the site's one job made visible. The masthead nav is labelled
+  "Index" and the edition-end nav "Editions" because axe requires unique
+  landmark names.
 
 ## Findings from the uploads (2026-09-15)
 
