@@ -97,10 +97,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   so `@astrojs/vercel` would be a dependency that serves nothing. Vercel
   detects Astro and publishes `dist/`; `tools/verify.cjs` sweeps that same
   directory so the check runs on the bytes that ship.
-- **Vercel**, team "Jesse James' projects" (`team_yBUeW5WttkjSHbHuMRF0ptM5`,
-  Hobby, free). **The project is not yet created** and the domain is not yet
-  pointed; see Open. `src/config.mjs` is the only place the origin is
-  written; `SITE_ORIGIN` overrides it for previews.
+- **Vercel.** The owner imported the repo themselves (2026-09-15); the
+  project is NOT on the "Jesse James' projects" team
+  (`team_yBUeW5WttkjSHbHuMRF0ptM5`) that the Vercel MCP can see, so which
+  repository it builds is proved only by the live `<meta name="build">`
+  stamp matching this repo's `main`. **The domain is not yet pointed at
+  it**; see Open. `src/config.mjs` is the only place the origin is written;
+  `SITE_ORIGIN` overrides it for previews.
 - Dependencies: `astro`, `@astrojs/sitemap`, `@astrojs/rss`; dev: `axe-core`.
   **Playwright is deliberately NOT in `package.json`**: Vercel installs
   devDependencies to build, and a browser-automation library has no place in
@@ -310,17 +313,23 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
 
 ## Open
 
-1. **Vercel project: blocked on GitHub access.** `create_git_project` for
-   `cherishwins/aedificare` on the owner's team fails with `repo_no_access`:
-   the Vercel GitHub App is installed for `outlierclothiers` (where the
-   team's other projects live), not for `cherishwins`. The owner must grant
-   it: GitHub → the `cherishwins` account or org → Settings → Applications →
-   Vercel → Repository access → add `aedificare` (or install the Vercel app
-   on `cherishwins` from vercel.com → Add New Project → Import). Then the
-   link creates the project and deploys `main` on every push. After that:
-   add `aedificare.art` in the Vercel project's Domains, set the DNS
-   Vercel shows (apex A record and `www` CNAME), and verify the live URL
-   with the sweep against the deployed origin, not the deploy status.
+1. **aedificare.art points at GoDaddy Website Builder, not Vercel.**
+   Measured 2026-09-15 from two networks (a GitHub runner and the build
+   sandbox): the apex and `www` resolve to `76.223.105.230` and
+   `13.248.243.5`, plain HTTP returns a GoDaddy "Websites + Marketing" page
+   (`server: DPS`, assets from `wsimg.com`, title "aedificare.art"), and
+   HTTPS fails with "no alternative certificate subject name matches", so
+   every crawler and every reader gets the builder page or a TLS error.
+   Fix, owner's action, in this order: GoDaddy → Websites + Marketing →
+   disconnect the domain from the builder site (it pins those records);
+   GoDaddy → DNS for aedificare.art → set `A @ 76.76.21.21` and
+   `CNAME www cname.vercel-dns.com`, delete the builder's A and CNAME rows
+   and any forwarding; Vercel project → Settings → Domains → add
+   `aedificare.art` and `www.aedificare.art` (www redirecting to apex), wait
+   for "Valid Configuration" and the certificate. Then dispatch
+   `verify-live` and read "live build:" in its log: it must equal `main`'s
+   head. Until that line matches, the site is not up, whatever the deploy
+   status and whatever a browser with a stale resolver shows.
 2. **Edition 02** stays a draft until its "not yet sourced" cells are
    sourced. Then set `draft: false` in `src/lib/editions.mjs`, fill the dove
    with `doveOfRoses()` in a re-render, re-render the PDF from
