@@ -32,6 +32,9 @@ const X = { 'ns-01': -0.18, 'ns-02': -0.3, 'edition-02': -0.22, 'edition-03': 0.
 const COUNT = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'][PUBLISHED.length] ?? String(PUBLISHED.length);
 const CARDS = [
   { slug: 'home', words: ['AEDIFICARE'], acid: 'AEDIFICARE', line: `${COUNT} editions · September 2026`, seed: '0500', k: [5, 7, 3], x: -0.06 },
+  // The desk's card, hotlinked by apt.grok.me as its og:image: the home
+  // card's rose with the one word that says what the desk is.
+  { slug: 'desk', words: ['DESK'], acid: 'DESK', line: 'The desk of Aedificare · drafts before they are issued', seed: '0500', k: [5, 7, 3], x: 0.037 },
   ...EDITIONS.map((e) => ({
     slug: e.slug, words: e.title.toUpperCase().split(' '), acid: e.acid.toUpperCase(),
     line: `${e.dateLabel} · ${e.lede}`, seed: e.seed, k: e.k, x: X[e.slug] ?? -0.2,
@@ -70,7 +73,7 @@ ${roseSvg(c.k, c.seed)}
 <div class="seed">r = cos(kθ) · seed ${c.seed} · k ${kLabel(c.k)}</div>`;
 
 /** Alt text derived from the card, so it cannot drift from what the card says. */
-const altFor = (c) => `Aedificare share card: ${c.words.join(' ')}, in acid green and white type running off both edges over a green rose curve. ${c.line.replace(/ · /g, '. ')}.`;
+const altFor = (c) => `Aedificare share card: ${c.words.join(' ')}, in acid green and white type over a green rose curve. ${c.line.replace(/ · /g, '. ')}.`;
 
 const hashed = {};
 const b = await chromium.launch();
