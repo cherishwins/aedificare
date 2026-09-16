@@ -10,7 +10,8 @@
     "check": "astro check",
     "verify": "node tools/verify.cjs",
     "og": "node tools/generate-og.mjs",
-    "marks": "node tools/generate-marks.mjs"
+    "marks": "node tools/generate-marks.mjs",
+    "design": "node tools/generate-design-system.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.0",
