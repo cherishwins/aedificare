@@ -21,7 +21,7 @@ const article = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: 'The Snapshot Problem',
-  alternativeHeadline: 'Edition 01',
+  alternativeHeadline: `Printed as ${ed.print}`,
   datePublished: ed.date,
   author: { '@type': 'Person', name: 'Jesse James' },
   publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
@@ -110,7 +110,7 @@ const sources = [
         <p class="c-a lede">Agents formed societies this summer.<br>The models under them learned nothing.</p>
       </div>
       <div class="foot mono cover-foot">
-        <span>{ed.code} · {ed.dateLabel} · {SITE.author}</span>
+        <span>{ed.dateLabel} · {SITE.author}</span>
         <span>r = cos(kθ) · seed {ed.seed} · k 16/3 · 29/4 · 13/4</span>
       </div>
     </section>
@@ -421,7 +421,7 @@ const sources = [
       </div>
     </Section>
 
-    <EditionEnd code={ed.code} date={ed.dateLabel} seed={ed.seed} pdf={ed.pdf} next={{ href: '/ns-01', label: 'NS-01 · The Hand in the Water' }}>
+    <EditionEnd slug={ed.slug}>
       The Snapshot Problem is not a limit of intelligence.<br>It is a limit of memory.
     </EditionEnd>
   </main>

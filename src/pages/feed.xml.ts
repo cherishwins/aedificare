@@ -5,10 +5,10 @@ import { PUBLISHED } from '../lib/editions.mjs';
 export function GET() {
   return rss({
     title: SITE.name,
-    description: 'Numbered editions.',
+    description: 'Dated editions.',
     site: SITE.origin,
     items: PUBLISHED.map((e) => ({
-      title: `${e.code} · ${e.title}`,
+      title: e.title,
       link: e.path,
       pubDate: new Date(e.date),
       description: e.lede,

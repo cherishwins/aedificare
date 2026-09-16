@@ -1,0 +1,252 @@
+---
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import Section from '../components/Section.astro';
+import Rail from '../components/Rail.astro';
+import Stats from '../components/Stats.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, LICENCE, describe, seedDrift, label } from '../lib/editions.mjs';
+import { SITE, abs } from '../config.mjs';
+
+const ed = edition('the-floor');
+const amended = edition(ed.amends);
+
+// Cover field runs Malachite only: Acid on this surface is spent on one word
+// of the title.
+const cover = HOUSE.map((L, i) => ({ ...L, c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: ed.title,
+  alternativeHeadline: `An amendment to ${amended.title}`,
+  datePublished: ed.date,
+  author: { '@type': 'Person', name: 'Jesse James' },
+  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
+  url: abs(ed.path),
+  mainEntityOfPage: abs(ed.path),
+  license: LICENCE.url,
+  isAccessibleForFree: true,
+  description: ed.lede,
+};
+
+// Figures. Bars are computed from the numbers, never drawn.
+// The bench, megabits per second, from the builder's video; the track is the
+// first-generation chip's physical-layer peak, so the fill is the fraction of
+// the datasheet a bench actually sees.
+const PEAK = 32.5;
+const bench = [['8 MHz', 15], ['4 MHz', 7.3], ['2 MHz', 4.4], ['1 MHz', 1.8]];
+const benchW = (v) => ((v / PEAK) * 100).toFixed(1);
+// The same experiment by three researchers, indoors, no line of sight: at one metre and at 63.
+const paper = [['8 MHz', 13.0, 6.1], ['4 MHz', 9.1, 4.2], ['2 MHz', 4.2, 1.9], ['1 MHz', 1.6, 1.5]];
+// Transmit power: dBm to milliwatts, linear against the one-watt rule.
+const power = [['Out of the box', 21], ['OpenMANET', 27], ['The rule', 30]].map(([l, d]) => [l, d, Math.round(10 ** (d / 10))]);
+const powerW = (mw) => ((mw / 1000) * 100).toFixed(1);
+// Kilobits per second on a log scale from 0.1, so a one-kilobit radio is still visible beside a fifteen-megabit one.
+const rates = [['Meshtastic · default', 1.07], ['Meshtastic · fastest', 21.88], ['HaLow · 1 MHz', 1800], ['HaLow · 8 MHz', 15000]];
+const logW = (v) => (((Math.log10(v) + 1) / (Math.log10(20000) + 1)) * 100).toFixed(1);
+
+const sources = [
+  'Data Slayer (Tim, Parallel), "I Built a $20,000 Military Router for $106.23", YouTube, September 2025, youtu.be/ofR7GFNZzJY. The build, the bench, the power and the field test are his, at 6:59 to 9:58, 10:42 to 16:48, 16:53 to 23:40 and 24:49 to 26:08. Transcript held by the author.',
+  'Geeky Gadgets, 5 Sep 2025, covering the same video: $106.23, up to 15 Mbps, ranges to 2,000 feet. Fixes the video as on or before that date.',
+  'Parallel (Salient Ventures LLC), buildwithparallel.com, read 16 Sep 2026: Tim, "the builder behind Data Slayer and Parallel"; the Haven 2 guide at $97 and $208 to $450 per node, as priced in The Markup.',
+  'buildwithparallel/haven-manet-ip-mesh-radio on GitHub, MIT: Haven 1 is a Raspberry Pi 4 or CM4, a Morse Micro MM601X HaLow radio on an SPI HAT, an RT5370 USB Wi-Fi adapter, on OpenMANET. Haven 2 is a Raspberry Pi 5 and an MM8108 on a separate image.',
+  'OpenMANET documentation, openmanet.github.io, read 16 Sep 2026: Raspberry Pi 4 recommended, 3B and Zero 2 W supported, no Pi 5; a custom board file raises transmit power from about 21 dBm to about 27. CNX Software, 16 Sep 2026: 1 to 15 Mbps depending on the country of operation.',
+  'Seeed Studio, Wio-WM6108 Wi-Fi HaLow mini PCIe module, product page read 16 Sep 2026: $14.99, in stock, Quectel FGH100M-H, 902 to 928 MHz. CNX Software, 7 Mar 2025: Morse Micro MM6108 inside, 32.5 Mbps link rate.',
+  'Morse Micro, chips page: MM6108 peak 32.5 Mbps; MM8108 peak 43.3 Mbps at the physical layer; WPA3 in both.',
+  'Xu, Mankai and Alouini, "Wi-Fi HaLow (IEEE 802.11ah) for Long-Range Monitoring Links", arXiv 2605.17349, 17 May 2026: dongle-class nodes, no line of sight, 13.0, 9.1, 4.2 and 1.6 Mbps at 1 m for 8, 4, 2 and 1 MHz; 6.1, 4.2, 1.9 and 1.5 at 63 m; a coverage boundary near 120 m without line of sight; 814 m single hop with line of sight at 0.15 Mbps at the edge; 901 m with two fixed relays, 1,110 m with three.',
+  '47 CFR 15.247(b)(3) and (b)(4), 2013 edition as printed: one watt maximum peak conducted output power for digital modulation in 902 to 928 MHz; antennas over 6 dBi reduce that limit by the excess gain, decibel for decibel.',
+  'Meshtastic documentation, radio settings, read 16 Sep 2026: Long Fast, the default, 1.07 kbps; Short Turbo, the fastest preset, 21.88 kbps.',
+  'Edition 03 in print, The Markup, 15 Sep 2026, this site: the ledger\'s throughput row, "43.3 Mbps at the physical layer on an 8 MHz channel", and the $208 to $450 price.',
+  'Notebookcheck, 13 Apr 2026: the builder\'s later network, where HaLow carried local traffic through concrete and LoRa took the neighbourhood.',
+];
+---
+<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date} noindex={ed.draft}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
+      <Masthead right={ed.note} />
+      <div class="grid cover-grid">
+        <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Floor</span></h1>
+        <p class="c-a lede">The Markup quoted the datasheet.<br>The builder had measured the radio a year before.</p>
+      </div>
+      <div class="foot mono cover-foot">
+        <span>{ed.dateLabel} · {SITE.author}</span>
+        <span>r = cos(kθ) · seed {ed.seed}</span>
+      </div>
+    </section>
+
+    <Section n="00" title="The number" id="number">
+      <div class="c-full">
+        <p class="num acid figure fig-m" aria-hidden="true">15</p>
+        <p class="mono">Megabits per second · 8 MHz channel · the builder's own bench · September 2025</p>
+      </div>
+      <div class="c-a prose">
+        <p>The Markup put a throughput row in its ledger and filled it from a datasheet: 43.3 megabits per second at the physical layer, the second-generation chip's peak on an 8 MHz channel. It had no measurement, because the vendor's page does not publish one.</p>
+        <p>The vendor's channel does. In September 2025, a year before The Markup was written, the builder behind the Haven guide filmed the first version of the radio on a bench and on a beach, and read the numbers off the screen. This amendment carries them.</p>
+        <p>The price does not move. The throughput row does.</p>
+      </div>
+      <Rail items={[
+        ['Measured', '<b>15 Mbps</b> at 8 MHz, both directions, on a Raspberry Pi 4 with the first-generation chip.'],
+        ['Quoted', '<b>43.3 Mbps</b>, physical layer, second-generation chip, from the datasheet.'],
+        ['Two benches', 'A year and a continent apart, one shape: a bench sees a third to a half of a datasheet.'],
+      ]} />
+    </Section>
+
+    <Section n="01" title="What The Markup<br>did not have" ground="bottle" acid id="missing">
+      <div class="c-a prose">
+        <p>The Markup priced a Haven 2 node from the vendor's list: a Raspberry Pi 5, a Morse Micro MM8108, a four-cell battery hat, a printed case, $208 to $450. It quoted the chip. It could not quote a field.</p>
+        <p>Tim, the builder behind Data Slayer and Parallel, had already published one. His video of September 2025 is titled I Built a $20,000 Military Router for $106.23. The radio in it is the first Haven: a Raspberry Pi 4, the first-generation HaLow chip on a fifteen-dollar card, two cells and a dongle, no case.</p>
+        <p>Everything below is that radio. It is the floor under The Markup in both senses, the cheapest build and the lowest numbers, and both are measured.</p>
+      </div>
+      <Rail items={[
+        ['The video', 'Data Slayer, September 2025, covered by Geeky Gadgets on <b>5 September 2025</b>. Transcript timestamps 6:59 to 26:08.'],
+        ['The builder', 'Tim, Parallel, Salient Ventures LLC. The same vendor whose Haven 2 guide The Markup priced.'],
+        ['The chip', '<b>MM6108</b>, first generation, 32.5 Mbps peak. The Markup priced the MM8108, 43.3.'],
+      ]} />
+    </Section>
+
+    <Section n="02" title="The build" acid id="build">
+      <div class="c-a prose">
+        <p>The motherboard is a Raspberry Pi 4, not a 5, because the OpenWrt firmware did not run on the 5. A year on it still does not: the OpenMANET documentation lists the 4, the 3B and the Zero 2 W, and the Pi 5 runs a separate image the vendor builds himself.</p>
+        <p>A HAT for a mini PCIe card, about twenty dollars. The card, about fifteen: Seeed lists the Wio-WM6108 at $14.99 today, a Quectel module around the Morse Micro MM6108, filtered for 902 to 928 MHz. Any sub-gigahertz antenna on an SMA to U.FL lead. A Waveshare battery hat on pogo pins with two 21700 cells, 5,000 milliampere-hours each, charged over USB-C. A USB Wi-Fi dongle for the 2.4 and 5 GHz side, because the Pi's own radio cannot do HaLow. No case.</p>
+        <p>The title of the video says $106.23. The parts he priced on camera add up to thirty-five of it.</p>
+      </div>
+      <div class="c-b field scroll" tabindex="0" role="region" aria-label="The first Haven, part by part">
+        <table>
+          <caption class="sr">The first Haven, part by part, with the price the builder stated on camera.</caption>
+          <thead><tr><th scope="col">Part</th><th scope="col">As built</th><th scope="col">Stated</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Raspberry Pi 4</th><td>The motherboard. Not the 5.</td><td class="n">not stated</td></tr>
+            <tr><th scope="row">Mini PCIe HAT</th><td>Carries the card.</td><td class="n">about $20</td></tr>
+            <tr><th scope="row">Wio-WM6108</th><td>The HaLow radio, MM6108 inside.</td><td class="n">about $15</td></tr>
+            <tr><th scope="row">Antenna</th><td>Sub-gigahertz, SMA to U.FL.</td><td class="n">not stated</td></tr>
+            <tr><th scope="row">Battery hat</th><td>Waveshare, two 21700 cells, 10,000 mAh.</td><td class="n">not stated</td></tr>
+            <tr><th scope="row">Wi-Fi dongle</th><td>2.4 and 5 GHz for the phones.</td><td class="n">not stated</td></tr>
+            <tr><th scope="row">Case</th><td>None.</td><td class="n">$0</td></tr>
+            <tr><th scope="row">Total</th><td>The video's title.</td><td class="n">$106.23</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </Section>
+
+    <Section n="03" title="The bench" ground="bottle" id="bench">
+      <div class="c-a prose">
+        <p>He plays one of his own videos over the link: a 915 MHz antenna into the HaLow card on the Pi, Ethernet into the laptop. Then he narrows the channel and reads the rate. At 8 MHz, about fifteen megabits per second each way. At 4, 7.3. At 2, 4.4. At 1, 1.8.</p>
+        <p>In May 2026 three researchers at KAUST published the same experiment with dongle-class nodes, indoors, no line of sight: 13.0, 9.1, 4.2 and 1.6 at one metre. Two benches, a year and a continent apart, one shape. Halve the channel and you roughly halve the rate, until 1 MHz, where the radio keeps nearly two megabits and gives up almost nothing but speed.</p>
+        <p class="beat acid">The datasheet is not wrong. It is the ceiling of a room nobody stands in.</p>
+      </div>
+      <figure class="c-b field bars" aria-label="Measured throughput by channel width, against the chip's peak">
+        <figcaption class="mono">Mbps · the track is the chip's 32.5 peak</figcaption>
+        {bench.map(([l, v]) => (
+          <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${benchW(v)}%`}></span></span><span class="num val">{v}</span></div>
+        ))}
+      </figure>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="The KAUST bench, at one metre and at 63">
+        <table>
+          <caption class="sr">The KAUST measurements, megabits per second, without line of sight, at one metre and at 63 metres.</caption>
+          <thead><tr><th scope="col">Channel</th><th scope="col">Builder, bench</th><th scope="col">KAUST, 1 m</th><th scope="col">KAUST, 63 m</th></tr></thead>
+          <tbody>
+            {paper.map(([c, a, b], i) => (
+              <tr><th scope="row">{c}</th><td class="n">{bench[i][1]}</td><td class="n">{a.toFixed(1)}</td><td class="n">{b.toFixed(1)}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+
+    <Section n="04" title="The power" acid id="power">
+      <div class="c-a prose">
+        <p>Out of the box the card transmits at 21 dBm, an eighth of a watt. OpenMANET's board file raises it to about 27, half a watt.</p>
+        <p>The rule for unlicensed digital radios between 902 and 928 MHz in the United States is one watt at the connector, 30 dBm, on an antenna of no more than 6 dBi; a bigger antenna costs a decibel of power for every decibel of gain. Half a watt is legal with three decibels in hand. Canada's rule, in The Markup, reads the same watt.</p>
+      </div>
+      <figure class="c-b field bars" aria-label="Transmit power in milliwatts against the one-watt rule">
+        <figcaption class="mono">Milliwatts · linear to the one-watt rule</figcaption>
+        {power.map(([l, d, mw]) => (
+          <div class="bar"><span class="mono lbl">{l} · {d} dBm</span><span class="track"><span class="fill" style={`width:${powerW(mw)}%`}></span></span><span class="num val">{mw.toLocaleString('en-US')}</span></div>
+        ))}
+      </figure>
+    </Section>
+
+    <Section n="05" title="The field" ground="bottle" id="field">
+      <div class="c-a prose">
+        <p>Then he takes it outside. A stretch of coast with no fibre. A Starlink dish into node one. Node two goes for a walk. About a mile out, the phone on node two is still playing YouTube. At two thousand feet he reads just under a megabit down and almost three up.</p>
+        <p>The KAUST team, with line of sight, held a single hop to 814 metres at 0.15 megabits at the edge, and reached 1,110 metres with three fixed relays. Two thousand feet is 610 metres. The numbers sit where the paper says they should.</p>
+        <p class="beat acid">A mile of video on a hundred-dollar radio is The Markup in one sentence, and it was on film a year before The Markup was written.</p>
+      </div>
+      <Stats class="c-b" items={[
+        ['1 mile', 'video still playing, node two on foot'],
+        ['2,000 ft', 'under 1 Mbps down, almost 3 up'],
+        ['814 m', 'the paper, single hop, line of sight, 0.15 Mbps at the edge'],
+        ['1,110 m', 'the paper, three fixed relays'],
+      ]} />
+    </Section>
+
+    <Section n="06" title="The other radio" acid id="other">
+      <div class="c-a prose">
+        <p>The comparison he makes at the end is the honest one. Meshtastic, the LoRa mesh most people have heard of, moves 1.07 kilobits a second on its default preset and 21.88 on its fastest. The HaLow radio at its narrowest channel measured 1.8 megabits: eighty times the fastest LoRa preset, seventeen hundred times the default.</p>
+        <p>They are not rivals. One carries a text message across a valley on a coin cell. The other carries a video call a mile on two cells the size of thumbs, and speaks IP, so everything that already speaks IP works on it.</p>
+      </div>
+      <figure class="c-b field bars" aria-label="Kilobits per second, log scale">
+        <figcaption class="mono">Kilobits per second · log scale from 0.1</figcaption>
+        {rates.map(([l, v]) => (
+          <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${logW(v)}%`}></span></span><span class="num val">{v.toLocaleString('en-US')}</span></div>
+        ))}
+      </figure>
+    </Section>
+
+    <Section n="07" title="What it carried" ground="bottle" acid id="carried">
+      <div class="c-a prose">
+        <p>Over the link he runs the things a radio like this exists for. ATAK, the Android situational-awareness app, from one node to the other with no server between them, messages and images on a shared map by multicast. Mumble, for push-to-talk voice, at low latency. A camera stream by RTSP, UDP or plain HTTP.</p>
+        <p>The link is encrypted end to end with WPA3-SAE, the same handshake as enterprise Wi-Fi, which the chip does in hardware.</p>
+      </div>
+      <Rail items={[
+        ['ATAK', 'Two nodes, multicast, no TAK server.'],
+        ['Voice', 'Mumble, push to talk, low latency.'],
+        ['Video', 'RTSP, UDP or HTTP, from a device on the network.'],
+        ['Encryption', '<b>WPA3-SAE</b>, end to end. Morse Micro ships it in silicon.'],
+      ]} />
+    </Section>
+
+    <section class="surface flash" aria-label="Thesis">
+      <div class="grid">
+        <p class="c-full display slap" data-flex="cursor">A slower radio is still<br>forty-four times cheaper.</p>
+      </div>
+    </section>
+
+    <Section n="08" title="Where The Markup<br>stands" acid id="stands">
+      <div class="c-a prose">
+        <p>The ledger row that read 43.3 megabits now reads three numbers: 43.3 on the datasheet for the chip The Markup priced; 15 on the bench for the chip that came before it; about one at two thousand feet, on foot.</p>
+        <p>Every other row stands. The ratio The Markup was about was price, forty-four to one against a single node, and the price did not move. What moved is a number that should never have come from a datasheet, and it came from one because that was all the vendor had written down. He had filmed the rest.</p>
+      </div>
+      <Rail items={[
+        ['Stands', 'The price. The band. The stack. The capability and customer rows of the ledger.'],
+        ['Amended', 'The throughput row: <b>43.3</b> on paper, <b>15</b> on the bench, about <b>1</b> at two thousand feet.'],
+        ['Would change this', 'The same bench on the Haven 2 chip the vendor now sells. A field test with the twenty-seven decibel board file. A buyer with a mile to cover.'],
+      ]} />
+    </Section>
+
+    <Section n="09" title="Sources" id="sources">
+      <div class="c-wide prose">
+        <p>Bracketed figures in the sections above are from these sources. Every number the builder gave is his, from the video; every number beside it is from the paper, the regulator, the vendor or the parts list, and the two are never added together.</p>
+      </div>
+      <ol class="c-full sources">
+        {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
+      </ol>
+    </Section>
+
+    <EditionEnd slug={ed.slug}>
+      The field said fifteen.<br>The price did not move.
+    </EditionEnd>
+  </main>
+</Base>
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -20%; right: -14%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 40px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover-foot { border-top-color: transparent; }
+</style>

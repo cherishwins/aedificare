@@ -12,7 +12,7 @@
 ## What this is
 
 **Aedificare** at **aedificare.art**. Jesse James's loud-power brand, issuing
-numbered editions. What the entity *does* is undisclosed on every public
+dated editions. What the entity *does* is undisclosed on every public
 surface, by brand rule. The site is an index of editions and the editions
 themselves, nothing else; there is no live data spine and no filler section
 pretending to be one.
@@ -27,11 +27,12 @@ Shipped (2026-09-15):
 | Route | What | State |
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
-| `/edition-03` | Edition 03 · *The Markup* (15 Sep 2026), ten sections, twelve sources | live |
-| `/edition-01` | Edition 01 · *The Snapshot Problem* (11 Sep 2026), twelve sections, thirty-three sources, three registers | live |
-| `/ns-01` | NS-01 · *The Hand in the Water* (11 Sep 2026) | live |
-| `/ns-02` | NS-02 · *The Closest Humans* (13 Sep 2026), amendment to NS-01 | live |
-| `/edition-02` | Edition 02 · *The Subtraction* | **draft**: noindex, unlinked, out of sitemap/robots/feed |
+| `/the-floor` | 16 Sep 2026 · *The Floor*, amends The Markup with the builder's own field numbers | **draft**: set the date, flip `draft`, it goes live |
+| `/edition-03` | 15 Sep 2026 · *The Markup* (printed as Edition 03), eight sections, twelve sources | live |
+| `/edition-01` | 11 Sep 2026 · *The Snapshot Problem* (printed as Edition 01), twelve sections, thirty-three sources, three registers | live |
+| `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01) | live |
+| `/ns-02` | 13 Sep 2026 · *The Closest Humans* (printed as NS-02), amends The Hand in the Water | live |
+| `/edition-02` | *The Subtraction* (printed as Edition 02) | **draft**: noindex, unlinked, out of sitemap/robots/feed |
 | `/404` | | live |
 | `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/ai.txt` `/humans.txt` | discoverability | generated or static |
 | `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` | the print editions as uploaded | as uploaded |
@@ -155,8 +156,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `<meta name="build">` by `src/layouts/Base.astro`.
 - `src/lib/editions.mjs`: **the editions, once.** Home, feed, llms.txt,
   robots, sitemap filter, OG cards and each edition's own page read it, so a
-  title or date cannot disagree with itself. `draft: true` hides an edition
-  everywhere but the build.
+  title or date cannot disagree with itself. The code, the seed, the k and
+  the neighbour links are derived there, never typed per page (see "The
+  code is the date"). `amends: '<slug>'` links an amendment both ways.
+  `draft: true` hides an edition everywhere but the build.
 - `src/lib/rose.mjs`: `rhodonea()`, the house configuration, the mark seed,
   the dove outline. The ONLY place the curve is sampled: live fields, mark,
   favicon, cards and dove all import it.
@@ -289,6 +292,23 @@ for a shortlist for bios and cards, which is a separate deliverable.
   small Malachite never on Bottle (the Bottle block's numbers and aside go
   Flash), nothing explains what the entity does.
 
+- **The code is the date** (owner, 2026-09-16: "I really hate having to
+  keep a series going with the numbers that get fucked up instead of just
+  the date stamps used in some cool repeatable way"). Series numbers were
+  decisions, two series of them, and the next one was always a guess. A
+  date is a fact. So: an edition's code is its date label everywhere it is
+  named (masthead, home, feed, llms.txt, cards, footer, descriptions); its
+  rose seed is its date as YYMMDD unless the print gave it one; its k is
+  the house configuration unless the print gave it one; its URL is its
+  title. Two on one day are told apart by title, and same-day order is the
+  order of the list in `src/lib/editions.mjs`, typed once. Neighbour links
+  at the end of an edition are computed from that order ("Earlier",
+  "Later"), so a neighbour's name cannot drift. The printed PDFs keep the
+  names printed on them; each page's JSON-LD `alternativeHeadline` says
+  "Printed as Edition 03" so a reader holding the print finds the page,
+  and nothing else on the site says it. Old URLs stay, because cards and
+  links in the wild point at them. A draft's date is provisional and is
+  set on the day it goes live, because the date is the code.
 - **A design system in claude.ai/design, generated from the site**
   (2026-09-16, owner invoked `/design-sync` and left the call to the
   builder). The owner keeps one such project per brand and reaches for
@@ -373,6 +393,19 @@ for a shortlist for bios and cards, which is a separate deliverable.
    used.
 4. Reusable code in the uploads was ported, not rewritten: `rhodonea()`,
    the field loop, `doveOfRoses()`, and the print seeds for the dividers.
+6. **The Floor (2026-09-16), drafted from a transcript the owner pasted.**
+   The transcript is Data Slayer's video of September 2025 on the first
+   Haven radio (Tim, Parallel, the same vendor whose Haven 2 guide The
+   Markup priced), identified by its title, "I Built a $20,000 Military
+   Router for $106.23", and fixed in time by Geeky Gadgets' coverage on 5
+   Sep 2025. Its bench and field numbers are the measurement The Markup's
+   throughput row never had; they are set beside an independent bench
+   (Xu, Mankai and Alouini, arXiv 2605.17349, May 2026), the FCC rule as
+   printed, Meshtastic's own preset table and Seeed's price today, and
+   never added together. The amendment leaves Edition 03's text and PDF
+   as printed and links both ways through `amends`. The owner must still
+   confirm the video URL against their transcript and set the date on the
+   day it goes live.
 5. **A research file, "The Algorithmic Aedificare" (2026-09-16), was not
    added.** A machine-written survey of organoid computing, acoustic
    metamaterials, 4D mesh generation and robotic timber, framed as the
@@ -501,6 +534,15 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    the budget accounting for the external script; drop it, and the first
    mirror push resets the fork. Until one of those happens the fork and
    this repo disagree and the mirror push would fail by design.
+8. **The Navigator**, drafted in chat on 2026-09-16 from Tom's Hardware's
+   story on Rik Arends' 3D codebase explorer (12 Sep 2026): the fsn scene
+   in Jurassic Park, SGI's 1993 patent US 5,528,735 now held by RPX and
+   Morgan Stanley, the CodeCity experiment (41 subjects, +24 percent
+   correctness, -12 percent time, ICSE 2011), Chromium at 39 million source
+   lines against his 51 million raw. Waits on the owner's screenshots of
+   the replies where the memory figures and "because I could" appear, so
+   sections 02 and 07 cite him and not the press; then it is built like
+   The Floor.
 7. **The Grok "staging desk" at apt.grok.me** (found 2026-09-16) is a
    public Grok App Builder page titled Aedificare, with drafts the repo
    has never seen (NS-03 *The One Machine*, NS-04 *The Mouths*, a piece
@@ -510,4 +552,4 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    brand. Owner's actions: unpublish it or strip the name from it, point
    any link that carries it at the apex, and send the three drafts here to
    enter as drafts through the checkers. Whether *Honor* is a third series
-   is a brand decision, and it needs its own seed.
+   is a brand decision. Owner said on 2026-09-16 they would take it down.

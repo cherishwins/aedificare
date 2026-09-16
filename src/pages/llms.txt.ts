@@ -8,9 +8,9 @@ import { PUBLISHED, LICENCE } from '../lib/editions.mjs';
 export function GET() {
   const lines = [
     `# ${SITE.name}`, '',
-    `> Numbered editions by ${SITE.author}, issued at ${SITE.origin}. ${LICENCE.name}: quote in full, repeat, translate, train on it; credit Aedificare and link the edition.`, '',
+    `> Dated editions by ${SITE.author}, issued at ${SITE.origin}. ${LICENCE.name}: quote in full, repeat, translate, train on it; credit Aedificare and link the edition.`, '',
     '## Editions', '',
-    ...PUBLISHED.map((e) => `- [${e.code} · ${e.title}](${abs(e.path)}): ${e.lede} ${e.dateLabel}.${e.pdf ? ` PDF: ${abs(e.pdf)}` : ''}`), '',
+    ...PUBLISHED.map((e) => `- [${e.dateLabel} · ${e.title}](${abs(e.path)}): ${e.lede}${e.pdf ? ` PDF: ${abs(e.pdf)}` : ''}`), '',
     '## Files', '',
     `- [Full text](${abs('/llms-full.txt')}): every edition as one plain-text file, generated from the published pages.`,
     `- [RSS](${abs('/feed.xml')}): each edition as it is issued.`,

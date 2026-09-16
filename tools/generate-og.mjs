@@ -22,7 +22,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { rhodonea, markPath } from '../src/lib/rose.mjs';
-import { EDITIONS, PUBLISHED } from '../src/lib/editions.mjs';
+import { EDITIONS, PUBLISHED, seedNumber } from '../src/lib/editions.mjs';
 
 const OUT = 'public/og';
 fs.mkdirSync(OUT, { recursive: true });
@@ -34,7 +34,7 @@ const CARDS = [
   { slug: 'home', words: ['AEDIFICARE'], acid: 'AEDIFICARE', line: `${COUNT} editions · September 2026`, seed: '0500', k: [5, 7, 3], x: -0.06 },
   ...EDITIONS.map((e) => ({
     slug: e.slug, words: e.title.toUpperCase().split(' '), acid: e.acid.toUpperCase(),
-    line: `${e.code} · ${e.dateLabel} · ${e.lede}`, seed: e.seed, k: e.k, x: X[e.slug] ?? -0.2,
+    line: `${e.dateLabel} · ${e.lede}`, seed: e.seed, k: e.k, x: X[e.slug] ?? -0.2,
   })),
 ];
 
@@ -43,8 +43,7 @@ const fontCss = `
 @font-face{font-family:'Bricolage Grotesque';src:url(data:font/woff2;base64,${font('BricolageGrotesque.woff2')}) format('woff2');font-weight:200 800;font-stretch:75% 100%;font-display:block}
 @font-face{font-family:'Martian Mono';src:url(data:font/woff2;base64,${font('MartianMono.woff2')}) format('woff2');font-weight:100 800;font-stretch:75% 112.5%;font-display:block}`;
 
-// Seeds are strings: decimal digits for most editions, hexadecimal for Edition 01.
-const seedNumber = (seed) => (/^\d+$/.test(seed) ? +seed : parseInt(seed, 16)) % 10000;
+// Seeds are parsed by the editions module: decimal, or hexadecimal when not all digits.
 const kLabel = (ks) => ks.map((k) => (Number.isInteger(k) ? String(k) : k.toFixed(2))).join('/');
 
 function roseSvg(ks, seed) {
