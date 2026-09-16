@@ -21,7 +21,7 @@ const article = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: 'The Closest Humans',
-  alternativeHeadline: 'NS-02, an amendment to NS-01',
+  alternativeHeadline: `Printed as ${ed.print}, an amendment to The Hand in the Water`,
   datePublished: ed.date,
   author: { '@type': 'Person', name: 'Jesse James' },
   publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
@@ -42,7 +42,7 @@ const article = {
         <p class="c-a lede">Two men, one year,<br>and a phone call on a Sunday.</p>
       </div>
       <div class="foot mono cover-foot">
-        <span>{ed.code} · {ed.dateLabel} · {SITE.author}</span>
+        <span>{ed.dateLabel} · {SITE.author}</span>
         <span>r = cos(kθ) · seed {ed.seed}</span>
       </div>
     </section>
@@ -253,7 +253,7 @@ const article = {
       </div>
     </Section>
 
-    <EditionEnd code={ed.code} date={ed.dateLabel} seed={ed.seed} pdf={ed.pdf} prev={{ href: '/ns-01', label: 'NS-01 · The Hand in the Water' }} next={{ href: '/edition-03', label: 'Edition 03 · The Markup' }}>
+    <EditionEnd slug={ed.slug}>
       He was offered the title of closest human.<br>He went public instead.
     </EditionEnd>
   </main>

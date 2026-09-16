@@ -20,7 +20,7 @@ const article = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: 'The Markup',
-  alternativeHeadline: 'Edition 03',
+  alternativeHeadline: `Printed as ${ed.print}`,
   datePublished: ed.date,
   author: { '@type': 'Person', name: 'Jesse James' },
   publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
@@ -80,7 +80,7 @@ const sources = [
         <p class="c-a lede">{ed.lede}<br>The same physics in both. This is about the difference.</p>
       </div>
       <div class="foot mono cover-foot">
-        <span>{ed.code} · {ed.dateLabel} · {SITE.author}</span>
+        <span>{ed.dateLabel} · {SITE.author}</span>
         <span>r = cos(kθ) · seed {ed.seed}</span>
       </div>
     </section>
@@ -240,7 +240,7 @@ const sources = [
       </ol>
     </Section>
 
-    <EditionEnd code={ed.code} date={ed.dateLabel} seed={ed.seed} pdf={ed.pdf} prev={{ href: '/ns-02', label: 'NS-02 · The Closest Humans' }}>
+    <EditionEnd slug={ed.slug}>
       The radio was always<br>four hundred dollars.
     </EditionEnd>
   </main>

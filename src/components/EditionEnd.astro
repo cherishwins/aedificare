@@ -3,14 +3,18 @@
  * The end of a dossier: the dove (the sequence's one resolve), the closing
  * lines, then the footer with the PDF and the neighbouring editions as block
  * links. Acid is spent on the dove, so the closing lines stay Flash.
+ *
+ * Everything here is read from the editions list by slug: the date, the
+ * seed, the PDF and the neighbours. Nothing is typed per page, so a
+ * neighbour's name cannot drift from its entry. Drafts have no neighbours.
  */
 import Dove from './Dove.astro';
-import { LICENCE } from '../lib/editions.mjs';
-interface Props {
-  code: string; date: string; seed: string;
-  pdf?: string; prev?: { href: string; label: string }; next?: { href: string; label: string };
-}
-const { code, date, seed, pdf, prev, next } = Astro.props;
+import { LICENCE, edition, neighbours, label } from '../lib/editions.mjs';
+interface Props { slug: string; seed?: string }
+const { slug, seed } = Astro.props;
+const e = edition(slug);
+if (!e) throw new Error(`EditionEnd: no edition with slug ${slug}`);
+const { newer, older } = neighbours(slug);
 ---
 <section class="surface end" aria-label="Close">
   <div class="grid">
@@ -19,14 +23,14 @@ const { code, date, seed, pdf, prev, next } = Astro.props;
   </div>
 </section>
 <footer class="foot mono">
-  <span>Aedificare · {code} · {date} · <a href={LICENCE.url} rel="license">{LICENCE.name}</a></span>
-  <span>r = cos(kθ) · seed {seed}</span>
+  <span>Aedificare · {e.dateLabel} · <a href={LICENCE.url} rel="license">{LICENCE.name}</a></span>
+  <span>r = cos(kθ) · seed {seed ?? e.seed}</span>
 </footer>
 <nav class="surface tight" aria-label="Editions">
   <div class="grid">
-    {pdf && <a class="c-l block-link mono-b" href={pdf}>Download the PDF</a>}
-    {prev && <a class="c-l block-link mono-b" href={prev.href}>Previous · {prev.label}</a>}
-    {next && <a class="c-r block-link mono-b" href={next.href}>Next · {next.label}</a>}
+    {e.pdf && <a class="c-l block-link mono-b" href={e.pdf}>Download the PDF</a>}
+    {older && <a class="c-l block-link mono-b" href={older.path}>Earlier · {label(older)}</a>}
+    {newer && <a class="c-r block-link mono-b" href={newer.path}>Later · {label(newer)}</a>}
   </div>
 </nav>
 <style>

@@ -35,11 +35,11 @@ const description = [line, ...PUBLISHED.map((e) => `${e.code}, ${e.title}`)].joi
       <section class:list={['surface', i % 2 ? 'bottle' : 'void', 'edition']} aria-labelledby={e.slug}>
         <div class="grid">
           <a class="c-full block-link head" href={e.path}>
-            <span class="mono code">{e.code} · {e.dateLabel}{e.note && ` · ${e.note}`}</span>
+            <span class="mono code">{e.dateLabel}{e.note && ` · ${e.note}`}</span>
             <h2 class="display" id={e.slug} data-flex="cursor">{e.title}</h2>
             <p class="lede">{e.lede}</p>
           </a>
-          <nav class="c-full toc" aria-label={`${e.code} contents`}>
+          <nav class="c-full toc" aria-label={`${e.title} contents`}>
             <ol class="mono">
               {e.contents.map((c) => (
                 <li><a href={`${e.path}#${c.id}`}><span class="n">{c.n}</span>{c.t}</a></li>
@@ -47,7 +47,7 @@ const description = [line, ...PUBLISHED.map((e) => `${e.code}, ${e.title}`)].joi
             </ol>
           </nav>
           <p class="c-full links mono-b">
-            <a class="block-link" href={e.path}>Read {e.code}</a>
+            <a class="block-link" href={e.path}>Read · {e.title}</a>
             {e.pdf && <a class="block-link" href={e.pdf}>PDF · {mb(e.pdf)}</a>}
             <span class="aside mono">{e.contents.length} sections · seed {e.seed}</span>
           </p>

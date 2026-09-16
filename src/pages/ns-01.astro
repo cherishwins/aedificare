@@ -19,7 +19,7 @@ const article = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: 'The Hand in the Water',
-  alternativeHeadline: 'NS-01',
+  alternativeHeadline: `Printed as ${ed.print}`,
   datePublished: ed.date,
   author: { '@type': 'Person', name: 'Jesse James' },
   publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
@@ -44,13 +44,13 @@ const outlets: [string, boolean[]][] = [
   <main id="main">
     <section class="surface cover" aria-label="Cover">
       <RoseField layers={cover} seed={0.413} class="rose cover-rose" />
-      <Masthead right={ed.code} />
+      <Masthead right={ed.note} />
       <div class="grid cover-grid">
         <h1 class="c-full display" data-flex="cursor">The <span class="acid">Hand</span><br><span class="wide">In the</span><br>Water</h1>
         <p class="c-a lede">OpenAI opened door C.<br>The world reported door A.</p>
       </div>
       <div class="foot mono cover-foot">
-        <span>{ed.code} · {ed.dateLabel} · {SITE.author}</span>
+        <span>{ed.dateLabel} · {SITE.author}</span>
         <span>r = cos(kθ) · seed {ed.seed}</span>
       </div>
     </section>
@@ -297,7 +297,7 @@ const outlets: [string, boolean[]][] = [
       <p class="c-full display closing">Water that tears itself.<br><span class="acid">Water that can be torn.</span></p>
     </Section>
 
-    <EditionEnd code={ed.code} date={ed.dateLabel} seed={ed.seed} pdf={ed.pdf} prev={{ href: '/edition-01', label: 'Edition 01 · The Snapshot Problem' }} next={{ href: '/ns-02', label: 'NS-02 · The Closest Humans' }}>
+    <EditionEnd slug={ed.slug}>
       The hand in the water is the whole story.<br>It is the one thing the headline could not fit.
     </EditionEnd>
   </main>
