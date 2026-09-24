@@ -34,7 +34,6 @@
  *   node tools/generate-video.mjs --format wide      wide (1920x1080) or tall (1080x1920) only
  *   node tools/generate-video.mjs --fps 24           default 30
  */
-import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -42,7 +41,7 @@ import { spawnSync } from 'node:child_process';
 import { HOUSE } from '../src/lib/rose.mjs';
 import { EDITIONS, PUBLISHED, seedDrift, LICENCE, numberWord } from '../src/lib/editions.mjs';
 import { SITE } from '../src/config.mjs';
-import { ACID, MAL, BOTTLE, VOID, FLASH, SHOCK, FORMATS, kLabel, esc, beat, css, mastHtml, fieldHtml, doveHtml, findFfmpeg, openContext, encoder } from './lib/film.mjs';
+import { ACID, MAL, BOTTLE, VOID, FLASH, SHOCK, FORMATS, kLabel, esc, beat, css, mastHtml, fieldHtml, doveHtml, findFfmpeg, openContext, encoder, browser } from './lib/film.mjs';
 
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
 const SLUG = arg('--slug', null);
@@ -124,7 +123,7 @@ console.log(`  check-brand over ${fs.readdirSync(tmp).length} shots: clean`);
 fs.rmSync(tmp, { recursive: true, force: true });
 
 /* ---- render -------------------------------------------------------------- */
-const b = await chromium.launch();
+const b = await browser();
 
 for (const s of subjects) {
   for (const f of formats) {

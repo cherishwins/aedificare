@@ -1,0 +1,76 @@
+# Render a narrated film on a clean runner and keep it as an artifact.
+#
+# The build sandbox that renders films is ephemeral and can hand back at most
+# 30 MB; a 14-minute 1080p film is a gigabyte. A public repo's Actions minutes
+# are free and unmetered and its artifacts are free, so this is where a film
+# is made for real: dispatch it with an edition's slug, wait (about an hour:
+# the voice runs on CPU, the frames run at 24 a second through Chromium),
+# download brand/youtube/<slug> from the run's Artifacts. It is the first
+# half of the publish pipeline in CLAUDE.md, Open 9; the second half, the
+# upload through the YouTube Data API, waits on the owner's OAuth client.
+#
+# Also runs once when this file itself changes, so the workflow is proved on
+# the branch that changes it and not trusted on faith.
+name: film
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'Edition slug (edition-03, ns-02, ns-01, edition-01, the-floor)'
+        required: true
+        default: edition-03
+      format:
+        description: 'wide (1920x1080) or tall (1080x1920)'
+        required: false
+        default: wide
+  push:
+    paths: ['.github/workflows/film.yml']
+
+concurrency:
+  group: film-${{ github.ref }}-${{ inputs.slug || 'edition-03' }}
+  cancel-in-progress: false
+
+jobs:
+  film:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      SLUG: ${{ inputs.slug || 'edition-03' }}
+      FORMAT: ${{ inputs.format || 'wide' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: astral-sh/setup-uv@v6
+
+      - run: npm ci
+
+      # Playwright stays out of package.json (CLAUDE.md, Stack); the tools
+      # resolve it by name when it is installed this way.
+      - name: Install Playwright, ffmpeg, espeak-ng
+        run: |
+          npm i --no-save playwright
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg espeak-ng
+
+      # The script is walked out of the BUILT page, so the build comes first;
+      # it also runs the checkers.
+      - name: Build
+        run: npm run build
+
+      - name: Film
+        run: node tools/generate-film.mjs --slug "$SLUG" --format "$FORMAT"
+
+      - name: Upload the film
+        uses: actions/upload-artifact@v4
+        with:
+          name: film-${{ env.SLUG }}-${{ env.FORMAT }}
+          path: brand/youtube/${{ env.SLUG }}
+          retention-days: 90
+          compression-level: 0

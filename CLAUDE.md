@@ -239,10 +239,19 @@ for a shortlist for bios and cards, which is a separate deliverable.
   and `brand/youtube/<slug>/` the narrated film, narration, captions and
   sheet from `tools/generate-film.mjs` (`npm run film -- --slug <slug>`):
   megabytes each, ignored by git, regenerated. This build sandbox is
-  ephemeral: a film rendered here must be sent to the owner in the same
-  session or it is gone.
+  ephemeral and hands back at most 30 MB per file (found 2026-09-24 when
+  The Markup's 1,050 MB film would not deliver): a real film is rendered
+  by `.github/workflows/film.yml` and downloaded from the run's
+  artifacts, or on the owner's Mac with the same command.
 - `.github/workflows/verify.yml`: build (with the three checkers), audit,
   sweep, on every PR and push to `main`.
+- `.github/workflows/film.yml`: manual dispatch, `slug` and `format`
+  inputs. Renders a narrated film on a clean runner (build, Playwright,
+  ffmpeg, espeak-ng, `uv`) and keeps `brand/youtube/<slug>` as a 90-day
+  artifact, because the build sandbox is ephemeral and can hand back at
+  most 30 MB while a 14-minute 1080p film is a gigabyte. Also runs once
+  when the file itself changes. First half of the publish pipeline in
+  Open 9; the YouTube upload half waits on the owner's OAuth client.
 - `.github/workflows/verify-live.yml`: manual dispatch, `url` input. Curls
   every route and discovery file on the live origin, checks the headers,
   canonical, draft noindex and sitemap exclusion, then runs the same sweep

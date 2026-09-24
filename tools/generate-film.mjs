@@ -36,7 +36,6 @@
  *   node tools/generate-film.mjs --slug edition-03 --music bed.mp3    a licensed bed under the voice
  *   node tools/generate-film.mjs --slug edition-03 --format tall --fps 24
  */
-import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -44,7 +43,7 @@ import { spawnSync } from 'node:child_process';
 import { HOUSE } from '../src/lib/rose.mjs';
 import { EDITIONS, seedDrift, LICENCE, numberWord } from '../src/lib/editions.mjs';
 import { SITE } from '../src/config.mjs';
-import { ACID, MAL, BOTTLE, VOID, FLASH, SHOCK, GROUND, FORMATS, kLabel, esc, css, mastHtml, fieldHtml, doveHtml, findFfmpeg, openContext, encoder } from './lib/film.mjs';
+import { ACID, MAL, BOTTLE, VOID, FLASH, SHOCK, GROUND, FORMATS, kLabel, esc, css, mastHtml, fieldHtml, doveHtml, findFfmpeg, openContext, encoder, browser } from './lib/film.mjs';
 
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
 const SLUG = arg('--slug', null);
@@ -73,7 +72,7 @@ const cap = (s) => s.replace(/^./, (c) => c.toUpperCase());
 async function script() {
   const built = path.join('dist', SLUG, 'index.html');
   if (!fs.existsSync(built)) { console.error(`generate-film: ${built} is missing; run npm run build first`); process.exit(1); }
-  const b = await chromium.launch();
+  const b = await browser();
   const page = await b.newPage();
   await page.goto('file://' + path.resolve(built), { waitUntil: 'domcontentloaded' });
   const blocks = await page.evaluate(() => {
@@ -305,7 +304,7 @@ async function render() {
   roseCache = {}; // the check's sample rose shots carry a dummy label; never serve them
 
   /* Frames. */
-  const b = await chromium.launch();
+  const b = await browser();
   const { ctx, page: pg, show, shot } = await openContext(b, F, FF);
   const file = path.join(DIR, `${SLUG}-film-${F.W}x${F.H}${UNTIL ? '-preview' : ''}.${FF.ext}`);
   const enc = encoder(FF, file, FPS, { audio: path.join(DIR, 'narration.wav'), music: MUSIC, crf: 20 });

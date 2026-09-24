@@ -10,7 +10,22 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { markPath } from '../../src/lib/rose.mjs';
+
+/**
+ * Playwright is deliberately not in package.json (CLAUDE.md, Stack). CI and a
+ * developer machine install it with `npm i --no-save playwright`, where it
+ * resolves by name; the build sandbox has it at a global path. Try the name
+ * first, then the sandbox path, so the same tool runs in all three places.
+ */
+export async function browser() {
+  const require = createRequire(import.meta.url);
+  let mod;
+  try { mod = await import(require.resolve('playwright')); }
+  catch { mod = await import('/opt/node22/lib/node_modules/playwright/index.mjs'); }
+  return mod.chromium.launch();
+}
 
 export const ACID = '#CCFF00', MAL = '#00B24F', BOTTLE = '#063B22', VOID = '#050A06', FLASH = '#FFFFFF', SHOCK = '#FF1F5A';
 export const GROUND = { void: VOID, bottle: BOTTLE, flash: FLASH };
