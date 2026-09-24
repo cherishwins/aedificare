@@ -24,7 +24,9 @@ export async function browser() {
   let mod;
   try { mod = await import(require.resolve('playwright')); }
   catch { mod = await import('/opt/node22/lib/node_modules/playwright/index.mjs'); }
-  return mod.chromium.launch();
+  // require.resolve lands on the CommonJS entry, whose exports arrive under `default`.
+  const pw = mod.chromium ? mod : mod.default;
+  return pw.chromium.launch();
 }
 
 export const ACID = '#CCFF00', MAL = '#00B24F', BOTTLE = '#063B22', VOID = '#050A06', FLASH = '#FFFFFF', SHOCK = '#FF1F5A';

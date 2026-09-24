@@ -10,7 +10,8 @@
 # upload through the YouTube Data API, waits on the owner's OAuth client.
 #
 # Also runs once when this file itself changes, so the workflow is proved on
-# the branch that changes it and not trusted on faith.
+# the branch that changes it and not trusted on faith. (Run 1 failed on the
+# Playwright import; run 2 carries the fix.)
 name: film
 
 on:
