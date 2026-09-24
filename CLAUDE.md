@@ -94,6 +94,21 @@ that is a reference, not documentation.
    uploaded as SRT, never burned, so no frame breaks the type rules. The
    entity is still never explained: the narration is the edition's prose
    and a generated record line, nothing else.
+7. **The films get a voice of their own** (owner, 2026-09-24, later:
+   "let's be like Fireship but Patrick Boyle dry humor, a unique
+   Frankenstein voice"). Override 6 read the edition verbatim; this
+   supersedes that for the narration only. A film is cut from a script
+   written FROM the edition in the film voice, `source/film/voice.md`
+   (Fireship's density, Boyle's temperature, the kit's prohibitions),
+   kept as `source/film/<slug>.md`. Wording is free; facts are not: every
+   figure in a script must exist in the built edition page, and a checker
+   in the film pipeline will fail a render that invents one (to be built
+   with the script-file step). The page itself is untouched by this: the
+   edition remains the issued text, the film is its reading in the house
+   voice. State: the voice guide and The Markup's cover and section 00
+   are written as the sample; the owner has two paces to choose from;
+   the remaining sections and the pipeline's script-file step wait on
+   that verdict.
 
 **Enforced by machine** (`tools/check-brand.cjs` in the build, on the built
 output): no radius above 2px, no shadow, blur, backdrop or gradient, no
