@@ -11,6 +11,8 @@
     "verify": "node tools/verify.cjs",
     "og": "node tools/generate-og.mjs",
     "marks": "node tools/generate-marks.mjs",
+    "social": "node tools/generate-social.mjs",
+    "video": "node tools/generate-video.mjs",
     "design": "node tools/generate-design-system.mjs"
   },
   "dependencies": {
