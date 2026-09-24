@@ -260,8 +260,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   megabytes each, ignored by git, regenerated. This build sandbox is
   ephemeral and hands back at most 30 MB per file (found 2026-09-24 when
   The Markup's 1,050 MB film would not deliver): a real film is rendered
-  by `.github/workflows/film.yml` and downloaded from the run's
-  artifacts, or on the owner's Mac with the same command.
+  by `.github/workflows/film.yml`, filed by `.github/workflows/release.yml`
+  under the repo's Releases as `film-<slug>`, and downloaded from there;
+  or rendered on the owner's Mac with the same command.
 - `.github/workflows/verify.yml`: build (with the three checkers), audit,
   sweep, on every PR and push to `main`.
 - `.github/workflows/film.yml`: manual dispatch, `slug` and `format`
@@ -276,6 +277,18 @@ for a shortlist for bios and cards, which is a separate deliverable.
   the file itself changes. The whole publish pipeline: a dispatch, or a
   merge that touches the workflow, ends with a private video in Studio
   for the owner to press Publish on.
+- `.github/workflows/release.yml`: **the filing system for films.** A
+  GitHub Release per edition named `film-<slug>`, holding the film, the
+  Short, captions, sheets, meta and thumbnail as assets: permanent where
+  Actions artifacts expire in 90 days, one URL per file, 2 GB per asset,
+  free on a public repo, listed under the Releases tab. Every render
+  replaces the assets and the notes become the latest upload sheet.
+  Called by `film.yml` after each wide render; dispatchable by hand with
+  a slug and a finished run's id to file a render that predates it. The
+  owner's question (2026-09-24): "where can you put the video for me, we
+  need a filing system"; the answers considered were Drive (needs OAuth
+  again), Vercel (a static site's deploy is not a store) and Releases,
+  which needs nothing and is already beside the code.
 - `.github/workflows/verify-live.yml`: manual dispatch, `url` input. Curls
   every route and discovery file on the live origin, checks the headers,
   canonical, draft noindex and sitemap exclusion, then runs the same sweep

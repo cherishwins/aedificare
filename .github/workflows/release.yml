@@ -1,0 +1,69 @@
+# The filing system for films. A GitHub Release per edition, named
+# film-<slug>, holding the film, the Short, captions, sheets, meta and the
+# thumbnail as assets: permanent (Actions artifacts expire in 90 days),
+# one URL per file, up to 2 GB each, free on a public repository, listed
+# under the repo's Releases tab where the owner can find and download
+# them without opening a workflow run. Each new render replaces the assets
+# of the same release, so film-edition-03 always holds the latest cut and
+# the release notes are the latest upload sheet.
+#
+# Called by film.yml after a render, and dispatchable by hand with the slug
+# and the run id of any finished film run, to file a render that predates
+# this workflow.
+name: release
+
+on:
+  workflow_call:
+    inputs:
+      slug:
+        required: true
+        type: string
+      run_id:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'Edition slug'
+        required: true
+        default: edition-03
+      run_id:
+        description: 'A finished film workflow run id whose artifact to file'
+        required: true
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SLUG: ${{ inputs.slug }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: film-${{ inputs.slug }}-wide
+          path: out
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: File the release
+        run: |
+          set -e
+          ls -la out
+          TITLE="$(jq -r .title out/meta.json 2>/dev/null || echo "$SLUG")"
+          TAG="film-$SLUG"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --title "$TITLE" --notes "Film of /$SLUG. Assets replaced on every render; notes are the latest upload sheet." --latest=false
+          fi
+          gh release edit "$TAG" --title "$TITLE" --notes-file out/sheet.txt
+          shopt -s nullglob
+          FILES=(out/*.mp4 out/*.srt out/*.txt out/*.json out/*.png)
+          gh release upload "$TAG" "${FILES[@]}" --clobber
+          echo "Filed under https://github.com/${{ github.repository }}/releases/tag/$TAG"
+          gh release view "$TAG" --json assets --jq '.assets[] | "\(.name)  \(.size) bytes"'
