@@ -53,13 +53,16 @@ const FPS = +arg('--fps', 24);
 const MUSIC = arg('--music', null);
 const VOICE = arg('--voice', 'am_michael');
 const UNTIL = +arg('--until', 0); // render only the first N seconds, to check the cuts before a long render
+// --short: the Short. Tall, the cover and section 00 (the number and its source) then the record and the dove,
+// cut from the same narration; under three minutes, which is YouTube's Shorts ceiling.
+const SHORT = process.argv.includes('--short');
 const ROSE_FPS = 12; // the field redraws at 12 per second; k moves 0.1 a second at most, so nothing steps visibly
 if (!SLUG) { console.error('generate-film: --slug <edition> is required'); process.exit(1); }
 const E = EDITIONS.find((e) => e.slug === SLUG);
 if (!E) { console.error(`generate-film: no edition ${SLUG}`); process.exit(1); }
 const DIR = path.join('brand/youtube', SLUG);
 fs.mkdirSync(DIR, { recursive: true });
-const F = FORMATS[FORMAT];
+const F = SHORT ? FORMATS.tall : FORMATS[FORMAT];
 const HOST = SITE.origin.replace(/^https?:\/\//, '');
 const URL_ = SITE.origin + E.path;
 const FF = findFfmpeg();
@@ -116,7 +119,7 @@ async function script() {
   // The record line, generated from data the page carries, read last.
   blocks.push({ i: blocks.length, kind: 'record', sec: 'record', ground: 'flash', read: true,
     text: `${E.title}. ${spokenDate(E.dateLabel)}. ${cap(numberWord(sections))} sections, ${numberWord(sources)} sources, at aedificare dot art. ${LICENCE.name}.` });
-  const out = { slug: SLUG, title: E.title, voice: VOICE, speed: 1.0, sections, sources, blocks };
+  const out = { slug: SLUG, title: E.title, seed: E.seed, voice: VOICE, speed: 1.0, sections, sources, blocks };
   fs.writeFileSync(path.join(DIR, 'script.json'), JSON.stringify(out, null, 1));
   const words = blocks.filter((x) => x.read).reduce((n, x) => n + x.text.split(' ').length, 0);
   console.log(`  script.json: ${blocks.length} blocks, ${blocks.filter((x) => x.read).length} read, ${words} words (~${Math.round(words / 145)} min)`);
@@ -126,6 +129,9 @@ async function script() {
 function narrate() {
   const r = spawnSync('uv', ['run', 'tools/narrate.py', DIR], { stdio: 'inherit' });
   if (r.status !== 0) { console.error('generate-film: narration failed'); process.exit(1); }
+  // The bed, computed from the edition's seed; --music <file> replaces it at render, --music none drops it.
+  const b = spawnSync('uv', ['run', 'tools/bed.py', DIR], { stdio: 'inherit' });
+  if (b.status !== 0) { console.error('generate-film: bed failed'); process.exit(1); }
 }
 
 /* ---- 3. the frames ------------------------------------------------------ */
@@ -303,17 +309,34 @@ async function render() {
   fs.rmSync(tmp, { recursive: true, force: true });
   roseCache = {}; // the check's sample rose shots carry a dummy label; never serve them
 
+  /* The Short's segments of the source: [0, end of section 00) and [record, end). */
+  let segments = null, tmap = (t) => t, total_ = total;
+  if (SHORT) {
+    const h2s = N.blocks.filter((x) => x.kind === 'h2');
+    const rec = shots.find((x) => x.id === 'record');
+    let cutA = h2s[1] ? shots.find((x) => x.id === 'sec-' + h2s[1].sec).start : rec.start;
+    if (cutA > 165) { // section 00 runs long: end it at the last block that finishes inside the ceiling
+      const last = N.blocks.filter((x) => x.sec === h2s[0].sec && x.read && x.end + 0.4 <= 165).pop();
+      cutA = last ? last.end + 0.4 : 165;
+    }
+    segments = [[0, cutA], [rec.start, total]];
+    total_ = cutA + (total - rec.start);
+    tmap = (t) => (t < cutA ? t : t - cutA + rec.start);
+  }
+
   /* Frames. */
   const b = await browser();
   const { ctx, page: pg, show, shot } = await openContext(b, F, FF);
-  const file = path.join(DIR, `${SLUG}-film-${F.W}x${F.H}${UNTIL ? '-preview' : ''}.${FF.ext}`);
-  const enc = encoder(FF, file, FPS, { audio: path.join(DIR, 'narration.wav'), music: MUSIC, crf: 20 });
+  const file = path.join(DIR, `${SLUG}-${SHORT ? 'short' : 'film'}-${F.W}x${F.H}${UNTIL ? '-preview' : ''}.${FF.ext}`);
+  const bed = path.join(DIR, 'bed.wav');
+  const music = MUSIC === 'none' ? null : MUSIC ? MUSIC : fs.existsSync(bed) ? bed : null;
+  const enc = encoder(FF, file, FPS, { audio: path.join(DIR, 'narration.wav'), music, musicGain: music === bed ? 0.5 : 0.12, crf: 20, segments });
   fs.writeFileSync(path.join(DIR, 'timeline.txt'), shots.map((s) => `${s.start.toFixed(2).padStart(8)} ${s.end.toFixed(2).padStart(8)}  ${s.ground.padEnd(6)} ${s.id}`).join('\n') + '\n');
-  const until = UNTIL ? Math.min(total, UNTIL) : total;
+  const until = UNTIL ? Math.min(total_, UNTIL) : total_;
   const frames = Math.ceil(until * FPS);
   let si = 0, current = null, still = null, lastRoseTick = -1, t0 = Date.now(), cuts = 0;
   for (let i = 0; i < frames; i++) {
-    const t = i / FPS;
+    const t = tmap(i / FPS);
     while (si < shots.length && shots[si].end <= t) si++;
     const active = si < shots.length && shots[si].start <= t ? shots[si] : roseShot(roseFor(t), blockAt(t));
     if (active !== current) { await show(active); current = active; still = null; lastRoseTick = -1; cuts++; }
@@ -322,17 +345,19 @@ async function render() {
       if (tick !== lastRoseTick) { await pg.evaluate((ms) => window.__frame(ms), t * 1000); still = await shot(); lastRoseTick = tick; }
     } else if (!still) still = await shot();
     await enc.write(still);
-    if (i % (FPS * 60) === 0 && i) console.log(`  ${Math.round(t / 60)} min of ${Math.round(total / 60)} rendered, ${((Date.now() - t0) / 1000 / 60).toFixed(1)} min wall`);
+    if (i % (FPS * 60) === 0 && i) console.log(`  ${Math.round(i / FPS / 60)} min of ${Math.round(total_ / 60)} rendered, ${((Date.now() - t0) / 1000 / 60).toFixed(1)} min wall`);
   }
   await enc.done();
 
-  // Thumbnail: the first headline figure (or the acid word), at 1280x720.
-  const th = await openContext(b, F, FF, 1280 / F.W);
-  const tshot = headline ?? shots.find((s) => s.id.startsWith('word-'));
-  await th.show(tshot);
+  // Thumbnail: the first headline figure (or the acid word), at 1280x720. A Short uses its own frames.
   const thumb = path.join(DIR, `${SLUG}-thumb-1280x720.png`);
-  await th.page.screenshot({ path: thumb, type: 'png' });
-  await th.ctx.close();
+  if (!SHORT) {
+    const th = await openContext(b, F, FF, 1280 / F.W);
+    const tshot = headline ?? shots.find((s) => s.id.startsWith('word-'));
+    await th.show(tshot);
+    await th.page.screenshot({ path: thumb, type: 'png' });
+    await th.ctx.close();
+  }
   await ctx.close();
   await b.close();
 
@@ -351,37 +376,51 @@ async function render() {
     for (const w of blk.words) { sentence.push(w); if (endsSentence(w.w)) emit(); }
     emit();
   }
+  // A Short keeps only the cues inside its segments, shifted onto its own clock.
+  const inSeg = (t) => !segments || segments.some(([a, b]) => t >= a && t < b);
+  const remap = (t) => { if (!segments) return t; let acc = 0; for (const [a, b] of segments) { if (t >= a && t < b) return acc + (t - a); acc += b - a; } return acc; };
+  const cuesOut = cues.filter((c) => inSeg(c.s)).map((c) => ({ ...c, s: remap(c.s), e: Math.min(remap(c.e), remap(c.s) + (c.e - c.s)) }));
   const ts = (x) => { const h = Math.floor(x / 3600), m = Math.floor((x % 3600) / 60), s = Math.floor(x % 60), ms = Math.round((x % 1) * 1000); return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`; };
-  fs.writeFileSync(path.join(DIR, 'captions.srt'), cues.map((c, i) => `${i + 1}\n${ts(c.s)} --> ${ts(c.e)}\n${c.text}\n`).join('\n'));
+  const captions = path.join(DIR, SHORT ? 'captions-short.srt' : 'captions.srt');
+  fs.writeFileSync(captions, cuesOut.map((c, i) => `${i + 1}\n${ts(c.s)} --> ${ts(c.e)}\n${c.text}\n`).join('\n'));
   const mmss = (x) => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
   const chapters = [`0:00 ${E.title}`, ...N.blocks.filter((x) => x.kind === 'h2').map((x) => `${mmss(Math.max(0, x.start - 0.4))} ${x.text}`)];
   const firstSentence = E.lede.split(/(?<=\.)\s/)[0].replace(/\.$/, '');
-  const sheet = [
-    `Title: ${firstSentence.length <= 100 ? firstSentence : E.title}`,
-    `(alternative: ${E.title} · ${E.dateLabel})`,
-    '',
-    'Description:',
+  const title = firstSentence.length <= 100 ? firstSentence : E.title;
+  const description = [
     E.lede,
     `${E.dateLabel} · ${E.title} · ${numberWord(S.sections)} sections · ${numberWord(S.sources)} sources`,
     URL_,
     '',
-    ...chapters,
+    ...(SHORT ? [`The full edition, read in full, is on the channel and at ${URL_}.`] : chapters),
     '',
     `The writing is ${LICENCE.name} at ${URL_}: quote it, repeat it, translate it, train on it, credit ${SITE.name} and link the edition.`,
     `Voice: synthetic, ${N.model} ${N.voice}. Every frame is computed from r = cos(kθ), seed ${E.seed}, k ${kLabel(E.k)}.`,
-    MUSIC ? `Music: ${path.basename(MUSIC)} (add the licence credit here)` : '',
+    music === bed ? `Music: computed from r = cos(kθ), seed ${E.seed}; no third-party audio.` : music ? `Music: ${path.basename(music)} (add the licence credit here)` : 'Music: none.',
+  ].join('\n');
+  // meta.json is what tools/upload-youtube.mjs reads: everything the upload needs, nothing typed.
+  fs.writeFileSync(path.join(DIR, SHORT ? 'meta-short.json' : 'meta.json'), JSON.stringify({
+    kind: SHORT ? 'short' : 'film', slug: SLUG, title, description, file: path.basename(file), captions: path.basename(captions),
+    thumbnail: SHORT ? null : path.basename(thumb), categoryId: '28', licence: 'youtube', madeForKids: false, url: URL_, seed: E.seed, duration: Math.round(total_),
+  }, null, 1) + '\n');
+  const sheet = [
+    `Title: ${title}`,
+    `(alternative: ${E.title} · ${E.dateLabel})`,
+    '',
+    'Description:',
+    description,
     '',
     'Licence (upload form): Standard YouTube Licence. The script is CC BY on the page; the file does not carry the grant.',
     'Altered or synthetic content disclosure: not required (a synthetic voice reading an original script over computed visuals depicts no real person or event).',
-    'Captions: upload captions.srt as English. Tags: none. Cards and end screens: none. Playlist: Editions.',
-    `Thumbnail: ${path.basename(thumb)}`,
+    `Captions: upload ${path.basename(captions)} as English. Tags: none. Cards and end screens: none. Playlist: Editions.`,
+    SHORT ? 'Short: YouTube files it as a Short by shape and length; no hashtag needed.' : `Thumbnail: ${path.basename(thumb)}`,
     `File: ${path.basename(file)}`,
     '',
   ].filter((l) => l !== null).join('\n');
-  fs.writeFileSync(path.join(DIR, 'sheet.txt'), sheet);
-  const mins = (total / 60).toFixed(1);
+  fs.writeFileSync(path.join(DIR, SHORT ? 'sheet-short.txt' : 'sheet.txt'), sheet);
+  const mins = (total_ / 60).toFixed(1);
   console.log(`  ${file}: ${mins} min, ${frames} frames, ${cuts} cuts, ${Math.round(fs.statSync(file).size / 1048576)} MB, ${((Date.now() - t0) / 60000).toFixed(1)} min wall`);
-  console.log(`  ${thumb}, captions.srt (${cues.length} cues), sheet.txt (${chapters.length} chapters)`);
+  console.log(`  ${SHORT ? '' : thumb + ', '}${path.basename(captions)} (${cuesOut.length} cues), ${SHORT ? 'sheet-short.txt, meta-short.json' : `sheet.txt (${chapters.length} chapters), meta.json`}`);
 }
 
 if (STEP === 'script' || STEP === 'all') await script();
