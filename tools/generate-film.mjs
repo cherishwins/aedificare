@@ -150,8 +150,11 @@ function figuresIn(words) {
     const sentenceStart = i === 0 || endsSentence(words[i - 1].w);
     if (isMoney(w)) {
       let j = i; const parts = [w];
+      const scale = () => { const nx = j + 1 < words.length ? strip(words[j + 1].w) : ''; if (/^(million|billion|thousand|trillion)$/.test(nx)) { j++; parts.push(nx); } };
+      scale();
+      // a range: "$208 to $450", "$8,025 and $10,500"
       const nx = j + 1 < words.length ? strip(words[j + 1].w) : '';
-      if (/^(million|billion|thousand|trillion)$/.test(nx)) { j++; parts.push(nx); }
+      if (/^(to|and)$/.test(nx) && j + 2 < words.length && isMoney(strip(words[j + 2].w))) { parts.push(nx, strip(words[j + 2].w)); j += 2; scale(); }
       out.push({ i0: i, i1: j, display: parts.join(' '), kind: 'fig' }); i = j + 1; continue;
     }
     if (isNum(w) && !(isYear(w) && !(i + 1 < words.length && UNIT.test(strip(words[i + 1].w))))) {
@@ -198,7 +201,12 @@ function fragment(words, k0, k1) {
   let a = k0, b = k1;
   while (a > 0 && !endsSentence(words[a - 1].w)) a--;
   while (b < words.length - 1 && !endsSentence(words[b].w)) b++;
-  if (b - a + 1 > 12) { a = Math.max(a, k0 - 4); b = Math.min(b, a + 11); if (b < k1) { b = k1; a = Math.max(0, b - 11); } }
+  if (b - a + 1 > 14) {
+    // Too long to sit under a figure: a window around the figure, cut back to a clause boundary where one exists.
+    a = Math.max(a, k0 - 5); b = Math.min(b, a + 13); if (b < k1) { b = k1; a = Math.max(0, b - 13); }
+    for (let c = b; c > k1; c--) if (/[,;:]$/.test(words[c].w)) { b = c; break; }
+    for (let c = a; c < k0; c++) if (/[,;:]$/.test(words[c - 1]?.w ?? '')) { a = c; break; }
+  }
   return words.slice(a, b + 1).map((x) => x.w).join(' ');
 }
 
@@ -282,8 +290,8 @@ async function render() {
   for (let k = 0; k < shots.length - 1; k++) if (shots[k].end > shots[k + 1].start) shots[k].end = shots[k + 1].start;
   // Rose fills the gaps, on the ground of the section being read.
   const roseFor = (t) => { let g = 'void'; for (const blk of N.blocks) { if (blk.start <= t) g = blk.ground === 'flash' ? g : blk.ground; else break; } return g; };
-  const roseCache = {};
-  const roseShot = (g, blk) => (roseCache[g + (blk.num ?? '')] ??= { id: 'rose-' + g, live: true, ground: g, html: page(g, fieldHtml(F, quiet, seed, false), blk) });
+  let roseCache = {};
+  const roseShot = (g, blk) => (roseCache[`${g}|${label(blk)}`] ??= { id: 'rose-' + g, live: true, ground: g, html: page(g, fieldHtml(F, quiet, seed, false), blk) });
   const blockAt = (t) => { let b = N.blocks[0]; for (const blk of N.blocks) { if (blk.start <= t) b = blk; else break; } return b; };
 
   // Brand check over every shot.
@@ -294,12 +302,13 @@ async function render() {
   if (brand.status !== 0) { console.error(brand.stderr || brand.stdout); process.exit(1); }
   console.log(`  check-brand over ${shots.length} shots: clean`);
   fs.rmSync(tmp, { recursive: true, force: true });
+  roseCache = {}; // the check's sample rose shots carry a dummy label; never serve them
 
   /* Frames. */
   const b = await chromium.launch();
   const { ctx, page: pg, show, shot } = await openContext(b, F, FF);
   const file = path.join(DIR, `${SLUG}-film-${F.W}x${F.H}${UNTIL ? '-preview' : ''}.${FF.ext}`);
-  const enc = encoder(FF, file, FPS, { audio: path.join(DIR, 'narration.wav'), music: MUSIC });
+  const enc = encoder(FF, file, FPS, { audio: path.join(DIR, 'narration.wav'), music: MUSIC, crf: 20 });
   fs.writeFileSync(path.join(DIR, 'timeline.txt'), shots.map((s) => `${s.start.toFixed(2).padStart(8)} ${s.end.toFixed(2).padStart(8)}  ${s.ground.padEnd(6)} ${s.id}`).join('\n') + '\n');
   const until = UNTIL ? Math.min(total, UNTIL) : total;
   const frames = Math.ceil(until * FPS);
@@ -329,13 +338,19 @@ async function render() {
   await b.close();
 
   /* Captions, chapters, sheet. */
+  // Captions: each sentence split into near-equal cues of at most eight words, so no cue is a stranded word.
   const cues = [];
   for (const blk of N.blocks) {
     if (!blk.words?.length) continue;
-    let cue = [];
-    const flush = () => { if (cue.length) { cues.push({ s: cue[0].s, e: cue[cue.length - 1].e, text: cue.map((w) => w.w).join(' ') }); cue = []; } };
-    for (const w of blk.words) { cue.push(w); if (endsSentence(w.w) || /[;:,]$/.test(w.w) && cue.length >= 5 || cue.length >= 9 || w.e - cue[0].s > 3.5) flush(); }
-    flush();
+    let sentence = [];
+    const emit = () => {
+      if (!sentence.length) return;
+      const k = Math.ceil(sentence.length / 8), size = Math.ceil(sentence.length / k);
+      for (let i = 0; i < sentence.length; i += size) { const c = sentence.slice(i, i + size); cues.push({ s: c[0].s, e: c[c.length - 1].e, text: c.map((w) => w.w).join(' ') }); }
+      sentence = [];
+    };
+    for (const w of blk.words) { sentence.push(w); if (endsSentence(w.w)) emit(); }
+    emit();
   }
   const ts = (x) => { const h = Math.floor(x / 3600), m = Math.floor((x % 3600) / 60), s = Math.floor(x % 60), ms = Math.round((x % 1) * 1000); return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`; };
   fs.writeFileSync(path.join(DIR, 'captions.srt'), cues.map((c, i) => `${i + 1}\n${ts(c.s)} --> ${ts(c.e)}\n${c.text}\n`).join('\n'));

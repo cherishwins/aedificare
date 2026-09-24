@@ -144,17 +144,18 @@ export async function openContext(browser, F, FF, scale = 1) {
 
 /* ---- the encoder, frames on a pipe --------------------------------------- */
 /**
- * Frames in on stdin at `fps`; H.264 (CRF 16, yuv420p, faststart) or VP8.
+ * Frames in on stdin at `fps`; H.264 (CRF 16 by default, 20 for a long
+ * narrated film, yuv420p, faststart) or VP8.
  * `audio` is a file muxed alongside (AAC 160k when the build has it); the
  * output is cut to the shorter of the two. `filters` is an optional
  * filter_complex for the audio (a music bed mixed under the voice).
  */
-export function encoder(FF, file, fps, { audio = null, music = null, musicGain = 0.12 } = {}) {
+export function encoder(FF, file, fps, { audio = null, music = null, musicGain = 0.12, crf = 16 } = {}) {
   const args = ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', FF.frame === 'png' ? 'png' : 'mjpeg', '-i', 'pipe:0'];
   if (audio) args.push('-i', audio);
   if (audio && music) args.push('-stream_loop', '-1', '-i', music);
   args.push(...(FF.codec === 'libx264'
-    ? ['-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p', '-movflags', '+faststart']
+    ? ['-c:v', 'libx264', '-preset', 'slow', '-crf', String(crf), '-pix_fmt', 'yuv420p', '-movflags', '+faststart']
     : ['-c:v', 'libvpx', '-b:v', '12M', '-crf', '6', '-quality', 'good', '-cpu-used', '1', '-auto-alt-ref', '1', '-lag-in-frames', '16', '-pix_fmt', 'yuv420p']));
   if (audio) {
     if (music) args.push('-filter_complex', `[1:a]loudnorm=I=-16:TP=-1.5:LRA=11[v];[2:a]volume=${musicGain}[m];[v][m]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`, '-map', '0:v', '-map', '[a]');
