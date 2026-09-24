@@ -791,7 +791,17 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    upload step (`YT_CLIENT_ID`, `YT_CLIENT_SECRET`, `YT_REFRESH_TOKEN`,
    minted with `tools/youtube-auth.mjs` on the owner's machine after a
    free Google Cloud project with the YouTube Data API enabled; until
-   they exist the workflow stops at the artifact); **the bed's verdict**
+   they exist the workflow stops at the artifact; and note **the private
+   lock**: YouTube keeps every API upload from a project created after 28
+   July 2020 private until the project passes the free API compliance
+   audit, so the upload step stages a video in Studio and cannot publish
+   it until the audit is done; publishing before that is a hand upload
+   from the sheet); **two characters** (owner, 2026-09-24: the
+   interactions between characters we design "will have followers if
+   we're successful"; a recurring pair in the film voice, the sharp one
+   and the slow one, as the infomercial parodies do; Kokoro has fifty
+   voices so a second speaker costs nothing; not built, waits on the
+   single-voice scripts landing first); **the bed's verdict**
    (keep the computed one, drop it, or send a licensed track); **the
    channel description** (the kit's no tagline and no "Aedificare is"
    rules apply to the About box; the record line is the only text that
