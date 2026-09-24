@@ -40,6 +40,16 @@ export const HOUSE = [
   { k: 3, s: 0.54, ph: 0.91, w: 0.9 },
 ];
 
+/**
+ * The drift a live field adds to k at time `ms` after it started: a 5.5 s
+ * cycle of amplitude 0.085 around the seed, so the petal count never resolves.
+ * The client script and the film generator both call this, so a rose on the
+ * site and a rose in a video move identically and neither can drift from the
+ * other. `seed` is the field's own offset (an edition's seed, see editions.mjs).
+ */
+export const CYCLE_MS = 5500;
+export const drift = (seed, ms) => seed + Math.sin((ms / CYCLE_MS) * Math.PI * 2) * 0.085;
+
 /** The mark: one curve, k=5, one turn, frozen. Seed AED-M-01. */
 export const MARK = { k: 5, phase: -Math.PI / 2, turns: 1, steps: 720 };
 

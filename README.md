@@ -15,6 +15,8 @@ npm run build     # -> dist/, then check-brand, check-budget, check-docs
 npm run verify    # every page x 10 viewports, needs Playwright + Chromium
 npm run og        # regenerate the share cards and their manifest
 npm run marks     # regenerate the favicon and icons from the mark seed
+npm run social    # regenerate the platform headers, banners and avatars in brand/
+npm run video     # render the editions as films for YouTube into brand/youtube/, needs Playwright + ffmpeg
 ```
 
 ## How it is built

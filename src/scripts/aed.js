@@ -1,10 +1,11 @@
-import { rhodonea, DOVE_PATH } from '../lib/rose.mjs';
+import { rhodonea, drift, DOVE_PATH } from '../lib/rose.mjs';
 
 const NS = 'http://www.w3.org/2000/svg';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---- live rose field ------------------------------------------------
-   k drifts on a 5.5 s cycle so the petal count never resolves. Reduced
+   k drifts on a 5.5 s cycle (drift() in rose.mjs, shared with the film
+   generator) so the petal count never resolves. Reduced
    motion gets the still at the seed, marked on the element so the sweep
    can prove the still exists rather than assume it. The loop pauses when
    the field is off-screen or the tab is hidden; a decoration that burns
@@ -23,15 +24,15 @@ function field(svg) {
     svg.appendChild(p);
     return p;
   });
-  const draw = (drift) => {
-    layers.forEach((L, i) => paths[i].setAttribute('d', rhodonea(cx, cy, R * L.s, L.k + drift, L.ph, 9, 1800)));
-    if (readout) readout.textContent = (layers[0].k + drift).toFixed(3);
+  const draw = (d) => {
+    layers.forEach((L, i) => paths[i].setAttribute('d', rhodonea(cx, cy, R * L.s, L.k + d, L.ph, 9, 1800)));
+    if (readout) readout.textContent = (layers[0].k + d).toFixed(3);
   };
   if (reduced) { draw(seed); svg.dataset.motion = 'static'; return; }
   svg.dataset.motion = 'live';
   let on = true, t0 = performance.now(), frame = 0;
   const loop = (now) => {
-    if (on && (frame++ & 1)) draw(seed + Math.sin(((now - t0) / 5500) * Math.PI * 2) * 0.085);
+    if (on && (frame++ & 1)) draw(drift(seed, now - t0));
     requestAnimationFrame(loop);
   };
   draw(seed);

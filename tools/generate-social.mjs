@@ -7,7 +7,14 @@
  * configuration live-frozen at its own seed and cropped by the frame, the
  * wordmark running off the right edge, the mark and name at masthead size,
  * the seed logged in Martian Mono. Acid is spent once, on the k=5 curve.
- * Avatars are the mark alone, padded for a circular crop.
+ * Avatars are the mark alone, padded for a circular crop. The YouTube
+ * banner is its own composition, because YouTube crops one 2560x1440 image
+ * three ways and only the central 1546x423 survives on a phone: the mark,
+ * the name and the seed sit inside that box; the wordmark starts inside it
+ * and runs off its right edge (whole on a desktop, cut on a phone, the
+ * kit's own cropping move); the rose bleeds across the full frame for TVs.
+ * YouTube's avatar slot takes brand/avatar-800.png; the mark is radially
+ * symmetric, so the circle crop loses nothing.
  *
  * Output goes to brand/, which .vercelignore keeps out of the deploy.
  *
@@ -58,6 +65,24 @@ ${houseSvg(seed, rs, rstyle)}
 <h1>Aedificare</h1>
 <div class="seed">r = cos(kθ) · seed 0500 · k 5/7/3</div>`;
 
+/**
+ * The YouTube banner. Safe area is the central 1546x423 (x 507 to 2053,
+ * y 508 to 931); everything that must be read lives there.
+ */
+const YT = { name: 'youtube-banner-2560x1440', w: 2560, h: 1440, seed: 0.5 };
+const ytBanner = () => `<!doctype html><meta charset="utf-8"><style>${fontCss}
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:${YT.w}px;height:${YT.h}px;background:#050A06;color:#FFFFFF;overflow:hidden;position:relative;font-family:'Bricolage Grotesque',sans-serif}
+.mast{position:absolute;left:547px;top:548px;display:flex;align-items:center;gap:12px;font-family:'Martian Mono',monospace;font-variation-settings:'wdth' 75,'wght' 700;font-size:14px;letter-spacing:.3em;color:#00B24F;z-index:2}
+.mast svg{width:28px;height:28px}
+h1{position:absolute;left:541px;top:612px;z-index:2;font-variation-settings:'opsz' 96,'wdth' 75,'wght' 800;font-size:300px;line-height:.8;letter-spacing:-.03em;white-space:nowrap;text-transform:uppercase}
+.seed{position:absolute;left:547px;top:892px;z-index:2;font-family:'Martian Mono',monospace;font-variation-settings:'wdth' 75,'wght' 500;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#00B24F}
+</style>
+${houseSvg(YT.seed, 1900, 'top:-230px;right:-420px')}
+<div class="mast"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="#00B24F" stroke-width="6"/></svg>AEDIFICARE</div>
+<h1>Aedificare</h1>
+<div class="seed">r = cos(kθ) · seed 0500 · k 5/7/3</div>`;
+
 /** Avatars: the mark alone. pad is the share of the canvas kept clear for circular crops. */
 const AVATARS = [
   ['avatar-400', 400, 0.16, 5],
@@ -78,6 +103,16 @@ for (const H of HEADERS) {
   if (!ok) { console.error(`generate-social: brand faces did not load for ${H[0]}`); process.exit(1); }
   await p.screenshot({ path: `${OUT}/${H[0]}.png` });
   console.log(`  brand/${H[0]}.png`.padEnd(38) + Math.round(fs.statSync(`${OUT}/${H[0]}.png`).size / 1024) + ' KB');
+  await p.close();
+}
+{
+  const p = await b.newPage({ viewport: { width: YT.w, height: YT.h }, deviceScaleFactor: 1 });
+  await p.setContent(ytBanner(), { waitUntil: 'load' });
+  await p.evaluate(() => document.fonts.ready);
+  const ok = await p.evaluate(() => document.fonts.check("800 40px 'Bricolage Grotesque'") && document.fonts.check("500 10px 'Martian Mono'"));
+  if (!ok) { console.error(`generate-social: brand faces did not load for ${YT.name}`); process.exit(1); }
+  await p.screenshot({ path: `${OUT}/${YT.name}.png` });
+  console.log(`  brand/${YT.name}.png`.padEnd(38) + Math.round(fs.statSync(`${OUT}/${YT.name}.png`).size / 1024) + ' KB');
   await p.close();
 }
 for (const A of AVATARS) {
