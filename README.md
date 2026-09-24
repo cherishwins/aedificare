@@ -20,6 +20,8 @@ npm run video     # render the editions as silent films for YouTube into brand/y
 npm run film -- --slug edition-03   # the narrated film: script from the built page, Kokoro voice via uv, frames, captions, sheet
 # A real film is a gigabyte: render it with the `film` workflow (Actions, dispatch with the slug) and download the artifact,
 # or locally with Playwright installed --no-save, ffmpeg, espeak-ng and uv on the PATH.
+npm run film -- --slug edition-03 --step render --short   # the Short from the same narration, tall
+node tools/upload-youtube.mjs brand/youtube/edition-03/meta.json   # to the channel, private; needs YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN
 ```
 
 ## How it is built

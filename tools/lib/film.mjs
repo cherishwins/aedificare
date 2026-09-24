@@ -163,25 +163,36 @@ export async function openContext(browser, F, FF, scale = 1) {
 /**
  * Frames in on stdin at `fps`; H.264 (CRF 16 by default, 20 for a long
  * narrated film, yuv420p, faststart) or VP8.
- * `audio` is a file muxed alongside (AAC 160k when the build has it); the
- * output is cut to the shorter of the two. `filters` is an optional
- * filter_complex for the audio (a music bed mixed under the voice).
+ * `audio` is a file muxed alongside (AAC 160k when the build has it), loudness
+ * normalised; `music` is mixed under it at `musicGain`; `segments` cuts both
+ * to the stretches of the source the frames were cut to.
  */
-export function encoder(FF, file, fps, { audio = null, music = null, musicGain = 0.12, crf = 16 } = {}) {
+export function encoder(FF, file, fps, { audio = null, music = null, musicGain = 0.12, crf = 16, segments = null } = {}) {
   const args = ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', FF.frame === 'png' ? 'png' : 'mjpeg', '-i', 'pipe:0'];
   if (audio) args.push('-i', audio);
-  if (audio && music) args.push('-stream_loop', '-1', '-i', music);
+  if (audio && music) { if (!segments) args.push('-stream_loop', '-1'); args.push('-i', music); }
   args.push(...(FF.codec === 'libx264'
     ? ['-c:v', 'libx264', '-preset', 'slow', '-crf', String(crf), '-pix_fmt', 'yuv420p', '-movflags', '+faststart']
     : ['-c:v', 'libvpx', '-b:v', '12M', '-crf', '6', '-quality', 'good', '-cpu-used', '1', '-auto-alt-ref', '1', '-lag-in-frames', '16', '-pix_fmt', 'yuv420p']));
   if (audio) {
-    if (music) args.push('-filter_complex', `[1:a]loudnorm=I=-16:TP=-1.5:LRA=11[v];[2:a]volume=${musicGain}[m];[v][m]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`, '-map', '0:v', '-map', '[a]');
-    else args.push('-af', 'loudnorm=I=-16:TP=-1.5:LRA=11', '-map', '0:v', '-map', '1:a');
+    // `segments` ([[start, end], ...] in seconds of the source audio) cuts the voice and the bed the same way the
+    // frames were cut, so a Short made from two stretches of the film keeps its sync.
+    const cut = (input, tag) => segments
+      ? segments.map(([a, b], i) => `[${input}]atrim=${a}:${b},asetpts=PTS-STARTPTS[${tag}${i}]`).join(';') + ';' + segments.map((_, i) => `[${tag}${i}]`).join('') + `concat=n=${segments.length}:v=0:a=1[${tag}]`
+      : `[${input}]anull[${tag}]`;
+    const graph = [cut('1:a', 'n'), '[n]loudnorm=I=-16:TP=-1.5:LRA=11[v]'];
+    if (music) graph.push(cut('2:a', 'm0'), `[m0]volume=${musicGain}[m]`, '[v][m]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]');
+    args.push('-filter_complex', graph.join(';'), '-map', '0:v', '-map', music ? '[a]' : '[v]');
     args.push('-c:a', FF.aac ? 'aac' : 'libopus', '-b:a', '160k', '-shortest');
   } else args.push('-an');
   args.push('-r', String(fps), file);
   const ff = spawn(FF.bin, args, { stdio: ['pipe', 'inherit', 'inherit'] });
-  const write = (buf) => new Promise((res) => (ff.stdin.write(buf) ? res() : ff.stdin.once('drain', res)));
-  const done = () => new Promise((res, rej) => { ff.on('close', (code) => (code === 0 ? res() : rej(new Error(`ffmpeg exited ${code}`)))); ff.stdin.end(); });
+  // With -shortest ffmpeg stops reading once the audio ends; a frame or two written after that hits a closed
+  // pipe. That is the end of the film, not an error: swallow EPIPE and let the remaining writes fall through.
+  let closed = false;
+  ff.stdin.on('error', (e) => { if (e.code === 'EPIPE') closed = true; else throw e; });
+  ff.on('close', () => { closed = true; });
+  const write = (buf) => new Promise((res) => { if (closed) return res(); ff.stdin.write(buf) ? res() : ff.stdin.once('drain', res); });
+  const done = () => new Promise((res, rej) => { if (ff.exitCode !== null) return ff.exitCode === 0 ? res() : rej(new Error(`ffmpeg exited ${ff.exitCode}`)); ff.on('close', (code) => (code === 0 ? res() : rej(new Error(`ffmpeg exited ${code}`)))); if (!closed) ff.stdin.end(); });
   return { write, done };
 }
