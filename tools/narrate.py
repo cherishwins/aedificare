@@ -43,7 +43,7 @@ SPEED = float(SCRIPT.get('speed', 1.0))
 SR = 24000
 
 # Silence around blocks, in seconds, by what the block is.
-GAP_BEFORE = {'title': 0.0, 'lede': 0.5, 'h2': 1.4, 'h3': 0.9, 'p': 0.55, 'quote': 0.7, 'slap': 1.2, 'record': 1.4}
+GAP_BEFORE = {'title': 3.6, 'lede': 0.5, 'h2': 1.4, 'h3': 0.9, 'p': 0.55, 'quote': 0.7, 'slap': 1.2, 'record': 1.4}
 GAP_AFTER = {'title': 0.4, 'lede': 0.6, 'h2': 0.6, 'h3': 0.4, 'p': 0.0, 'quote': 0.3, 'slap': 1.2, 'record': 2.7}
 
 UNITS = {

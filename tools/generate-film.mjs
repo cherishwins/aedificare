@@ -53,6 +53,7 @@ const FORMAT = arg('--format', 'wide');
 const FPS = +arg('--fps', 24);
 const MUSIC = arg('--music', null);
 const VOICE = arg('--voice', 'am_michael');
+const UNTIL = +arg('--until', 0); // render only the first N seconds, to check the cuts before a long render
 const ROSE_FPS = 12; // the field redraws at 12 per second; k moves 0.1 a second at most, so nothing steps visibly
 if (!SLUG) { console.error('generate-film: --slug <edition> is required'); process.exit(1); }
 const E = EDITIONS.find((e) => e.slug === SLUG);
@@ -137,6 +138,8 @@ const isNum = (w) => /^\d[\d,]*(\.\d+)?$/.test(w) || /^\d[\d,]*(\.\d+)?(MHz|GHz|
 const isYear = (w) => /^(19|20)\d\d$/.test(w);
 const isCap = (w) => /^[A-Z][A-Za-z0-9-]*$/.test(w) && !STOP.has(w);
 const endsSentence = (w) => /[.!?]["”’)]?$/.test(w);
+const NUMWORD = /^(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion|trillion|half|quarter|third|dozen)(-[a-z]+)?$/i;
+const NUMJOIN = /^(and|a)$/;
 
 /** The figures and names in a spoken block: [{ words: [i0..i1], display, kind }] */
 function figuresIn(words) {
@@ -162,6 +165,22 @@ function figuresIn(words) {
       }
       if (w.length >= 3 || parts.length > 1 || /[.,]/.test(w)) out.push({ i0: i, i1: j, display: parts.join(' '), kind: 'fig' });
       i = j + 1; continue;
+    }
+    // Numbers spelled out ("four hundred and sixteen dollars", "twenty thousand a unit"): two or more number words,
+    // joined by "and" or "a", with a trailing unit if one follows. Shown as words, in the display face.
+    if (NUMWORD.test(w)) {
+      let j = i; const parts = [w]; let count = 1;
+      while (j + 1 < words.length && !endsSentence(words[j].w)) {
+        const nx = strip(words[j + 1].w);
+        if (NUMWORD.test(nx)) { j++; parts.push(nx); count++; }
+        else if (NUMJOIN.test(nx) && j + 2 < words.length && NUMWORD.test(strip(words[j + 2].w))) { j += 2; parts.push(nx, strip(words[j].w)); count++; }
+        else break;
+      }
+      const u = j + 1 < words.length ? strip(words[j + 1].w) : '';
+      if (count >= 2) {
+        if (UNIT.test(u) && u !== 'per') { j++; parts.push(u); }
+        out.push({ i0: i, i1: j, display: parts.join(' ').toLowerCase(), kind: 'words' }); i = j + 1; continue;
+      }
     }
     if (isCap(w) && !(sentenceStart && STOP.has(w))) {
       let j = i; const parts = [w];
@@ -279,9 +298,11 @@ async function render() {
   /* Frames. */
   const b = await chromium.launch();
   const { ctx, page: pg, show, shot } = await openContext(b, F, FF);
-  const file = path.join(DIR, `${SLUG}-film-${F.W}x${F.H}.${FF.ext}`);
+  const file = path.join(DIR, `${SLUG}-film-${F.W}x${F.H}${UNTIL ? '-preview' : ''}.${FF.ext}`);
   const enc = encoder(FF, file, FPS, { audio: path.join(DIR, 'narration.wav'), music: MUSIC });
-  const frames = Math.ceil(total * FPS);
+  fs.writeFileSync(path.join(DIR, 'timeline.txt'), shots.map((s) => `${s.start.toFixed(2).padStart(8)} ${s.end.toFixed(2).padStart(8)}  ${s.ground.padEnd(6)} ${s.id}`).join('\n') + '\n');
+  const until = UNTIL ? Math.min(total, UNTIL) : total;
+  const frames = Math.ceil(until * FPS);
   let si = 0, current = null, still = null, lastRoseTick = -1, t0 = Date.now(), cuts = 0;
   for (let i = 0; i < frames; i++) {
     const t = i / FPS;
