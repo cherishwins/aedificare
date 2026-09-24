@@ -16,7 +16,10 @@ npm run verify    # every page x 10 viewports, needs Playwright + Chromium
 npm run og        # regenerate the share cards and their manifest
 npm run marks     # regenerate the favicon and icons from the mark seed
 npm run social    # regenerate the platform headers, banners and avatars in brand/
-npm run video     # render the editions as films for YouTube into brand/youtube/, needs Playwright + ffmpeg
+npm run video     # render the editions as silent films for YouTube into brand/youtube/, needs Playwright + ffmpeg
+npm run film -- --slug edition-03   # the narrated film: script from the built page, Kokoro voice via uv, frames, captions, sheet
+# A real film is a gigabyte: render it with the `film` workflow (Actions, dispatch with the slug) and download the artifact,
+# or locally with Playwright installed --no-save, ffmpeg, espeak-ng and uv on the PATH.
 ```
 
 ## How it is built
