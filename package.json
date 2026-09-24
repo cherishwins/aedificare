@@ -13,6 +13,7 @@
     "marks": "node tools/generate-marks.mjs",
     "social": "node tools/generate-social.mjs",
     "video": "node tools/generate-video.mjs",
+    "film": "node tools/generate-film.mjs",
     "design": "node tools/generate-design-system.mjs"
   },
   "dependencies": {
