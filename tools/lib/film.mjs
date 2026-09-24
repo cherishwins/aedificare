@@ -187,7 +187,12 @@ export function encoder(FF, file, fps, { audio = null, music = null, musicGain =
   } else args.push('-an');
   args.push('-r', String(fps), file);
   const ff = spawn(FF.bin, args, { stdio: ['pipe', 'inherit', 'inherit'] });
-  const write = (buf) => new Promise((res) => (ff.stdin.write(buf) ? res() : ff.stdin.once('drain', res)));
-  const done = () => new Promise((res, rej) => { ff.on('close', (code) => (code === 0 ? res() : rej(new Error(`ffmpeg exited ${code}`)))); ff.stdin.end(); });
+  // With -shortest ffmpeg stops reading once the audio ends; a frame or two written after that hits a closed
+  // pipe. That is the end of the film, not an error: swallow EPIPE and let the remaining writes fall through.
+  let closed = false;
+  ff.stdin.on('error', (e) => { if (e.code === 'EPIPE') closed = true; else throw e; });
+  ff.on('close', () => { closed = true; });
+  const write = (buf) => new Promise((res) => { if (closed) return res(); ff.stdin.write(buf) ? res() : ff.stdin.once('drain', res); });
+  const done = () => new Promise((res, rej) => { if (ff.exitCode !== null) return ff.exitCode === 0 ? res() : rej(new Error(`ffmpeg exited ${ff.exitCode}`)); ff.on('close', (code) => (code === 0 ? res() : rej(new Error(`ffmpeg exited ${code}`)))); if (!closed) ff.stdin.end(); });
   return { write, done };
 }

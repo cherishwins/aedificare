@@ -237,7 +237,7 @@ async function render() {
   /* The timeline: shots with [start, end) in seconds; gaps are the rose. */
   const shots = [];
   const add = (s) => shots.push(s);
-  const total = N.duration + 0.1;
+  const total = N.duration; // frames never outrun the audio: -shortest would end the mux and close the pipe
   const titleWords = E.title.toUpperCase().split(' ');
   const acid = E.acid.toUpperCase();
   add({ id: 'field', start: 0, end: 0, live: true, ground: 'void', html: page('void', fieldHtml(F, house, seed, true) + mastHtml(MAL), { sec: 'cover' }) });
