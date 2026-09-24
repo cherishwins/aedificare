@@ -183,16 +183,29 @@ export function encoder(FF, file, fps, { audio = null, music = null, musicGain =
     const graph = [cut('1:a', 'n'), '[n]loudnorm=I=-16:TP=-1.5:LRA=11[v]'];
     if (music) graph.push(cut('2:a', 'm0'), `[m0]volume=${musicGain}[m]`, '[v][m]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]');
     args.push('-filter_complex', graph.join(';'), '-map', '0:v', '-map', music ? '[a]' : '[v]');
-    args.push('-c:a', FF.aac ? 'aac' : 'libopus', '-b:a', '160k', '-shortest');
+    args.push('-c:a', FF.aac ? 'aac' : 'libopus', '-b:a', '160k');
   } else args.push('-an');
   args.push('-r', String(fps), file);
   const ff = spawn(FF.bin, args, { stdio: ['pipe', 'inherit', 'inherit'] });
-  // With -shortest ffmpeg stops reading once the audio ends; a frame or two written after that hits a closed
-  // pipe. That is the end of the film, not an error: swallow EPIPE and let the remaining writes fall through.
-  let closed = false;
-  ff.stdin.on('error', (e) => { if (e.code === 'EPIPE') closed = true; else throw e; });
-  ff.on('close', () => { closed = true; });
-  const write = (buf) => new Promise((res) => { if (closed) return res(); ff.stdin.write(buf) ? res() : ff.stdin.once('drain', res); });
-  const done = () => new Promise((res, rej) => { if (ff.exitCode !== null) return ff.exitCode === 0 ? res() : rej(new Error(`ffmpeg exited ${ff.exitCode}`)); ff.on('close', (code) => (code === 0 ? res() : rej(new Error(`ffmpeg exited ${code}`)))); if (!closed) ff.stdin.end(); });
+  // The frame count is derived from the audio, so the two end together and nothing is cut short. If ffmpeg
+  // still closes the pipe first, that is the end of the film and not an error: a write waiting on 'drain'
+  // is released, EPIPE is swallowed, and done() reports ffmpeg's own exit code.
+  let closed = false, waiter = null;
+  const release = () => { closed = true; if (waiter) { const w = waiter; waiter = null; w(); } };
+  ff.stdin.on('error', (e) => { if (e.code === 'EPIPE') release(); else throw e; });
+  ff.stdin.on('close', release);
+  ff.on('close', release);
+  const write = (buf) => new Promise((res) => {
+    if (closed) return res();
+    if (ff.stdin.write(buf)) return res();
+    waiter = res;
+    ff.stdin.once('drain', () => { if (waiter === res) { waiter = null; res(); } });
+  });
+  const done = () => new Promise((res, rej) => {
+    const finish = (code) => (code === 0 ? res() : rej(new Error(`ffmpeg exited ${code}`)));
+    if (ff.exitCode !== null) return finish(ff.exitCode);
+    ff.on('close', finish);
+    if (!ff.stdin.destroyed) ff.stdin.end();
+  });
   return { write, done };
 }
