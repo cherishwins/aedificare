@@ -856,6 +856,23 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    from the release using `sheet.txt` and pastes the video id back so the
    builder can keep its record; after, the owner uploads and the builder
    does the rest.
+   **The channel is the owner's existing one** (owner, 2026-09-25: "I'm
+   going to use this channel because people like me and follow me
+   already"): "OF8 SupraNational Global Conglomerate", 155 subscribers,
+   renamed Aedificare, handle `@aedificare_art` (`@aedificare` belongs to
+   an unrelated channel, "ÆDIFICA RE"; `@aedificare.art` was free but the
+   owner chose the underscore), avatar and banner from `brand/`, one link
+   to the apex. Its URL is written twice and nowhere else: in
+   `src/config.mjs`, which feeds the JSON-LD `sameAs`, and in the static
+   `public/humans.txt`; change both together. The
+   trade-off, said to the owner: subscribers who followed the person may
+   not watch the films, which weakens early signals a little; at 155 the
+   head start is worth more. **The About box sells** (owner override, same
+   day: the record-line description "sells nothing to no one"): it opens
+   on the three strongest ledes as hooks, then says what the films cover
+   and that the voice is synthetic, then the apex link. It still never
+   says "Aedificare is", carries no slogan and no call to action, and
+   every claim in it is a lede already on a published page.
 7. **The desk at apt.grok.me stays and becomes a companion** (owner,
    2026-09-16: they like the short name and keep it whatever they build
    there; the earlier "take it down" is superseded). What it was when
