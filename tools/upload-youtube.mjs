@@ -13,6 +13,16 @@
  * once. Scopes: youtube.upload (the video) and youtube.force-ssl (captions,
  * thumbnails, playlists).
  *
+ * THE PRIVATE LOCK. YouTube locks every video uploaded through the API by
+ * an API project created after 28 July 2020 to private until that project
+ * passes YouTube's API compliance audit (a free form, days to weeks); the
+ * owner cannot flip such a video to public in Studio. So this step is a
+ * staging step until the audit is done: the film lands in Studio, private,
+ * with its metadata and captions in place. To publish before the audit,
+ * upload the same file by hand in Studio using sheet.txt. Apply for the
+ * audit at https://support.google.com/youtube/contact/yt_api_form
+ * (developers.google.com/youtube/v3/revision_history, 28 July 2020).
+ *
  * Quota: an upload costs 1,600 of the project's 10,000 daily units; captions
  * 400; a thumbnail 50; a playlist insert 50. Five films a day is the ceiling
  * without asking Google for more, which this brand will never need.

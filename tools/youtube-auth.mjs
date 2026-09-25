@@ -12,7 +12,12 @@
  *      shows an "unverified app" warning on the consent page; click through it.
  *      Only this account ever consents, so verification is not needed.
  *   3. Credentials → Create credentials → OAuth client ID → Desktop app.
- *      Copy the client ID and secret.
+ *      Copy the client ID and secret. (There is no "YouTube API key" for
+ *      uploads: an API key only reads public data; uploading acts on a
+ *      channel and needs this OAuth client plus the refresh token below.)
+ *   4. Apply for the API compliance audit under the same project as soon
+ *      as it exists: until it passes, every video the API uploads is locked
+ *      to private (see tools/upload-youtube.mjs).
  *
  *   YT_CLIENT_ID=... YT_CLIENT_SECRET=... node tools/youtube-auth.mjs
  *

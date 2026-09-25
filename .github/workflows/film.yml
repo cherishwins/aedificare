@@ -16,7 +16,9 @@
 # and YT_REFRESH_TOKEN (tools/youtube-auth.mjs mints the token once), the
 # film and its Short are uploaded to the channel as PRIVATE, with captions
 # and thumbnail, and the owner presses Publish in Studio after watching.
-# Without the secrets the upload step is skipped and the artifact is all.
+# Without the secrets the upload step is skipped. Either way the render is
+# then filed as a permanent Release named film-<slug> (release.yml), which
+# is where the owner finds a film: the artifact is the 90-day backup.
 name: film
 
 on:
@@ -103,3 +105,15 @@ jobs:
           path: brand/youtube/${{ env.SLUG }}
           retention-days: 90
           compression-level: 0
+
+  # The filing system: the same files as a permanent Release named film-<slug>.
+  release:
+    needs: film
+    if: ${{ (inputs.format || 'wide') == 'wide' }}
+    uses: ./.github/workflows/release.yml
+    permissions:
+      contents: write
+      actions: read
+    with:
+      slug: ${{ inputs.slug || 'edition-03' }}
+      run_id: ${{ github.run_id }}
