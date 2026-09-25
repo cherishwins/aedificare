@@ -23,11 +23,19 @@
  *
  * It opens a consent URL (paste it into a browser if it does not open),
  * listens on 127.0.0.1 for the redirect, exchanges the code and prints the
- * refresh token. Put the three values in the repository's Actions secrets
- * (Settings → Secrets and variables → Actions) as YT_CLIENT_ID,
- * YT_CLIENT_SECRET, YT_REFRESH_TOKEN. Never paste them into a chat or a
- * commit. Optionally YT_PLAYLIST_ID, the "Editions" playlist's id, as a
- * repository variable.
+ * refresh token. The three values live in two places, both set by the owner
+ * and never pasted into a chat or a commit:
+ *   1. The repository's Actions secrets (Settings → Secrets and variables →
+ *      Actions) as YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN, so the
+ *      film workflow uploads what it renders.
+ *   2. The Claude Code cloud environment's variables (the environment menu
+ *      in the session's title bar → Edit → environment variables, the same
+ *      three names), so the builder can run upload-youtube.mjs --update and
+ *      youtube-analytics.mjs from a session: set descriptions, captions and
+ *      thumbnails on videos the owner uploaded by hand, and read the numbers.
+ *      A new session picks them up.
+ * Optionally YT_PLAYLIST_ID, the "Editions" playlist's id, as a repository
+ * variable and environment variable.
  */
 import http from 'node:http';
 import { exec } from 'node:child_process';
@@ -35,7 +43,10 @@ import { exec } from 'node:child_process';
 const { YT_CLIENT_ID, YT_CLIENT_SECRET } = process.env;
 if (!YT_CLIENT_ID || !YT_CLIENT_SECRET) { console.error('youtube-auth: set YT_CLIENT_ID and YT_CLIENT_SECRET'); process.exit(1); }
 let redirect;
-const SCOPES = ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube.force-ssl'];
+// upload: the video. force-ssl: metadata, captions, thumbnails, playlists. readonly and
+// yt-analytics.readonly: tools/youtube-analytics.mjs, so the builder reads the channel's
+// numbers. A token minted before the read scopes were added must be minted again.
+const SCOPES = ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube.force-ssl', 'https://www.googleapis.com/auth/youtube.readonly', 'https://www.googleapis.com/auth/yt-analytics.readonly'];
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://127.0.0.1');
