@@ -22,6 +22,8 @@ npm run film -- --slug edition-03   # the narrated film: script from the built p
 # Releases as film-<slug> (film, Short, captions, sheets, thumbnail). Or render locally with Playwright --no-save, ffmpeg, espeak-ng, uv.
 npm run film -- --slug edition-03 --step render --short   # the Short from the same narration, tall
 node tools/upload-youtube.mjs brand/youtube/edition-03/meta.json   # to the channel, private; needs YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN
+node tools/upload-youtube.mjs brand/youtube/edition-03/meta.json --update <videoId>   # set the generated title, description, captions, thumbnail on a hand-uploaded video
+node tools/youtube-analytics.mjs --days 28 --retention   # the channel's numbers as a report; same three secrets, read scopes
 ```
 
 ## How it is built
