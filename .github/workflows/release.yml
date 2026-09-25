@@ -10,6 +10,14 @@
 # Called by film.yml after a render, and dispatchable by hand with the slug
 # and the run id of any finished film run, to file a render that predates
 # this workflow.
+#
+# GitHub refuses a release asset of 2 GiB or more (HTTP 422, "size must be
+# less than 2147483648"). Found 2026-09-25 when The Snapshot Problem's film
+# came out of an uncapped CRF 20 encode at 2.34 GB and the upload aborted,
+# taking every later file with it. The encoder now caps the bitrate so a new
+# render never gets there; this job still guards the door: files are
+# uploaded one at a time so one failure cannot drop the rest, and a video at
+# or over the limit is transcoded here to the same cap before upload.
 name: release
 
 on:
@@ -52,6 +60,25 @@ jobs:
           run-id: ${{ inputs.run_id }}
           github-token: ${{ github.token }}
 
+      # A video at or over GitHub's 2 GiB asset limit is re-encoded to the same
+      # 8 Mbps cap the encoder now applies (tools/lib/film.mjs); the audio is
+      # copied untouched. ffmpeg is installed only when that happens.
+      - name: Fit any oversize video under the asset limit
+        run: |
+          set -e
+          LIMIT=2147483648
+          shopt -s nullglob
+          for f in out/*.mp4; do
+            size=$(stat -c %s "$f")
+            if [ "$size" -ge "$LIMIT" ]; then
+              echo "::warning::$f is $size bytes, over the 2 GiB asset limit; re-encoding at 8 Mbps"
+              command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
+              ffmpeg -hide_banner -loglevel error -y -i "$f" -c:v libx264 -preset medium -crf 20 -maxrate 8M -bufsize 16M -pix_fmt yuv420p -movflags +faststart -c:a copy "$f.fit.mp4"
+              mv "$f.fit.mp4" "$f"
+              echo "now $(stat -c %s "$f") bytes"
+            fi
+          done
+
       - name: File the release
         run: |
           set -e
@@ -63,7 +90,11 @@ jobs:
           fi
           gh release edit "$TAG" --title "$TITLE" --notes-file out/sheet.txt
           shopt -s nullglob
-          FILES=(out/*.mp4 out/*.srt out/*.txt out/*.json out/*.png)
-          gh release upload "$TAG" "${FILES[@]}" --clobber
+          # One file per call, so a refused file is one missing asset and not an empty release.
+          FAILED=()
+          for f in out/*.mp4 out/*.srt out/*.txt out/*.json out/*.png; do
+            gh release upload "$TAG" "$f" --clobber || FAILED+=("$f")
+          done
           echo "Filed under https://github.com/${{ github.repository }}/releases/tag/$TAG"
           gh release view "$TAG" --json assets --jq '.assets[] | "\(.name)  \(.size) bytes"'
+          if [ "${#FAILED[@]}" -gt 0 ]; then echo "::error::not uploaded: ${FAILED[*]}"; exit 1; fi

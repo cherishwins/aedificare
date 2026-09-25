@@ -280,15 +280,27 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - `.github/workflows/release.yml`: **the filing system for films.** A
   GitHub Release per edition named `film-<slug>`, holding the film, the
   Short, captions, sheets, meta and thumbnail as assets: permanent where
-  Actions artifacts expire in 90 days, one URL per file, 2 GB per asset,
-  free on a public repo, listed under the Releases tab. Every render
-  replaces the assets and the notes become the latest upload sheet.
-  Called by `film.yml` after each wide render; dispatchable by hand with
-  a slug and a finished run's id to file a render that predates it. The
-  owner's question (2026-09-24): "where can you put the video for me, we
-  need a filing system"; the answers considered were Drive (needs OAuth
-  again), Vercel (a static site's deploy is not a store) and Releases,
-  which needs nothing and is already beside the code.
+  Actions artifacts expire in 90 days, one URL per file, **under 2 GiB
+  per asset** (GitHub answers 422 at 2,147,483,648 bytes), free on a
+  public repo, listed under the Releases tab. Every render replaces the
+  assets and the notes become the latest upload sheet. Called by
+  `film.yml` after each wide render; dispatchable by hand with a slug and
+  a finished run's id to file a render that predates it. The owner's
+  question (2026-09-24): "where can you put the video for me, we need a
+  filing system"; the answers considered were Drive (needs OAuth again),
+  Vercel (a static site's deploy is not a store) and Releases, which
+  needs nothing and is already beside the code. **The limit bit once**
+  (2026-09-25): The Snapshot Problem's 14-minute film left an uncapped
+  CRF 20 encode at 2.34 GB, the upload was refused and, because every
+  file went up in one `gh release upload` call, so was everything after
+  it. Two fixes, both kept: the encoder in `tools/lib/film.mjs` caps
+  H.264 at 8 Mbps (`maxrate`, YouTube's own recommended rate for 1080p
+  SDR, which YouTube re-encodes anyway; under the limit until a film
+  runs 35 minutes), and the release job uploads one file per call and
+  transcodes any video still at or over the limit to the same cap before
+  uploading, so an old render can be filed without an hour's re-render.
+  The Closest Humans' film was 2.03 GB, a near miss that the cap now
+  makes impossible.
 - `.github/workflows/verify-live.yml`: manual dispatch, `url` input. Curls
   every route and discovery file on the live origin, checks the headers,
   canonical, draft noindex and sitemap exclusion, then runs the same sweep

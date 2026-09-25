@@ -166,13 +166,22 @@ export async function openContext(browser, F, FF, scale = 1) {
  * `audio` is a file muxed alongside (AAC 160k when the build has it), loudness
  * normalised; `music` is mixed under it at `musicGain`; `segments` cuts both
  * to the stretches of the source the frames were cut to.
+ *
+ * The H.264 bitrate is capped (`maxrate`, in Mbps, 8 by default: YouTube's own
+ * recommended upload rate for 1080p SDR at 24 to 30 fps). CRF alone has no
+ * ceiling, and on 2026-09-25 The Snapshot Problem's 14-minute film came out
+ * at 2.34 GB, over GitHub's 2 GiB release-asset limit, so it could not be
+ * filed. At 8 Mbps a film stays under that limit until it runs 35 minutes,
+ * and YouTube re-encodes everything on arrival, so nothing a viewer sees is
+ * lost. The cap only binds during the busiest rose motion; flat grounds and
+ * type sit far below it.
  */
-export function encoder(FF, file, fps, { audio = null, music = null, musicGain = 0.12, crf = 16, segments = null } = {}) {
+export function encoder(FF, file, fps, { audio = null, music = null, musicGain = 0.12, crf = 16, maxrate = 8, segments = null } = {}) {
   const args = ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', FF.frame === 'png' ? 'png' : 'mjpeg', '-i', 'pipe:0'];
   if (audio) args.push('-i', audio);
   if (audio && music) { if (!segments) args.push('-stream_loop', '-1'); args.push('-i', music); }
   args.push(...(FF.codec === 'libx264'
-    ? ['-c:v', 'libx264', '-preset', 'slow', '-crf', String(crf), '-pix_fmt', 'yuv420p', '-movflags', '+faststart']
+    ? ['-c:v', 'libx264', '-preset', 'slow', '-crf', String(crf), '-maxrate', `${maxrate}M`, '-bufsize', `${maxrate * 2}M`, '-pix_fmt', 'yuv420p', '-movflags', '+faststart']
     : ['-c:v', 'libvpx', '-b:v', '12M', '-crf', '6', '-quality', 'good', '-cpu-used', '1', '-auto-alt-ref', '1', '-lag-in-frames', '16', '-pix_fmt', 'yuv420p']));
   if (audio) {
     // `segments` ([[start, end], ...] in seconds of the source audio) cuts the voice and the bed the same way the
