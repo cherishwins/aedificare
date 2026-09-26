@@ -47,9 +47,9 @@ reported quarterly revenue; its note says so. -->
 
 ## A month of GPUs
 
-[[fig: $920M | A MONTH · GOOGLE TO SPACEX · FROM OCT 2026]] Google has agreed to pay SpaceX 920 million dollars a month, from October. [s1] It buys access to about 110,000 Nvidia GPUs, until June 2029. [s1]
+[[fig: $920M | A MONTH · GOOGLE TO SPACEX · FROM OCT 2026]] Google has agreed to pay SpaceX 920 million dollars a month, from October. [s1] [[fig: 110,000 | NVIDIA GPUS · TO JUNE 2029]] It buys access to about 110,000 Nvidia GPUs, until June 2029. [s1]
 
-[[chart: bars | One month of Google, three months of rockets | sub: US$ MILLIONS · SPACEX'S OWN FILINGS | prefix: $ | unit: M | note: FEES AS CONTRACTED · SPACE SEGMENT AS REPORTED | src: s2, s3, s1 | Space segment revenue, Apr to Jun 2026=962 | Anthropic, one month=1,250 | Google, one month from Oct 2026=920*]] In the whole second quarter, SpaceX's rockets brought in 962 million dollars. [s2] Google's 920 million buys one month. [s1] Anthropic, the bigger tenant, signed for 1.25 billion a month in May. [s3]
+[[chart: bars | One month of Google, three months of rockets | sub: US$ MILLIONS · SPACEX'S OWN FILINGS | prefix: $ | unit: M | note: FEES AS CONTRACTED · SPACE SEGMENT AS REPORTED | src: s2, s3, s1 | Space segment revenue, Apr to Jun 2026=962 | Anthropic, one month=1,250 | Google, one month from Oct 2026=920*]] In the whole second quarter, SpaceX's rockets brought in 962 million dollars. [s2] Google's 920 million buys one month. [s1] [[fig: $1.25B | A MONTH · ANTHROPIC · SIGNED MAY 2026]] Anthropic, the bigger tenant, signed for 1.25 billion a month in May. [s3]
 
 [[fig: 7.2% | OF SPACEX'S CLASS A SHARES · HELD BY GOOGLE]] Google also owns 7.2% of SpaceX's Class A shares. [s4]
 

@@ -298,9 +298,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   waits for, slates for missing footage, captions, chapters, sources and
   credits in the description, `meta.json` for the upload; charts from
   `tools/lib/chart.mjs`: bars, range, stack, timeline, flow and line,
-  built up on screen with the story's one point in Acid last, every chart
-  citing its sources on screen, designed with the dataviz skill's method
-  and its palette validator; `--short`
+  built up on screen with the story's one point in Acid landing on the
+  word that speaks its value (the narration's own timestamps), every
+  chart citing its sources on screen, type sized for a phone and a TV
+  (16:9 labels 40 px, Shorts clear of the right 120 px and the lower
+  quarter), designed with the dataviz skill's method and its palette
+  validator; `render` names every computed shot that holds past 14.4 s;
+  `--short`
   renders the same script tall and cuts the chapters named in the
   script's `short:` plus the end card into the Short, under three
   minutes, with its own captions and `meta-short.json`).

@@ -23,7 +23,10 @@
  * whose sources lack a URL or date, or whose quotes name no source. With
  * --online it also fetches every quote's source and fails a quote whose words
  * are not on that page. `render` runs `check` first and refuses to cut a
- * script that fails it.
+ * script that fails it. It also WARNS, without failing, when a chart's
+ * starred value is never spoken in its paragraph: the chart lands its point
+ * on the word that says it, and a starred figure nobody says is a figure
+ * nobody reads.
  *
  * The script format is documented in source/episodes/FORMAT.md.
  */
@@ -33,7 +36,7 @@ import { spawnSync } from 'node:child_process';
 import { browser, findFfmpeg, openContext, css, esc, FORMATS, ACID, MAL, BOTTLE, VOID, FLASH } from './lib/film.mjs';
 import { markPath } from '../src/lib/rose.mjs';
 import { SITE } from '../src/config.mjs';
-import { chartBody, chartCss, parseChart, CHART_TYPES } from './lib/chart.mjs';
+import { chartBody, chartCss, parseChart, CHART_TYPES, hotValues, findSpoken } from './lib/chart.mjs';
 
 const [STEP, FILE] = process.argv.slice(2);
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
@@ -133,6 +136,7 @@ function parse(file) {
 /* ---- check: facts are not free ------------------------------------------- */
 async function check(S, { quiet = false } = {}) {
   const issues = [...S.issues];
+  const warnings = []; // printed after the issues; they do not fail the check
   for (const k of ['title', 'date']) if (!S.meta[k]) issues.push(`front matter needs ${k}:`);
   for (const s of Object.values(S.sources)) {
     if (!/^https?:\/\//.test(s.url || '')) issues.push(`${s.id}: no URL`);
@@ -166,6 +170,10 @@ async function check(S, { quiet = false } = {}) {
         if (!e.tag.srcs.length) issues.push(`chart "${e.tag.title}" cites no source (src: s1, s2)`);
         for (const id of e.tag.srcs) { if (!S.sources[id]) issues.push(`chart "${e.tag.title}" cites ${id}, which is not in # Sources`); else used.add(id); }
         if (e.tag.type !== 'flow' && e.tag.type !== 'timeline' && e.tag.rows.filter((r) => r.hot).length > 1) issues.push(`chart "${e.tag.title}": one point is the story; mark one row with *, not ${e.tag.rows.filter((r) => r.hot).length}`);
+        // The chart lands its point on the word that says it (render); a point its paragraph never says cannot land.
+        const values = CHART_TYPES.includes(e.tag.type) ? hotValues(e.tag.type, e.tag.rows) : [];
+        const typed = (e.tag.type === 'line' ? e.tag.rows.slice().sort((p, q) => p.t - q.t).slice(-1) : e.tag.rows.filter((r) => r.hot)).map((r) => r.text ?? (r.rb ? `${r.ra}..${r.rb}` : r.ra)).join(', ');
+        if (values.length && findSpoken(b.tokens.map((w) => ({ w })), values) < 0) warnings.push(`chart "${e.tag.title}": its point (${typed}) is never spoken in its paragraph, so it lands on the chart's own timing; a starred figure nobody says is a figure nobody reads`);
       }
       if (e.tag.kind === 'map' && e.tag.stops.some((x) => !x)) issues.push(`map stops must be "Name lat,lon > Name lat,lon": ${e.tag.args[0]}`);
       if ((e.tag.kind === 'fig' || e.tag.kind === 'over') && /\d/.test(e.tag.value) && !b.cites.length) issues.push(`figure "${e.tag.value}" sits in a paragraph with no citation`);
@@ -195,6 +203,7 @@ async function check(S, { quiet = false } = {}) {
   if (!quiet) {
     if (issues.length) { console.error(`episode check: ${issues.length} issue(s)\n  ` + issues.join('\n  ')); }
     else console.log(`episode check: clean (${Object.keys(S.sources).length} sources, ${S.blocks.filter((b) => b.kind === 'p').length} paragraphs${ONLINE ? ', quotes found online' : ''})`);
+    if (warnings.length) console.warn(`episode check: ${warnings.length} warning(s), not failing\n  ` + warnings.join('\n  '));
   }
   return issues;
 }
@@ -432,14 +441,14 @@ ${tag.label ? `<div class="maplabel mono">${esc(tag.label)}</div>` : ''}
   return { html, anim: pts.length > 1, live: true };
 }
 
-function chartHtml(tag) {
+function chartHtml(tag, landMs = null) {
   const num = (v) => v.toLocaleString('en-US', { maximumFractionDigits: 3 });
   // A typed string (the value as the source prints it) passes through; a computed tick is formatted.
   const fmt = (v) => `${tag.prefix || ''}${typeof v === 'string' ? v : num(v)}${tag.unit || ''}`;
   const sourceLine = 'SOURCE: ' + tag.srcs.map((id) => S.sources[id]).filter(Boolean).map((s) => `${s.pub}, ${s.date}`).join(' · ');
-  const ref = tag.ref ? (() => { const m = /^(-?[\d.]+)\s*(.*)$/.exec(tag.ref); return m ? { v: +m[1], label: m[2] } : null; })() : null;
-  const { body, animMs } = chartBody({ type: tag.type, title: tag.title, sub: tag.sub, note: tag.note, sourceLine, rows: tag.rows, fmt, W, H, M, ref });
-  return { html: page(body, VOID, chartCss(W, H, M)), anim: true, live: true, animMs };
+  const ref = tag.ref ? (() => { const m = /^(-?[\d.]+)\s*(.*)$/.exec(tag.ref); return m ? { v: +m[1], r: m[1], label: m[2] } : null; })() : null;
+  const { body, animMs, landed } = chartBody({ type: tag.type, title: tag.title, sub: tag.sub, note: tag.note, sourceLine, rows: tag.rows, fmt, W, H, M, ref, landMs });
+  return { html: page(body, VOID, chartCss(W, H, M)), anim: true, live: true, animMs, landMs: landed ? landMs : null };
 }
 
 const figHtml = (tag) => ({ html: page(`<div class="big" style="font-size:${fit(tag.value, tag.value.length > 8 ? 260 : 360)}px;color:${ACID}">${esc(tag.value)}</div>${tag.label ? `<div class="sub mono" style="color:${MAL}">${esc(tag.label)}</div>` : ''}`) });
@@ -448,6 +457,22 @@ const titleHtml = () => ({ html: page(`<div class="stmt" style="font-size:${TY.t
 const slateHtml = (tag) => ({ html: page(`<div class="slate"><div class="k mono">${tag.kind === 'clip' ? 'Clip needed' : tag.kind === 'gag' ? 'Gag needed' : 'Footage needed'} · ${esc(tag.id)}</div><div class="d">${esc(tag.desc)}</div>${tag.say ? `<div class="f mono">Says: ${esc(tag.say)}</div>` : ''}${tag.find ? `<div class="f mono">Find: ${esc(tag.find)}</div>` : ''}</div>`, BOTTLE) });
 const endHtml = () => ({ html: page(`<div class="stmt" style="font-size:${TY.end}px;text-transform:none">${esc(new URL(SITE.origin).host)}</div><div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`) });
 const overHtml = (tag) => page(`${tag.value ? `<div class="big" style="font-size:${fit(tag.value, tag.value.length > 9 ? 200 : 300)}px;color:${ACID}">${esc(tag.value)}</div>` : ''}${tag.label ? `<div class="sub mono" style="color:${FLASH}">${esc(tag.label)}</div>` : ''}`, 'transparent');
+
+/**
+ * Where a chart's point lands (source/channel/brief-2026-09-26.md, 6: narration in step with the picture): on the
+ * first word inside the shot that speaks the starred value, in ms from the shot's first frame. Held to at least one
+ * beat in, so the context has a beat to build, and to half a beat before the cut, so the landed value is on screen
+ * before the next shot. Null when no word in the shot says it, or the shot is too short to build and land in; the
+ * chart then keeps its own timing.
+ */
+function chartLand(s, words, d) {
+  const inShot = words.filter((w) => w.s >= s.t && w.s < s.end);
+  const i = findSpoken(inShot, hotValues(s.tag.type, s.tag.rows));
+  if (i < 0) return null;
+  const at = (inShot[i].s - Math.round(s.t * FPS) / FPS) * 1000; // from the shot's first frame on the film's grid
+  const ms = Math.min(Math.max(at, 900), d * 1000 - 450);
+  return ms >= 900 ? { word: inShot[i], at, ms: Math.round(ms) } : null;
+}
 
 /* ---- render ------------------------------------------------------------------ */
 function ff(args, what) {
@@ -468,11 +493,11 @@ async function render() {
   // Brand check over every computed surface we typed; quoted words are someone else's and are checked by --online, not by the kit.
   const b = await browser();
   const { ctx, page: pg, show, shot } = await openContext(b, F, { frame: 'png' });
-  const html = async (s) => {
+  const html = async (s, landMs = null) => {
     const k = s.tag.kind;
     if (k === 'quote') return quoteHtml(s.tag, S);
     if (k === 'map') return mapHtml(s.tag);
-    if (k === 'chart') return chartHtml(s.tag);
+    if (k === 'chart') return chartHtml(s.tag, landMs);
     if (k === 'fig') return figHtml(s.tag);
     if (k === 'card') return cardHtml(s.tag);
     if (k === 'title') return titleHtml();
@@ -492,6 +517,7 @@ async function render() {
     const out = path.join(work, `${String(i).padStart(3, '0')}.mp4`);
     const enc = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '16', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-an', out];
     const f = OWNER.includes(s.tag.kind) ? footageFile(s.tag.id) : null;
+    let land = null; // a chart's spoken point, when the build lands on it
     if (f) {
       // B-roll cuts every four beats: a footage shot longer than six beats is cut into pieces of about 3.6 s,
       // each from a later moment of the same file, panning the other way. One clip becomes a sequence.
@@ -512,12 +538,21 @@ async function render() {
       if (n > 1) { process.stdout.write(`  ${String(i).padStart(3)} ${s.t.toFixed(2).padStart(7)} ${d.toFixed(2).padStart(6)}s ${s.tag.kind} ${s.tag.id} (${n} cuts)\n`); continue; }
     } else {
       if (OWNER.includes(s.tag.kind)) missing.add(s.tag.id);
-      const h = await html(s);
+      if (s.tag.kind === 'chart') {
+        // The brief's row limits: five in 16:9, three in a Short (a flow's rows are its edges; a line's points are not rows).
+        const cap = SHORT ? 3 : 5;
+        if (s.tag.type !== 'line' && s.tag.rows.length > cap) console.warn(`episode: chart "${s.tag.title}" has ${s.tag.rows.length} rows; a ${SHORT ? 'Short reads three' : '16:9 frame reads five'} at most, so fold or split it`);
+        land = chartLand(s, T.words, d);
+      }
+      const h = await html(s, land ? land.ms : null);
+      if (!h.landMs) land = null;
       fs.writeFileSync(path.join(brandDir, `${i}.html`), s.tag.kind === 'quote' ? h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>') : h.html);
       await show({ id: `${i}`, html: h.html, live: h.live });
       const fdir = path.join(work, `f${i}`); fs.mkdirSync(fdir);
       // A build longer than the shot is compressed to finish inside 80 percent of it, so the point always lands on screen.
-      const animMs = h.animMs || 900, pace = h.anim ? Math.max(1, animMs / (0.8 * d * 1000)) : 1;
+      // A chart landed on its word was already fitted inside the shot (chartLand), so it keeps the voice's own pace; the
+      // same rule, against the whole shot, still guarantees the build ends before the cut.
+      const animMs = h.animMs || 900, pace = h.anim ? Math.max(1, animMs / ((h.landMs ? 1 : 0.8) * d * 1000)) : 1;
       const n = h.anim ? Math.min(Math.ceil((animMs / pace / 1000) * FPS) + 1, Math.ceil(d * FPS)) : 1;
       for (let k = 0; k < n; k++) {
         if (h.live) await pg.evaluate((ms) => window.__frame(ms), (k / FPS) * 1000 * pace);
@@ -527,6 +562,12 @@ async function render() {
     }
     segs.push(out);
     process.stdout.write(`  ${String(i).padStart(3)} ${s.t.toFixed(2).padStart(7)} ${d.toFixed(2).padStart(6)}s ${s.tag.kind}${s.tag.id ? ' ' + s.tag.id : ''}${OWNER.includes(s.tag.kind) && !f ? ' (slate)' : ''}\n`);
+    if (s.tag.kind === 'chart') {
+      const held = !land || Math.round(land.at) === land.ms ? '' : ` (spoken at ${Math.round(land.at)} ms; held ${land.at < land.ms ? 'to one beat in' : 'to half a beat before the cut'})`;
+      process.stdout.write(land
+        ? `        ${s.tag.type} "${s.tag.title}": lands on "${land.word.w}" at ${land.word.s.toFixed(2)} s, landMs ${land.ms}${held}\n`
+        : `        ${s.tag.type} "${s.tag.title}": its point is not spoken in the shot; own timing\n`);
+    }
   }
   // Overlays: one transparent still each, cut in and out on the word.
   const overs = [];

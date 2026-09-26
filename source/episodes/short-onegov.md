@@ -45,9 +45,9 @@ politician is named; Laura Stanton is GSA's acting FAS commissioner. -->
 
 ## The dollar
 
-[[fig: $1 | PER AGENCY · A YEAR OF CHATGPT ENTERPRISE]] One dollar bought a federal agency a year of ChatGPT Enterprise. [s1] GSA announced the deal in August 2025, with 60 more days of unlimited advanced models on top. [s1]
+[[fig: $1 | PER AGENCY · A YEAR OF CHATGPT ENTERPRISE]] One dollar bought a federal agency a year of ChatGPT Enterprise. [s1] [[fig: +60 DAYS | UNLIMITED ADVANCED MODELS, ON TOP]] GSA announced the deal in August 2025, with 60 more days of unlimited advanced models on top. [s1]
 
-[[chart: bars | From a dollar to a meter | sub: GSA ONEGOV · PRICE PER AGENCY | prefix: $ | note: FROM 1 OCT, TOKENS ARE BILLED AT 50% OFF | src: s1, s3, s2 | Gemini for Government, 12 months=0.47 | ChatGPT Enterprise, a year=1.00* | ChatGPT from 1 Oct, platform fee=0 ($0 + tokens)]] Google's Gemini went for 47 cents. [s3] At 1 dollar, ChatGPT was not the cheapest. [s1] Both offers expire on the thirtieth of September. [s3] From October, agencies pay per token, at 50% off. [s2]
+[[chart: bars | From a dollar to a meter | sub: GSA ONEGOV · PRICE PER AGENCY | prefix: $ | note: FROM 1 OCT, TOKENS ARE BILLED AT 50% OFF | src: s1, s3, s2 | Gemini for Government, 12 months=0.47 | ChatGPT Enterprise, a year=1.00* | ChatGPT from 1 Oct, platform fee=0 ($0 + tokens)]] Google's Gemini went for 47 cents. [s3] At 1 dollar, ChatGPT was not the cheapest. [s1] [[fig: 30 SEP | BOTH $1 OFFERS EXPIRE]] Both offers expire on the thirtieth of September. [s3] [[fig: 50% OFF | PER TOKEN · FROM 1 OCT 2026]] From October, agencies pay per token, at 50% off. [s2]
 
 [[quote: s2 | "We launched OneGov AI deals because agencies wanted the ability to try new technologies before committing to a lengthy acquisition." | LAURA STANTON, ACTING COMMISSIONER, GSA FEDERAL ACQUISITION SERVICE, 10 SEP 2026 | hl: try new technologies before committing]] The new deal runs for 27 months. [s2] It has no minimum order, and no commitment either. [s2]
 

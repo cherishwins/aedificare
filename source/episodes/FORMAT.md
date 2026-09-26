@@ -107,8 +107,16 @@ takeaway ("Every sale has cost more than the last"), not the axis name;
 `sub:` says what is measured; `note:` says what the chart cannot (yen and
 dollar rates are not directly comparable); a value keeps the precision its
 source prints (5.10, not 5.1); `Label=400 (400+)` shows display text.
-A chart builds for as long as its shot allows: context first, the
-starred row last.
+A chart builds context first and lands its starred row on the word that
+says its value: the renderer finds that word in the narration's own
+timestamps (digits only, so "9.75%," and "114 dollars and 50 cents" both
+match) and times the build to finish on it, because narration in sync
+with the picture is the largest comprehension effect in the research
+(source/channel/brief-2026-09-26.md). `check` warns when no word in the
+chart's paragraph says the starred value; that chart falls back to
+building inside its shot. `render` warns past five rows (three in a
+Short) and names every computed shot that holds past 14.4 s (four bars of
+four beats): a static screen gets another cut.
 
 `#id` names the file the owner supplies (`footage/<id>.mp4`); without one,
 the id is the first five words of the description. `raw` on a footage tag
