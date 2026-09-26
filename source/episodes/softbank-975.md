@@ -3,6 +3,7 @@ title: SoftBank Is Borrowing at 9.75% to Pay OpenAI
 slug: softbank-975
 date: 2026-10-01
 speed: 1.05
+short: Cold open, The tote bag
 hook: On the first of October, SoftBank pays OpenAI 10 billion dollars. It borrowed the money a week earlier, at up to 9.75% a year, in the largest high-yield corporate bond sale on LSEG's records.
 thumb: 9.75% / TO PAY OPENAI
 thumbframe: sb-tokyo

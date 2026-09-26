@@ -9,7 +9,7 @@
  *   node tools/episode.mjs check   source/episodes/<slug>.md [--online]
  *   node tools/episode.mjs sheet   source/episodes/<slug>.md
  *   node tools/episode.mjs narrate source/episodes/<slug>.md
- *   node tools/episode.mjs render  source/episodes/<slug>.md [--music none|<file>]
+ *   node tools/episode.mjs render  source/episodes/<slug>.md [--music none|<file>] [--short]
  *   node tools/episode.mjs all     source/episodes/<slug>.md
  *
  * Work directory: brand/youtube/ep-<slug>/ (gitignored). The owner drops each
@@ -40,7 +40,13 @@ const ONLINE = process.argv.includes('--online');
 if (!['check', 'sheet', 'narrate', 'render', 'all'].includes(STEP) || !FILE || !fs.existsSync(FILE)) {
   console.error('usage: node tools/episode.mjs check|sheet|narrate|render|all source/episodes/<slug>.md'); process.exit(1);
 }
-const F = FORMATS.wide, W = F.W, H = F.H, FPS = 24, M = 120;
+// --short renders the same script tall (1080x1920) and cuts the chapters named in `short:` for the Shorts feed.
+const SHORT = process.argv.includes('--short');
+const F = SHORT ? FORMATS.tall : FORMATS.wide, W = F.W, H = F.H, FPS = 24, M = SHORT ? 64 : 120;
+// Type sized to the frame: tall frames are narrower, and the bottom third of a Short sits under YouTube's own controls.
+const TY = SHORT ? { quote: 62, stmt: 170, title: 190, end: 130, slate: 44, low: Math.round(H * 0.3) } : { quote: 84, stmt: 170, title: 200, end: 150, slate: 56, low: M + 150 };
+/** A figure's size: its base, or smaller if the string would not fit between the margins (condensed digits run about half an em). */
+const fit = (value, base) => Math.min(base, Math.floor((W - 2 * M) / (Math.max(1, value.length) * 0.5)));
 const KINDS = ['footage', 'gag', 'clip', 'quote', 'map', 'fig', 'card', 'title', 'over'];
 const CUTS = KINDS.filter((k) => k !== 'over');
 const OWNER = ['footage', 'gag', 'clip']; // shots the owner supplies
@@ -300,18 +306,18 @@ function narrate() {
 
 /* ---- the computed shots ---------------------------------------------------- */
 const page = (body, ground = VOID, extra = '') => `<!doctype html><html><head><meta charset="utf-8"><style>${css(F, ground, FLASH)}
-.q{position:absolute;left:${M}px;top:50%;transform:translateY(-50%);width:${W - 2 * M - 240}px}
+.q{position:absolute;left:${M}px;top:50%;transform:translateY(-50%);width:${W - 2 * M - (SHORT ? 0 : 240)}px}
 .q .src{font-size:22px;color:${MAL};margin-bottom:44px}
-.q .t{font-size:84px;line-height:1.12;font-variation-settings:'opsz' 48,'wdth' 100,'wght' 500;letter-spacing:-.005em}
+.q .t{font-size:${TY.quote}px;line-height:1.12;font-variation-settings:'opsz' 48,'wdth' 100,'wght' 500;letter-spacing:-.005em}
 .q .t .h:first-child,.q .t .h[data-k="0"]{padding-left:.08em;margin-left:-.08em}
 .q .t .h.on{background:${ACID};color:${VOID}}
 .q .by{margin-top:44px;font-size:24px}
-.big{position:absolute;left:${M - 6}px;bottom:${M + 150}px;font-variation-settings:'opsz' 96,'wdth' 75,'wght' 800;line-height:.86;letter-spacing:-.02em;white-space:nowrap}
-.sub{position:absolute;left:${M}px;bottom:${M + 90}px;font-size:26px}
-.stmt{position:absolute;left:${M - 6}px;top:50%;transform:translateY(-50%);max-width:${W - 2 * M}px;font-size:170px;line-height:.88;letter-spacing:-.02em;text-transform:uppercase;font-variation-settings:'opsz' 96,'wdth' 75,'wght' 800}
+.big{position:absolute;left:${M - 6}px;bottom:${TY.low}px;font-variation-settings:'opsz' 96,'wdth' 75,'wght' 800;line-height:.86;letter-spacing:-.02em;white-space:nowrap}
+.sub{position:absolute;left:${M}px;bottom:${TY.low - 60}px;font-size:26px}
+.stmt{position:absolute;left:${M - 6}px;top:50%;transform:translateY(-50%);max-width:${W - 2 * M}px;font-size:${TY.stmt}px;line-height:.88;letter-spacing:-.02em;text-transform:uppercase;font-variation-settings:'opsz' 96,'wdth' 75,'wght' 800}
 .slate{position:absolute;left:${M}px;top:50%;transform:translateY(-50%);max-width:${W - 2 * M}px}
 .slate .k{font-size:22px;color:${ACID};margin-bottom:28px}
-.slate .d{font-size:56px;line-height:1.1;font-variation-settings:'opsz' 48,'wdth' 100,'wght' 500}
+.slate .d{font-size:${TY.slate}px;line-height:1.1;font-variation-settings:'opsz' 48,'wdth' 100,'wght' 500}
 .slate .f{margin-top:28px;font-size:20px;color:${MAL};line-height:1.6}
 svg.map{position:absolute;inset:0;width:${W}px;height:${H}px}
 .maplabel{position:absolute;left:${M}px;top:${M}px;font-size:24px;color:${FLASH}}
@@ -409,12 +415,12 @@ ${tag.label ? `<div class="maplabel mono">${esc(tag.label)}</div>` : ''}
   return { html, anim: pts.length > 1, live: true };
 }
 
-const figHtml = (tag) => ({ html: page(`<div class="big" style="font-size:${tag.value.length > 8 ? 260 : 360}px;color:${ACID}">${esc(tag.value)}</div>${tag.label ? `<div class="sub mono" style="color:${MAL}">${esc(tag.label)}</div>` : ''}`) });
+const figHtml = (tag) => ({ html: page(`<div class="big" style="font-size:${fit(tag.value, tag.value.length > 8 ? 260 : 360)}px;color:${ACID}">${esc(tag.value)}</div>${tag.label ? `<div class="sub mono" style="color:${MAL}">${esc(tag.label)}</div>` : ''}`) });
 const cardHtml = (tag) => ({ html: page(`<div class="stmt">${esc(tag.text)}</div>${tag.label ? `<div class="sub mono" style="bottom:${M}px;color:${MAL}">${esc(tag.label)}</div>` : ''}`) });
-const titleHtml = () => ({ html: page(`<div class="stmt" style="font-size:200px">${esc(S.meta.title)}</div><div class="sub mono" style="bottom:${M}px;color:${MAL}">${esc(S.meta.date)}</div>${`<div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`}`) });
+const titleHtml = () => ({ html: page(`<div class="stmt" style="font-size:${TY.title}px">${esc(S.meta.title)}</div><div class="sub mono" style="bottom:${M}px;color:${MAL}">${esc(S.meta.date)}</div>${`<div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`}`) });
 const slateHtml = (tag) => ({ html: page(`<div class="slate"><div class="k mono">${tag.kind === 'clip' ? 'Clip needed' : tag.kind === 'gag' ? 'Gag needed' : 'Footage needed'} · ${esc(tag.id)}</div><div class="d">${esc(tag.desc)}</div>${tag.say ? `<div class="f mono">Says: ${esc(tag.say)}</div>` : ''}${tag.find ? `<div class="f mono">Find: ${esc(tag.find)}</div>` : ''}</div>`, BOTTLE) });
-const endHtml = () => ({ html: page(`<div class="stmt" style="font-size:150px;text-transform:none">${esc(new URL(SITE.origin).host)}</div><div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`) });
-const overHtml = (tag) => page(`${tag.value ? `<div class="big" style="font-size:${tag.value.length > 9 ? 200 : 300}px;color:${ACID}">${esc(tag.value)}</div>` : ''}${tag.label ? `<div class="sub mono" style="color:${FLASH}">${esc(tag.label)}</div>` : ''}`, 'transparent');
+const endHtml = () => ({ html: page(`<div class="stmt" style="font-size:${TY.end}px;text-transform:none">${esc(new URL(SITE.origin).host)}</div><div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`) });
+const overHtml = (tag) => page(`${tag.value ? `<div class="big" style="font-size:${fit(tag.value, tag.value.length > 9 ? 200 : 300)}px;color:${ACID}">${esc(tag.value)}</div>` : ''}${tag.label ? `<div class="sub mono" style="color:${FLASH}">${esc(tag.label)}</div>` : ''}`, 'transparent');
 
 /* ---- render ------------------------------------------------------------------ */
 function ff(args, what) {
@@ -429,7 +435,7 @@ async function render() {
   const FFx = findFfmpeg();
   if (FFx.codec !== 'libx264') { console.error('episode: needs an ffmpeg with libx264'); process.exit(1); }
   const T = timeline();
-  const work = path.join(DIR, 'work'); fs.rmSync(work, { recursive: true, force: true }); fs.mkdirSync(work, { recursive: true });
+  const work = path.join(DIR, SHORT ? 'work-short' : 'work'); fs.rmSync(work, { recursive: true, force: true }); fs.mkdirSync(work, { recursive: true });
   const t0 = Date.now();
 
   // Brand check over every computed surface we typed; quoted words are someone else's and are checked by --online, not by the kit.
@@ -504,7 +510,7 @@ async function render() {
   }
   // Thumbnail: a frame of the named shot, graded, with the two lines of type from the front matter.
   const thumb = path.join(DIR, 'thumb.png');
-  if (S.meta.thumb) {
+  if (S.meta.thumb && !SHORT) {
     const [line1, line2 = ''] = S.meta.thumb.split('/').map((x) => x.trim());
     const tm = /^(.*?)(?:(?:@|-at-)([\d.]+))?$/.exec(S.meta.thumbframe || '');
     const tid = tm[1], tat = tm[2] || '0';
@@ -556,7 +562,7 @@ async function render() {
     if (spawnSync('uv', ['run', '-q', 'tools/bed.py', bd], { stdio: 'inherit' }).status === 0) bedFile = path.join(bd, 'bed.wav');
   } else if (music !== 'none') bedFile = music;
 
-  const film = path.join(DIR, `${SLUG}.mp4`);
+  const film = SHORT ? path.join(work, 'full-tall.mp4') : path.join(DIR, `${SLUG}.mp4`);
   const fin = ['-i', body, '-i', voice];
   if (bedFile) fin.push('-i', bedFile);
   const ov = [];
@@ -582,11 +588,49 @@ async function render() {
   for (const c of T.clips) if (c.tag.say) cues.push({ s: c.t, e: c.t + c.dur, text: c.tag.say });
   cues.sort((a, b) => a.s - b.s);
   const ts = (x) => { const h = Math.floor(x / 3600), m = Math.floor((x % 3600) / 60), s = Math.floor(x % 60), ms = Math.round((x % 1) * 1000); return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`; };
-  fs.writeFileSync(path.join(DIR, 'captions.srt'), cues.map((c, i) => `${i + 1}\n${ts(c.s)} --> ${ts(c.e)}\n${c.text}\n`).join('\n'));
+  const srt = (list) => list.map((c, i) => `${i + 1}\n${ts(c.s)} --> ${ts(c.e)}\n${c.text}\n`).join('\n');
+  const sources = Object.values(S.sources).map((s, i) => `${i + 1}. ${s.pub}, ${s.title} (${s.date}) ${s.url}`);
+  const firstP = S.blocks.find((x) => x.kind === 'p');
+
+  if (SHORT) {
+    // The Short: the chapters named in `short:` (the first chapter by default), then the end card, cut from the
+    // tall render with voice and bed cut the same way, inside YouTube's three-minute ceiling for Shorts.
+    const named = T.chapters.filter((c) => c.t !== undefined);
+    const want = (S.meta.short || named[0]?.text || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
+    const segs = [];
+    for (const [k, c] of named.entries()) if (want.includes(c.text.toLowerCase())) segs.push([k === 0 ? 0 : c.t, k + 1 < named.length ? named[k + 1].t : T.total]);
+    const unknown = want.filter((w) => !named.some((c) => c.text.toLowerCase() === w));
+    if (unknown.length) { console.error(`episode: short: names no chapter "${unknown.join('", "')}"; chapters are: ${named.map((c) => c.text).join(', ')}`); process.exit(1); }
+    let room = 179 - (T.end - T.total);
+    for (const sg of segs) { const len = Math.min(sg[1] - sg[0], Math.max(0, room)); if (len < sg[1] - sg[0]) console.warn(`episode: the Short is capped at three minutes; cut at ${(sg[0] + len).toFixed(1)} s`); sg[1] = sg[0] + len; room -= len; }
+    segs.push([T.total, T.end]);
+    const cutFrames = (x) => (Math.round(x * FPS) / FPS).toFixed(4);
+    // One input per piece, seeked to it: trimming several pieces from one input makes ffmpeg hold every decoded frame
+    // between them in memory (a 1080x1920 film ran the sandbox out of it on 2026-09-26).
+    const ins = segs.flatMap(([a, b]) => ['-ss', cutFrames(a), '-to', cutFrames(b), '-i', film]);
+    const g = segs.map((_, k) => `[${k}:v]setpts=PTS-STARTPTS[v${k}];[${k}:a]asetpts=PTS-STARTPTS[a${k}]`).join(';')
+      + ';' + segs.map((_, k) => `[v${k}][a${k}]`).join('') + `concat=n=${segs.length}:v=1:a=1[v][a]`;
+    const short = path.join(DIR, `${SLUG}-short.mp4`);
+    ff([...ins, '-filter_complex', g, '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-maxrate', '8M', '-bufsize', '16M',
+      '-pix_fmt', 'yuv420p', '-r', String(FPS), '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', short], 'the Short');
+    const remap = (x) => { let acc = 0; for (const [a, b] of segs) { if (x >= a && x < b) return acc + (x - a); acc += b - a; } return null; };
+    const shortCues = cues.map((c) => ({ ...c, s: remap(c.s), e: remap(Math.min(c.e, segs.find(([a, b]) => c.s >= a && c.s < b)?.[1] ?? c.e) - 0.001) })).filter((c) => c.s !== null && c.e !== null);
+    fs.writeFileSync(path.join(DIR, 'captions-short.srt'), srt(shortCues));
+    const len = segs.reduce((n, [a, b]) => n + b - a, 0);
+    const description = [S.meta.hook || firstP.text, '', 'The full film is on the channel.', '', 'Sources:', ...sources, '', `Voice: synthetic, ${T.N.model} ${T.N.voice}.`, SITE.origin].join('\n');
+    fs.writeFileSync(path.join(DIR, 'meta-short.json'), JSON.stringify({
+      kind: 'short', slug: SLUG, title: S.meta.title, description, file: path.basename(short), captions: 'captions-short.srt',
+      thumbnail: null, categoryId: '28', licence: 'youtube', madeForKids: false, duration: Math.round(len),
+    }, null, 1) + '\n');
+    fs.writeFileSync(path.join(DIR, 'sheet-short.txt'), `Title: ${S.meta.title}\n\nDescription:\n${description}\n\nCaptions: captions-short.srt (English). Licence: Standard YouTube Licence. YouTube files it as a Short by its shape and length.\n`);
+    console.log(`episode: ${short} ${len.toFixed(1)} s from ${segs.length - 1} chapter(s) and the end card, ${Math.round(fs.statSync(short).size / 1048576)} MB, ${((Date.now() - t0) / 60000).toFixed(1)} min wall`);
+    if (missing.size) console.log(`episode: ${missing.size} shot(s) still slates: ${[...missing].join(', ')}`);
+    return;
+  }
+  fs.writeFileSync(path.join(DIR, 'captions.srt'), srt(cues));
 
   // Description: the hook, chapters, every source, the footage credits, the voice.
   const mmss = (x) => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
-  const firstP = S.blocks.find((x) => x.kind === 'p');
   const chapters = T.chapters.filter((c) => c.t !== undefined);
   const chapterLines = chapters.length >= 2 ? [`0:00 ${chapters[0].t < 10 ? chapters[0].text : 'Cold open'}`, ...chapters.slice(chapters[0].t < 10 ? 1 : 0).map((c) => `${mmss(c.t)} ${c.text}`)] : [];
   const creditsFile = path.join(FOOT, 'credits.txt');
@@ -596,7 +640,7 @@ async function render() {
     '',
     ...chapterLines, ...(chapterLines.length ? [''] : []),
     'Sources:',
-    ...Object.values(S.sources).map((s, i) => `${i + 1}. ${s.pub}, ${s.title} (${s.date}) ${s.url}`),
+    ...sources,
     '',
     ...(credits.length ? ['Footage:', ...credits, ''] : []),
     `Voice: synthetic, ${T.N.model} ${T.N.voice}. Quotes are the speakers' own words, cited above.`,

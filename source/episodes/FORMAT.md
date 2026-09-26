@@ -27,6 +27,9 @@ node tools/episode.mjs all    source/episodes/<slug>.md              narrate if 
    missing renders as a slate naming what it needs, so an early render is
    the animatic.
 7. **Upload.** From the release, with `sheet.txt`; or `upload-youtube.mjs`.
+   The Short (`render --short`, the chapters named in `short:`, tall, with
+   the end card) goes up the same day with `sheet-short.txt`; Shorts are a
+   separate feed, not a trailer.
 
 ## Front matter
 
@@ -39,6 +42,7 @@ speed: 1.05                       # am_michael's pace
 hook: optional first line of the description (defaults to the first paragraph)
 thumb: $18,214 / FOR ONE RADIO    # the thumbnail's two lines, split on /
 thumbframe: airmen-helmet-at-2.5  # which footage file, and how far in, the thumbnail is cut from
+short: Cold open, The tote bag     # the chapters the Short is cut from (default: the first); under three minutes
 ---
 ```
 
