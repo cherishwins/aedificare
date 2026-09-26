@@ -116,11 +116,19 @@ says its value: the renderer finds that word in the narration's own
 timestamps (digits only, so "9.75%," and "114 dollars and 50 cents" both
 match) and times the build to finish on it, because narration in sync
 with the picture is the largest comprehension effect in the research
-(source/channel/brief-2026-09-26.md). `check` warns when no word in the
-chart's paragraph says the starred value; that chart falls back to
-building inside its shot. `render` warns past five rows (three in a
-Short) and names every computed shot that holds past 14.4 s (four bars of
-four beats): a static screen gets another cut.
+(source/channel/brief-2026-09-26.md). `check` warns when no word spoken
+while the chart is on screen (from its tag to the next cut) says the
+starred value; that chart falls back to building inside its shot, which
+shows the point before the voice says it. `render` warns the same, past
+five rows (three in a Short), and names every computed shot that holds
+past 14.4 s (four bars of four beats): a static screen gets another cut.
+
+A chart that comes back after a cutaway is a second tag, and each
+appearance stars the number said while it is up: first July's two
+prices with `$554.72*`, then after the figure the same two rows and the
+backstop's `$555.00*`. Rows the previous chart of the same form already
+showed (bars and range, same label, same value) are held: drawn from the
+first frame, so only the new row builds and it lands on its word.
 
 `#id` names the file the owner supplies (`footage/<id>.mp4`); without one,
 the id is the first five words of the description. `raw` on a footage tag
