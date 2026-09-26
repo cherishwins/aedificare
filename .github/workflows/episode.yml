@@ -78,6 +78,10 @@ jobs:
       - name: Render
         run: node tools/episode.mjs all "source/episodes/$SLUG.md" --music "$MUSIC"
 
+      # The Short: the chapters named in the script's short:, tall, from the same narration.
+      - name: Short
+        run: node tools/episode.mjs render "source/episodes/$SLUG.md" --music "$MUSIC" --short
+
       - name: Upload the film
         uses: actions/upload-artifact@v4
         with:

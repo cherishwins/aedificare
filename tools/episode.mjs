@@ -9,7 +9,7 @@
  *   node tools/episode.mjs check   source/episodes/<slug>.md [--online]
  *   node tools/episode.mjs sheet   source/episodes/<slug>.md
  *   node tools/episode.mjs narrate source/episodes/<slug>.md
- *   node tools/episode.mjs render  source/episodes/<slug>.md [--music none|<file>]
+ *   node tools/episode.mjs render  source/episodes/<slug>.md [--music none|<file>] [--short]
  *   node tools/episode.mjs all     source/episodes/<slug>.md
  *
  * Work directory: brand/youtube/ep-<slug>/ (gitignored). The owner drops each
@@ -23,7 +23,10 @@
  * whose sources lack a URL or date, or whose quotes name no source. With
  * --online it also fetches every quote's source and fails a quote whose words
  * are not on that page. `render` runs `check` first and refuses to cut a
- * script that fails it.
+ * script that fails it. It also WARNS, without failing, when a chart's
+ * starred value is never spoken in its paragraph: the chart lands its point
+ * on the word that says it, and a starred figure nobody says is a figure
+ * nobody reads.
  *
  * The script format is documented in source/episodes/FORMAT.md.
  */
@@ -33,6 +36,7 @@ import { spawnSync } from 'node:child_process';
 import { browser, findFfmpeg, openContext, css, esc, FORMATS, ACID, MAL, BOTTLE, VOID, FLASH } from './lib/film.mjs';
 import { markPath } from '../src/lib/rose.mjs';
 import { SITE } from '../src/config.mjs';
+import { chartBody, chartCss, parseChart, CHART_TYPES, hotValues, findSpoken } from './lib/chart.mjs';
 
 const [STEP, FILE] = process.argv.slice(2);
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
@@ -40,8 +44,14 @@ const ONLINE = process.argv.includes('--online');
 if (!['check', 'sheet', 'narrate', 'render', 'all'].includes(STEP) || !FILE || !fs.existsSync(FILE)) {
   console.error('usage: node tools/episode.mjs check|sheet|narrate|render|all source/episodes/<slug>.md'); process.exit(1);
 }
-const F = FORMATS.wide, W = F.W, H = F.H, FPS = 24, M = 120;
-const KINDS = ['footage', 'gag', 'clip', 'quote', 'map', 'fig', 'card', 'title', 'over'];
+// --short renders the same script tall (1080x1920) and cuts the chapters named in `short:` for the Shorts feed.
+const SHORT = process.argv.includes('--short');
+const F = SHORT ? FORMATS.tall : FORMATS.wide, W = F.W, H = F.H, FPS = 24, M = SHORT ? 64 : 120;
+// Type sized to the frame: tall frames are narrower, and the bottom third of a Short sits under YouTube's own controls.
+const TY = SHORT ? { quote: 62, stmt: 170, title: 190, end: 130, slate: 44, low: Math.round(H * 0.3) } : { quote: 84, stmt: 170, title: 200, end: 150, slate: 56, low: M + 150 };
+/** A figure's size: its base, or smaller if the string would not fit between the margins (condensed digits run about half an em). */
+const fit = (value, base) => Math.min(base, Math.floor((W - 2 * M) / (Math.max(1, value.length) * 0.5)));
+const KINDS = ['footage', 'gag', 'clip', 'quote', 'map', 'chart', 'fig', 'card', 'title', 'over'];
 const CUTS = KINDS.filter((k) => k !== 'over');
 const OWNER = ['footage', 'gag', 'clip']; // shots the owner supplies
 // The grade that makes footage from six decades read as one film: most of the colour out, contrast up, pushed toward Void.
@@ -56,7 +66,7 @@ function parseTag(inner) {
   if (!m || !KINDS.includes(m[1])) return { bad: inner };
   const parts = m[3].split('|').map((x) => x.trim()).filter(Boolean);
   const opts = {}, args = [];
-  for (const p of parts) { const kv = /^(find|at|hl|say|by|raw|hold)\s*:\s*([\s\S]*)$/.exec(p); if (kv) opts[kv[1]] = kv[2].trim(); else args.push(p); }
+  for (const p of parts) { const kv = /^(find|at|hl|say|by|raw|hold|src|unit|prefix|note|sub|ref)\s*:\s*([\s\S]*)$/.exec(p); if (kv) opts[kv[1]] = kv[2].trim(); else args.push(p); }
   const tag = { kind: m[1], args, ...opts };
   if (OWNER.includes(tag.kind)) {
     tag.desc = args[0] || '';
@@ -71,6 +81,7 @@ function parseTag(inner) {
   }
   if (tag.kind === 'fig' || tag.kind === 'over') { tag.value = args[0] || ''; tag.label = args[1] || ''; }
   if (tag.kind === 'card' || tag.kind === 'title') { tag.text = args[0] || ''; tag.label = args[1] || ''; }
+  if (tag.kind === 'chart') { tag.type = args[0] || ''; tag.title = args[1] || ''; Object.assign(tag, parseChart(tag.type, args.slice(2))); tag.srcs = (tag.src || '').split(',').map((x) => x.trim()).filter(Boolean); }
   return tag;
 }
 
@@ -125,6 +136,7 @@ function parse(file) {
 /* ---- check: facts are not free ------------------------------------------- */
 async function check(S, { quiet = false } = {}) {
   const issues = [...S.issues];
+  const warnings = []; // printed after the issues; they do not fail the check
   for (const k of ['title', 'date']) if (!S.meta[k]) issues.push(`front matter needs ${k}:`);
   for (const s of Object.values(S.sources)) {
     if (!/^https?:\/\//.test(s.url || '')) issues.push(`${s.id}: no URL`);
@@ -150,6 +162,19 @@ async function check(S, { quiet = false } = {}) {
         if (!e.tag.text) issues.push('quote has no text');
       }
       if (CUTS.includes(e.tag.kind) && b.events.some((o) => o !== e && o.anchor === e.anchor && CUTS.includes(o.tag.kind) && b.events.indexOf(o) > b.events.indexOf(e))) issues.push(`two cuts on one word; the ${e.tag.kind} would get no screen time: "${b.tokens.slice(e.anchor, e.anchor + 5).join(' ')}"`);
+      if (e.tag.kind === 'chart') {
+        // A chart is a set of numbers, so it carries its own citations and they are on screen.
+        if (!CHART_TYPES.includes(e.tag.type)) issues.push(`chart type "${e.tag.type}" is not one of ${CHART_TYPES.join(', ')}`);
+        if (!e.tag.title) issues.push('chart has no title (the title is the takeaway, not the axis name)');
+        issues.push(...e.tag.errors.map((x) => `chart "${e.tag.title}": ${x}`));
+        if (!e.tag.srcs.length) issues.push(`chart "${e.tag.title}" cites no source (src: s1, s2)`);
+        for (const id of e.tag.srcs) { if (!S.sources[id]) issues.push(`chart "${e.tag.title}" cites ${id}, which is not in # Sources`); else used.add(id); }
+        if (e.tag.type !== 'flow' && e.tag.type !== 'timeline' && e.tag.rows.filter((r) => r.hot).length > 1) issues.push(`chart "${e.tag.title}": one point is the story; mark one row with *, not ${e.tag.rows.filter((r) => r.hot).length}`);
+        // The chart lands its point on the word that says it (render); a point its paragraph never says cannot land.
+        const values = CHART_TYPES.includes(e.tag.type) ? hotValues(e.tag.type, e.tag.rows) : [];
+        const typed = (e.tag.type === 'line' ? e.tag.rows.slice().sort((p, q) => p.t - q.t).slice(-1) : e.tag.rows.filter((r) => r.hot)).map((r) => r.text ?? (r.rb ? `${r.ra}..${r.rb}` : r.ra)).join(', ');
+        if (values.length && findSpoken(b.tokens.map((w) => ({ w })), values) < 0) warnings.push(`chart "${e.tag.title}": its point (${typed}) is never spoken in its paragraph, so it lands on the chart's own timing; a starred figure nobody says is a figure nobody reads`);
+      }
       if (e.tag.kind === 'map' && e.tag.stops.some((x) => !x)) issues.push(`map stops must be "Name lat,lon > Name lat,lon": ${e.tag.args[0]}`);
       if ((e.tag.kind === 'fig' || e.tag.kind === 'over') && /\d/.test(e.tag.value) && !b.cites.length) issues.push(`figure "${e.tag.value}" sits in a paragraph with no citation`);
     }
@@ -162,9 +187,15 @@ async function check(S, { quiet = false } = {}) {
       try {
         // A declared agent naming the site: SEC.gov refuses anonymous scripts (fair-access policy) and accepts this.
         const r = await fetch(S.sources[e.tag.src].url, { headers: { 'user-agent': `Mozilla/5.0 (compatible; Aedificare episode check; +${SITE.origin})` } });
-        // A page that refuses a script (403, a login wall) proves nothing either way: warned, not failed.
-        if (!r.ok) { console.warn(`episode check: ${e.tag.src} answered ${r.status}; verify its quote by hand`); continue; }
-        const page = norm(await r.text());
+        let body = r.ok ? await r.text() : null;
+        // Some publishers refuse Node's fetch and serve curl (Utility Dive, 2026-09-26): ask again that way before giving up.
+        if (body === null) {
+          const c = spawnSync('curl', ['-sSL', '--max-time', '60', '-A', `Mozilla/5.0 (compatible; Aedificare episode check; +${SITE.origin})`, S.sources[e.tag.src].url], { encoding: 'utf8', maxBuffer: 1 << 26 });
+          if (c.status === 0 && c.stdout.length > 2000) body = c.stdout;
+        }
+        // A page that still refuses (403, a login wall) proves nothing either way: warned, not failed.
+        if (body === null) { console.warn(`episode check: ${e.tag.src} answered ${r.status}; verify its quote by hand`); continue; }
+        const page = norm(body);
         if (!page.includes(norm(e.tag.text))) issues.push(`quote not found on ${e.tag.src}: "${e.tag.text.slice(0, 70)}"`);
       } catch (err) { console.warn(`episode check: could not fetch ${e.tag.src} (${err.message}); verify its quote by hand`); }
     }
@@ -172,6 +203,7 @@ async function check(S, { quiet = false } = {}) {
   if (!quiet) {
     if (issues.length) { console.error(`episode check: ${issues.length} issue(s)\n  ` + issues.join('\n  ')); }
     else console.log(`episode check: clean (${Object.keys(S.sources).length} sources, ${S.blocks.filter((b) => b.kind === 'p').length} paragraphs${ONLINE ? ', quotes found online' : ''})`);
+    if (warnings.length) console.warn(`episode check: ${warnings.length} warning(s), not failing\n  ` + warnings.join('\n  '));
   }
   return issues;
 }
@@ -300,18 +332,18 @@ function narrate() {
 
 /* ---- the computed shots ---------------------------------------------------- */
 const page = (body, ground = VOID, extra = '') => `<!doctype html><html><head><meta charset="utf-8"><style>${css(F, ground, FLASH)}
-.q{position:absolute;left:${M}px;top:50%;transform:translateY(-50%);width:${W - 2 * M - 240}px}
+.q{position:absolute;left:${M}px;top:50%;transform:translateY(-50%);width:${W - 2 * M - (SHORT ? 0 : 240)}px}
 .q .src{font-size:22px;color:${MAL};margin-bottom:44px}
-.q .t{font-size:84px;line-height:1.12;font-variation-settings:'opsz' 48,'wdth' 100,'wght' 500;letter-spacing:-.005em}
+.q .t{font-size:${TY.quote}px;line-height:1.12;font-variation-settings:'opsz' 48,'wdth' 100,'wght' 500;letter-spacing:-.005em}
 .q .t .h:first-child,.q .t .h[data-k="0"]{padding-left:.08em;margin-left:-.08em}
 .q .t .h.on{background:${ACID};color:${VOID}}
 .q .by{margin-top:44px;font-size:24px}
-.big{position:absolute;left:${M - 6}px;bottom:${M + 150}px;font-variation-settings:'opsz' 96,'wdth' 75,'wght' 800;line-height:.86;letter-spacing:-.02em;white-space:nowrap}
-.sub{position:absolute;left:${M}px;bottom:${M + 90}px;font-size:26px}
-.stmt{position:absolute;left:${M - 6}px;top:50%;transform:translateY(-50%);max-width:${W - 2 * M}px;font-size:170px;line-height:.88;letter-spacing:-.02em;text-transform:uppercase;font-variation-settings:'opsz' 96,'wdth' 75,'wght' 800}
+.big{position:absolute;left:${M - 6}px;bottom:${TY.low}px;font-variation-settings:'opsz' 96,'wdth' 75,'wght' 800;line-height:.86;letter-spacing:-.02em;white-space:nowrap}
+.sub{position:absolute;left:${M}px;bottom:${TY.low - 60}px;font-size:26px}
+.stmt{position:absolute;left:${M - 6}px;top:50%;transform:translateY(-50%);max-width:${W - 2 * M}px;font-size:${TY.stmt}px;line-height:.88;letter-spacing:-.02em;text-transform:uppercase;font-variation-settings:'opsz' 96,'wdth' 75,'wght' 800}
 .slate{position:absolute;left:${M}px;top:50%;transform:translateY(-50%);max-width:${W - 2 * M}px}
 .slate .k{font-size:22px;color:${ACID};margin-bottom:28px}
-.slate .d{font-size:56px;line-height:1.1;font-variation-settings:'opsz' 48,'wdth' 100,'wght' 500}
+.slate .d{font-size:${TY.slate}px;line-height:1.1;font-variation-settings:'opsz' 48,'wdth' 100,'wght' 500}
 .slate .f{margin-top:28px;font-size:20px;color:${MAL};line-height:1.6}
 svg.map{position:absolute;inset:0;width:${W}px;height:${H}px}
 .maplabel{position:absolute;left:${M}px;top:${M}px;font-size:24px;color:${FLASH}}
@@ -409,12 +441,38 @@ ${tag.label ? `<div class="maplabel mono">${esc(tag.label)}</div>` : ''}
   return { html, anim: pts.length > 1, live: true };
 }
 
-const figHtml = (tag) => ({ html: page(`<div class="big" style="font-size:${tag.value.length > 8 ? 260 : 360}px;color:${ACID}">${esc(tag.value)}</div>${tag.label ? `<div class="sub mono" style="color:${MAL}">${esc(tag.label)}</div>` : ''}`) });
+function chartHtml(tag, landMs = null) {
+  const num = (v) => v.toLocaleString('en-US', { maximumFractionDigits: 3 });
+  // A typed string (the value as the source prints it) passes through; a computed tick is formatted.
+  const fmt = (v) => `${tag.prefix || ''}${typeof v === 'string' ? v : num(v)}${tag.unit || ''}`;
+  const sourceLine = 'SOURCE: ' + tag.srcs.map((id) => S.sources[id]).filter(Boolean).map((s) => `${s.pub}, ${s.date}`).join(' · ');
+  const ref = tag.ref ? (() => { const m = /^(-?[\d.]+)\s*(.*)$/.exec(tag.ref); return m ? { v: +m[1], r: m[1], label: m[2] } : null; })() : null;
+  const { body, animMs, landed } = chartBody({ type: tag.type, title: tag.title, sub: tag.sub, note: tag.note, sourceLine, rows: tag.rows, fmt, W, H, M, ref, landMs });
+  return { html: page(body, VOID, chartCss(W, H, M)), anim: true, live: true, animMs, landMs: landed ? landMs : null };
+}
+
+const figHtml = (tag) => ({ html: page(`<div class="big" style="font-size:${fit(tag.value, tag.value.length > 8 ? 260 : 360)}px;color:${ACID}">${esc(tag.value)}</div>${tag.label ? `<div class="sub mono" style="color:${MAL}">${esc(tag.label)}</div>` : ''}`) });
 const cardHtml = (tag) => ({ html: page(`<div class="stmt">${esc(tag.text)}</div>${tag.label ? `<div class="sub mono" style="bottom:${M}px;color:${MAL}">${esc(tag.label)}</div>` : ''}`) });
-const titleHtml = () => ({ html: page(`<div class="stmt" style="font-size:200px">${esc(S.meta.title)}</div><div class="sub mono" style="bottom:${M}px;color:${MAL}">${esc(S.meta.date)}</div>${`<div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`}`) });
+const titleHtml = () => ({ html: page(`<div class="stmt" style="font-size:${TY.title}px">${esc(S.meta.title)}</div><div class="sub mono" style="bottom:${M}px;color:${MAL}">${esc(S.meta.date)}</div>${`<div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`}`) });
 const slateHtml = (tag) => ({ html: page(`<div class="slate"><div class="k mono">${tag.kind === 'clip' ? 'Clip needed' : tag.kind === 'gag' ? 'Gag needed' : 'Footage needed'} · ${esc(tag.id)}</div><div class="d">${esc(tag.desc)}</div>${tag.say ? `<div class="f mono">Says: ${esc(tag.say)}</div>` : ''}${tag.find ? `<div class="f mono">Find: ${esc(tag.find)}</div>` : ''}</div>`, BOTTLE) });
-const endHtml = () => ({ html: page(`<div class="stmt" style="font-size:150px;text-transform:none">${esc(new URL(SITE.origin).host)}</div><div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`) });
-const overHtml = (tag) => page(`${tag.value ? `<div class="big" style="font-size:${tag.value.length > 9 ? 200 : 300}px;color:${ACID}">${esc(tag.value)}</div>` : ''}${tag.label ? `<div class="sub mono" style="color:${FLASH}">${esc(tag.label)}</div>` : ''}`, 'transparent');
+const endHtml = () => ({ html: page(`<div class="stmt" style="font-size:${TY.end}px;text-transform:none">${esc(new URL(SITE.origin).host)}</div><div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`) });
+const overHtml = (tag) => page(`${tag.value ? `<div class="big" style="font-size:${fit(tag.value, tag.value.length > 9 ? 200 : 300)}px;color:${ACID}">${esc(tag.value)}</div>` : ''}${tag.label ? `<div class="sub mono" style="color:${FLASH}">${esc(tag.label)}</div>` : ''}`, 'transparent');
+
+/**
+ * Where a chart's point lands (source/channel/brief-2026-09-26.md, 6: narration in step with the picture): on the
+ * first word inside the shot that speaks the starred value, in ms from the shot's first frame. Held to at least one
+ * beat in, so the context has a beat to build, and to half a beat before the cut, so the landed value is on screen
+ * before the next shot. Null when no word in the shot says it, or the shot is too short to build and land in; the
+ * chart then keeps its own timing.
+ */
+function chartLand(s, words, d) {
+  const inShot = words.filter((w) => w.s >= s.t && w.s < s.end);
+  const i = findSpoken(inShot, hotValues(s.tag.type, s.tag.rows));
+  if (i < 0) return null;
+  const at = (inShot[i].s - Math.round(s.t * FPS) / FPS) * 1000; // from the shot's first frame on the film's grid
+  const ms = Math.min(Math.max(at, 900), d * 1000 - 450);
+  return ms >= 900 ? { word: inShot[i], at, ms: Math.round(ms) } : null;
+}
 
 /* ---- render ------------------------------------------------------------------ */
 function ff(args, what) {
@@ -429,16 +487,17 @@ async function render() {
   const FFx = findFfmpeg();
   if (FFx.codec !== 'libx264') { console.error('episode: needs an ffmpeg with libx264'); process.exit(1); }
   const T = timeline();
-  const work = path.join(DIR, 'work'); fs.rmSync(work, { recursive: true, force: true }); fs.mkdirSync(work, { recursive: true });
+  const work = path.join(DIR, SHORT ? 'work-short' : 'work'); fs.rmSync(work, { recursive: true, force: true }); fs.mkdirSync(work, { recursive: true });
   const t0 = Date.now();
 
   // Brand check over every computed surface we typed; quoted words are someone else's and are checked by --online, not by the kit.
   const b = await browser();
   const { ctx, page: pg, show, shot } = await openContext(b, F, { frame: 'png' });
-  const html = async (s) => {
+  const html = async (s, landMs = null) => {
     const k = s.tag.kind;
     if (k === 'quote') return quoteHtml(s.tag, S);
     if (k === 'map') return mapHtml(s.tag);
+    if (k === 'chart') return chartHtml(s.tag, landMs);
     if (k === 'fig') return figHtml(s.tag);
     if (k === 'card') return cardHtml(s.tag);
     if (k === 'title') return titleHtml();
@@ -458,6 +517,7 @@ async function render() {
     const out = path.join(work, `${String(i).padStart(3, '0')}.mp4`);
     const enc = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '16', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-an', out];
     const f = OWNER.includes(s.tag.kind) ? footageFile(s.tag.id) : null;
+    let land = null; // a chart's spoken point, when the build lands on it
     if (f) {
       // B-roll cuts every four beats: a footage shot longer than six beats is cut into pieces of about 3.6 s,
       // each from a later moment of the same file, panning the other way. One clip becomes a sequence.
@@ -478,19 +538,36 @@ async function render() {
       if (n > 1) { process.stdout.write(`  ${String(i).padStart(3)} ${s.t.toFixed(2).padStart(7)} ${d.toFixed(2).padStart(6)}s ${s.tag.kind} ${s.tag.id} (${n} cuts)\n`); continue; }
     } else {
       if (OWNER.includes(s.tag.kind)) missing.add(s.tag.id);
-      const h = await html(s);
+      if (s.tag.kind === 'chart') {
+        // The brief's row limits: five in 16:9, three in a Short (a flow's rows are its edges; a line's points are not rows).
+        const cap = SHORT ? 3 : 5;
+        if (s.tag.type !== 'line' && s.tag.rows.length > cap) console.warn(`episode: chart "${s.tag.title}" has ${s.tag.rows.length} rows; a ${SHORT ? 'Short reads three' : '16:9 frame reads five'} at most, so fold or split it`);
+        land = chartLand(s, T.words, d);
+      }
+      const h = await html(s, land ? land.ms : null);
+      if (!h.landMs) land = null;
       fs.writeFileSync(path.join(brandDir, `${i}.html`), s.tag.kind === 'quote' ? h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>') : h.html);
       await show({ id: `${i}`, html: h.html, live: h.live });
       const fdir = path.join(work, `f${i}`); fs.mkdirSync(fdir);
-      const n = h.anim ? Math.min(Math.ceil(0.9 * FPS) + 1, Math.ceil(d * FPS)) : 1;
+      // A build longer than the shot is compressed to finish inside 80 percent of it, so the point always lands on screen.
+      // A chart landed on its word was already fitted inside the shot (chartLand), so it keeps the voice's own pace; the
+      // same rule, against the whole shot, still guarantees the build ends before the cut.
+      const animMs = h.animMs || 900, pace = h.anim ? Math.max(1, animMs / ((h.landMs ? 1 : 0.8) * d * 1000)) : 1;
+      const n = h.anim ? Math.min(Math.ceil((animMs / pace / 1000) * FPS) + 1, Math.ceil(d * FPS)) : 1;
       for (let k = 0; k < n; k++) {
-        if (h.live) await pg.evaluate((ms) => window.__frame(ms), (k / FPS) * 1000);
+        if (h.live) await pg.evaluate((ms) => window.__frame(ms), (k / FPS) * 1000 * pace);
         fs.writeFileSync(path.join(fdir, `${String(k).padStart(4, '0')}.png`), await shot());
       }
       ff(['-framerate', String(FPS), '-i', path.join(fdir, '%04d.png'), '-vf', `tpad=stop_mode=clone:stop_duration=${d},trim=duration=${d},format=yuv420p`, ...enc], `shot ${i}`);
     }
     segs.push(out);
     process.stdout.write(`  ${String(i).padStart(3)} ${s.t.toFixed(2).padStart(7)} ${d.toFixed(2).padStart(6)}s ${s.tag.kind}${s.tag.id ? ' ' + s.tag.id : ''}${OWNER.includes(s.tag.kind) && !f ? ' (slate)' : ''}\n`);
+    if (s.tag.kind === 'chart') {
+      const held = !land || Math.round(land.at) === land.ms ? '' : ` (spoken at ${Math.round(land.at)} ms; held ${land.at < land.ms ? 'to one beat in' : 'to half a beat before the cut'})`;
+      process.stdout.write(land
+        ? `        ${s.tag.type} "${s.tag.title}": lands on "${land.word.w}" at ${land.word.s.toFixed(2)} s, landMs ${land.ms}${held}\n`
+        : `        ${s.tag.type} "${s.tag.title}": its point is not spoken in the shot; own timing\n`);
+    }
   }
   // Overlays: one transparent still each, cut in and out on the word.
   const overs = [];
@@ -504,7 +581,7 @@ async function render() {
   }
   // Thumbnail: a frame of the named shot, graded, with the two lines of type from the front matter.
   const thumb = path.join(DIR, 'thumb.png');
-  if (S.meta.thumb) {
+  if (S.meta.thumb && !SHORT) {
     const [line1, line2 = ''] = S.meta.thumb.split('/').map((x) => x.trim());
     const tm = /^(.*?)(?:(?:@|-at-)([\d.]+))?$/.exec(S.meta.thumbframe || '');
     const tid = tm[1], tat = tm[2] || '0';
@@ -556,7 +633,7 @@ async function render() {
     if (spawnSync('uv', ['run', '-q', 'tools/bed.py', bd], { stdio: 'inherit' }).status === 0) bedFile = path.join(bd, 'bed.wav');
   } else if (music !== 'none') bedFile = music;
 
-  const film = path.join(DIR, `${SLUG}.mp4`);
+  const film = SHORT ? path.join(work, 'full-tall.mp4') : path.join(DIR, `${SLUG}.mp4`);
   const fin = ['-i', body, '-i', voice];
   if (bedFile) fin.push('-i', bedFile);
   const ov = [];
@@ -582,11 +659,50 @@ async function render() {
   for (const c of T.clips) if (c.tag.say) cues.push({ s: c.t, e: c.t + c.dur, text: c.tag.say });
   cues.sort((a, b) => a.s - b.s);
   const ts = (x) => { const h = Math.floor(x / 3600), m = Math.floor((x % 3600) / 60), s = Math.floor(x % 60), ms = Math.round((x % 1) * 1000); return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`; };
-  fs.writeFileSync(path.join(DIR, 'captions.srt'), cues.map((c, i) => `${i + 1}\n${ts(c.s)} --> ${ts(c.e)}\n${c.text}\n`).join('\n'));
+  const srt = (list) => list.map((c, i) => `${i + 1}\n${ts(c.s)} --> ${ts(c.e)}\n${c.text}\n`).join('\n');
+  const sources = Object.values(S.sources).map((s, i) => `${i + 1}. ${s.pub}, ${s.title} (${s.date}) ${s.url}`);
+  const firstP = S.blocks.find((x) => x.kind === 'p');
+
+  if (SHORT) {
+    // The Short: the chapters named in `short:` (the first chapter by default), then the end card, cut from the
+    // tall render with voice and bed cut the same way, inside YouTube's three-minute ceiling for Shorts.
+    const named = T.chapters.filter((c) => c.t !== undefined);
+    const want = (S.meta.short || named[0]?.text || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
+    const segs = [];
+    for (const [k, c] of named.entries()) if (want.includes(c.text.toLowerCase())) segs.push([k === 0 ? 0 : c.t, k + 1 < named.length ? named[k + 1].t : T.total]);
+    const unknown = want.filter((w) => !named.some((c) => c.text.toLowerCase() === w));
+    if (unknown.length) { console.error(`episode: short: names no chapter "${unknown.join('", "')}"; chapters are: ${named.map((c) => c.text).join(', ')}`); process.exit(1); }
+    let room = 179 - (T.end - T.total);
+    for (const sg of segs) { const len = Math.min(sg[1] - sg[0], Math.max(0, room)); if (len < sg[1] - sg[0]) console.warn(`episode: the Short is capped at three minutes; cut at ${(sg[0] + len).toFixed(1)} s`); sg[1] = sg[0] + len; room -= len; }
+    segs.push([T.total, T.end]);
+    const cutFrames = (x) => (Math.round(x * FPS) / FPS).toFixed(4);
+    // One input per piece, seeked to it: trimming several pieces from one input makes ffmpeg hold every decoded frame
+    // between them in memory (a 1080x1920 film ran the sandbox out of it on 2026-09-26).
+    const ins = segs.flatMap(([a, b]) => ['-ss', cutFrames(a), '-to', cutFrames(b), '-i', film]);
+    const g = segs.map((_, k) => `[${k}:v]setpts=PTS-STARTPTS[v${k}];[${k}:a]asetpts=PTS-STARTPTS[a${k}]`).join(';')
+      + ';' + segs.map((_, k) => `[v${k}][a${k}]`).join('') + `concat=n=${segs.length}:v=1:a=1[v][a]`;
+    const short = path.join(DIR, `${SLUG}-short.mp4`);
+    ff([...ins, '-filter_complex', g, '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-maxrate', '8M', '-bufsize', '16M',
+      '-pix_fmt', 'yuv420p', '-r', String(FPS), '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', short], 'the Short');
+    const remap = (x) => { let acc = 0; for (const [a, b] of segs) { if (x >= a && x < b) return acc + (x - a); acc += b - a; } return null; };
+    const shortCues = cues.map((c) => ({ ...c, s: remap(c.s), e: remap(Math.min(c.e, segs.find(([a, b]) => c.s >= a && c.s < b)?.[1] ?? c.e) - 0.001) })).filter((c) => c.s !== null && c.e !== null);
+    fs.writeFileSync(path.join(DIR, 'captions-short.srt'), srt(shortCues));
+    const len = segs.reduce((n, [a, b]) => n + b - a, 0);
+    const description = [S.meta.hook || firstP.text, '', 'The full film is on the channel.', '', 'Sources:', ...sources, '', `Voice: synthetic, ${T.N.model} ${T.N.voice}.`, SITE.origin].join('\n');
+    fs.writeFileSync(path.join(DIR, 'meta-short.json'), JSON.stringify({
+      kind: 'short', slug: SLUG, title: S.meta.title, description, file: path.basename(short), captions: 'captions-short.srt',
+      thumbnail: null, categoryId: '28', licence: 'youtube', madeForKids: false, duration: Math.round(len),
+    }, null, 1) + '\n');
+    fs.writeFileSync(path.join(DIR, 'sheet-short.txt'), `Title: ${S.meta.title}\n\nDescription:\n${description}\n\nCaptions: captions-short.srt (English). Licence: Standard YouTube Licence. YouTube files it as a Short by its shape and length.\n`);
+    console.log(`episode: ${short} ${len.toFixed(1)} s from ${segs.length - 1} chapter(s) and the end card, ${Math.round(fs.statSync(short).size / 1048576)} MB, ${((Date.now() - t0) / 60000).toFixed(1)} min wall`);
+    if (missing.size) console.log(`episode: ${missing.size} shot(s) still slates: ${[...missing].join(', ')}`);
+    longHolds(T);
+    return;
+  }
+  fs.writeFileSync(path.join(DIR, 'captions.srt'), srt(cues));
 
   // Description: the hook, chapters, every source, the footage credits, the voice.
   const mmss = (x) => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
-  const firstP = S.blocks.find((x) => x.kind === 'p');
   const chapters = T.chapters.filter((c) => c.t !== undefined);
   const chapterLines = chapters.length >= 2 ? [`0:00 ${chapters[0].t < 10 ? chapters[0].text : 'Cold open'}`, ...chapters.slice(chapters[0].t < 10 ? 1 : 0).map((c) => `${mmss(c.t)} ${c.text}`)] : [];
   const creditsFile = path.join(FOOT, 'credits.txt');
@@ -596,7 +712,7 @@ async function render() {
     '',
     ...chapterLines, ...(chapterLines.length ? [''] : []),
     'Sources:',
-    ...Object.values(S.sources).map((s, i) => `${i + 1}. ${s.pub}, ${s.title} (${s.date}) ${s.url}`),
+    ...sources,
     '',
     ...(credits.length ? ['Footage:', ...credits, ''] : []),
     `Voice: synthetic, ${T.N.model} ${T.N.voice}. Quotes are the speakers' own words, cited above.`,
@@ -611,6 +727,13 @@ async function render() {
   sheet(T);
   console.log(`episode: ${film} ${(T.end / 60).toFixed(1)} min, ${T.shots.length} shots, ${overs.length} overlays, ${Math.round(fs.statSync(film).size / 1048576)} MB, ${((Date.now() - t0) / 60000).toFixed(1)} min wall`);
   if (missing.size) console.log(`episode: ${missing.size} shot(s) still slates: ${[...missing].join(', ')}`);
+  longHolds(T);
+}
+
+/** A computed surface that holds past four beats of four is a static screen: say where, so the script gets another cut. */
+function longHolds(T) {
+  const long = T.shots.filter((s) => !OWNER.includes(s.tag.kind) && !['end', 'blank'].includes(s.tag.kind) && s.end - s.t > 14.4);
+  for (const s of long) console.warn(`episode: long hold, ${(s.end - s.t).toFixed(1)} s of ${s.tag.kind} at ${Math.floor(s.t / 60)}:${String(Math.floor(s.t % 60)).padStart(2, '0')} (${s.tag.title || s.tag.value || s.tag.text || s.tag.by || ''}); add a cut`);
 }
 
 if (STEP === 'check') { const issues = await check(S); process.exit(issues.length ? 1 : 0); }
