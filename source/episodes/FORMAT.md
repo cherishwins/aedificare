@@ -43,6 +43,10 @@ hook: optional first line of the description (defaults to the first paragraph)
 thumb: $18,214 / FOR ONE RADIO    # the thumbnail's two lines, split on /
 thumbframe: airmen-helmet-at-2.5  # which footage file, and how far in, the thumbnail is cut from
 short: Cold open, The tote bag     # the chapters the Short is cut from (default: the first); under three minutes
+title2: …                          # optional: up to three titles and three thumbnails for YouTube's
+title3: …                          # Test & Compare; thumb2/thumbframe2 and thumb3/thumbframe3 render
+thumb2: … / …                      # thumb-b.png and thumb-c.png (a variant without its own frame uses
+thumbframe2: …                     # the first one's); sheet.txt lists every variant
 ---
 ```
 

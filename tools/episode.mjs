@@ -579,24 +579,28 @@ async function render() {
     fs.writeFileSync(p, await shot({ omitBackground: true, type: 'png' }));
     overs.push({ ...o, png: p });
   }
-  // Thumbnail: a frame of the named shot, graded, with the two lines of type from the front matter.
-  const thumb = path.join(DIR, 'thumb.png');
-  if (S.meta.thumb && !SHORT) {
-    const [line1, line2 = ''] = S.meta.thumb.split('/').map((x) => x.trim());
-    const tm = /^(.*?)(?:(?:@|-at-)([\d.]+))?$/.exec(S.meta.thumbframe || '');
+  // Thumbnails: a frame of the named shot, graded, with two lines of type. Up to three variants for YouTube's
+  // Test & Compare (thumb/thumbframe, thumb2/thumbframe2, thumb3/thumbframe3; a variant without its own frame
+  // uses the first one's): thumb.png, thumb-b.png, thumb-c.png.
+  const thumbs = [['', 'thumb.png'], ['2', 'thumb-b.png'], ['3', 'thumb-c.png']]
+    .filter(([n]) => S.meta[`thumb${n}`])
+    .map(([n, file]) => ({ n, file, text: S.meta[`thumb${n}`], frame: S.meta[`thumbframe${n}`] || S.meta.thumbframe || '' }));
+  for (const v of SHORT ? [] : thumbs) {
+    const [line1, line2 = ''] = v.text.split('/').map((x) => x.trim());
+    const tm = /^(.*?)(?:(?:@|-at-)([\d.]+))?$/.exec(v.frame);
     const tid = tm[1], tat = tm[2] || '0';
     const tf = tid ? footageFile(tid) : null;
     let bg = '';
     if (tf) {
-      const jpg = path.join(work, 'thumb-bg.jpg');
+      const jpg = path.join(work, `thumb${v.n}-bg.jpg`);
       ff([...(tf.still ? [] : ['-ss', String(tf.inPoint + +tat)]), '-i', tf.file, '-frames:v', '1', '-vf', `scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},${GRADE.replace(/,noise=[^,]+$/, '')}`, jpg], 'thumbnail frame');
       bg = `<img src="data:image/jpeg;base64,${fs.readFileSync(jpg).toString('base64')}" style="position:absolute;inset:0;width:${W}px;height:${H}px">`;
     }
-    const th = page(`${bg}<div class="big" style="bottom:${M + 190}px;font-size:${line1.length > 8 ? 330 : 420}px;color:${ACID}">${esc(line1)}</div><div class="big" style="bottom:${M}px;font-size:170px;color:${FLASH}">${esc(line2)}</div>`);
-    fs.writeFileSync(path.join(brandDir, 'thumb.html'), th.replace(/<img[^>]+>/, ''));
-    await show({ id: 'thumb', html: th });
-    fs.writeFileSync(path.join(work, 'thumb-1080.png'), await shot({ type: 'png' }));
-    ff(['-i', path.join(work, 'thumb-1080.png'), '-vf', 'scale=1280:720', thumb], 'thumbnail');
+    const th = page(`${bg}<div class="big" style="bottom:${M + 190}px;font-size:${fit(line1, line1.length > 8 ? 330 : 420)}px;color:${ACID}">${esc(line1)}</div><div class="big" style="bottom:${M}px;font-size:${fit(line2, 170)}px;color:${FLASH}">${esc(line2)}</div>`);
+    fs.writeFileSync(path.join(brandDir, `thumb${v.n}.html`), th.replace(/<img[^>]+>/, ''));
+    await show({ id: `thumb${v.n}`, html: th });
+    fs.writeFileSync(path.join(work, `thumb${v.n}-1080.png`), await shot({ type: 'png' }));
+    ff(['-i', path.join(work, `thumb${v.n}-1080.png`), '-vf', 'scale=1280:720', path.join(DIR, v.file)], 'thumbnail');
   }
   await ctx.close(); await b.close();
   const brand = spawnSync('node', ['tools/check-brand.cjs', brandDir], { encoding: 'utf8' });
@@ -722,8 +726,14 @@ async function render() {
   fs.writeFileSync(path.join(DIR, 'meta.json'), JSON.stringify({
     kind: 'film', slug: SLUG, title: S.meta.title, description, file: path.basename(film), captions: 'captions.srt',
     thumbnail: S.meta.thumb ? 'thumb.png' : null, categoryId: '28', licence: 'youtube', madeForKids: false, duration: Math.round(T.end),
+    variants: { titles: [S.meta.title, S.meta.title2, S.meta.title3].filter(Boolean), thumbnails: thumbs.map((v) => v.file) },
   }, null, 1) + '\n');
-  fs.writeFileSync(path.join(DIR, 'sheet.txt'), `Title: ${S.meta.title}\n\nDescription:\n${description}\n\nCaptions: captions.srt (English). Thumbnail: thumb.png. Licence: Standard YouTube Licence.\n`);
+  // Test & Compare takes up to three titles and three thumbnails; the sheet lists every variant the script names.
+  const titleVariants = [S.meta.title, S.meta.title2, S.meta.title3].filter(Boolean);
+  const variantLines = titleVariants.length > 1 || thumbs.length > 1
+    ? `\n\nTest & Compare (Studio, the video's Details, "A/B testing"):\n${titleVariants.map((t, i) => `  Title ${'ABC'[i]}: ${t}`).join('\n')}\n${thumbs.map((v, i) => `  Thumbnail ${'ABC'[i]}: ${v.file}`).join('\n')}`
+    : '';
+  fs.writeFileSync(path.join(DIR, 'sheet.txt'), `Title: ${S.meta.title}\n\nDescription:\n${description}\n\nCaptions: captions.srt (English). Thumbnail: thumb.png. Licence: Standard YouTube Licence.${variantLines}\n`);
   sheet(T);
   console.log(`episode: ${film} ${(T.end / 60).toFixed(1)} min, ${T.shots.length} shots, ${overs.length} overlays, ${Math.round(fs.statSync(film).size / 1048576)} MB, ${((Date.now() - t0) / 60000).toFixed(1)} min wall`);
   if (missing.size) console.log(`episode: ${missing.size} shot(s) still slates: ${[...missing].join(', ')}`);
