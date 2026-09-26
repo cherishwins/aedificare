@@ -299,11 +299,15 @@ for a shortlist for bios and cards, which is a separate deliverable.
   credits in the description, `meta.json` for the upload; charts from
   `tools/lib/chart.mjs`: bars, range, stack, timeline, flow and line,
   built up on screen with the story's one point in Acid landing on the
-  word that speaks its value (the narration's own timestamps), every
+  word that speaks its value (the narration's own timestamps; `check`
+  warns when no word said while the chart is up says it, because then
+  the picture gives the point away before the voice), a chart that
+  comes back holding the rows it already showed, every
   chart citing its sources on screen, type sized for a phone and a TV
   (16:9 labels 40 px, Shorts clear of the right 120 px and the lower
   quarter), designed with the dataviz skill's method and its palette
-  validator; `render` names every computed shot that holds past 14.4 s;
+  validator; `render` names every computed shot that stands still past
+  14.4 s once its build has finished;
   `--short`
   renders the same script tall and cuts the chapters named in the
   script's `short:` plus the end card into the Short, under three

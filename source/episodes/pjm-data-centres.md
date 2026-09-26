@@ -5,8 +5,14 @@ date: 2026-10-08
 speed: 1.05
 short: Cold open, The rerun
 hook: PJM's own market monitor says 6.3 billion dollars of the grid's latest capacity auction, 38.2% of its 16.4 billion in charges, was a result of data centre load. It is an estimate, made by running the auction again without them.
+title2: Data Centers Cost America's Largest Grid $6.3 Billion. Who Pays?
+title3: The Grid Hit Its Price Cap. Without It, $554.72
 thumb: $6.3B / DATA CENTRES
 thumbframe: loudoun-landsat
+thumb2: $554.72 / NO CAP
+thumbframe2: power-plant
+thumb3: 38.2% / OF THE AUCTION
+thumbframe3: pjm-night
 ---
 
 <!-- Episode 2 (story from the owner's brief, 2026-09-26). Every figure below
@@ -78,6 +84,6 @@ What has arrived is the cost of the earlier auctions. [[chart: bars | Data centr
 
 [[footage#transmission-lines: high-voltage transmission towers in a long row across open country | find: US Department of Energy photo library at energy.gov, or the Library of Congress Carol M. Highsmith Archive, "transmission lines" (public domain)]] PJM's answer to the shortfall is a one-time backstop auction, [[over: 6.8 GW | ONE-TIME BACKSTOP AUCTION]] for about 6.8 gigawatts. [s6] [[chart: timeline | Bids open on 30 September, if FERC accepts in time | src: s1, s7, s6 | 2026-07-14=6,831 MW short | 2026-07-31=Plan filed at FERC | 2026-09-30=Bids open* | 2026-10-21=Bids close | 2026-12-02=Results due]] PJM filed the plan with FERC on the thirty-first of July. [s7] Bids run from the thirtieth of September to the twenty-first of October. [s6] [[card: ONLY IF FERC ACCEPTS.]] The window opens only if FERC accepts the plan. [s7] Results are due by the second of December, and winners get commitments of up to 15 years. [s6, s7] [[card: WHO PAYS: EACH STATE DECIDES.]] Which customers pay is left to each state. [s6]
 
-[[chart: bars | The next cap sits 28 cents above July's uncapped price | sub: $ PER MW-DAY · UCAP | prefix: $ | note: NOT DIRECTLY COMPARABLE · THE BACKSTOP CAP LIMITS THE WEIGHTED AVERAGE OF SELECTED OFFERS, UP TO 15 YEARS | src: s2, s7 | July auction, as capped=325.00 | July auction without the cap, PJM's simulation, most of the grid=554.72 | Backstop, proposed cap=555.00*]] PJM also ran July's auction again without its cap and floor. [s2] Across most of the grid, it cleared at 554 dollars and 72 cents a megawatt-day. [s2] [[fig: $29.7B | JULY WITHOUT THE CAP · NOT $16.4B]] The total would have been 29.7 billion dollars, not 16.4. [s2] [[chart: bars | The next cap sits 28 cents above July's uncapped price | sub: $ PER MW-DAY · UCAP | prefix: $ | note: NOT DIRECTLY COMPARABLE · THE BACKSTOP CAP LIMITS THE WEIGHTED AVERAGE OF SELECTED OFFERS, UP TO 15 YEARS | src: s2, s7 | July auction, as capped=325.00 | July auction without the cap, PJM's simulation, most of the grid=554.72 | Backstop, proposed cap=555.00*]] The cap PJM proposes for the backstop is 555 dollars. [s7, s6]
+[[chart: bars | Rerun without its cap, July reaches $554.72 | sub: $ PER MW-DAY · UCAP | prefix: $ | src: s2 | July auction, as capped=325.00 | July auction without the cap, PJM's simulation, most of the grid=554.72*]] PJM also ran July's auction again without its cap and floor. [s2] Across most of the grid, it cleared at 554 dollars and 72 cents a megawatt-day. [s2] [[fig: $29.7B | JULY WITHOUT THE CAP · NOT $16.4B]] The total would have been 29.7 billion dollars, not 16.4. [s2] [[chart: bars | The next cap sits 28 cents above July's uncapped price | sub: $ PER MW-DAY · UCAP | prefix: $ | note: NOT DIRECTLY COMPARABLE · THE BACKSTOP CAP LIMITS THE WEIGHTED AVERAGE OF SELECTED OFFERS, UP TO 15 YEARS | src: s2, s7 | July auction, as capped=325.00 | July auction without the cap, PJM's simulation, most of the grid=554.72 | Backstop, proposed cap=555.00*]] The cap PJM proposes for the backstop is 555 dollars. [s7, s6]
 
 [[card: 28 CENTS APART.]] The two numbers are 28 cents apart. [s2, s7]

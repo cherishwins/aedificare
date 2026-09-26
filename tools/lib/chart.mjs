@@ -15,6 +15,13 @@
  * match the chart keeps its own timing (context over one beat, the point over
  * the next).
  *
+ * A chart that comes back (the same bars or range after a cutaway, one row
+ * added) does not build its context twice: rows already on screen in the
+ * film's previous chart of the same form, same label and same value, are
+ * `held` and drawn from the first frame, so only what is new builds and the
+ * point lands on its word. The viewer has seen those bars; redrawing them
+ * spends a beat on nothing.
+ *
  * Colour is emphasis, never categorical: the point the story is about is
  * Acid, everything else Malachite, gridlines Bottle, text Flash and Malachite
  * mono. Validated with the dataviz skill's validator on Void (2026-09-26):
@@ -97,6 +104,9 @@ export const numKey = (s) => {
   const d = String(s).replace(/[^0-9.]/g, '').replace(/\.+$/, '');
   return /\d/.test(d) && Number.isFinite(+d) ? +d : null;
 };
+
+/** A bars or range row as the film shows it, for holding a row that is already on screen (chartBody's `held`). */
+export const rowKey = (r) => `${r.label}=${r.ra}${r.rb !== null && r.rb !== undefined ? '..' + r.rb : ''}`;
 
 /**
  * The values that say a chart's point: the starred row's value (both ends of
@@ -201,9 +211,11 @@ function land(steps, landMs) {
  * The chart as a body fragment for the episode page: SVG plus the build-up script.
  * `fmt` formats a value (unit, prefix); `W`, `H`, `M` are the frame and margin;
  * `landMs`, when the narration says the point, is when it lands, in ms from the
- * shot's first frame. Returns { body, animMs, landed }.
+ * shot's first frame. `held` lists rowKey()s already on screen in the chart
+ * before this one (bars and range only): those rows are drawn from the first
+ * frame and take no build time. Returns { body, animMs, landed }.
  */
-export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H, M, ref, landMs = null }) {
+export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H, M, ref, landMs = null, held = [] }) {
   const tall = H > W;
   const Z = chartSizes(tall);
   // A Short's right edge sits under YouTube's buttons: nothing a tall chart draws comes within 120 px of it
@@ -269,6 +281,7 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
       const y = ptop + rowH * i;
       const colour = r.hot ? ACID : MAL;
       const at = r.hot ? hotAt : ctxAt;
+      const keep = !r.hot && held.includes(rowKey(r)); // on screen in the previous chart: drawn, not built
       const e = nid(), v = nid(), size = vsize(r);
       if (type === 'bars') {
         const bh = Math.max(24, Math.min(Z.bar, column ? rowH - 36 : rowH - above - 24));
@@ -277,7 +290,7 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
         else els.push(text(px0, y + Z.label * 0.8, r.label, { fit: X1 - px0 }));
         els.push(`<rect id="${e}" x="${px0}" y="${by.toFixed(1)}" width="${len.toFixed(1)}" height="${bh}" rx="2" fill="${colour}" data-w="${len.toFixed(1)}"/>`);
         els.push(`<g id="${v}">${text(px0 + len + 18, by + bh / 2 + size * 0.36, val(r), { cls: 'cv', size: size !== Z.value && size })}</g>`);
-        steps.push({ id: e, kind: 'grow', at, hot: r.hot }, { id: v, kind: 'show', at: at + 900, hot: r.hot });
+        steps.push({ id: e, kind: 'grow', at, hot: r.hot, keep }, { id: v, kind: 'show', at: at + 900, hot: r.hot, keep });
       } else {
         const ly = column ? y + rowH / 2 : y + above + 14 + Z.hot * 0.36;
         if (column) els.push(text(X0, ly + Z.label * 0.35, r.label, { fit: colW - 24 }));
@@ -287,7 +300,7 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
         const big = size !== Z.value && size;
         els.push(`<g id="${v}"><circle cx="${xa.toFixed(1)}" cy="${ly}" r="11" fill="${colour}" stroke="${VOID}" stroke-width="3"/><circle cx="${xb.toFixed(1)}" cy="${ly}" r="11" fill="${colour}" stroke="${VOID}" stroke-width="3"/>`
           + `${text(xa - 22, ly + size * 0.36, val(r, 'a'), { cls: 'cv', anchor: 'end', size: big })}${text(xb + 22, ly + size * 0.36, val(r, 'b'), { cls: 'cv', size: big })}</g>`);
-        steps.push({ id: e, kind: 'draw', at, hot: r.hot }, { id: v, kind: 'show', at: at + 900, hot: r.hot });
+        steps.push({ id: e, kind: 'draw', at, hot: r.hot, keep }, { id: v, kind: 'show', at: at + 900, hot: r.hot, keep });
       }
     });
   }
@@ -441,18 +454,21 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
     steps.push({ id: e, kind: 'draw', at: 0, dur: 1800, hot: true }, { id: v, kind: 'show', at: 1800, hot: true });
   }
 
+  // Held rows are complete before the first frame; only the rest builds.
+  const building = steps.filter((s) => !s.keep);
+  for (const s of steps) if (s.keep) { s.at = -1e6; s.dur = 1; }
   // On the spoken word when there is one; otherwise the chart's own timing, as before.
-  const landed = landMs > 0 ? land(steps, landMs) : false;
+  const landed = landMs > 0 ? land(building, landMs) : false;
   const animMs = landed
-    ? Math.max(...steps.map((s) => s.at + (s.kind === 'show' ? 0 : s.dur || 900)))
-    : Math.max(...steps.map((s) => s.at + (s.dur || 900)), 900);
+    ? Math.max(...building.map((s) => s.at + (s.kind === 'show' ? 0 : s.dur || 900)))
+    : Math.max(...building.map((s) => s.at + (s.dur || 900)), 900);
   const head = `<div class="ch-h" data-max="${top - 24}"><div class="ch-t" style="font-size:${Z.title}px">${esc(title)}</div>${sub ? `<div class="ch-s mono">${esc(sub)}</div>` : ''}</div>`;
   const footEl = `<div class="ch-f mono" style="bottom:${footBottom}px;max-width:${X1 - X0}px">${esc(foot)}</div>`;
   const svg = `<svg class="chart" viewBox="0 0 ${W} ${H}">${els.join('')}</svg>`;
   // The build-up: linear, no easing (the kit), everything placed before the first frame so nothing reflows.
   // Placing waits for the faces: a label is measured in the face it is set in, and shrunk only if it runs past its room
   // (in steps, remeasured each time: the face's advances do not scale exactly with its size).
-  const script = `<script>(()=>{const S=${JSON.stringify(steps.map(({ hot, ...s }) => s))};const E=S.map(s=>[s,document.getElementById(s.id)]);
+  const script = `<script>(()=>{const S=${JSON.stringify(steps.map(({ hot, keep, ...s }) => s))};const E=S.map(s=>[s,document.getElementById(s.id)]);
 for(const[s,e]of E){if(s.kind==='draw'){const L=e.getTotalLength?e.getTotalLength():0;e.style.strokeDasharray=L;e.dataset.L=L;}}
 window.__frame=(ms)=>{for(const[s,e]of E){const p=Math.max(0,Math.min(1,(ms-s.at)/(s.dur||900)));
 if(s.kind==='grow')e.setAttribute('width',(+e.dataset.w*p).toFixed(1));
