@@ -24,6 +24,9 @@ npm run film -- --slug edition-03 --step render --short   # the Short from the s
 node tools/upload-youtube.mjs brand/youtube/edition-03/meta.json   # to the channel, private; needs YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN
 node tools/upload-youtube.mjs brand/youtube/edition-03/meta.json --update <videoId>   # set the generated title, description, captions, thumbnail on a hand-uploaded video
 node tools/youtube-analytics.mjs --days 28 --retention   # the channel's numbers as a report; same three secrets, read scopes
+npm run episode -- check source/episodes/<slug>.md --online   # an episode script's facts, sources and quotes (source/episodes/FORMAT.md)
+npm run episode -- sheet source/episodes/<slug>.md    # the footage the script asks for, and the file name each one needs
+npm run episode -- all source/episodes/<slug>.md      # narrate if the words changed, then render; missing footage renders as slates
 ```
 
 ## How it is built

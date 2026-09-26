@@ -6,6 +6,9 @@ export const SITE = {
   name: 'Aedificare',
   author: 'Jesse James',
   locale: 'en',
+  // The one other place the brand is published. Feeds the JSON-LD sameAs; the
+  // static public/humans.txt repeats it, so change both (CLAUDE.md, Open 9).
+  channel: 'https://www.youtube.com/@aedificare_art',
 };
 
 /** Absolute URL for a site-relative path. */
