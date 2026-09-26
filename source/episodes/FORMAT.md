@@ -120,8 +120,10 @@ with the picture is the largest comprehension effect in the research
 while the chart is on screen (from its tag to the next cut) says the
 starred value; that chart falls back to building inside its shot, which
 shows the point before the voice says it. `render` warns the same, past
-five rows (three in a Short), and names every computed shot that holds
-past 14.4 s (four bars of four beats): a static screen gets another cut.
+five rows (three in a Short), and names every computed shot that stands
+still past 14.4 s (four bars of four beats), counted from when its build
+or highlighter finishes: a static screen gets another cut, a chart
+building in step with the voice is not static.
 
 A chart that comes back after a cutaway is a second tag, and each
 appearance stars the number said while it is up: first July's two

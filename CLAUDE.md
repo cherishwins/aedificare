@@ -306,7 +306,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   chart citing its sources on screen, type sized for a phone and a TV
   (16:9 labels 40 px, Shorts clear of the right 120 px and the lower
   quarter), designed with the dataviz skill's method and its palette
-  validator; `render` names every computed shot that holds past 14.4 s;
+  validator; `render` names every computed shot that stands still past
+  14.4 s once its build has finished;
   `--short`
   renders the same script tall and cuts the chapters named in the
   script's `short:` plus the end card into the Short, under three

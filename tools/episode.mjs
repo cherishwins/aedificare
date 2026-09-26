@@ -573,6 +573,7 @@ async function render() {
       // A chart landed on its word was already fitted inside the shot (chartLand), so it keeps the voice's own pace; the
       // same rule, against the whole shot, still guarantees the build ends before the cut.
       const animMs = h.animMs || 900, pace = h.anim ? Math.max(1, animMs / ((h.landMs ? 1 : 0.8) * d * 1000)) : 1;
+      s.builtMs = h.anim ? Math.min(animMs / pace, d * 1000) : 0; // the picture moves until here; longHolds counts the rest
       const n = h.anim ? Math.min(Math.ceil((animMs / pace / 1000) * FPS) + 1, Math.ceil(d * FPS)) : 1;
       for (let k = 0; k < n; k++) {
         if (h.live) await pg.evaluate((ms) => window.__frame(ms), (k / FPS) * 1000 * pace);
@@ -762,9 +763,15 @@ async function render() {
 }
 
 /** A computed surface that holds past four beats of four is a static screen: say where, so the script gets another cut. */
+/**
+ * A static screen past four bars of four beats (14.4 s) gets another cut. Static is counted from when the picture
+ * stops changing: a chart building in step with the voice, or a highlighter sweeping, is not a held screen, so after
+ * a render the build (s.builtMs) is taken off; before one (sheet), the whole shot counts.
+ */
 function longHolds(T) {
-  const long = T.shots.filter((s) => !OWNER.includes(s.tag.kind) && !['end', 'blank'].includes(s.tag.kind) && s.end - s.t > 14.4);
-  for (const s of long) console.warn(`episode: long hold, ${(s.end - s.t).toFixed(1)} s of ${s.tag.kind} at ${Math.floor(s.t / 60)}:${String(Math.floor(s.t % 60)).padStart(2, '0')} (${s.tag.title || s.tag.value || s.tag.text || s.tag.by || ''}); add a cut`);
+  const held = (s) => s.end - s.t - (s.builtMs || 0) / 1000;
+  const long = T.shots.filter((s) => !OWNER.includes(s.tag.kind) && !['end', 'blank'].includes(s.tag.kind) && held(s) > 14.4);
+  for (const s of long) console.warn(`episode: long hold, ${held(s).toFixed(1)} s of ${s.tag.kind} standing still${s.builtMs ? ` after ${(s.builtMs / 1000).toFixed(1)} s of build` : ''} at ${Math.floor(s.t / 60)}:${String(Math.floor(s.t % 60)).padStart(2, '0')} (${s.tag.title || s.tag.value || s.tag.text || s.tag.by || ''}); add a cut`);
 }
 
 if (STEP === 'check') { const issues = await check(S); process.exit(issues.length ? 1 : 0); }
