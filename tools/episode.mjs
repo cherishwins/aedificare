@@ -179,9 +179,15 @@ async function check(S, { quiet = false } = {}) {
       try {
         // A declared agent naming the site: SEC.gov refuses anonymous scripts (fair-access policy) and accepts this.
         const r = await fetch(S.sources[e.tag.src].url, { headers: { 'user-agent': `Mozilla/5.0 (compatible; Aedificare episode check; +${SITE.origin})` } });
-        // A page that refuses a script (403, a login wall) proves nothing either way: warned, not failed.
-        if (!r.ok) { console.warn(`episode check: ${e.tag.src} answered ${r.status}; verify its quote by hand`); continue; }
-        const page = norm(await r.text());
+        let body = r.ok ? await r.text() : null;
+        // Some publishers refuse Node's fetch and serve curl (Utility Dive, 2026-09-26): ask again that way before giving up.
+        if (body === null) {
+          const c = spawnSync('curl', ['-sSL', '--max-time', '60', '-A', `Mozilla/5.0 (compatible; Aedificare episode check; +${SITE.origin})`, S.sources[e.tag.src].url], { encoding: 'utf8', maxBuffer: 1 << 26 });
+          if (c.status === 0 && c.stdout.length > 2000) body = c.stdout;
+        }
+        // A page that still refuses (403, a login wall) proves nothing either way: warned, not failed.
+        if (body === null) { console.warn(`episode check: ${e.tag.src} answered ${r.status}; verify its quote by hand`); continue; }
+        const page = norm(body);
         if (!page.includes(norm(e.tag.text))) issues.push(`quote not found on ${e.tag.src}: "${e.tag.text.slice(0, 70)}"`);
       } catch (err) { console.warn(`episode check: could not fetch ${e.tag.src} (${err.message}); verify its quote by hand`); }
     }
