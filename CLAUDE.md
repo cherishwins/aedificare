@@ -296,7 +296,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `render`; quote cards with a highlighter, maps from Natural Earth,
   figure and statement cards, overlays, sound-on clips that the narration
   waits for, slates for missing footage, captions, chapters, sources and
-  credits in the description, `meta.json` for the upload; `--short`
+  credits in the description, `meta.json` for the upload; charts from
+  `tools/lib/chart.mjs`: bars, range, stack, timeline, flow and line,
+  built up on screen with the story's one point in Acid last, every chart
+  citing its sources on screen, designed with the dataviz skill's method
+  and its palette validator; `--short`
   renders the same script tall and cuts the chapters named in the
   script's `short:` plus the end card into the Short, under three
   minutes, with its own captions and `meta-short.json`).

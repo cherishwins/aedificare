@@ -33,6 +33,7 @@ import { spawnSync } from 'node:child_process';
 import { browser, findFfmpeg, openContext, css, esc, FORMATS, ACID, MAL, BOTTLE, VOID, FLASH } from './lib/film.mjs';
 import { markPath } from '../src/lib/rose.mjs';
 import { SITE } from '../src/config.mjs';
+import { chartBody, chartCss, parseChart, CHART_TYPES } from './lib/chart.mjs';
 
 const [STEP, FILE] = process.argv.slice(2);
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
@@ -47,7 +48,7 @@ const F = SHORT ? FORMATS.tall : FORMATS.wide, W = F.W, H = F.H, FPS = 24, M = S
 const TY = SHORT ? { quote: 62, stmt: 170, title: 190, end: 130, slate: 44, low: Math.round(H * 0.3) } : { quote: 84, stmt: 170, title: 200, end: 150, slate: 56, low: M + 150 };
 /** A figure's size: its base, or smaller if the string would not fit between the margins (condensed digits run about half an em). */
 const fit = (value, base) => Math.min(base, Math.floor((W - 2 * M) / (Math.max(1, value.length) * 0.5)));
-const KINDS = ['footage', 'gag', 'clip', 'quote', 'map', 'fig', 'card', 'title', 'over'];
+const KINDS = ['footage', 'gag', 'clip', 'quote', 'map', 'chart', 'fig', 'card', 'title', 'over'];
 const CUTS = KINDS.filter((k) => k !== 'over');
 const OWNER = ['footage', 'gag', 'clip']; // shots the owner supplies
 // The grade that makes footage from six decades read as one film: most of the colour out, contrast up, pushed toward Void.
@@ -62,7 +63,7 @@ function parseTag(inner) {
   if (!m || !KINDS.includes(m[1])) return { bad: inner };
   const parts = m[3].split('|').map((x) => x.trim()).filter(Boolean);
   const opts = {}, args = [];
-  for (const p of parts) { const kv = /^(find|at|hl|say|by|raw|hold)\s*:\s*([\s\S]*)$/.exec(p); if (kv) opts[kv[1]] = kv[2].trim(); else args.push(p); }
+  for (const p of parts) { const kv = /^(find|at|hl|say|by|raw|hold|src|unit|prefix|note|sub|ref)\s*:\s*([\s\S]*)$/.exec(p); if (kv) opts[kv[1]] = kv[2].trim(); else args.push(p); }
   const tag = { kind: m[1], args, ...opts };
   if (OWNER.includes(tag.kind)) {
     tag.desc = args[0] || '';
@@ -77,6 +78,7 @@ function parseTag(inner) {
   }
   if (tag.kind === 'fig' || tag.kind === 'over') { tag.value = args[0] || ''; tag.label = args[1] || ''; }
   if (tag.kind === 'card' || tag.kind === 'title') { tag.text = args[0] || ''; tag.label = args[1] || ''; }
+  if (tag.kind === 'chart') { tag.type = args[0] || ''; tag.title = args[1] || ''; Object.assign(tag, parseChart(tag.type, args.slice(2))); tag.srcs = (tag.src || '').split(',').map((x) => x.trim()).filter(Boolean); }
   return tag;
 }
 
@@ -156,6 +158,15 @@ async function check(S, { quiet = false } = {}) {
         if (!e.tag.text) issues.push('quote has no text');
       }
       if (CUTS.includes(e.tag.kind) && b.events.some((o) => o !== e && o.anchor === e.anchor && CUTS.includes(o.tag.kind) && b.events.indexOf(o) > b.events.indexOf(e))) issues.push(`two cuts on one word; the ${e.tag.kind} would get no screen time: "${b.tokens.slice(e.anchor, e.anchor + 5).join(' ')}"`);
+      if (e.tag.kind === 'chart') {
+        // A chart is a set of numbers, so it carries its own citations and they are on screen.
+        if (!CHART_TYPES.includes(e.tag.type)) issues.push(`chart type "${e.tag.type}" is not one of ${CHART_TYPES.join(', ')}`);
+        if (!e.tag.title) issues.push('chart has no title (the title is the takeaway, not the axis name)');
+        issues.push(...e.tag.errors.map((x) => `chart "${e.tag.title}": ${x}`));
+        if (!e.tag.srcs.length) issues.push(`chart "${e.tag.title}" cites no source (src: s1, s2)`);
+        for (const id of e.tag.srcs) { if (!S.sources[id]) issues.push(`chart "${e.tag.title}" cites ${id}, which is not in # Sources`); else used.add(id); }
+        if (e.tag.type !== 'flow' && e.tag.type !== 'timeline' && e.tag.rows.filter((r) => r.hot).length > 1) issues.push(`chart "${e.tag.title}": one point is the story; mark one row with *, not ${e.tag.rows.filter((r) => r.hot).length}`);
+      }
       if (e.tag.kind === 'map' && e.tag.stops.some((x) => !x)) issues.push(`map stops must be "Name lat,lon > Name lat,lon": ${e.tag.args[0]}`);
       if ((e.tag.kind === 'fig' || e.tag.kind === 'over') && /\d/.test(e.tag.value) && !b.cites.length) issues.push(`figure "${e.tag.value}" sits in a paragraph with no citation`);
     }
@@ -415,6 +426,16 @@ ${tag.label ? `<div class="maplabel mono">${esc(tag.label)}</div>` : ''}
   return { html, anim: pts.length > 1, live: true };
 }
 
+function chartHtml(tag) {
+  const num = (v) => v.toLocaleString('en-US', { maximumFractionDigits: 3 });
+  // A typed string (the value as the source prints it) passes through; a computed tick is formatted.
+  const fmt = (v) => `${tag.prefix || ''}${typeof v === 'string' ? v : num(v)}${tag.unit || ''}`;
+  const sourceLine = 'SOURCE: ' + tag.srcs.map((id) => S.sources[id]).filter(Boolean).map((s) => `${s.pub}, ${s.date}`).join(' · ');
+  const ref = tag.ref ? (() => { const m = /^(-?[\d.]+)\s*(.*)$/.exec(tag.ref); return m ? { v: +m[1], label: m[2] } : null; })() : null;
+  const { body, animMs } = chartBody({ type: tag.type, title: tag.title, sub: tag.sub, note: tag.note, sourceLine, rows: tag.rows, fmt, W, H, M, ref });
+  return { html: page(body, VOID, chartCss(W, H, M)), anim: true, live: true, animMs };
+}
+
 const figHtml = (tag) => ({ html: page(`<div class="big" style="font-size:${fit(tag.value, tag.value.length > 8 ? 260 : 360)}px;color:${ACID}">${esc(tag.value)}</div>${tag.label ? `<div class="sub mono" style="color:${MAL}">${esc(tag.label)}</div>` : ''}`) });
 const cardHtml = (tag) => ({ html: page(`<div class="stmt">${esc(tag.text)}</div>${tag.label ? `<div class="sub mono" style="bottom:${M}px;color:${MAL}">${esc(tag.label)}</div>` : ''}`) });
 const titleHtml = () => ({ html: page(`<div class="stmt" style="font-size:${TY.title}px">${esc(S.meta.title)}</div><div class="sub mono" style="bottom:${M}px;color:${MAL}">${esc(S.meta.date)}</div>${`<div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`}`) });
@@ -445,6 +466,7 @@ async function render() {
     const k = s.tag.kind;
     if (k === 'quote') return quoteHtml(s.tag, S);
     if (k === 'map') return mapHtml(s.tag);
+    if (k === 'chart') return chartHtml(s.tag);
     if (k === 'fig') return figHtml(s.tag);
     if (k === 'card') return cardHtml(s.tag);
     if (k === 'title') return titleHtml();
@@ -488,9 +510,11 @@ async function render() {
       fs.writeFileSync(path.join(brandDir, `${i}.html`), s.tag.kind === 'quote' ? h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>') : h.html);
       await show({ id: `${i}`, html: h.html, live: h.live });
       const fdir = path.join(work, `f${i}`); fs.mkdirSync(fdir);
-      const n = h.anim ? Math.min(Math.ceil(0.9 * FPS) + 1, Math.ceil(d * FPS)) : 1;
+      // A build longer than the shot is compressed to finish inside 80 percent of it, so the point always lands on screen.
+      const animMs = h.animMs || 900, pace = h.anim ? Math.max(1, animMs / (0.8 * d * 1000)) : 1;
+      const n = h.anim ? Math.min(Math.ceil((animMs / pace / 1000) * FPS) + 1, Math.ceil(d * FPS)) : 1;
       for (let k = 0; k < n; k++) {
-        if (h.live) await pg.evaluate((ms) => window.__frame(ms), (k / FPS) * 1000);
+        if (h.live) await pg.evaluate((ms) => window.__frame(ms), (k / FPS) * 1000 * pace);
         fs.writeFileSync(path.join(fdir, `${String(k).padStart(4, '0')}.png`), await shot());
       }
       ff(['-framerate', String(FPS), '-i', path.join(fdir, '%04d.png'), '-vf', `tpad=stop_mode=clone:stop_duration=${d},trim=duration=${d},format=yuv420p`, ...enc], `shot ${i}`);

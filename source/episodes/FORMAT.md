@@ -79,10 +79,36 @@ narration resumes after it, which is how a title drops.
 | `[[clip#id: who says what \| say: "the exact words" \| find: … \| 6s]]` on its own line | a person saying it, **with their sound**; the narration waits | owner |
 | `[[quote: s3 \| "exact words" \| NAME, ROLE, DATE \| hl: the words to highlight]]` | the quote typeset, the highlighter sweeping the key words | computed |
 | `[[map: Hsinchu 24.8,121.0 > Phoenix 33.4,-112.1 \| label]]` | the world in Bottle, the route drawn in Acid | computed |
+| `[[chart: bars \| Takeaway title \| src: s1, s2 \| unit: % \| Label=5.10 \| Label=9.75*]]` | a chart that builds up, the starred row last and in Acid, the source on screen | computed |
 | `[[fig: $18,214 \| PER RADIO]]` | a figure card | computed |
 | `[[card: SAME PHYSICS.]]` | a statement card | computed |
 | `[[title: The $18,214 Radio]]` | the title card with the mark | computed |
 | `[[over: $5.1M \| USAF · FEB 2024]]` | type over the current shot, no cut, until the next tag | computed |
+
+## Charts
+
+Screen time carries the argument: when a number has a context (a history,
+a comparison, a flow of money), it goes on a chart, not a card. The forms,
+by the job the data does (`tools/lib/chart.mjs`):
+
+| Form | Job | Data parts |
+|---|---|---|
+| `bars` | compare a few magnitudes | `Label=9.75` |
+| `range` | low to high per row: the rates of an issue, a band | `Jun 2021=2.125..5.25` |
+| `stack` | the parts of one whole | `Due 2034=438.75` |
+| `timeline` | dated events | `2026-10-01=Last $10B` |
+| `flow` | money or control between parties | `SoftBank > OpenAI=$30B` |
+| `line` | one series over time, `ref: 5.10 TREASURY` for a reference line | `2026-04=8.5` |
+
+Rules the checker holds: every chart cites its sources (`src:`), which
+appear on screen; one row is the story (`*`), so one mark is Acid and the
+rest Malachite; seven rows at most. Rules it cannot: the title is the
+takeaway ("Every sale has cost more than the last"), not the axis name;
+`sub:` says what is measured; `note:` says what the chart cannot (yen and
+dollar rates are not directly comparable); a value keeps the precision its
+source prints (5.10, not 5.1); `Label=400 (400+)` shows display text.
+A chart builds for as long as its shot allows: context first, the
+starred row last.
 
 `#id` names the file the owner supplies (`footage/<id>.mp4`); without one,
 the id is the first five words of the description. `raw` on a footage tag
