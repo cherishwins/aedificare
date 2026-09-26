@@ -5,8 +5,14 @@ date: 2026-10-08
 speed: 1.05
 short: Cold open, The rerun
 hook: PJM's own market monitor says 6.3 billion dollars of the grid's latest capacity auction, 38.2% of its 16.4 billion in charges, was a result of data centre load. It is an estimate, made by running the auction again without them.
+title2: Data Centers Cost America's Largest Grid $6.3 Billion. Who Pays?
+title3: The Grid Hit Its Price Cap. Without It, $554.72
 thumb: $6.3B / DATA CENTRES
 thumbframe: loudoun-landsat
+thumb2: $554.72 / NO CAP
+thumbframe2: power-plant
+thumb3: 38.2% / OF THE AUCTION
+thumbframe3: pjm-night
 ---
 
 <!-- Episode 2 (story from the owner's brief, 2026-09-26). Every figure below
