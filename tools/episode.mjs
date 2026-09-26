@@ -655,6 +655,7 @@ async function render() {
     fs.writeFileSync(path.join(DIR, 'sheet-short.txt'), `Title: ${S.meta.title}\n\nDescription:\n${description}\n\nCaptions: captions-short.srt (English). Licence: Standard YouTube Licence. YouTube files it as a Short by its shape and length.\n`);
     console.log(`episode: ${short} ${len.toFixed(1)} s from ${segs.length - 1} chapter(s) and the end card, ${Math.round(fs.statSync(short).size / 1048576)} MB, ${((Date.now() - t0) / 60000).toFixed(1)} min wall`);
     if (missing.size) console.log(`episode: ${missing.size} shot(s) still slates: ${[...missing].join(', ')}`);
+    longHolds(T);
     return;
   }
   fs.writeFileSync(path.join(DIR, 'captions.srt'), srt(cues));
@@ -685,6 +686,13 @@ async function render() {
   sheet(T);
   console.log(`episode: ${film} ${(T.end / 60).toFixed(1)} min, ${T.shots.length} shots, ${overs.length} overlays, ${Math.round(fs.statSync(film).size / 1048576)} MB, ${((Date.now() - t0) / 60000).toFixed(1)} min wall`);
   if (missing.size) console.log(`episode: ${missing.size} shot(s) still slates: ${[...missing].join(', ')}`);
+  longHolds(T);
+}
+
+/** A computed surface that holds past four beats of four is a static screen: say where, so the script gets another cut. */
+function longHolds(T) {
+  const long = T.shots.filter((s) => !OWNER.includes(s.tag.kind) && !['end', 'blank'].includes(s.tag.kind) && s.end - s.t > 14.4);
+  for (const s of long) console.warn(`episode: long hold, ${(s.end - s.t).toFixed(1)} s of ${s.tag.kind} at ${Math.floor(s.t / 60)}:${String(Math.floor(s.t % 60)).padStart(2, '0')} (${s.tag.title || s.tag.value || s.tag.text || s.tag.by || ''}); add a cut`);
 }
 
 if (STEP === 'check') { const issues = await check(S); process.exit(issues.length ? 1 : 0); }
