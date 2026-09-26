@@ -1,0 +1,103 @@
+# Render an episode (tools/episode.mjs, CLAUDE.md override 8) on a clean
+# runner and file it as the Release film-ep-<slug>.
+#
+# The owner's footage arrives the same way the films leave: as assets on a
+# GitHub Release, here footage-<slug>, named as the script's sheet says
+# (source/episodes/FORMAT.md). Drag them onto the release in the browser;
+# nothing is committed, no service is paid, and the render can start from a
+# phone. Shots still missing render as slates, so the first run is the
+# animatic and each later run fills more of it in.
+#
+# Dispatch with the episode's slug (the file source/episodes/<slug>.md on the
+# ref being run). Also runs once when this file itself changes, on the first
+# episode, so the workflow is proved on the branch that changes it. The result is the artifact film-ep-<slug>-wide and the
+# Release film-ep-<slug> (release.yml): film, captions, thumbnail, meta and
+# the upload sheet, plus shots.md, the list of what is still missing.
+name: episode
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'Episode slug: the file source/episodes/<slug>.md'
+        required: true
+      music:
+        description: 'bed (computed), none, or leave as bed'
+        required: false
+        default: bed
+  push:
+    paths: ['.github/workflows/episode.yml']
+
+concurrency:
+  group: episode-${{ github.ref }}-${{ inputs.slug || 'softbank-975' }}
+  cancel-in-progress: false
+
+jobs:
+  episode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    env:
+      SLUG: ${{ inputs.slug || 'softbank-975' }}
+      MUSIC: ${{ inputs.music || 'bed' }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: astral-sh/setup-uv@v6
+
+      - run: npm ci
+
+      - name: Install Playwright, ffmpeg, espeak-ng
+        run: |
+          npm i --no-save playwright
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg espeak-ng
+
+      # Facts first: a script that fails the check is not rendered.
+      - name: Check
+        run: node tools/episode.mjs check "source/episodes/$SLUG.md" --online
+
+      - name: Fetch the footage
+        run: |
+          mkdir -p "brand/youtube/ep-$SLUG/footage"
+          if gh release view "footage-$SLUG" >/dev/null 2>&1; then
+            gh release download "footage-$SLUG" -D "brand/youtube/ep-$SLUG/footage" --clobber
+            ls -la "brand/youtube/ep-$SLUG/footage"
+          else
+            echo "::notice::no release footage-$SLUG yet; every owner shot renders as a slate"
+          fi
+
+      - name: Render
+        run: node tools/episode.mjs all "source/episodes/$SLUG.md" --music "$MUSIC"
+
+      - name: Upload the film
+        uses: actions/upload-artifact@v4
+        with:
+          name: film-ep-${{ env.SLUG }}-wide
+          path: |
+            brand/youtube/ep-${{ env.SLUG }}/*.mp4
+            brand/youtube/ep-${{ env.SLUG }}/*.srt
+            brand/youtube/ep-${{ env.SLUG }}/*.txt
+            brand/youtube/ep-${{ env.SLUG }}/*.json
+            brand/youtube/ep-${{ env.SLUG }}/*.png
+            brand/youtube/ep-${{ env.SLUG }}/*.md
+          retention-days: 90
+          compression-level: 0
+
+  release:
+    needs: episode
+    uses: ./.github/workflows/release.yml
+    permissions:
+      contents: write
+      actions: read
+    with:
+      slug: ep-${{ inputs.slug || 'softbank-975' }}
+      run_id: ${{ github.run_id }}

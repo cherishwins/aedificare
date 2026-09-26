@@ -92,7 +92,7 @@ jobs:
           shopt -s nullglob
           # One file per call, so a refused file is one missing asset and not an empty release.
           FAILED=()
-          for f in out/*.mp4 out/*.srt out/*.txt out/*.json out/*.png; do
+          for f in out/*.mp4 out/*.srt out/*.txt out/*.json out/*.png out/*.md; do
             gh release upload "$TAG" "$f" --clobber || FAILED+=("$f")
           done
           echo "Filed under https://github.com/${{ github.repository }}/releases/tag/$TAG"
