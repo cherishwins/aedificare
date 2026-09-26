@@ -87,7 +87,7 @@ narration resumes after it, which is how a title drops.
 | `[[fig: $18,214 \| PER RADIO]]` | a figure card | computed |
 | `[[card: SAME PHYSICS.]]` | a statement card | computed |
 | `[[title: The $18,214 Radio]]` | the title card with the mark | computed |
-| `[[over: $5.1M \| USAF · FEB 2024]]` | type over the current shot, no cut, until the next tag | computed |
+| `[[over: $5.1M \| USAF · FEB 2024]]` | type over the current shot, no cut, until the voice has said it: the end of the sentence that says its last number (or the sentence it lands in), at least 3.6 s, never past the next tag | computed |
 
 ## Charts
 

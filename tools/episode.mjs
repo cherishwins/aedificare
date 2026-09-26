@@ -37,7 +37,7 @@ import { spawnSync } from 'node:child_process';
 import { browser, findFfmpeg, openContext, css, esc, FORMATS, ACID, MAL, BOTTLE, VOID, FLASH } from './lib/film.mjs';
 import { markPath } from '../src/lib/rose.mjs';
 import { SITE } from '../src/config.mjs';
-import { chartBody, chartCss, parseChart, CHART_TYPES, hotValues, findSpoken, rowKey } from './lib/chart.mjs';
+import { chartBody, chartCss, parseChart, CHART_TYPES, hotValues, findSpoken, rowKey, numKey } from './lib/chart.mjs';
 
 const [STEP, FILE] = process.argv.slice(2);
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
@@ -298,7 +298,7 @@ function timeline() {
   const shots = cuts.map((c, i) => ({ ...c, end: i + 1 < cuts.length ? cuts[i + 1].t : total }));
   shots.push({ t: total, end: total + 3.6, tag: { kind: 'end' } });
   const all = events.map((e) => e.t).concat([total]);
-  const overs = events.filter((e) => e.tag.kind === 'over').map((e) => ({ ...e, end: Math.min(...all.filter((x) => x > e.t + 0.01)) }));
+  const overs = events.filter((e) => e.tag.kind === 'over').map((e) => ({ ...e, end: overEnd(e, Math.min(...all.filter((x) => x > e.t + 0.01)), words) }));
   return { N, shots, overs, clips, chapters, words, total, end: total + 3.6 };
 }
 
@@ -489,6 +489,35 @@ function chartLand(s, words, d) {
   const at = (inShot[i].s - Math.round(s.t * FPS) / FPS) * 1000; // from the shot's first frame on the film's grid
   const ms = Math.min(Math.max(at, 900), d * 1000 - 450);
   return ms >= 900 ? { word: inShot[i], at, ms: Math.round(ms) } : null;
+}
+
+/**
+ * An overlay is a figure said aloud, so it leaves when the voice moves on: at the end of the sentence that says the
+ * last of its numbers ("$202.6M CASH · $814.9M BITCOIN" goes when "814.9 million in bitcoin" is done), or of the
+ * sentence it lands in when none is said ("FULLY FUNDED"), never later than the next tag and never before one bar
+ * (3.6 s: a figure and its label take that long to read, even when its sentence is three words).
+ * Before 2026-09-26 it held until the next tag, which left stale figures up for half a minute under new ones.
+ * Spoken numbers match as said: "10 billion" is 10,000,000,000, "the thirtieth" is 30.
+ */
+const ORDINALS = Object.fromEntries(['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth',
+  'twenty-first', 'twenty-second', 'twenty-third', 'twenty-fourth', 'twenty-fifth', 'twenty-sixth', 'twenty-seventh', 'twenty-eighth', 'twenty-ninth', 'thirtieth', 'thirty-first'].map((w, i) => [w, i + 1]));
+const SCALE = { thousand: 1e3, million: 1e6, billion: 1e9, trillion: 1e12 };
+function overEnd(o, next, words) {
+  const same = (a, b) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a));
+  const want = (String(o.tag.value || '').match(/\d[\d,]*(?:\.\d+)?/g) || []).map(numKey).filter((v) => v !== null);
+  const win = words.filter((w) => w.s >= o.t - 0.05 && w.s < next);
+  if (!win.length) return next;
+  const said = (i) => {
+    const k = numKey(win[i].w) ?? ORDINALS[win[i].w.toLowerCase().replace(/[^a-z-]/g, '')] ?? null;
+    if (k === null) return [];
+    const m = win[i + 1] && SCALE[win[i + 1].w.toLowerCase().replace(/[^a-z]/g, '')];
+    return m ? [k, k * m] : [k];
+  };
+  let last = 0;
+  win.forEach((w, i) => { if (said(i).some((v) => want.some((x) => same(v, x)))) last = i; });
+  let j = last;
+  while (j < win.length - 1 && !/[.?!]["”’)]*$/.test(win[j].w)) j++;
+  return Math.min(next, Math.max(o.t + 3.6, win[j].e + 0.2));
 }
 
 /* ---- render ------------------------------------------------------------------ */
