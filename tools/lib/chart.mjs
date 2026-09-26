@@ -90,8 +90,9 @@ const trim = (x) => String(+x.toFixed(4));
  */
 export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H, M, ref }) {
   const tall = H > W;
-  const T = tall ? { title: 64, label: 30, value: 30, mono: 22, bar: 44 } : { title: 76, label: 32, value: 32, mono: 22, bar: 44 };
-  const top = M + (tall ? 260 : 230), bottom = H - M - 90;
+  const T = tall ? { title: 96, label: 40, value: 40, mono: 26, bar: 64 } : { title: 76, label: 32, value: 32, mono: 22, bar: 44 };
+  // A Short's lower quarter sits under YouTube's own title and buttons, so a tall chart ends at 72 percent of the frame.
+  const top = M + (tall ? 330 : 230), bottom = tall ? Math.round(H * 0.72) : H - M - 90;
   const X0 = M, X1 = W - M;
   const els = [];   // svg markup
   const steps = []; // { sel, at, kind: 'grow'|'show'|'draw', ... } for the build-up
@@ -101,6 +102,8 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
     `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" class="${cls}" fill="${fill}" text-anchor="${anchor}"${size ? ` font-size="${size}"` : ''}${weight ? ` font-weight="${weight}"` : ''}>${esc(s)}</text>`;
   // Context first, the point last: context builds over one beat from 0, the hot marks over the next beat.
   const ctxAt = 0, hotAt = 900;
+  const topWide = top;
+  const blockTop = (blockH) => Math.round(top + Math.max(0, (bottom - top - blockH) / 2));
   const val = (r, which = 'a') => (r.show && (which === 'b' || r.b === null) ? r.show : fmt(r[which === 'a' ? 'ra' : 'rb'] ?? r[which]));
 
   if (type === 'bars' || type === 'range') {
@@ -110,16 +113,18 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
     const labelW = type === 'range' && !tall ? 300 : 0;
     const px0 = X0 + labelW, px1 = X1 - (type === 'bars' ? 190 : 150);
     const sx = (v) => px0 + ((px1 - px0) * v) / max;
-    const rowH = Math.min(tall ? 200 : 150, (bottom - top - 50) / rows.length);
+    const rowH = Math.min(tall ? 230 : 150, (bottom - top - 50) / rows.length);
+    // Tall frames centre the block in the space they have; wide frames hang it under the title.
+    const ptop = tall ? blockTop(rowH * rows.length + 50) : topWide;
     // Gridlines: hairline, solid, Bottle; tick labels mono Malachite along the bottom. Bars show no grid (every value is labelled).
     if (type === 'range') {
       for (let v = 0; v <= max + 1e-9; v += step) {
-        els.push(`<line x1="${sx(v).toFixed(1)}" x2="${sx(v).toFixed(1)}" y1="${top}" y2="${top + rowH * rows.length}" stroke="${BOTTLE}" stroke-width="1"/>`);
-        els.push(text(sx(v), top + rowH * rows.length + 36, fmt(+trim(v)), { cls: 'cm', fill: MAL, anchor: 'middle' }));
+        els.push(`<line x1="${sx(v).toFixed(1)}" x2="${sx(v).toFixed(1)}" y1="${ptop}" y2="${ptop + rowH * rows.length}" stroke="${BOTTLE}" stroke-width="1"/>`);
+        els.push(text(sx(v), ptop + rowH * rows.length + 36, fmt(+trim(v)), { cls: 'cm', fill: MAL, anchor: 'middle' }));
       }
-    } else els.push(`<line x1="${px0}" x2="${px0}" y1="${top - 10}" y2="${top + rowH * rows.length - 20}" stroke="${BOTTLE}" stroke-width="2"/>`);
+    } else els.push(`<line x1="${px0}" x2="${px0}" y1="${ptop - 10}" y2="${ptop + rowH * rows.length - 20}" stroke="${BOTTLE}" stroke-width="2"/>`);
     rows.forEach((r, i) => {
-      const y = top + rowH * i;
+      const y = ptop + rowH * i;
       const colour = r.hot ? ACID : MAL;
       const at = r.hot ? hotAt : ctxAt;
       if (type === 'bars') {
@@ -144,7 +149,8 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
 
   if (type === 'stack') {
     const total = rows.reduce((s, r) => s + r.a, 0);
-    const y = top + 40, h = 96, gap = 2;
+    const h = tall ? 120 : 96, gap = 2;
+    const y = tall ? blockTop(h + 70 + rows.length * (T.label + 44)) : top + 40;
     let x = X0;
     const usable = X1 - X0 - gap * (rows.length - 1);
     rows.forEach((r, i) => {
@@ -183,12 +189,19 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
       });
     } else {
       const ax = X0 + 20;
-      const sy = (t) => top + 20 + ((bottom - top - 60) * (t - t0)) / span;
+      const sy0 = (t) => top + 20 + ((bottom - top - 80) * (t - t0)) / span;
+      // Same rule as the wide axis: 110 px between neighbours, pushed down, then pulled back up if the last would pass the end.
+      const sorted = rows.slice().sort((p, q) => p.t - q.t), ys = sorted.map((r) => sy0(r.t));
+      for (let i = 1; i < ys.length; i++) ys[i] = Math.max(ys[i], ys[i - 1] + 110);
+      const end = bottom - 120;
+      if (ys[ys.length - 1] > end) { ys[ys.length - 1] = end; for (let i = ys.length - 2; i >= 0; i--) ys[i] = Math.min(ys[i], ys[i + 1] - 110); }
+      const at = new Map(sorted.map((r, i) => [r, ys[i]]));
+      const sy = (t) => at.get(rows.find((r) => r.t === t));
       els.push(`<line id="${axis}" x1="${ax}" x2="${ax}" y1="${top}" y2="${bottom}" stroke="${MAL}" stroke-width="2" data-len="${bottom - top}"/>`);
       steps.push({ id: axis, kind: 'draw', at: 0 });
       rows.forEach((r, i) => {
         const y = sy(r.t), e = nid(), colour = r.hot ? ACID : MAL;
-        els.push(`<g id="${e}"><circle cx="${ax}" cy="${y.toFixed(1)}" r="12" fill="${colour}" stroke="${VOID}" stroke-width="3"/>${text(ax + 40, y - 8, r.date, { cls: 'cm', fill: MAL })}${text(ax + 40, y + 34, r.text, { cls: 'cl' })}</g>`);
+        els.push(`<g id="${e}"><circle cx="${ax}" cy="${y.toFixed(1)}" r="14" fill="${colour}" stroke="${VOID}" stroke-width="3"/>${text(ax + 44, y - 10, r.date, { cls: 'cm', fill: MAL })}${text(ax + 44, y + 38, r.text, { cls: 'cl' })}</g>`);
         steps.push({ id: e, kind: 'show', at: r.hot ? 900 + rows.length * 450 : 900 + i * 450 });
       });
     }
@@ -198,7 +211,7 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
     const names = [];
     for (const r of rows) for (const n of [r.from, r.to]) if (!names.includes(n)) names.push(n);
     // A flow has no subtitle band to keep clear: it takes the frame from under the title to above the source line.
-    const ftop = top - 40, cx = W / 2, cy = ftop + (bottom - ftop) / 2;
+    const ftop = top - (tall ? 60 : 40), cx = W / 2, cy = ftop + (bottom - ftop) / 2;
     const rx = tall ? (W - 2 * M) / 2 - 150 : Math.min(640, (X1 - X0) / 2 - 200), ry = tall ? (bottom - ftop) / 2 - 110 : (bottom - ftop) / 2 - 50;
     // Parties on an ellipse, the first at the left (wide) or the top (tall), clockwise.
     const pos = names.map((_, i) => {
@@ -277,13 +290,17 @@ else e.style.opacity=ms>=s.at?1:0;}};window.__frame(0);window.__ready=true;})();
 }
 
 /** CSS for the chart page, added to the episode page's own. */
-export const chartCss = (W, H, M) => `
+export const chartCss = (W, H, M) => {
+  const tall = H > W;
+  const z = tall ? { s: 26, f: 22, cl: 40, cv: 38, cm: 26, cn: 44 } : { s: 22, f: 18, cl: 32, cv: 30, cm: 22, cn: 36 };
+  return `
 svg.chart{position:absolute;inset:0;width:${W}px;height:${H}px}
 .ch-t{position:absolute;left:${M - 4}px;top:${M}px;max-width:${W - 2 * M}px;line-height:.9;letter-spacing:-.02em;text-transform:uppercase;font-variation-settings:'opsz' 96,'wdth' 75,'wght' 800;color:${FLASH}}
-.ch-s{position:absolute;left:${M}px;top:${M + (H > W ? 190 : 150)}px;font-size:22px;color:${MAL}}
-.ch-f{position:absolute;left:${M}px;bottom:${M - 10}px;max-width:${W - 2 * M}px;font-size:18px;line-height:1.6;color:${MAL}}
-svg.chart .cl{font-family:'Bricolage Grotesque';font-size:32px;font-variation-settings:'opsz' 32,'wdth' 90,'wght' 600}
-svg.chart .cv{font-family:'Martian Mono';font-size:30px;font-variation-settings:'wdth' 90,'wght' 600}
-svg.chart .cm{font-family:'Martian Mono';font-size:22px;letter-spacing:.08em;font-variation-settings:'wdth' 75,'wght' 500}
-svg.chart .cn{font-family:'Bricolage Grotesque';font-size:36px;font-variation-settings:'opsz' 32,'wdth' 80,'wght' 800}
+.ch-s{position:absolute;left:${M}px;top:${M + (tall ? 250 : 150)}px;font-size:${z.s}px;color:${MAL}}
+.ch-f{position:absolute;left:${M}px;bottom:${tall ? Math.round(H * 0.24) : M - 10}px;max-width:${W - 2 * M}px;font-size:${z.f}px;line-height:1.6;color:${MAL}}
+svg.chart .cl{font-family:'Bricolage Grotesque';font-size:${z.cl}px;font-variation-settings:'opsz' 32,'wdth' 90,'wght' 600}
+svg.chart .cv{font-family:'Martian Mono';font-size:${z.cv}px;font-variation-settings:'wdth' 90,'wght' 600}
+svg.chart .cm{font-family:'Martian Mono';font-size:${z.cm}px;letter-spacing:.08em;font-variation-settings:'wdth' 75,'wght' 500}
+svg.chart .cn{font-family:'Bricolage Grotesque';font-size:${z.cn}px;font-variation-settings:'opsz' 32,'wdth' 80,'wght' 800}
 `;
+};
