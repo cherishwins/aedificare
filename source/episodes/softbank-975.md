@@ -6,7 +6,7 @@ slug: softbank-975
 date: 2026-10-01
 speed: 1.05
 short: Cold open, Where 9.75% sits
-hook: In September, SoftBank went to two very different sets of lenders. Savers in Japan lent it a trillion yen at 4.75%, and each is owed a tote bag. Bond investors agreed to lend it 10 billion dollars at up to 9.75%, for OpenAI. No bag. Narrated in a synthetic voice; every figure is sourced below.
+hook: In September, SoftBank went to two very different sets of lenders. Savers in Japan lent it a trillion yen at 4.75%, and each is owed a tote bag. Bond investors lent it 10 billion dollars at up to 9.75%, for OpenAI. No bag. Narrated in a synthetic voice; every figure is sourced below.
 thumb: ¥4.75% + BAG / $9.75% NO BAG
 thumbframe: tote-bag
 thumb2: SOFTBANK 9.75% / US 7-YEAR 5.05%
@@ -35,11 +35,15 @@ and SoftBank announced the terms in Tokyo on the 24th, its markets having
 been shut Monday to Wednesday. So the ladder uses the Treasury row for 23
 Sep (7-year 5.05, 3-year 4.97, 5-year 4.99), not the 24th's 5.10.
 
-Two things were still in the future on 26 Sep: the dollar notes settle on
-29 Sep and the OpenAI tranche closes on 1 Oct. Both are phrased as
-scheduled. Confirm both before the upload. The Stargate clip's words are
-not checked by the tool (clip lines are not fetched): confirm them against
-the White House video before the render.
+Checked 1 Oct 2026: SoftBank's release of that day (s20) says the third
+OpenAI tranche was executed on 1 Oct (Japan time), funded with the notes'
+proceeds, and the undrawn 10 billion of the bridge cancelled effective 30
+Sep; the script says those in the past tense now. The release does not give
+the notes' settlement date, so the script no longer names one. The Stargate clip's words were checked
+1 Oct against the White House's own caption track for X5gMiDnYEds: "Mr. Son:
+Now I came back with 500." at 00:06:46.080; no "dollars", so the caption
+has none. The earlier hint named a 30 Apr 2025 White House Short, the wrong
+event.
 
 s12 is the MOF's current-month file. From 1 Oct the September rows move to
 https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/historical/jgbcme_all.csv
@@ -71,24 +75,25 @@ Arithmetic, ours, said as ours in the narration: 9.75 - 5.05 = 4.70 points;
 - s17 | SoftBank Group | Execution of Follow-on Investment (Second Tranche) in OpenAI | 2026-07-01 | https://group.softbank/en/news/press/20260701
 - s18 | SoftBank Group | Consolidated Financial Report for the Three-Month Period Ended June 30, 2026, note 16 (3) | 2026-08-06 | https://group.softbank/media/Project/sbg/sbg/pdf/ir/financials/financial_reports/financial-report_q1fy2026_01_en.pdf
 - s19 | Reuters (Scott Murdoch and Yantoultra Ngui), syndicated by Zawya | SoftBank takes orders for $10bln in bonds to fund OpenAI investment, term sheet shows ("Books close at noon New York time on Wednesday") | 2026-09-23 | https://www.zawya.com/en/capital-markets/softbank-takes-orders-for-10bln-in-bonds-to-fund-openai-investment-term-sheet-shows-1136200
+- s20 | SoftBank Group | Execution of Follow-on Investment (Third Tranche) in OpenAI | 2026-10-01 | https://group.softbank/en/news/press/20261001
 
 ## Cold open
 
 [[footage#sb-tokyo: Tokyo at night from above, the bay and the city lights | find: NASA ISS crew photographs or video of Tokyo at night (public domain); no landmark claim, so any clear night frame; it closes the film too, and thumbnail C is cut from it]] [[over: 4.75% | ¥1 TRILLION · 7 YEARS · SAVERS IN JAPAN]] In September, SoftBank went to two very different sets of lenders. Savers in Japan lent it a trillion yen at 4.75%, and [[footage#tote-bag: a plain canvas tote bag with a side pocket, standing alone on a dark ground, no logo | find: photograph one yourself, a still is fine, and release it CC0; SoftBank's product image is not ours to use. It is thumbnail A's frame and returns twice]] each is owed a tote bag. [s5] [[footage#money-press: US currency coming off a printing press, sheets of notes | find: Bureau of Engraving and Printing B-roll (public domain), or DVIDS "currency printing"; it returns twice and is thumbnail B's frame, so a minute of video]] [[over: UP TO 9.75% | $10 BILLION OF NOTES · UP TO 7.5 YEARS · NO BAG]] Bond investors agreed to lend it 10 billion dollars at up to 9.75%. [s1] No bag.
 
-Different currency, different lenders, same company. [[footage#server-hall: rows of supercomputer racks, blinking | find: NASA Ames Pleiades supercomputer B-roll (public domain); it returns once]] The dollars are to fund OpenAI's last payment, expected on the first of October. [s1] OpenAI, in turn, has signed to rent data centres in Ohio from [[gag#carousel: a fairground carousel turning, one or two seconds | find: Edison's "Coney Island at Night" (1905, public domain by age) at the Library of Congress, or a Prelinger reel on archive.org, "merry-go-round" (check the licence); ungraded]] a company SoftBank controls. [s9]
+Different currency, different lenders, same company. [[footage#server-hall: rows of supercomputer racks, blinking | find: NASA Ames Pleiades supercomputer B-roll (public domain); it returns once]] The dollars went to OpenAI, its last payment, on the first of October. [s20] OpenAI, in turn, has signed to rent data centres in Ohio from [[gag#carousel: a fairground carousel turning, one or two seconds | find: Edison's "Coney Island at Night" (1905, public domain by age) at the Library of Congress, or a Prelinger reel on archive.org, "merry-go-round" (check the licence); ungraded]] a company SoftBank controls. [s9]
 
 [[title: SoftBank Pays Yen Savers 4.75% and a Tote Bag. Its Dollars Cost Up to 9.75%]]
 
 ## The OpenAI cheque
 
-[[clip#son-stargate: Masayoshi Son at the White House, the Stargate announcement, 21 Jan 2025 | say: "Now I came back with $500" | find: whitehouse.gov/videos "SoftBank CEO Masayoshi Son speaks about the Stargate project at the White House" (public domain); cut on "$500", before the President speaks over him (the American Presidency Project transcript breaks off there), and check the words against the video | 4s]]
+[[clip#son-stargate: Masayoshi Son at the White House, the Stargate announcement, Roosevelt Room, 21 Jan 2025 | say: "Now I came back with 500." | find: the White House livestream "President Trump Gives Remarks Regarding U.S. Infrastructure Investment", whitehouse.gov/videos (YouTube X5gMiDnYEds; 360p mirror archive.org/details/youtube-X5gMiDnYEds), public domain; name the file son-stargate-at-402.5.mp4: from 402.5 s it opens on "go for 200" and ends on "500" at 407.6 s, before the President speaks at 409.6 s; the White House caption track has the line at 6:46.08 | 5.2s]]
 
-[[footage#son-roosevelt: the Stargate announcement in the Roosevelt Room, wide, Son, Altman and Ellison at the lectern | find: the same White House video, a wide moment, silent; it returns when Altman is named, so a long take]] Masayoshi Son likes a round number. In February, SoftBank agreed to put another 30 billion dollars into OpenAI, in three payments of 10 billion. [s2] The price assumed OpenAI was worth 730 billion dollars before the money arrived. [s2] When the last payment lands, SoftBank expects to have put in 64.6 billion dollars in all, for about 13% of the company. [s2] It said from the start it would pay with bridge loans first. [s2]
+[[footage#son-roosevelt: the Stargate announcement in the Roosevelt Room, wide, Son, Altman and Ellison at the lectern | find: the same White House livestream (X5gMiDnYEds), a wide from 552 s (son-roosevelt-at-552.mp4), silent; it returns when Altman is named, so a long take]] Masayoshi Son likes a round number. In February, SoftBank agreed to put another 30 billion dollars into OpenAI, in three payments of 10 billion. [s2] The price assumed OpenAI was worth 730 billion dollars before the money arrived. [s2] With the last payment, on the first of October, SoftBank had put in 64.6 billion dollars in all, for about 13% of the company. [s20] It said from the start it would pay with bridge loans first. [s2]
 
-[[chart: timeline | The OpenAI payments run on borrowed money | sub: SOFTBANK'S $30B FOLLOW-ON IN OPENAI · THE LAST PAYMENT IS SCHEDULED | src: s2, s16, s17, s1, s19 | 2026-02-27=Deal signed, $30B | 2026-04-01=$10B paid, drawn from a bridge loan | 2026-07-01=$10B paid, drawn from a bridge loan | 2026-09-23=Notes priced, up to 9.75% | 2026-10-01=Last $10B due*]] It paid OpenAI in April and July with money borrowed from a bridge loan that same day. [s16, s17] The last 10 billion, due in October, is to come from bonds. [s1]
+[[chart: timeline | The OpenAI payments run on borrowed money | sub: SOFTBANK'S $30B FOLLOW-ON IN OPENAI · ALL THREE PAYMENTS MADE | src: s2, s16, s17, s19, s20 | 2026-02-27=Deal signed, $30B | 2026-04-01=$10B paid, drawn from a bridge loan | 2026-07-01=$10B paid, drawn from a bridge loan | 2026-09-23=Notes priced, up to 9.75% | 2026-10-01=Last $10B paid, from the notes*]] It paid OpenAI in April and July with money borrowed from a bridge loan that same day. [s16, s17] The last 10 billion, paid on the first of October, came from the bonds. [s20]
 
-[[footage#wall-street: bank towers in lower Manhattan, looking up | find: Library of Congress, Carol M. Highsmith Archive (public domain), "Wall Street" or "Financial District"; two or three photographs, it returns once]] In March, five banks signed a 40 billion dollar bridge loan, due in a year. [s3] More than 30 lenders took part in it. [s14] By September SoftBank had drawn 30 billion. [s4] It told the banks it would repay the 25.9 billion still owed on the fifteenth. [s4] The 10 billion it never drew, it expects to cancel. [s1] A bridge is not meant to be [[gag#tacoma-bridge: the Tacoma Narrows bridge twisting and collapsing, 1940 | find: Wikimedia Commons or archive.org "Tacoma Narrows Bridge collapse" 1940 film; check the licence]] lived on.
+[[footage#wall-street: bank towers in lower Manhattan, looking up | find: Library of Congress, Carol M. Highsmith Archive (public domain), "Wall Street" or "Financial District"; two or three photographs, it returns once]] In March, five banks signed a 40 billion dollar bridge loan, due in a year. [s3] More than 30 lenders took part in it. [s14] By September SoftBank had drawn 30 billion. [s4] It told the banks it would repay the 25.9 billion still owed on the fifteenth. [s4] The 10 billion it never drew, it cancelled on the thirtieth of September. [s20] A bridge is not meant to be [[gag#tacoma-bridge: the Tacoma Narrows bridge twisting and collapsing, 1940 | find: Wikimedia Commons or archive.org "Tacoma Narrows Bridge collapse" 1940 film; check the licence]] lived on.
 
 ## Where 9.75% sits
 
@@ -114,7 +119,7 @@ Every buyer of the yen bond will receive the Otosan, Father of Shirato Family, C
 
 [[footage#sb-tokyo-2: Tokyo at night again, a slower shot]] The dollar notes were not offered in Japan, just as the yen bond was not offered in America. [s1, s5] Neither bond has any collateral behind it. [s1, s5] In the week of the sale, insuring SoftBank's debt against default for five years cost more than 400 basis points a year. [s7] In June it cost about 280. [s7]
 
-The notes are due to settle on the twenty-ninth of September. [s1] From then, SoftBank owes their buyers [[fig: $941.25M | A YEAR IN INTEREST · DOLLAR NOTES · OUR ARITHMETIC FROM THE TERMS]] 941.25 million dollars a year, by our arithmetic. [s1] That is about 2.58 million dollars a day, before the euros. [s1]
+Now SoftBank owes the notes' buyers [[fig: $941.25M | A YEAR IN INTEREST · DOLLAR NOTES · OUR ARITHMETIC FROM THE TERMS]] 941.25 million dollars a year, by our arithmetic. [s1, s20] That is about 2.58 million dollars a day, before the euros. [s1]
 
 ## OpenAI: not 2026
 
@@ -142,6 +147,6 @@ S&P's Makiko Yoshimura wrote that Arm's share price has supported SoftBank's cre
 
 [[chart: bars | Priced in New York on 23 September: 4.70 points over the Treasury | sub: ANNUAL RATE · US DOLLARS · 23 SEPTEMBER 2026, THE DAY THE NOTES PRICED | unit: % | note: TREASURY: PAR YIELD · SOFTBANK: COUPON, SOLD AT PAR · THAT DAY, TREASURY 3-YEAR 4.97, 5-YEAR 4.99 | src: s11, s1, s19 | US Treasury, 7 years=5.05 | SoftBank due 2030, 3.5 years, BB+=8.625 | SoftBank due 2032, 5.5 years, BB+=9.25 | SoftBank due 2034, 7.5 years, BB+=9.75*]] Back on the ladder: seven-year Treasuries at 5.05%. [s11] SoftBank, rated junk, pays up to 9.75% to fund a tenant its own subsidiary calls not investment grade. [s1, s9, s7]
 
-[[footage#sb-tokyo: Tokyo at night from above, the bay and the city lights]] The yen bond was not on that ladder. It is in a different currency, and it comes with a bag. [s5] The payment to OpenAI is due on the first of October. [s1] The notes pay interest every first of April and first of October; the longest until April 2034. [s1]
+[[footage#sb-tokyo: Tokyo at night from above, the bay and the city lights]] The yen bond was not on that ladder. It is in a different currency, and it comes with a bag. [s5] The payment to OpenAI went out on the first of October. [s20] The notes pay interest every first of April and first of October; the longest until April 2034. [s1]
 
 [[quote: s5 | "Shipping will begin sequentially in late February 2027. Please look forward to it." | SOFTBANK GROUP, 4 SEP 2026]] The tote bags are due to start shipping in late February 2027. [s5]
