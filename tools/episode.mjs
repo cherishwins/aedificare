@@ -236,7 +236,9 @@ const SEED = (S.meta.date || '').replace(/-/g, '').slice(2) || '0';
 function footageFile(id) {
   // <id>.mp4, or <id>@72.5.mp4 / <id>-at-72.5.mp4 to start 72.5 s in (1m12 works too). The -at- form survives
   // GitHub, which rewrites some characters in release asset names.
-  const f = fs.readdirSync(FOOT).find((x) => /\.(mp4|mov|webm|mkv|m4v|jpe?g|png|webp|tiff?)$/i.test(x) && [`${id}.`, `${id}@`, `${id}-at-`].some((p) => x.startsWith(p)));
+  // Any container ffmpeg reads: archive.org and the National Archives serve .mpeg, .mpg and .ogv, which were once
+  // skipped here while the shot list promised "any video extension".
+  const f = fs.readdirSync(FOOT).find((x) => /\.(mp4|mov|webm|mkv|m4v|mpe?g|ogv|avi|ts|mts|wmv|flv|gif|jpe?g|png|webp|tiff?)$/i.test(x) && [`${id}.`, `${id}@`, `${id}-at-`].some((p) => x.startsWith(p)));
   if (!f) return null;
   const at = /(?:@|-at-)([\dm.]+?)\.[a-z0-9]+$/i.exec(f);
   const inPoint = at ? (at[1].includes('m') ? (+at[1].split('m')[0] * 60 + +(at[1].split('m')[1] || 0)) : +at[1]) : 0;

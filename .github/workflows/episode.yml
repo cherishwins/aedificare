@@ -13,6 +13,16 @@
 # episode, so the workflow is proved on the branch that changes it. The result is the artifact film-ep-<slug>-wide and the
 # Release film-ep-<slug> (release.yml): film, captions, thumbnail, meta and
 # the upload sheet, plus shots.md, the list of what is still missing.
+#
+# The channel (tools/upload-youtube.mjs): when the repository holds
+# YT_CLIENT_ID, YT_CLIENT_SECRET and YT_REFRESH_TOKEN (minted once with
+# tools/youtube-auth.mjs) a dispatched run ends on YouTube. Without video_id it
+# uploads the film and the Short, private by default; YouTube keeps API
+# uploads private anyway until the project passes its API compliance audit.
+# With video_id (a video the owner uploaded by hand in Studio) it sets that
+# video's generated title, description, chapters, captions and thumbnail
+# instead, which the audit does not lock. A push never uploads, and without
+# the secrets the step is skipped.
 name: episode
 
 on:
@@ -25,6 +35,18 @@ on:
         description: 'bed (computed), none, or leave as bed'
         required: false
         default: bed
+      upload:
+        description: 'With the YouTube secrets set: no, film (the film and the Short), or update (needs video_id)'
+        required: false
+        default: film
+      privacy:
+        description: 'Privacy for a new upload: private, unlisted or public'
+        required: false
+        default: private
+      video_id:
+        description: 'For upload=update: the id of the video uploaded by hand'
+        required: false
+        default: ''
   push:
     paths: ['.github/workflows/episode.yml']
 
@@ -42,6 +64,10 @@ jobs:
       SLUG: ${{ inputs.slug || 'softbank-975' }}
       MUSIC: ${{ inputs.music || 'bed' }}
       GH_TOKEN: ${{ github.token }}
+      UPLOAD: ${{ github.event_name == 'workflow_dispatch' && inputs.upload || 'no' }}
+      PRIVACY: ${{ inputs.privacy || 'private' }}
+      VIDEO_ID: ${{ inputs.video_id }}
+      HAS_YT: ${{ secrets.YT_REFRESH_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -81,6 +107,25 @@ jobs:
       # The Short: the chapters named in the script's short:, tall, from the same narration.
       - name: Short
         run: node tools/episode.mjs render "source/episodes/$SLUG.md" --music "$MUSIC" --short
+
+      # Skipped on a push, without the secrets, or with upload=no. Nothing goes public unless asked for.
+      - name: To YouTube
+        if: env.HAS_YT == 'true' && env.UPLOAD != 'no'
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          YT_PLAYLIST_ID: ${{ vars.YT_PLAYLIST_ID }}
+        run: |
+          D="brand/youtube/ep-$SLUG"
+          if [ "$UPLOAD" = update ]; then
+            [ -n "$VIDEO_ID" ] || { echo "::error::upload=update needs video_id"; exit 1; }
+            node tools/upload-youtube.mjs "$D/meta.json" --update "$VIDEO_ID"
+          else
+            for m in meta.json meta-short.json; do
+              if [ -f "$D/$m" ]; then node tools/upload-youtube.mjs "$D/$m" --privacy "$PRIVACY"; fi
+            done
+          fi
 
       - name: Upload the film
         uses: actions/upload-artifact@v4

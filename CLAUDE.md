@@ -371,8 +371,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   the episode script online, downloads the owner's footage from the
   Release `footage-<slug>`, renders with `tools/episode.mjs`, and files
   the film, captions, thumbnail, sheets and the still-missing shot list
-  under the Release `film-ep-<slug>` through `release.yml`. The script
-  format and the process are `source/episodes/FORMAT.md`.
+  under the Release `film-ep-<slug>` through `release.yml`. With the three
+  YouTube secrets set, a dispatched run also puts the film and the Short on
+  the channel as private (`upload=film`), or, with `upload=update` and a
+  `video_id`, sets the generated title, description, chapters, captions and
+  thumbnail on a video the owner uploaded by hand (not locked by the API
+  audit); a push never uploads. The script format and the process are
+  `source/episodes/FORMAT.md`.
 - `.github/workflows/verify-live.yml`: manual dispatch, `url` input. Curls
   every route and discovery file on the live origin, checks the headers,
   canonical, draft noindex and sitemap exclusion, then runs the same sweep

@@ -35,7 +35,10 @@ Not used: that Google's Donald Harrison has sat on SpaceX's board since 2015
 Confirm before the upload on 1 Oct: search EDGAR for any SpaceX 8-K on the
 Google agreement or on GPU delivery. On 26 Sep there was none after 14 Aug.
 If SpaceX reports delivery, a shortfall or an amendment, rewrite the fourth
-paragraph to say what happened. The chart sets contracted monthly fees beside
+paragraph to say what happened. Checked 1 Oct 2026: SpaceX's EDGAR filings
+since 14 Aug are Forms 4, 4/A and 144 only; no 8-K on the agreement or on
+delivery, so the fourth paragraph stands ("were due", which is true either
+way). The chart sets contracted monthly fees beside
 reported quarterly revenue; its note says so. -->
 
 # Sources
