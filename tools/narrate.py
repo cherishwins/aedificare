@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.10"
-# dependencies = ["kokoro>=0.9.4", "soundfile", "numpy", "torch"]
+# dependencies = ["kokoro>=0.9.4", "soundfile", "numpy", "torch", "transformers>=5.17"]
 # [[tool.uv.index]]
 # name = "pytorch-cpu"
 # url = "https://download.pytorch.org/whl/cpu"
@@ -26,6 +26,12 @@ cannot be aligned falls back to proportional timing and says so on stderr.
 Run through uv so nothing is installed into the repo:
   uv run tools/narrate.py brand/youtube/edition-03
 Owner decision 2026-09-24: the channel speaks; the voice is am_michael.
+
+transformers>=5.17 is stated because kokoro does not bound it: on 2 Oct 2026
+a fresh resolve (every Python from 3.11 to 3.14) backtracked to transformers
+4.12.2, whose tokenizers 0.10.3 has no wheel and no longer compiles, and the
+episode workflow failed at the narration. 5.17 and 5.18 both narrate with
+word timestamps.
 """
 import json
 import re
