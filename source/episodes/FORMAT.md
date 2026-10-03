@@ -149,8 +149,25 @@ the id is the first five words of the description. `raw` on a footage tag
   money; it rarely strikes.
 - **Never** a clip that makes a real person appear to say or do something
   they did not. The narrator is synthetic and never imitates a real voice.
+- **The files themselves.** Names are matched case-blind, with spaces and
+  underscores read as hyphens. A clip is cut by its length; a file whose
+  header states none (a stream dump, a cut-off download) has its frames
+  counted instead, and a clip with no length by any route, or whose `-at-`
+  number is past its end, is refused by name before a frame renders; the
+  same in-point on footage is a warning and the file plays from its start. A file shorter
+  than its shot repeats, and the sheet says so once it knows the shot's
+  length. Shoot your own footage landscape for the wide film: a portrait
+  picture there is pillarboxed on Void, not cropped. A clip's sound is
+  levelled to the voice on its own, so a quiet recording is not lost under
+  the bed.
 
 ## Credits
 
-`footage/credits.txt`, one line per file: `id: source, licence`. The
-description carries them under "Footage:".
+`footage/credits.txt`, one line per file: `id: source, licence`, attached
+to the same Release as the files. The description carries them under
+"Footage:", and the render names every file in use that has no line.
+YouTube's limits are checked before anything renders or uploads: a title
+runs 100 characters at most, a description 5,000 bytes, and neither may
+hold `<` or `>`. Chapters are listed only when YouTube would show them
+(three or more, none under ten seconds); otherwise the render says why
+the list is left out.

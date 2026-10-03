@@ -48,6 +48,10 @@ if (!YT_CLIENT_ID || !YT_CLIENT_SECRET || !YT_REFRESH_TOKEN) { console.error('up
 if (!['private', 'unlisted', 'public'].includes(PRIVACY)) { console.error('upload-youtube: --privacy must be private, unlisted or public'); process.exit(1); }
 
 const meta = JSON.parse(fs.readFileSync(META, 'utf8'));
+// What the videos API refuses, said before a token is minted or a gigabyte is sent: a title over 100 characters,
+// a description over 5,000 bytes, and < or > in either (developers.google.com/youtube/v3/docs/videos).
+if ((meta.title || '').length > 100 || /[<>]/.test(meta.title || '')) { console.error(`upload-youtube: the title runs ${meta.title.length} characters${/[<>]/.test(meta.title) ? ' and holds < or >' : ''}; YouTube takes 100 and no angle brackets`); process.exit(1); }
+if (Buffer.byteLength(meta.description || '') > 5000 || /[<>]/.test(meta.description || '')) { console.error(`upload-youtube: the description runs ${Buffer.byteLength(meta.description)} bytes${/[<>]/.test(meta.description) ? ' and holds < or >' : ''}; YouTube takes 5,000 and no angle brackets`); process.exit(1); }
 const dir = path.dirname(META);
 const video = path.join(dir, meta.file);
 if (!UPDATE && !fs.existsSync(video)) { console.error(`upload-youtube: ${video} is missing; render first`); process.exit(1); }

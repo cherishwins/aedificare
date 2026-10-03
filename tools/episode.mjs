@@ -69,6 +69,7 @@ function parseTag(inner) {
   const opts = {}, args = [];
   for (const p of parts) { const kv = /^(find|at|hl|say|by|raw|hold|src|unit|prefix|note|sub|ref)\s*:\s*([\s\S]*)$/.exec(p); if (kv) opts[kv[1]] = kv[2].trim(); else args.push(p); }
   const tag = { kind: m[1], args, ...opts };
+  if (tag.say) tag.say = tag.say.replace(/^["“]|["”]$/g, '');
   if (OWNER.includes(tag.kind)) {
     tag.desc = args[0] || '';
     const dur = args.find((a) => /^\d+(\.\d+)?s$/.test(a));
@@ -139,6 +140,14 @@ async function check(S, { quiet = false } = {}) {
   const issues = [...S.issues];
   const warnings = []; // printed after the issues; they do not fail the check
   for (const k of ['title', 'date']) if (!S.meta[k]) issues.push(`front matter needs ${k}:`);
+  // What the videos API refuses at the end of a two-hour render, caught here: a title over 100 characters, and < or >
+  // anywhere in a title or the description (developers.google.com/youtube/v3/docs/videos).
+  for (const k of ['title', 'title2', 'title3']) if (S.meta[k]) {
+    if (S.meta[k].length > 100) issues.push(`${k}: ${S.meta[k].length} characters; YouTube takes 100`);
+    if (/[<>]/.test(S.meta[k])) issues.push(`${k}: YouTube refuses < and > in a title`);
+  }
+  const inDescription = [S.meta.hook, S.blocks.find((x) => x.kind === 'p')?.text, ...S.blocks.filter((x) => x.kind === 'h2').map((x) => x.text), ...Object.values(S.sources).flatMap((x) => [x.pub, x.title])].filter(Boolean);
+  for (const x of inDescription.filter((x) => /[<>]/.test(x))) issues.push(`YouTube refuses < and > in a description: "${x.slice(0, 70)}"`);
   for (const s of Object.values(S.sources)) {
     if (!/^https?:\/\//.test(s.url || '')) issues.push(`${s.id}: no URL`);
     if (!/^\d{4}(-\d{2}){0,2}$/.test(s.date || '')) issues.push(`${s.id}: date must be YYYY, YYYY-MM or YYYY-MM-DD, got "${s.date}"`);
@@ -238,14 +247,48 @@ function footageFile(id) {
   // GitHub, which rewrites some characters in release asset names.
   // Any container ffmpeg reads: archive.org and the National Archives serve .mpeg, .mpg and .ogv, which were once
   // skipped here while the shot list promised "any video extension".
-  const f = fs.readdirSync(FOOT).find((x) => /\.(mp4|mov|webm|mkv|m4v|mpe?g|ogv|avi|ts|mts|wmv|flv|gif|jpe?g|png|webp|tiff?)$/i.test(x) && [`${id}.`, `${id}@`, `${id}-at-`].some((p) => x.startsWith(p)));
+  // Names are matched case-blind with spaces and underscores read as hyphens: a phone saves "Spacey Name.MP4" and
+  // GitHub rewrites some characters in asset names, and a near-miss rendered as a slate without a word (found 2026-10-03).
+  const normName = (x) => x.toLowerCase().replace(/[\s_]+/g, '-');
+  const nid = normName(id);
+  const f = fs.readdirSync(FOOT).find((x) => /\.(mp4|mov|webm|mkv|m4v|mpe?g|ogv|avi|ts|mts|wmv|flv|gif|jpe?g|png|webp|tiff?)$/i.test(x) && [`${nid}.`, `${nid}@`, `${nid}-at-`].some((p) => normName(x).startsWith(p)));
   if (!f) return null;
   const at = /(?:@|-at-)([\dm.]+?)\.[a-z0-9]+$/i.exec(f);
   const inPoint = at ? (at[1].includes('m') ? (+at[1].split('m')[0] * 60 + +(at[1].split('m')[1] || 0)) : +at[1]) : 0;
   // A still (a Library of Congress or DOE photograph, a Landsat frame) is held and panned like footage.
-  return { file: path.join(FOOT, f), inPoint, still: /\.(jpe?g|png|webp|tiff?)$/i.test(f) };
+  const still = /\.(jpe?g|png|webp|tiff?)$/i.test(f);
+  const file = path.join(FOOT, f);
+  return { file, inPoint, still, len: still ? 0 : probeDur(file), ...(still ? {} : probeDims(file)) };
 }
-const probeDur = (file) => +spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', file], { encoding: 'utf8' }).stdout.trim() || 0;
+const probeCache = new Map();
+const probe = (file, args) => spawnSync('ffprobe', ['-v', 'error', ...args, '-of', 'default=noprint_wrappers=1', file], { encoding: 'utf8' }).stdout;
+const field = (out, k) => { const m = new RegExp(`^${k}=(.*)$`, 'm').exec(out); return m ? m[1].trim() : ''; };
+/**
+ * A file's length in seconds. The container header first; a file written to a pipe (MediaRecorder, a stream dump,
+ * a download cut off) says N/A there, and `-t 0` on such a clip meant "unlimited", which played the whole file
+ * and desynced every word after it (found 2026-10-03). So the stream's own duration next, then a frame count.
+ */
+function probeDur(file) {
+  if (probeCache.has(file)) return probeCache.get(file);
+  let d = +field(probe(file, ['-show_entries', 'format=duration']), 'duration') || 0;
+  if (!(d > 0)) d = +field(probe(file, ['-select_streams', 'v:0', '-show_entries', 'stream=duration']), 'duration') || 0;
+  if (!(d > 0)) {
+    const out = probe(file, ['-select_streams', 'v:0', '-count_frames', '-show_entries', 'stream=nb_read_frames,r_frame_rate']);
+    const [num, den = 1] = field(out, 'r_frame_rate').split('/').map(Number);
+    const frames = +field(out, 'nb_read_frames');
+    if (frames > 0 && num > 0) d = frames / (num / den);
+  }
+  probeCache.set(file, d);
+  return d;
+}
+/** The picture's shape as shown, after a phone's rotation tag or a photograph's EXIF orientation. */
+function probeDims(file) {
+  const out = probe(file, ['-select_streams', 'v:0', '-show_entries', 'stream=width,height:stream_tags=rotate,Orientation:stream_side_data=rotation']);
+  let w = +field(out, 'width') || 0, h = +field(out, 'height') || 0;
+  const rot = Math.abs(+field(out, 'rotation') || +field(out, 'TAG:rotate') || 0) % 180;
+  if (rot === 90 || +field(out, 'TAG:Orientation') >= 5) [w, h] = [h, w];
+  return { w, h };
+}
 const hasAudio = (file) => spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=index', '-of', 'csv=p=0', file], { encoding: 'utf8' }).stdout.trim() !== '';
 
 /* ---- the timeline ---------------------------------------------------------- */
@@ -271,7 +314,14 @@ function timeline() {
     }
     if (b.kind === 'clip') {
       const f = footageFile(b.tag.id);
-      const dur = b.tag.dur || (f ? Math.min(12, probeDur(f.file) - f.inPoint) : Math.max(3, (b.tag.say || '').split(' ').length / 2.6));
+      if (f && !f.still) {
+        // A clip is cut by its length, so a file that cannot state one, or that starts past its own end, stops the render
+        // here with the file's name, not an hour later with ffmpeg's "whole_dur out of range" (both found 2026-10-03).
+        if (!(f.len > 0)) { console.error(`episode: ${path.basename(f.file)} reports no duration (a stream dump or a cut-off download); remux it first: ffmpeg -i <file> -c copy <file>.mp4`); process.exit(1); }
+        if (f.inPoint >= f.len) { console.error(`episode: ${path.basename(f.file)} starts at ${f.inPoint} s but the file runs ${f.len.toFixed(1)} s`); process.exit(1); }
+      }
+      // A still named as a clip is a card held while its words are said, not one frame.
+      const dur = b.tag.dur || (f && !f.still ? Math.max(1 / FPS, Math.min(12, f.len - f.inPoint)) : Math.max(3, (b.tag.say || '').split(' ').length / 2.6));
       const t = nb.start + shift;
       for (const c of chapters) if (c.t === undefined) c.t = t;
       clips.push({ at: nb.start, t, dur, tag: b.tag, f });
@@ -327,6 +377,8 @@ function sheet(T) {
       const have = footageFile(tag.id);
       lines.push(`- [${have ? 'x' : ' '}] **${tag.id}**${dur ? ` · ${dur.toFixed(1)} s` : ''}${t !== null && t !== undefined ? ` · at ${mmss(t)}` : ''}`);
       lines.push(`  ${tag.desc}`);
+      if (have && !have.still && have.inPoint >= have.len) lines.push(`  In hand, but ${path.basename(have.file)} starts at ${have.inPoint} s and the file runs ${have.len.toFixed(1)} s: lower the -at- number.`);
+      else if (have && !have.still && tag.kind !== 'clip' && dur && have.len - have.inPoint < dur) lines.push(`  In hand, ${(have.len - have.inPoint).toFixed(1)} s from its in-point for a ${dur.toFixed(1)} s shot, so it repeats; a longer file or an earlier -at-.`);
       if (tag.say) lines.push(`  Says: "${tag.say}"`);
       if (tag.find) lines.push(`  Find: ${tag.find}`);
     }
@@ -528,6 +580,75 @@ function ff(args, what) {
   if (r.status !== 0) { console.error(`episode: ffmpeg failed on ${what}\n${(r.stderr || '').slice(-1500)}`); process.exit(1); }
 }
 
+const warned = new Set();
+const warnOnce = (m) => { if (warned.has(m)) return; warned.add(m); console.warn(m); };
+
+/**
+ * The Short's pieces: the chapters named in `short:` (the first by default) cut from the tall render, then the end
+ * card, inside YouTube's three-minute ceiling. Planned before a frame is rendered, so an unknown chapter or a list
+ * that overruns the cap is said at the start; a piece the cap leaves empty is dropped, because `-ss x -to x` is an
+ * ffmpeg error at the end of the render (found 2026-10-03).
+ */
+function shortPlan(T) {
+  const named = T.chapters.filter((c) => c.t !== undefined);
+  const want = (S.meta.short || named[0]?.text || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
+  const unknown = want.filter((w) => !named.some((c) => c.text.toLowerCase() === w));
+  if (unknown.length) { console.error(`episode: short: names no chapter "${unknown.join('", "')}"; chapters are: ${named.map((c) => c.text).join(', ')}`); process.exit(1); }
+  const segs = [];
+  for (const [k, c] of named.entries()) if (want.includes(c.text.toLowerCase())) segs.push([k === 0 ? 0 : c.t, k + 1 < named.length ? named[k + 1].t : T.total]);
+  const cap = 179 - (T.end - T.total);
+  const asked = segs.reduce((n, [a, b]) => n + b - a, 0);
+  let room = cap;
+  for (const sg of segs) { const len = Math.min(sg[1] - sg[0], Math.max(0, room)); sg[1] = sg[0] + len; room -= len; }
+  const kept = segs.filter(([a, b]) => b - a >= 1 / FPS);
+  if (asked > cap) warnOnce(`episode: the Short's named chapters run ${asked.toFixed(0)} s against a cap of ${cap.toFixed(0)} s before the end card; cut at ${(cap).toFixed(1)} s${kept.length < segs.length ? `, ${segs.length - kept.length} chapter(s) dropped entirely` : ''}; name fewer chapters in short:`);
+  kept.push([T.total, T.end]);
+  return kept;
+}
+
+/**
+ * The upload's description: the hook, the chapters, every source, the footage credits, the voice, the music.
+ * Written once here so it can be measured before a frame is rendered: YouTube takes 5,000 bytes and the first
+ * description that carried a full credits list ran 5,489 (found 2026-10-03).
+ * Chapters only as YouTube shows them (support.google.com/youtube/answer/9884579): three or more, the first at 0:00,
+ * none under ten seconds; otherwise the list is left out and said, because a list YouTube ignores is noise.
+ */
+function describe(T, bedLine) {
+  const mmss = (x) => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
+  const chapters = T.chapters.filter((c) => c.t !== undefined);
+  const entries = !chapters.length ? [] : chapters[0].t < 10 ? chapters.map((c, i) => ({ t: i ? c.t : 0, text: c.text })) : [{ t: 0, text: 'Cold open' }, ...chapters.map((c) => ({ t: c.t, text: c.text }))];
+  const brief = entries.filter((c, i) => (entries[i + 1]?.t ?? T.total) - c.t < 10);
+  let chapterLines = [];
+  if (entries.length && entries.length < 3) warnOnce(`episode: ${entries.length} chapter(s); YouTube shows chapters from three, so the description lists none`);
+  else if (brief.length) warnOnce(`episode: chapter(s) under ten seconds (${brief.map((c) => c.text).join(', ')}); YouTube then shows no chapters at all, so the description lists none; move or merge the heading`);
+  else chapterLines = entries.map((c) => `${mmss(c.t)} ${c.text}`);
+  const sources = Object.values(S.sources).map((s, i) => `${i + 1}. ${s.pub}, ${s.title} (${s.date}) ${s.url}`);
+  const creditsFile = path.join(FOOT, 'credits.txt');
+  const credits = fs.existsSync(creditsFile) ? fs.readFileSync(creditsFile, 'utf8').trim().split('\n').filter(Boolean) : [];
+  const bad = credits.filter((l) => /[<>]/.test(l));
+  if (bad.length) { console.error(`episode: footage/credits.txt holds < or >, which YouTube refuses in a description: "${bad[0].slice(0, 70)}"`); process.exit(1); }
+  // Every file in use is credited or named here; the first episode's footage sheet never said where the credits go.
+  const inUse = [...new Set(T.shots.filter((s) => OWNER.includes(s.tag.kind) && footageFile(s.tag.id)).map((s) => s.tag.id))];
+  const uncredited = inUse.filter((id) => !credits.some((l) => l.toLowerCase().startsWith(`${id.toLowerCase()}:`)));
+  if (uncredited.length) warnOnce(`episode: ${uncredited.length} file(s) in use with no line in footage/credits.txt ("id: source, licence"): ${uncredited.join(', ')}`);
+  const firstP = S.blocks.find((x) => x.kind === 'p');
+  const text = [
+    S.meta.hook || firstP.text,
+    '',
+    ...chapterLines, ...(chapterLines.length ? [''] : []),
+    'Sources:',
+    ...sources,
+    '',
+    ...(credits.length ? ['Footage:', ...credits, ''] : []),
+    `Voice: synthetic, ${T.N.model} ${T.N.voice}. Quotes are the speakers' own words, cited above.`,
+    bedLine,
+    SITE.origin,
+  ].join('\n');
+  const bytes = Buffer.byteLength(text);
+  if (bytes > 5000) { console.error(`episode: the description runs ${bytes.toLocaleString('en')} bytes and YouTube takes 5,000; shorten the source titles or the credits lines`); process.exit(1); }
+  return text;
+}
+
 async function render() {
   const issues = await check(S, { quiet: true });
   if (issues.length) { await check(S); console.error('episode: fix the check before rendering'); process.exit(1); }
@@ -535,6 +656,10 @@ async function render() {
   const FFx = findFfmpeg();
   if (FFx.codec !== 'libx264') { console.error('episode: needs an ffmpeg with libx264'); process.exit(1); }
   const T = timeline();
+  // Said before the first frame: the Short's plan, the description's length, the chapters YouTube will show, the credits.
+  const music = arg('--music', 'bed');
+  const bedLine = (bedFile) => bedFile === null ? 'Music: none.' : music === 'bed' ? `Music: computed from r = cos(kθ), seed ${SEED}; no third-party audio.` : `Music: ${path.basename(bedFile)} (add the licence credit here)`;
+  if (SHORT) shortPlan(T); else describe(T, bedLine(music === 'none' ? null : music));
   const work = path.join(DIR, SHORT ? 'work-short' : 'work'); fs.rmSync(work, { recursive: true, force: true }); fs.mkdirSync(work, { recursive: true });
   const t0 = Date.now();
 
@@ -572,15 +697,23 @@ async function render() {
       // each from a later moment of the same file, panning the other way. One clip becomes a sequence.
       const look = s.tag.kind === 'gag' || s.tag.raw ? 'eq=contrast=1.05' : GRADE;
       const n = s.tag.kind === 'footage' && d > 5.4 ? Math.round(d / 3.6) : 1;
-      const len = f.still ? 0 : probeDur(f.file);
+      const len = f.len;
+      // `-ss` past the end with `-stream_loop -1` wraps to the start without a word; say so. A file shorter than its
+      // shot repeats, and its sub-cuts would all start at 0; say that too, and the sheet says it before the render.
+      if (!f.still && len && f.inPoint >= len) { warnOnce(`episode: ${path.basename(f.file)} starts at ${f.inPoint} s but the file runs ${len.toFixed(1)} s; playing from its start`); f.inPoint = 0; }
+      if (!f.still && s.tag.kind !== 'clip' && len && len - f.inPoint < d) warnOnce(`episode: ${path.basename(f.file)} has ${(len - f.inPoint).toFixed(1)} s from its in-point for a ${d.toFixed(1)} s shot, so it repeats`);
+      // A portrait picture in a wide frame is pillarboxed on Void, not cropped to a sliver of its middle (a phone
+      // video filled 29 percent of itself, found 2026-10-03). A wide picture in the Short is cropped, as before.
+      const tall = f.h > f.w && W > H;
       for (let k = 0; k < n; k++) {
         const dk = (Math.round(((k + 1) * frames) / n) - Math.round((k * frames) / n)) / FPS;
         const spread = Math.max(0, len - f.inPoint - dk);
         const from = f.inPoint + (n > 1 ? (spread * k) / (n - 1) : 0);
         const pan = (i + k) % 2 ? `(in_w-out_w)*t/${dk}` : `(in_w-out_w)*(1-t/${dk})`;
+        const fit = tall ? `scale=-2:${H},pad=${W}:${H}:(ow-iw)/2:0:color=${VOID}` : `scale=${Math.round(W * 1.1)}:${Math.round(H * 1.1)}:force_original_aspect_ratio=increase,crop=${W}:${H}:x='${pan}':y='(in_h-out_h)/2'`;
         const piece = n === 1 ? out : out.replace(/\.mp4$/, `-${k}.mp4`);
         ff([...(f.still ? ['-loop', '1', '-framerate', String(FPS)] : ['-ss', String(from), '-stream_loop', '-1']), '-i', f.file, '-t', String(dk), '-vf',
-          `scale=${Math.round(W * 1.1)}:${Math.round(H * 1.1)}:force_original_aspect_ratio=increase,crop=${W}:${H}:x='${pan}':y='(in_h-out_h)/2',${look},fps=${FPS},format=yuv420p`,
+          `${fit},${look},fps=${FPS},format=yuv420p`,
           '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '16', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-an', piece], s.tag.id);
         if (n > 1) segs.push(piece);
       }
@@ -646,7 +779,8 @@ async function render() {
     let bg = '';
     if (tf) {
       const jpg = path.join(work, `thumb${v.n}-bg.jpg`);
-      ff([...(tf.still ? [] : ['-ss', String(tf.inPoint + +tat)]), '-i', tf.file, '-frames:v', '1', '-vf', `scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},${GRADE.replace(/,noise=[^,]+$/, '')}`, jpg], 'thumbnail frame');
+      const tfit = tf.h > tf.w && W > H ? `scale=-2:${H},pad=${W}:${H}:(ow-iw)/2:0:color=${VOID}` : `scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H}`;
+      ff([...(tf.still ? [] : ['-ss', String(tf.inPoint + +tat)]), '-i', tf.file, '-frames:v', '1', '-vf', `${tfit},${GRADE.replace(/,noise=[^,]+$/, '')}`, jpg], 'thumbnail frame');
       bg = `<img src="data:image/jpeg;base64,${fs.readFileSync(jpg).toString('base64')}" style="position:absolute;inset:0;width:${W}px;height:${H}px">`;
     }
     const th = page(`${bg}<div class="big" style="bottom:${M + 190}px;font-size:${fit(line1, line1.length > 8 ? 330 : 420)}px;color:${ACID}">${esc(line1)}</div><div class="big" style="bottom:${M}px;font-size:${fit(line2, 170)}px;color:${FLASH}">${esc(line2)}</div>`);
@@ -665,23 +799,33 @@ async function render() {
   ff(['-f', 'concat', '-safe', '0', '-i', path.join(work, 'list.txt'), '-c', 'copy', body], 'concat');
 
   // Sound: the narration, opened at each clip for the clip's own sound, then the bed under all of it.
-  const narr = path.join(DIR, 'narration.wav');
+  // The narration is levelled to -16 LUFS once, in two passes (measure, then apply with the measured values, linear
+  // where the peaks allow), and each clip is levelled to the same figure on its own above. One dynamic loudnorm over
+  // the finished track did neither well: it left a quiet clip at -50 and, once clips were levelled, lifted them 7 dB
+  // above the voice as its gain trailed the speech around them (measured 2026-10-03).
+  const raw = path.join(DIR, 'narration.wav');
+  const meas = spawnSync('ffmpeg', ['-hide_banner', '-i', raw, '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json', '-f', 'null', '-'], { encoding: 'utf8', maxBuffer: 1 << 26 });
+  const mj = JSON.parse(meas.stderr.slice(meas.stderr.lastIndexOf('{')));
+  const narr = path.join(work, 'narration-16.wav');
+  ff(['-i', raw, '-af', `loudnorm=I=-16:TP=-1.5:LRA=11:measured_I=${mj.input_i}:measured_TP=${mj.input_tp}:measured_LRA=${mj.input_lra}:measured_thresh=${mj.input_thresh}:offset=${mj.target_offset}:linear=true,aresample=48000`, '-ar', '48000', narr], 'narration level');
   const ins = ['-i', narr];
   const parts = [];
   let from = 0;
   T.clips.forEach((c, k) => {
     parts.push(`[0:a]atrim=${from}:${c.at},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=mono[n${k}]`);
-    if (c.f && hasAudio(c.f.file)) { ins.push('-ss', String(c.f.inPoint), '-t', String(c.dur), '-i', c.f.file); parts.push(`[${ins.filter((x) => x === '-i').length - 1}:a]aresample=48000,aformat=channel_layouts=mono,apad=whole_dur=${c.dur + 0.3}[c${k}]`); }
+    // Each clip is trimmed to its length in the graph too (`-t 0` would mean unlimited) and levelled to the voice's
+    // -16 LUFS on its own: the one loudnorm over the whole track pulled loud clips down but left a quiet one under
+    // the bed (measured -50.6 LUFS against -16, 2026-10-03).
+    if (c.f && hasAudio(c.f.file)) { ins.push('-ss', String(c.f.inPoint), '-t', String(c.dur), '-i', c.f.file); parts.push(`[${ins.filter((x) => x === '-i').length - 1}:a]aresample=48000,aformat=channel_layouts=mono,atrim=0:${c.dur},loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000,apad=whole_dur=${c.dur + 0.3}[c${k}]`); }
     else parts.push(`anullsrc=r=48000:cl=mono,atrim=0:${c.dur + 0.3}[c${k}]`);
     from = c.at;
   });
   parts.push(`[0:a]atrim=${from},asetpts=PTS-STARTPTS,aresample=48000,aformat=channel_layouts=mono[nz]`);
   const order = T.clips.map((_, k) => `[n${k}][c${k}]`).join('') + '[nz]';
-  parts.push(`${order}concat=n=${T.clips.length * 2 + 1}:v=0:a=1,loudnorm=I=-16:TP=-1.5:LRA=11,apad=whole_dur=${T.end}[v]`);
+  parts.push(`${order}concat=n=${T.clips.length * 2 + 1}:v=0:a=1,apad=whole_dur=${T.end}[v]`);
   const voice = path.join(work, 'voice.wav');
   ff([...ins, '-filter_complex', parts.join(';'), '-map', '[v]', '-ar', '48000', voice], 'voice');
 
-  const music = arg('--music', 'bed');
   let bedFile = null;
   if (music === 'bed') {
     const bd = path.join(work, 'bed'); fs.mkdirSync(bd);
@@ -723,15 +867,7 @@ async function render() {
   if (SHORT) {
     // The Short: the chapters named in `short:` (the first chapter by default), then the end card, cut from the
     // tall render with voice and bed cut the same way, inside YouTube's three-minute ceiling for Shorts.
-    const named = T.chapters.filter((c) => c.t !== undefined);
-    const want = (S.meta.short || named[0]?.text || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
-    const segs = [];
-    for (const [k, c] of named.entries()) if (want.includes(c.text.toLowerCase())) segs.push([k === 0 ? 0 : c.t, k + 1 < named.length ? named[k + 1].t : T.total]);
-    const unknown = want.filter((w) => !named.some((c) => c.text.toLowerCase() === w));
-    if (unknown.length) { console.error(`episode: short: names no chapter "${unknown.join('", "')}"; chapters are: ${named.map((c) => c.text).join(', ')}`); process.exit(1); }
-    let room = 179 - (T.end - T.total);
-    for (const sg of segs) { const len = Math.min(sg[1] - sg[0], Math.max(0, room)); if (len < sg[1] - sg[0]) console.warn(`episode: the Short is capped at three minutes; cut at ${(sg[0] + len).toFixed(1)} s`); sg[1] = sg[0] + len; room -= len; }
-    segs.push([T.total, T.end]);
+    const segs = shortPlan(T);
     const cutFrames = (x) => (Math.round(x * FPS) / FPS).toFixed(4);
     // One input per piece, seeked to it: trimming several pieces from one input makes ffmpeg hold every decoded frame
     // between them in memory (a 1080x1920 film ran the sandbox out of it on 2026-09-26).
@@ -758,24 +894,7 @@ async function render() {
   }
   fs.writeFileSync(path.join(DIR, 'captions.srt'), srt(cues));
 
-  // Description: the hook, chapters, every source, the footage credits, the voice.
-  const mmss = (x) => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
-  const chapters = T.chapters.filter((c) => c.t !== undefined);
-  const chapterLines = chapters.length >= 2 ? [`0:00 ${chapters[0].t < 10 ? chapters[0].text : 'Cold open'}`, ...chapters.slice(chapters[0].t < 10 ? 1 : 0).map((c) => `${mmss(c.t)} ${c.text}`)] : [];
-  const creditsFile = path.join(FOOT, 'credits.txt');
-  const credits = fs.existsSync(creditsFile) ? fs.readFileSync(creditsFile, 'utf8').trim().split('\n').filter(Boolean) : [];
-  const description = [
-    S.meta.hook || firstP.text,
-    '',
-    ...chapterLines, ...(chapterLines.length ? [''] : []),
-    'Sources:',
-    ...sources,
-    '',
-    ...(credits.length ? ['Footage:', ...credits, ''] : []),
-    `Voice: synthetic, ${T.N.model} ${T.N.voice}. Quotes are the speakers' own words, cited above.`,
-    bedFile === null ? 'Music: none.' : music === 'bed' ? `Music: computed from r = cos(kθ), seed ${SEED}; no third-party audio.` : `Music: ${path.basename(bedFile)} (add the licence credit here)`,
-    SITE.origin,
-  ].join('\n');
+  const description = describe(T, bedLine(bedFile));
   fs.writeFileSync(path.join(DIR, 'meta.json'), JSON.stringify({
     kind: 'film', slug: SLUG, title: S.meta.title, description, file: path.basename(film), captions: 'captions.srt',
     thumbnail: S.meta.thumb ? 'thumb.png' : null, categoryId: '28', licence: 'youtube', madeForKids: false, duration: Math.round(T.end),
