@@ -44,8 +44,10 @@ jobs:
       - name: Build
         run: npm run build
 
+      # High and critical advisories fail the build unless tools/audit-allowlist.json names them, with a reason and
+      # an expiry (tools/check-audit.cjs); an advisory with no patched release anywhere is the case it exists for.
       - name: Audit dependencies
-        run: npm audit --audit-level=high
+        run: node tools/check-audit.cjs
 
       # 5 pages × 10 viewports: overflow, console errors, tap targets,
       # contrast, broken references, og:image:alt, no service worker,

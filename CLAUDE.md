@@ -273,7 +273,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   Findings). 1.4 MB; do not let this grow into the 107 MB northerntemper
   carried.
 - `tools/`: `verify.cjs`, `check-brand.cjs`, `check-budget.cjs`,
-  `check-docs.cjs`, `check-contents.cjs` (every contents entry in
+  `check-docs.cjs`, `check-audit.cjs` (the dependency audit: high and
+  critical advisories fail the build unless `tools/audit-allowlist.json`
+  names them with a reason and an `until` date, after which they fail
+  again; written 2026-10-03 when GHSA-ch52-4w7c-c8xp covered every
+  version of `http-cache-semantics`, a build-time dependency of astro
+  with no patched release, and `npm audit`'s only fix was astro 2),
+  `check-contents.cjs` (every contents entry in
   `src/lib/editions.mjs` must exist as an id and a heading in the built
   edition page, and every published page's meta description must run 100
   to 200 characters, or the build fails), `generate-llms-full.cjs`,
@@ -330,7 +336,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   by `.github/workflows/film.yml`, filed by `.github/workflows/release.yml`
   under the repo's Releases as `film-<slug>`, and downloaded from there;
   or rendered on the owner's Mac with the same command.
-- `.github/workflows/verify.yml`: build (with the three checkers), audit,
+- `.github/workflows/verify.yml`: build (with the three checkers), the
+  audit through `tools/check-audit.cjs`,
   sweep, on every PR and push to `main`.
 - `.github/workflows/film.yml`: manual dispatch, `slug` and `format`
   inputs. Renders a narrated film on a clean runner (build, Playwright,
