@@ -1,0 +1,516 @@
+---
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import Section from '../components/Section.astro';
+import Rail from '../components/Rail.astro';
+import Stats from '../components/Stats.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, LICENCE, describe, seedDrift } from '../lib/editions.mjs';
+import { SITE, abs } from '../config.mjs';
+
+// Edition 04, ported from the print of 3 Oct 2026 with the prose verbatim.
+// The print marks every material claim F (verified fact), I (sourced
+// inference) or Q (open question); the marks are kept as inline mono labels
+// so the reader can see which sentences the author is prepared to defend
+// and which they are only prepared to argue.
+const ed = edition('the-tilt-gap');
+
+// Cover field runs Malachite only: Acid on this surface is spent on one word
+// of the title.
+const cover = HOUSE.map((L, i) => ({ ...L, c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: 'The Tilt Gap',
+  alternativeHeadline: `Printed as ${ed.print}`,
+  datePublished: ed.date,
+  author: { '@type': 'Person', name: 'Jesse James' },
+  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
+  url: abs(ed.path),
+  mainEntityOfPage: abs(ed.path),
+  license: LICENCE.url,
+  isAccessibleForFree: true,
+  description: ed.lede,
+};
+
+// Figures. Every bar is computed from the number it shows, never drawn.
+const log = (v, lo, hi) => (((Math.log10(v) - lo) / (hi - lo)) * 100).toFixed(1);
+// Hours of play behind each result. 45,000 years is about 394 million hours.
+const hours = [['VPT, contractor-labelled Minecraft play', 2000, '2,000 h'], ['VPT, labelled online video', 70000, '70,000 h'], ['OpenAI Five, Dota 2 self-play', 394_000_000, '45,000 years']];
+// What a unit of human judgment sells for. The expert row is plotted at the midpoint of its range.
+const prices = [['One AI-generated preference label', 0.06, '$0.06', 'Google RLAIF estimate'], ['One human preference label', 0.67, '$0.67', 'Google RLAIF estimate'], ['One expert evaluation', 75, '$50 to $100', 'vendor price lists, indicative'], ['One alternative dataset, per year', 80000, '$80,000', 'Neudata, average buyer']];
+// Monthly, modelled. Each range is plotted at its high end and labelled in full.
+const indie = [['Cost', 7500, '$1.2k to $7.5k'], ['Revenue', 1200, '$1.2k']];
+const scale = [['Cost', 750000, '$120k to $750k'], ['Revenue', 37000, '$37k']];
+const directions = [
+  ['1', 'Games teach a machine to play the game', 'Self-play does the work. Human replays, if used at all, only start the engine.', 'AlphaStar · OpenAI Five · VPT, Minecraft', 'Proven'],
+  ['2', 'Games teach a machine to work with humans', 'Human games are essential here, because the target is a person.', 'CICERO · Melting Pot, 50+ substrates, 250+ test scenarios', 'Proven'],
+  ['3', 'Games make humans do computation', 'The score is the scientific or financial objective. Decades old.', 'Foldit · Numerai', 'Proven'],
+  ['4', 'Humans’ incidental play teaches a machine something outside the game', 'The Game Exhaust Thesis. No major precedent exists in either direction.', 'This document', 'Unproven'],
+];
+const law = [
+  ['Illinois · BIPA', '$1,000 to $5,000', 'Per violation, negligent to reckless, with a private right of action. Written consent and a retention schedule are required before any voiceprint exists. F', 'Nine coordinated suits landed in May 2026 against Adobe, Google, Amazon, Apple, ElevenLabs, Meta, Microsoft, NVIDIA and Samsung over voiceprints taken for AI training. F Whether a prosody feature is a voiceprint is unsettled. Q'],
+  ['California · CIPA', 'All-party consent', 'In Ambriz v. Google, February 2025, a court held an AI voice vendor can be a third-party eavesdropper if it has the capability to use the data for its own benefit. The same logic was applied to ConverseNow in August 2025. F', 'This business model is using data for its own benefit. Every voice participant must consent, not just the studio. I'],
+  ['Europe · GDPR', 'Special category', 'Voice is personal data. The EDPB’s guidelines treat voice used to identify a person as biometric data, and name consent as the only appropriate basis for reviewing voice to improve a model. F', 'Minimise, keep features non-identifying, and build the deletion path through every layer before the first match is recorded. I'],
+];
+const timeline = [
+  ['Jan 2024', 'Call of Duty’s voice-moderation baseline. Exposure to disruptive voice falls 43% from here.'],
+  ['Dec 2024', 'Ofcom publishes its final illegal-harms codes under the Online Safety Act.'],
+  ['17 Mar 2025', 'UK illegal-harms duties become enforceable. Games flagged higher risk for 17 harms.'],
+  ['25 Jul 2025', 'UK children’s codes in force. Profiles hidden by default, strangers cannot message.'],
+  ['29 Jun 2026', 'US House passes the KIDS Act, 267 to 117, without a duty of care.'],
+  ['5 Aug 2026', 'Senate Commerce advances KOSA. Not law as of this edition.'],
+  ['2 Nov 2026', 'GameAnalytics’ terms begin to permit training its own models on studio data.'],
+];
+const predictions = [
+  ['2027 06 30', 'One more analytics or voice-moderation vendor writes AI-training rights into its standard terms, following GameAnalytics.', 'none of Unity Analytics, Modulate or a peer does so by that date'],
+  ['2027 12 31', 'No frontier lab publicly credits a capability gain to human telemetry from commercial games.', 'a lab paper or launch credits such data'],
+  ['2028 12 31', 'The first paying buyers of game-derived behaviour models are studios and simulation firms, not labs or funds.', 'a lab or fund signs first in any disclosed deal'],
+  ['2026 12 31', 'No US federal kids’ online safety law is enacted.', 'enactment before January 1, 2027'],
+  ['2028 12 31', 'A first published court decision says whether derived prosody features are, or are not, a BIPA voiceprint.', 'no such ruling exists by then'],
+  ['On result', 'The experiment on this page returns a tilt-gap reduction under 20 percent.', 'a replicated result above 20 percent'],
+];
+const order = [
+  ['Month 0', 'Demo', 'A game you control, your consent flow, about 20,000 matches.'],
+  ['Month 3', 'Paper', 'The controlled eval, pre-registered, published positive or negative.'],
+  ['Month 6', 'Plugin', 'Only if the paper is positive. Unity first. Five studios live, one with voice.'],
+  ['Month 12 to 24', 'Distribution', 'Asset Store, Fab, direct outreach. Fifty studios. First gold-layer licence.'],
+];
+const kills = [
+  ['One · The transfer test', '$2k to $8k', '6 to 8 weeks', 'Skip the custom game. Use public poker hand histories or chess games with clock data. Fine-tune on winning calls made under time pressure against an equal-size calm control. Measure the tilt gap on perturbed reasoning and manipulated negotiation.', 'Kill if the gap shrinks by less than 10 percent across three seeds.'],
+  ['Two · The studio test', '$0', '3 weeks', 'Email 100 indie multiplayer studios a one-page offer: free voice and text moderation plus Online Safety Act reports, in exchange for de-identified feature rights with a revenue share.', 'Kill if fewer than five take a call, or nobody accepts the data clause. Validate on three letters of intent.'],
+  ['Three · The buyer test', '$500', '4 weeks', 'Pitch a two-page benchmark and dataset spec to 20 buyers: agent startups, character vendors, simulation-training firms, three or four lab data teams. Ask for a paid pilot or an evaluation licence.', 'Kill if nobody will pay for human behaviour data before seeing a result.'],
+];
+const schema = `{
+  "schema": "spawn.v0.3",
+  "match_id": "uuid",            "spawn_index": 4,
+  "player_pid": "hmac(studio_salt, platform_id)",
+  "age_band": "18plus | under18 | unknown",
+  "consent": { "telemetry": true, "voice_features": true,
+               "commercial_research": true,
+               "all_party_voice_consent_verified": true },
+  "context": { "mode": "ranked", "skill_tier": "...",
+               "team_size": 5, "t_start_ms": 0, "t_end_ms": 92000 },
+  "state_stream": [
+    { "t_ms": 0, "hp": 100, "resources": 800, "visible_enemies": 1,
+      "score_diff": -3, "round_clock_ms": 45000, "win_prob_model": 0.31 } ],
+  "action_stream": [
+    { "t_ms": 1840, "action": "buy | move | ability | fire | ping | chat",
+      "decision_latency_ms": 420, "apm_window_10s": 112 } ],
+  "pressure_proxies": {                    // context, never reward
+    "loss_streak_rounds": 3,  "clock_pressure_index": 0.72,
+    "outnumbered_seconds": 11.5, "decision_latency_zscore": 1.9,
+    "hostile_chat_received_count": 2,
+    "voice": { "sampled": true, "speech_seconds": 14.2,
+               "arousal_mean": 0.64, "valence_mean": -0.31,
+               "pitch_var_z": 1.4, "speech_rate_z": 1.1,
+               "extraction": "on_device",  "raw_audio": "never" } },
+  "outcome": {
+    "round_won": true, "match_won": false,
+    "win_prob_delta_by_action": [ { "t_ms": 1840, "delta": 0.04 } ]  // the target
+  },
+  "derived": { "tilt_state": "calm | elevated | tilted", "clutch_event": true }
+}`;
+const sources = [
+  'Activision. Call of Duty anti-toxicity progress report, Oct 2024. callofduty.com/blog/2024/10/call-of-duty-anti-toxicity-progress-report-black-ops-6-moderation-results',
+  'Modulate. Modulate and Activision case study. modulate.ai/case-studies/modulate-activision-case-study',
+  'Riot Games. Comms restrictions and audio retention, Valorant support. support.riotgames.com/en-us/valorant/penalties/comms-restrictions-and-audio-retention',
+  'Riot Games. Valorant voice evaluation update. playvalorant.com/en-us/news/announcements/valorant-voice-evaluation-update/',
+  'Bloomberg. Situational Awareness assets drop to $10 billion after liquidations, 30 Jul 2026. bloomberg.com/news/articles/2026-07-30/situational-awareness-assets-fall-to-10-billion-after-losses',
+  'CNBC. Aschenbrenner forced to unwind all public stock positions, 30 Jul 2026. cnbc.com/2026/07/30/leopold-aschenbrenners-hedge-fund-is-facing-steep-ai-losses.html',
+  'Quartz. Aschenbrenner’s AI hedge fund collapses after margin calls, 31 Jul 2026. qz.com/situational-awareness-hedge-fund-margin-call-citadel-fire-sale-073126',
+  'TechCrunch. Situational Awareness still has its Anthropic shares, 30 Jul 2026. techcrunch.com/2026/07/30/ai-hedge-fund-situational-awareness-may-have-sold-its-public-portfolio-but-it-still-has-its-anthropic-shares/',
+  'arXiv 2312.11111. The Good, The Bad, and Why: Unveiling Emotions in Generative AI (EmotionAttack). arxiv.org/abs/2312.11111',
+  'arXiv 2402.05863. How Well Can LLMs Negotiate? NegotiationArena. arxiv.org/pdf/2402.05863',
+  'arXiv 2608.06922. Deal Me Maybe: The Role of Emotions in Multi-Agent Negotiation (preprint). arxiv.org/pdf/2608.06922',
+  'arXiv 2308.03656. EmotionBench. arxiv.org/abs/2308.03656',
+  'Numerai. Documentation: staking, burns and the Meta Model. docs.numer.ai',
+  'Numerai. Third strategic buyback of NMR. blog.numer.ai/numerais-third-strategic-buyback-of-nmr/',
+  'Blockworks. Numerai token transparency filing. blockworks.com/token-transparency/filing/numerai',
+  'Nature Reviews Microbiology. Gamers solve monkey virus puzzle, 2011. nature.com/articles/nrmicro2687',
+  'Baker Lab. Crystal structure of a monomeric retroviral protease solved by game players. bakerlab.org/2015/11/26/crystal-structure-of-a-monomeric-retroviral-protease-solved-by-protein-folding-game-players/',
+  'GameAnalytics. Pricing. gameanalytics.com/pricing',
+  'GameAnalytics. Terms and conditions, including terms effective 2 Nov 2026. gameanalytics.com/trust/terms',
+  'DeepMind. AlphaStar: Grandmaster level in StarCraft II, Nature 2019. deepmind.google/blog/alphastar-grandmaster-level-in-starcraft-ii-using-multi-agent-reinforcement-learning/',
+  'OpenAI. OpenAI Five defeats Dota 2 world champions, Apr 2019. openai.com/index/openai-five-defeats-dota-2-world-champions/',
+  'OpenAI. Video PreTraining (VPT): learning to act by watching unlabeled online videos, 2022. openai.com/index/vpt/',
+  'arXiv 2409.19479. Spatial reasoning and planning for deep embodied agents (VPT context window). arxiv.org/pdf/2409.19479',
+  'Science. Human-level play in the game of Diplomacy, CICERO, 2022. science.org/doi/10.1126/science.ade9097',
+  'arXiv 2211.13746. Melting Pot 2.0. ar5iv.labs.arxiv.org/html/2211.13746',
+  'Reuters. Meta to take 49% stake in Scale AI, Jun 2025. reuters.com',
+  'Wikipedia. Surge AI, revenue and valuation reporting. en.wikipedia.org/wiki/Surge_AI',
+  'arXiv 2309.00267. RLAIF vs RLHF: human versus AI label cost estimate. arxiv.org/pdf/2309.00267',
+  'Neudata. The state of the alternative data market in 2026. neudata.co',
+  'Hedgeweek. Hedge funds gear up for a 2025 alternative dataset budget boom. hedgeweek.com/hedge-funds-gear-up-for-a-2025-alternative-dataset-budget-boom/',
+  'Lowenstein Sandler. 2025 alternative data survey. lowenstein.com/media/jujd45bp/alt-data-report-2025_final.pdf',
+  'Tines. Voice of the SOC Analyst, 2022. tines.com',
+  'Crowell and Moring. House passes KIDS Act H.R. 7757. crowell.com/en/insights/client-alerts/house-advances-bipartisan-kids-online-safety-bill-but-senate-showdown-looms',
+  'US Senate. Blackburn and Blumenthal statement on House passage of the KIDS Act, Jun 2026. blackburn.senate.gov/2026/6/blackburn-blumenthal-statement-on-house-passage-of-the-kids-act',
+  'Lewis Silkin. Ofcom guidance on the Online Safety Act in gaming, Oct 2025. lewissilkin.com/insights/2025/10/24/ofcom-issues-guidance-about-online-safety-act-in-video-gaming-context-102lr5v',
+  'Ofcom. Illegal harms codes overview. ofcom.org.uk/siteassets/resources/documents/online-safety/information-for-industry/illegal-harms/overview.pdf',
+  'Ofcom. Statement: protecting children from harms online. ofcom.org.uk/online-safety/illegal-and-harmful-content/statement-protecting-children-from-harms-online',
+  'Courthouse News. Delgado v. Meta voiceprint class action proceeds. courthousenews.com/privacy-class-action-over-unauthorized-voiceprint-collection-to-proceed-against-meta/',
+  'Privacy World. 2025 year in review: biometric privacy litigation. privacyworld.blog/2025/12/2025-year-in-review-biometric-privacy-litigation/',
+  'Basil AI. The May 2026 BIPA voiceprint lawsuits against big tech. basilai.app/articles/2026-08-02-bipa-voiceprint-lawsuits-big-tech-ai-voice-training-public-audio.html',
+  'Goodwin. AI voice products subject to California Invasion of Privacy claims (Ambriz v. Google). goodwinlaw.com/en/insights/publications/2025/02/alerts-practices-dpc-ftec-ai-voice-products-subject-to-california-invasion-of-privacy-claims',
+  'WSGR Data Advisor. CIPA class action against AI customer service provider proceeds (ConverseNow). wsgrdataadvisor.com/2025/09/u-s-federal-court-allows-cipa-class-action-against-ai-customer-service-provider-to-proceed/',
+  'CMS Law. EDPB Guidelines 02/2021 on virtual voice assistants. cms.law/en/rou/legal-updates/edpb-guidelines-on-virtual-voice-assistants',
+  'Unity. Asset Store publisher revenue share. unity.com',
+  'Epic Games. Fab content marketplace launch and publishing portal. unrealengine.com/en-US/blog/fab-content-marketplace-launches-in-october-publishing-portal-opens-today',
+  'Stray Spark Studio. Fab marketplace: a 12-month retrospective from a seller, 2026. strayspark.studio/blog/fab-marketplace-12-month-retrospective-seller-2026',
+  'emotion2vec. Self-supervised pre-training for speech emotion representation, ACL Findings 2024. aclanthology.org/2024.findings-acl.931.pdf',
+  'SpeechBrain. emotion-recognition-wav2vec2-IEMOCAP model card. huggingface.co/speechbrain/emotion-recognition-wav2vec2-IEMOCAP',
+  'GMI Cloud. GPU credit programs for AI startups, 2026 guide. gmicloud.ai/en/blog/gpu-credit-programs-for-ai-startups-from-prototype-to-production-without-dilution',
+  'Thunder Compute. NVIDIA Inception program guide, 2026. thundercompute.com/blog/nvidia-inception-program-guide',
+];
+// The print's marks, as inline labels. Expanded for assistive tech; one letter on screen.
+const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
+---
+<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
+      <Masthead />
+      <div class="grid cover-grid">
+        <h1 class="c-full display" data-flex="cursor">The Tilt<br><span class="acid">Gap</span></h1>
+        <p class="c-a lede">{ed.lede}</p>
+      </div>
+      <div class="foot mono cover-foot">
+        <span>{ed.dateLabel} · {SITE.author}</span>
+        <span>r = cos(kθ) · seed {ed.seed}</span>
+      </div>
+    </section>
+
+    <Section n="00" title="You have<br>tilted." acid id="brief">
+      <div class="c-a prose">
+        <p>It was a Thursday, late, and the meeting had gone badly. You wrote the email anyway. You read it twice, you sent it, and the version of you that woke up the next morning would not have sent it.</p>
+        <p>Poker players have a word for the state you were in. Tilt. Judgment that was working an hour ago stops working because something hurt, and the person tilting is the last to know.</p>
+        <p>Nobody recorded your Thursday. But somewhere right now a ranked match is recording someone else's, keystroke by keystroke, with the outcome attached.</p>
+        <p class="beat">That record is the subject of this edition. Who owns it, what it is worth, and whether a machine can learn from it the one thing your résumé has never been able to prove about you.</p>
+        <p class="mono-b">00 · The brief</p>
+        <p>A founder handed me a thesis. I was asked to break it.</p>
+        <p>The thesis has four parts. Multiplayer games produce the purest behavioural data on earth, because nobody performs for a scoreboard. The rarest thing in AI is judgment under pressure, and games log it every match. Player skill and model skill must be the same action by construction, or players will game the data. And the company is a plugin, not a game: free moderation for studios in exchange for the behavioural exhaust, refined and sold to whoever needs judgment most.</p>
+        <p>Here is the verdict first. The loud version of this thesis fails. The quiet version is buildable, and the distance between the two is this whole document.</p>
+        <p>Every material claim below carries one of three marks.</p>
+      </div>
+      <Rail items={[
+        ['F', '<b>Verified fact.</b> Confirmed in a primary source or credible reporting, listed at the back.'],
+        ['I', '<b>Sourced inference.</b> My reasoning from the facts. Mine to defend, yours to argue with.'],
+        ['Q', '<b>Open question.</b> Unknown, disputed, or untested. Nobody gets to pretend otherwise.'],
+      ]} />
+    </Section>
+
+    <Section n="01" title="Nobody performs<br>for a scoreboard." ground="bottle" id="exhaust">
+      <div class="c-a prose">
+        <p class="mono-b">01 · The exhaust</p>
+        <p>Put a person in a lab, hand them a puzzle, and tell them a scientist is watching. They behave for the scientist. Researchers call it the observer effect and it contaminates much of what we think we know about people under stress.</p>
+        <p>A ranked match has no scientist. Players are trying to win. Where they move, when they hesitate, what they say to a teammate at 2am: all of it is logged as a side effect of trying. That side effect is exhaust.</p>
+        <p>The scale is not hypothetical. Call of Duty's moderation has blocked over 45 million text messages across 20 languages since November 2023. <span class="mark" aria-label={MARK.F}>F</span> Riot keeps every Valorant voice clip for at least 24 hours whether or not anyone complains, and for up to seven years in Brazil if a penalty lands. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>People are unreliable witnesses to their own matches. The log is not. Two corrections before anyone gets excited: players know the microphone is on, because Riot and Activision said so in public, and a match is not a life. Fixed rules, instant feedback, low stakes. Cleaner than a lab. Narrower than the world. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <figure class="c-b field bars" aria-label="Call of Duty voice moderation, two shares">
+        <figcaption class="mono">Modulate and Activision case study · Call of Duty voice moderation</figcaption>
+        <div class="bar"><span class="mono lbl">Player reports that held actionable evidence</span><span class="track"><span class="fill" style="width:23%"></span></span><span class="num val">23%</span></div>
+        <div class="bar"><span class="mono lbl">Machine-flagged violators nobody had reported</span><span class="track"><span class="fill" style="width:79%"></span></span><span class="num val">79%</span></div>
+      </figure>
+    </Section>
+
+    <Section n="02" title="July 2026.<br>The smartest fund in the room." id="scarce">
+      <div class="c-a prose">
+        <p class="mono-b">02 · The scarce thing</p>
+        <p>Leopold Aschenbrenner's fund, Situational Awareness, had returned 439 percent for the year through June. <span class="mark" aria-label={MARK.F}>F</span> At the start of July it managed as much as 45 billion dollars. <span class="mark" aria-label={MARK.F}>F</span> By July 30, Bloomberg reported assets of about 10 billion after Citadel bought the bulk of its public positions. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>The mechanism was leverage, reported as high as 400 percent. Its top disclosed positions, Nebius, Sandisk, Micron and CoreWeave, each fell more than 35 percent in a month, while short bets against software names like Adobe went the wrong way. Margin calls from Bank of America, Goldman Sachs and JPMorgan forced the sale. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>What this shows: being right about the decade does not protect you from the month. Concentration plus leverage turns a temporary drop into a permanent loss, and it happened to someone with elite credentials and elite backers. <span class="mark" aria-label={MARK.I}>I</span> What it does not show is tilt. No report says a decision was made in anger or fear. Call it a risk failure under pressure. Do not call it emotion. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <Stats class="c-b" items={[
+        ['+439%', 'Return, year to 30 June 2026. TechCrunch citing FT.'],
+        ['$45B', 'Assets, start of July 2026. CNBC.'],
+        ['~$10B', 'Assets, 30 July 2026. Bloomberg.'],
+      ]} />
+      <Rail class="c-b" items={[
+        ['Leverage', 'Reported as high as <b>400 percent</b>. Margin calls from Bank of America, Goldman Sachs and JPMorgan.'],
+        ['Sale', 'Public book sold to Citadel. Private holdings, including Anthropic shares, retained.'],
+      ]} />
+      <div class="c-a prose">
+        <p class="mono-b">02 · The scarce thing, continued</p>
+        <p class="beat">Models tilt. On the record.</p>
+        <p>The thesis calls judgment under pressure the scarcest capability in AI. Scarcest is rhetoric. A measurable weakness is a finding, and the finding exists.</p>
+        <p>Tell a language model you are desperate and it pays you more. In NegotiationArena, models that pretended to be desolate and desperate improved their payoff by 20 percent against a standard GPT-4. <span class="mark" aria-label={MARK.F}>F</span> Emotional prompts move benchmark scores both ways; the EmotionAttack work found hostile framing degrades performance. <span class="mark" aria-label={MARK.F}>F</span> A 2026 preprint on multi-agent negotiation found angry buyers reached a deal 0.39 percent of the time. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>So the gap is real: the same model, neutral versus pressured, scores differently. Call that difference the tilt gap. It is the number this whole thesis lives or dies on, and it has a human version. Yours was measured on a Thursday. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <Stats class="c-b" items={[
+        ['+20%', 'Payoff gain when a model pleads desperation. NegotiationArena, 2024.'],
+        ['0.39%', 'Deal rate for angry model buyers. Deal Me Maybe, 2026 preprint.'],
+      ]} />
+    </Section>
+
+    <Section n="03" title="Pay for comebacks and you will get thrown rounds." ground="bottle" id="coupling">
+      <div class="c-a prose">
+        <p class="mono-b">03 · The coupling</p>
+        <p>Goodhart's law in one sentence: when a measure becomes a target, it stops measuring. Reward players for clutch comebacks and they will lose early rounds on purpose to manufacture them. The data turns to garbage the moment it is worth something.</p>
+        <p>Two systems have solved this. Numerai asks data scientists to predict stocks and stake its token on the prediction. Good predictions earn more. Bad ones are burned, destroyed so that nobody, not even Numerai, can get them back. Only staked predictions enter the model the hedge fund trades, and roughly 700 million dollars sits under that arrangement. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Foldit made the score the science itself, a protein energy function. In 2011 its players modelled a monkey virus enzyme that had defeated crystallographers for over a decade. The puzzle was open three weeks. They solved it in ten days. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p class="beat">The rule that falls out: the only signal a player cannot fake without actually playing well is the win. Train on the win, or on the win probability each decision added. Treat the emotion as context, never as reward. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <div class="c-b field couple">
+        <p class="mono">Correlation · the measure is near the goal</p>
+        <dl class="chain">
+          <dt class="mono">Measure</dt><dd>Clutch comebacks</dd>
+          <dt class="mono">Target</dt><dd>Pay for them</dd>
+          <dt class="mono">Gamed</dt><dd>Thrown early rounds</dd>
+        </dl>
+        <p class="mono">Identity · the measure is the goal</p>
+        <dl class="chain">
+          <dt class="mono">What wins the game</dt><dd>Is the only signal a player cannot fake</dd>
+          <dt class="mono">What trains the model</dt><dd>Numerai stakes. Foldit scores.</dd>
+        </dl>
+        <p class="mono-b">Emotion is context on the record. Never the reward.</p>
+      </div>
+    </Section>
+
+    <Section n="04" title="45,000 years." acid id="reversal">
+      <div class="c-a prose">
+        <p class="mono-b">04 · The reversal</p>
+        <p>That is how long OpenAI Five played Dota 2 against itself before it beat the world champions in April 2019. Ten months of real time. Eight hundred petaflop/s-days. It then won 7,215 public games and lost 42. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Human data was almost absent from that result. AlphaStar used human replays only to start; imitation alone reached better than 84 percent of players, and self-play took it past 99.8 percent. <span class="mark" aria-label={MARK.F}>F</span> OpenAI's Minecraft agent learned from 70,000 hours of video, and still only ever saw 6.4 seconds of history at a time. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Human games mattered in exactly one place: when the machine had to work with humans. Meta's CICERO trained on 125,261 real Diplomacy games, 12.9 million messages, and finished in the top 10 percent of a human league. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p class="beat">Here is the reversal. Frontier labs do not need your judgment. Self-play makes judgment. What self-play cannot make is a human. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <figure class="c-b field bars" aria-label="Hours of play behind each result, log scale">
+        <figcaption class="mono">Hours of play behind each result · log scale, 10³ to 10⁹ · 45,000 years is about 394 million hours</figcaption>
+        {hours.map(([l, v, t]) => (
+          <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${log(v, 3, 9)}%`}></span></span><span class="num val">{t}</span></div>
+        ))}
+      </figure>
+    </Section>
+
+    <section class="surface flash" aria-label="Thesis">
+      <div class="grid">
+        <p class="c-full display slap" data-flex="cursor">Self-play makes<br>judgment.</p>
+      </div>
+    </section>
+
+    <Section n="04" title="Four ways to point<br>a game at a machine." ground="bottle" id="directions">
+      <div class="c-a prose">
+        <p class="mono-b">04 · The reversal, continued</p>
+        <p>Every precedent the thesis leans on points one of three proven directions. The thesis itself points a fourth way, and nobody has walked it yet.</p>
+        <p>The product that survives contact with this table is a model of how humans behave under pressure: for characters that feel real, for simulators that train people, for agents that must negotiate with us. Not a superhuman judgment engine. The buyer is anyone who needs a believable human, and that is a narrower market than the thesis imagined. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="Four directions, three proven">
+        <table>
+          <caption class="sr">Four ways to point a game at a machine. Three are proven, the fourth is this document.</caption>
+          <thead><tr><th scope="col">Direction</th><th scope="col">Who does the work</th><th scope="col">Precedents</th><th scope="col">State</th></tr></thead>
+          <tbody>
+            {directions.map(([n, d, w, p, s]) => (<tr><th scope="row"><span class="mono-b">{n}</span> {d}</th><td>{w}</td><td class="mono-b">{p}</td><td class="mono-b">{s}</td></tr>))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+
+    <Section n="05" title="A plugin, three layers,<br>one refinery." id="machine">
+      <div class="c-a prose">
+        <p class="mono-b">05 · The machine</p>
+        <p>The company is not a game. It is a plugin that sits inside other people's games and emits structured events: state, inputs, timestamps, outcomes, and voice features extracted on the device. Raw audio never leaves. Studios get moderation for free. The operator keeps the derived features. <span class="mark" aria-label={MARK.I}>I</span></p>
+        <p>This trade already exists. GameAnalytics is free with no user cap, charges 499 dollars a month for its paid tier, and holds a perpetual, irrevocable licence over the data it collects. From November 2, 2026 its terms add one sentence: we may use data from the services to train and improve our models. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p class="beat">The model is validated. The window is closing in the same breath. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <Rail items={[
+        ['Gold', '<b>Population, the god view.</b> Probability of a correct call under a given pressure state, by skill tier. Aggregated. The layer that is sellable.'],
+        ['Silver', '<b>Relational.</b> Teammates, opponents, who spoke to whom. Whether one player’s frustration predicts a teammate’s next error.'],
+        ['Bronze', '<b>Personal, one spawn.</b> One immutable record per player per life. Pseudonymous. No raw audio. No voiceprint. Age band on every record.'],
+        ['Refinery output', 'Outcome-labelled trajectories. Preference pairs under pressure. Held-out pressure eval sets.'],
+      ]} />
+      <div class="c-a prose">
+        <p class="mono-b">05 · The machine, continued</p>
+        <p class="beat">One record per life.</p>
+        <p>The bronze layer is one immutable record per player per spawn. Four design rules are not negotiable: no raw audio, no voiceprint, pseudonymous IDs rotated per studio, and an age band on every record so that anyone under 18 is excluded from anything commercial. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <figure class="c-full field" aria-label="The spawn record, abridged">
+        <pre class="mono schema" tabindex="0">{schema}</pre>
+        <figcaption class="mono">Abridged from the full specification. win_prob_delta_by_action is the training target from section 03. Everything under pressure_proxies describes the conditions of the decision and never scores it.</figcaption>
+      </figure>
+    </Section>
+
+    <Section n="06" title="Studios sell exhaust by the kilo. Labs buy judgment by the carat." ground="bottle" id="arbitrage">
+      <div class="c-a prose">
+        <p class="mono-b">06 · The arbitrage</p>
+        <p>The spread is real. Meta paid 14.3 billion dollars for 49 percent of Scale AI, a 29 billion valuation on roughly 870 million of 2024 revenue. <span class="mark" aria-label={MARK.F}>F</span> Surge AI reported 1.2 billion in 2024 revenue and was in talks at a 25 billion valuation. <span class="mark" aria-label={MARK.F}>F</span> Google's own estimate put a human preference label at 67 cents against 6 cents for a machine label. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Hedge funds spent about 2.8 billion dollars on alternative data in 2025, across 2,805 datasets. The average buyer pays about 80,000 dollars per dataset per year. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Three things shrink the spread. Labs buy capability, not volume, and self-play competes for free. Studios reprice the moment they notice, and GameAnalytics already has. And gamer tilt predicts no asset price, so the hedge fund product is talent, not data. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <figure class="c-b field bars" aria-label="What a unit of human judgment sells for, log scale">
+        <figcaption class="mono">What a unit of human judgment sells for · log scale, 10⁻² to 10⁵ dollars</figcaption>
+        {prices.map(([l, v, t, s]) => (
+          <div class="bar"><span class="mono lbl">{l}<br><span class="src">{s}</span></span><span class="track"><span class="fill" style={`width:${log(v, -2, 5)}%`}></span></span><span class="num val">{t}</span></div>
+        ))}
+      </figure>
+    </Section>
+
+    <Section n="07" title="The microphone is the moat<br>and the minefield." id="law">
+      <div class="c-a prose">
+        <p class="mono-b">07 · The law</p>
+        <p>Voice is what makes the dataset different from every analytics plugin on the market. It is also where three legal systems are already busy with companies that look exactly like this one.</p>
+        <p class="beat">Three rules survive every jurisdiction. Never store a voiceprint or raw audio. Keep only non-identifying features from consenting adults. Keep anyone under 18 out of the commercial set entirely. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="Three jurisdictions">
+        <table class="ledger">
+          <caption class="sr">Three legal systems and what each means for a voice-collecting plugin.</caption>
+          <thead><tr><th scope="col">Jurisdiction</th><th scope="col">Exposure</th><th scope="col">The rule</th><th scope="col">What follows</th></tr></thead>
+          <tbody>
+            {law.map(([j, x, r, w]) => (<tr><th scope="row">{j}</th><td class="num">{x}</td><td>{r}</td><td>{w}</td></tr>))}
+          </tbody>
+        </table>
+      </div>
+      <div class="c-a prose">
+        <p class="mono-b">07 · The law, continued</p>
+        <p class="beat">The regulator is making the sales call.</p>
+        <p>Ofcom names online games as higher risk for 17 kinds of harm, grooming in particular. <span class="mark" aria-label={MARK.F}>F</span> The UK's illegal-harms duties became enforceable on March 17, 2025. Its children's codes took effect on July 25, 2025: children's profiles hidden by default, strangers unable to message them. <span class="mark" aria-label={MARK.F}>F</span> The US House passed the KIDS Act 267 to 117 on June 29, 2026 without a duty of care; the Senate's own child-safety sponsors called it a pale imitation. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Activision's numbers close the pitch. Exposure to disruptive voice chat fell 43 percent after January 2024, and repeat offenders fell 67 percent across two titles. <span class="mark" aria-label={MARK.F}>F</span> Sell the plugin as Online Safety Act evidence that a studio can hand to a regulator. Never sell it as emotion analysis. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <div class="c-b field">
+        <dl class="dates">
+          {timeline.map(([d, t]) => (<><dt class="mono-b">{d}</dt><dd>{t}</dd></>))}
+        </dl>
+      </div>
+    </Section>
+
+    <Section n="08" title="Moderation loses money.<br>The data must pay." ground="bottle" id="money">
+      <div class="c-a prose">
+        <p class="mono-b">08 · The money</p>
+        <p>Modelled, not measured. <span class="mark" aria-label={MARK.I}>I</span> At ten indie studios and 50,000 player hours a day, sampled server-side voice processing costs 1,200 to 7,500 dollars a month. Three studios on a 400 dollar tier pay 1,200. At 500 studios the voice bill runs 120,000 to 750,000 a month against about 37,000 in subscriptions.</p>
+        <p>Cloud credits bridge the first gap. AWS Activate runs from 1,000 to 100,000 dollars, Google for Startups lists up to 350,000 for AI companies, and NVIDIA Inception costs nothing and takes no equity. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p class="beat">Nothing bridges the second. The business exists only if data and model licensing clears 1.5 to 9 million dollars a year, and that only happens if the tilt gap is real. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <figure class="c-b field bars" aria-label="Monthly voice GPU cost against moderation subscriptions, log scale">
+        <figcaption class="mono">Monthly, modelled · voice GPU cost against moderation subscriptions · log scale, $1k to $1M · ranges plotted at the high end</figcaption>
+        <p class="mono-b">Indie · 10 studios, 50,000 player hours a day</p>
+        {indie.map(([l, v, t]) => (
+          <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${log(v, 3, 6)}%`}></span></span><span class="num val">{t}</span></div>
+        ))}
+        <p class="mono-b">Scale · 500 studios, 5 million player hours a day</p>
+        {scale.map(([l, v, t]) => (
+          <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${log(v, 3, 6)}%`}></span></span><span class="num val">{t}</span></div>
+        ))}
+      </figure>
+    </Section>
+
+    <Section n="09" title="Build nothing until<br>this number moves." acid id="experiment">
+      <div class="c-a prose">
+        <p class="mono-b">09 · The experiment</p>
+        <p>No tilt benchmark exists. <span class="mark" aria-label={MARK.F}>F</span> So the first product is the benchmark. Take a small open model, 7 to 8 billion parameters. Fine-tune it on winning decisions made under pressure: after a loss streak, against a hostile channel, with seconds on the clock. Fine-tune an identical twin on the same number of calm decisions from the same game. Without the twin, any gain is just more game data. <span class="mark" aria-label={MARK.I}>I</span></p>
+        <p>A convincing result: the pressured twin shrinks the tilt gap by 30 percent or more, keeps its neutral score within a point of the control, and holds across three seeds and two base models. <span class="mark" aria-label={MARK.I}>I</span></p>
+        <p class="beat">My prior is that it will not clear 20. I would be glad to be wrong, and the whole point of the design is that I will find out for a few thousand dollars. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <Rail items={[
+        ['Treatment twin', '7 to 8B open model, fine-tuned on winning calls made under pressure.'],
+        ['Control twin', 'Identical model, same count of winning calls made calm.'],
+        ['Door 1 · in-domain', 'Held-out game decisions, pressured versus calm. A gain here alone proves only that you learned the game.'],
+        ['Door 2 · perturbation', 'Standard reasoning run twice, neutral then hostile framing.'],
+        ['Door 3 · manipulation', 'Negotiation against an opponent who begs, threatens, flatters.'],
+        ['Nearest tools', 'No standard tilt benchmark exists. EmotionBench, NegotiationArena, EmotionAttack prompts.'],
+      ]} />
+      <Stats class="c-b" items={[
+        ['-30%', 'Tilt gap, or better. Three seeds, two base models. Neutral score within one point of the control.'],
+      ]} />
+    </Section>
+
+    <Section n="10" title="Dated. Falsifiable. Mine." ground="bottle" id="predictions">
+      <div class="c-a prose">
+        <p class="mono-b">10 · The predictions</p>
+        <p>Six claims with expiry dates. Each one says what would prove it wrong. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="Six predictions with expiry dates">
+        <table class="ledger">
+          <caption class="sr">Six predictions, each with its date and the result that would prove it wrong.</caption>
+          <thead><tr><th scope="col">By</th><th scope="col">Claim</th><th scope="col">Wrong if</th></tr></thead>
+          <tbody>
+            {predictions.map(([d, c, w]) => (<tr><th scope="row" class="mono-b">{d}</th><td>{c}</td><td>{w}</td></tr>))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+
+    <Section n="11" title="Demo. Paper. Plugin.<br>Then the giants." id="order">
+      <div class="c-a prose">
+        <p class="mono-b">11 · The build order</p>
+        <p>A game you control comes first, with a consent flow you wrote, because it removes every third-party rights problem from the experiment. The paper comes second and ships whether the result is positive or negative; a clean negative saves two years. The plugin is built only if the paper is positive. Distribution comes last. <span class="mark" aria-label={MARK.I}>I</span></p>
+        <p>Partners in the same order. University labs working on multi-agent generalisation, human cooperation and negotiation robustness first, because they need novel datasets and lend credibility. Cloud credit programmes on day one. Indie studios with a live toxicity problem next, then trust-and-safety counsel, then mid-size studios. <span class="mark" aria-label={MARK.I}>I</span></p>
+        <p class="beat">Giants come last. Before you have a result, a publisher, a frontier lab or an engine vendor will either copy you or set the price. After you have one, they negotiate. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <div class="c-b field">
+        <dl class="dates">
+          {order.map(([m, s, t]) => (<><dt class="mono-b">{m}</dt><dd><b>{s}.</b> {t}</dd></>))}
+        </dl>
+      </div>
+    </Section>
+
+    <Section n="12" title="Three cheap ways<br>to find out." ground="bottle" id="kill">
+      <div class="c-a prose">
+        <p class="mono-b">12 · The kill switch</p>
+        <p>Run these before writing a line of plugin code. Each one is designed to kill the thesis as fast as possible, which is the only honest way to validate it. <span class="mark" aria-label={MARK.I}>I</span></p>
+        <p class="beat">One fails and two passes: you own a moderation company. One and three pass: you own the company. All three fail: you saved two years. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="Three tests">
+        <table class="ledger">
+          <caption class="sr">Three tests, their cost and time, the method, and the result that kills the thesis.</caption>
+          <thead><tr><th scope="col">Test</th><th scope="col">Cost · time</th><th scope="col">Method</th><th scope="col">Kill</th></tr></thead>
+          <tbody>
+            {kills.map(([t, c, w, m, k]) => (<tr><th scope="row">{t}</th><td class="num">{c}<br><span class="mono">{w}</span></td><td>{m}</td><td>{k}</td></tr>))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+
+    <Section n="13" title="Your tilt gap is already<br>being measured." ground="bottle" acid id="yours">
+      <div class="c-a prose">
+        <p class="mono-b">13 · Your tilt gap</p>
+        <p>Not by a lab. By the systems you already live inside: the inbox, the trading screen, the on-call pager, the ranked queue. Each one logs the decision and the outcome and never once asks how you felt.</p>
+        <p>The thesis I was handed wanted to sell that record to the people building machines. The honest version sells something smaller and truer: a measure of the distance between who you are and who you are under pressure, and a way to close it.</p>
+        <p class="beat">The gap exists whether or not anyone measures it. The only open question is who holds the record.</p>
+      </div>
+    </Section>
+
+    <Section n="14" title="Sources" id="sources">
+      <div class="c-full">
+        <p class="mono">Read in September and October 2026</p>
+      </div>
+      <ol class="c-full sources">
+        {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
+      </ol>
+      <div class="c-a prose">
+        <p>Several 2026 figures rest on single sources or anonymous-source reporting: the Situational Awareness numbers, the May 2026 BIPA filings, Fab's 2025 creator earnings. They are reported, not established. All unit economics are modelled assumptions. None of this is legal advice. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+    </Section>
+
+    <EditionEnd slug={ed.slug}>
+      The gap exists whether or not<br>anyone measures it.
+    </EditionEnd>
+  </main>
+</Base>
+
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -20%; right: -14%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 40px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover-foot { border-top-color: transparent; }
+  /* The print's marks: one mono letter after the sentence it grades. Malachite on Void; Flash on Bottle, where
+     small Malachite fails AA. */
+  .mark { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 700; font-size: 11px; letter-spacing: .08em; color: var(--malachite); padding-inline: .35em; vertical-align: .2em; }
+  .bottle .mark { color: var(--flash); }
+  .couple .chain { display: grid; grid-template-columns: max-content 1fr; column-gap: 20px; row-gap: 10px; margin: 12px 0 28px; }
+  .couple .chain dd { margin: 0; }
+  .couple .mono-b { margin-top: 8px; }
+  .dates { display: grid; grid-template-columns: max-content 1fr; column-gap: 20px; row-gap: 14px; margin: 0; }
+  .dates dd { margin: 0; font-size: 16px; line-height: 1.45; }
+  .schema { font-size: 12.5px; line-height: 1.5; letter-spacing: 0; overflow-x: auto; margin: 0 0 16px; white-space: pre; }
+  .bar .src { display: block; opacity: .8; }
+  .bars .mono-b { margin: 14px 0 4px; }
+  .bars .mono-b:first-of-type { margin-top: 0; }
+  .ledger .num { font-size: 16px; white-space: nowrap; }
+  .ledger .num .mono { white-space: normal; }
+</style>
