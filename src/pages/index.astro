@@ -16,7 +16,9 @@ const mb = (p) => (fs.statSync('public' + p).size / 1048576).toFixed(1) + ' MB';
 const house = HOUSE.map((L, i) => ({ ...L, c: ['#CCFF00', '#00B24F', '#FF1F5A'][i], o: [0.95, 0.6, 0.8][i] }));
 // The count is read from the list, never typed.
 const count = numberWord(PUBLISHED.length);
-const line = `${count[0].toUpperCase()}${count.slice(1)} editions · September 2026`;
+// The month is the newest published edition's, read from the list: it was typed once and said September into October.
+const month = new Date(PUBLISHED[0].date + 'T00:00:00Z').toLocaleString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const line = `${count[0].toUpperCase()}${count.slice(1)} editions · ${month}`;
 // The meta description is the index itself, read from the list: LinkedIn's
 // Post Inspector warns under 100 characters and the line alone is 30.
 const description = [line, ...PUBLISHED.map((e) => `${e.code}, ${e.title}`)].join(' · ');
