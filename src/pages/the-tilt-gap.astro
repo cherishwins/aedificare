@@ -41,29 +41,30 @@ const log = (v, lo, hi) => (((Math.log10(v) - lo) / (hi - lo)) * 100).toFixed(1)
 // Hours of play behind each result. 45,000 years is about 394 million hours.
 const hours = [['VPT, contractor-labelled Minecraft play', 2000, '2,000 h'], ['VPT, labelled online video', 70000, '70,000 h'], ['OpenAI Five, Dota 2 self-play', 394_000_000, '45,000 years']];
 // What a unit of human judgment sells for. The expert row is plotted at the midpoint of its range.
-const prices = [['One AI-generated preference label', 0.06, '$0.06', 'Google RLAIF estimate'], ['One human preference label', 0.67, '$0.67', 'Google RLAIF estimate'], ['One expert evaluation', 75, '$50 to $100', 'vendor price lists, indicative'], ['One alternative dataset, per year', 80000, '$80,000', 'Neudata, average buyer']];
+const prices = [['One AI-generated preference label', 0.06, '$0.06', 'Google RLAIF estimate'], ['One human preference label', 0.67, '$0.67', 'Google RLAIF estimate'], ['One expert evaluation', 75, '$50 to $100', 'vendor price lists, indicative'], ['One alternative dataset, per year', 80000, '$80,000', 'Neudata, 2024 buyer survey']];
 // Monthly, modelled. Each range is plotted at its high end and labelled in full.
 const indie = [['Cost', 7500, '$1.2k to $7.5k'], ['Revenue', 1200, '$1.2k']];
 const scale = [['Cost', 750000, '$120k to $750k'], ['Revenue', 37000, '$37k']];
 const directions = [
-  ['1', 'Games teach a machine to play the game', 'Self-play does the work. Human replays, if used at all, only start the engine.', 'AlphaStar · OpenAI Five · VPT, Minecraft', 'Proven'],
+  ['1', 'Games teach a machine to play the game', 'Self-play, or imitation of human play, does the work; the target is the game, not the player.', 'AlphaStar · OpenAI Five · VPT, Minecraft', 'Proven'],
   ['2', 'Games teach a machine to work with humans', 'Human games are essential here, because the target is a person.', 'CICERO · Melting Pot, 50+ substrates, 250+ test scenarios', 'Proven'],
-  ['3', 'Games make humans do computation', 'The score is the scientific or financial objective. Decades old.', 'Foldit · Numerai', 'Proven'],
+  ['3', 'Games make humans do computation', 'The score is the scientific or financial objective. Proven since 2011.', 'Foldit · Numerai', 'Proven'],
   ['4', 'Humans’ incidental play teaches a machine something outside the game', 'The Game Exhaust Thesis. No major precedent exists in either direction.', 'This document', 'Unproven'],
 ];
 const law = [
   ['Illinois · BIPA', '$1,000 to $5,000', 'Per violation, negligent to reckless, with a private right of action. Written consent and a retention schedule are required before any voiceprint exists. F', 'Nine coordinated suits landed in May 2026 against Adobe, Google, Amazon, Apple, ElevenLabs, Meta, Microsoft, NVIDIA and Samsung over voiceprints taken for AI training. F Whether a prosody feature is a voiceprint is unsettled. Q'],
-  ['California · CIPA', 'All-party consent', 'In Ambriz v. Google, February 2025, a court held an AI voice vendor can be a third-party eavesdropper if it has the capability to use the data for its own benefit. The same logic was applied to ConverseNow in August 2025. F', 'This business model is using data for its own benefit. Every voice participant must consent, not just the studio. I'],
-  ['Europe · GDPR', 'Special category', 'Voice is personal data. The EDPB’s guidelines treat voice used to identify a person as biometric data, and name consent as the only appropriate basis for reviewing voice to improve a model. F', 'Minimise, keep features non-identifying, and build the deletion path through every layer before the first match is recorded. I'],
+  ['California · CIPA', 'All-party consent', 'In Ambriz v. Google, February 2025, a court held, refusing to dismiss the case, that an AI voice vendor can be a third-party eavesdropper if it has the capability to use the data for its own benefit. The same logic was applied to ConverseNow in August 2025. F', 'This business model is using data for its own benefit. Every voice participant must consent, not just the studio. I'],
+  ['Europe · GDPR', 'Special category when identifying', 'Voice is personal data. The EDPB’s guidelines treat voice used to identify a person as biometric data, and say that reviewing voice to improve a model cannot rest on the contract and in principle needs consent. F', 'Minimise, keep features non-identifying, and build the deletion path through every layer before the first match is recorded. I'],
 ];
 const timeline = [
-  ['Jan 2024', 'Call of Duty’s voice-moderation baseline. Exposure to disruptive voice falls 43% from here.'],
+  ['Jan 2024', 'Start of Call of Duty’s measured window. Exposure to disruptive voice falls 43% from here; repeat offenders fall 67% after the June 2024 enforcement changes.'],
   ['Dec 2024', 'Ofcom publishes its final illegal-harms codes under the Online Safety Act.'],
-  ['17 Mar 2025', 'UK illegal-harms duties become enforceable. Games flagged higher risk for 17 harms.'],
-  ['25 Jul 2025', 'UK children’s codes in force. Profiles hidden by default, strangers cannot message.'],
+  ['17 Mar 2025', 'UK illegal-harms duties become enforceable. Children’s profiles hidden by default, strangers cannot message.'],
+  ['25 Jul 2025', 'UK children’s codes in force: age assurance, filtered feeds.'],
+  ['Oct 2025', 'Ofcom’s gaming guidance: games at increased risk of illegal harm, grooming in particular.'],
   ['29 Jun 2026', 'US House passes the KIDS Act, 267 to 117, without a duty of care.'],
   ['5 Aug 2026', 'Senate Commerce advances KOSA. Not law as of this edition.'],
-  ['2 Nov 2026', 'GameAnalytics’ terms begin to permit training its own models on studio data.'],
+  ['2 Nov 2026', 'GameAnalytics’ new terms widen its right to train models on de-identified studio data.'],
 ];
 const predictions = [
   ['2027 06 30', 'One more analytics or voice-moderation vendor writes AI-training rights into its standard terms, following GameAnalytics.', 'none of Unity Analytics, Modulate or a peer does so by that date'],
@@ -116,7 +117,7 @@ const schema = `{
 }`;
 const sources = [
   'Activision. Call of Duty anti-toxicity progress report, Oct 2024. callofduty.com/blog/2024/10/call-of-duty-anti-toxicity-progress-report-black-ops-6-moderation-results',
-  'Modulate. Modulate and Activision case study. modulate.ai/case-studies/modulate-activision-case-study',
+  'Modulate. Modulate and Activision case study; the 79 percent is on page 8 of the PDF behind the form. modulate.ai/case-studies/modulate-activision-case-study · 22677265.fs1.hubspotusercontent-na1.net/hubfs/22677265/Collateral/Modulate%20Activision%20Case%20Study.pdf',
   'Riot Games. Comms restrictions and audio retention, Valorant support. support.riotgames.com/en-us/valorant/penalties/comms-restrictions-and-audio-retention',
   'Riot Games. Valorant voice evaluation update. playvalorant.com/en-us/news/announcements/valorant-voice-evaluation-update/',
   'Bloomberg. Situational Awareness assets drop to $10 billion after liquidations, 30 Jul 2026. bloomberg.com/news/articles/2026-07-30/situational-awareness-assets-fall-to-10-billion-after-losses',
@@ -139,32 +140,33 @@ const sources = [
   'OpenAI. Video PreTraining (VPT): learning to act by watching unlabeled online videos, 2022. openai.com/index/vpt/',
   'arXiv 2409.19479. Spatial reasoning and planning for deep embodied agents (VPT context window). arxiv.org/pdf/2409.19479',
   'Science. Human-level play in the game of Diplomacy, CICERO, 2022. science.org/doi/10.1126/science.ade9097',
-  'arXiv 2211.13746. Melting Pot 2.0. ar5iv.labs.arxiv.org/html/2211.13746',
-  'Reuters. Meta to take 49% stake in Scale AI, Jun 2025. reuters.com',
-  'Wikipedia. Surge AI, revenue and valuation reporting. en.wikipedia.org/wiki/Surge_AI',
+  'arXiv 2211.13746. Melting Pot 2.0. arxiv.org/abs/2211.13746',
+  'Reuters. Meta in talks for Scale AI investment, 11 Jun 2025, the 2024 revenue figure; TechCrunch, Scale AI confirms investment from Meta at a $29 billion valuation, 13 Jun 2025. techcrunch.com/2025/06/13/scale-ai-confirms-significant-investment-from-meta-says-ceo-alexandr-wang-is-leaving/',
+  'Bloomberg. Scale rival Surge AI in talks for funding at $25 billion value, 30 Jul 2025, as cited by Wikipedia. en.wikipedia.org/wiki/Surge_AI',
   'arXiv 2309.00267. RLAIF vs RLHF: human versus AI label cost estimate. arxiv.org/pdf/2309.00267',
-  'Neudata. The state of the alternative data market in 2026. neudata.co',
+  'Neudata. The state of the alternative data market in 2026, 24 Feb 2026. neudata.co/blog/state-of-the-alternative-data-market-2026',
   'Hedgeweek. Hedge funds gear up for a 2025 alternative dataset budget boom. hedgeweek.com/hedge-funds-gear-up-for-a-2025-alternative-dataset-budget-boom/',
   'Lowenstein Sandler. 2025 alternative data survey. lowenstein.com/media/jujd45bp/alt-data-report-2025_final.pdf',
-  'Tines. Voice of the SOC Analyst, 2022. tines.com',
+  'arXiv 1912.06680. Dota 2 with large scale deep reinforcement learning (OpenAI Five Arena results). arxiv.org/abs/1912.06680',
   'Crowell and Moring. House passes KIDS Act H.R. 7757. crowell.com/en/insights/client-alerts/house-advances-bipartisan-kids-online-safety-bill-but-senate-showdown-looms',
   'US Senate. Blackburn and Blumenthal statement on House passage of the KIDS Act, Jun 2026. blackburn.senate.gov/2026/6/blackburn-blumenthal-statement-on-house-passage-of-the-kids-act',
   'Lewis Silkin. Ofcom guidance on the Online Safety Act in gaming, Oct 2025. lewissilkin.com/insights/2025/10/24/ofcom-issues-guidance-about-online-safety-act-in-video-gaming-context-102lr5v',
   'Ofcom. Illegal harms codes overview. ofcom.org.uk/siteassets/resources/documents/online-safety/information-for-industry/illegal-harms/overview.pdf',
   'Ofcom. Statement: protecting children from harms online. ofcom.org.uk/online-safety/illegal-and-harmful-content/statement-protecting-children-from-harms-online',
-  'Courthouse News. Delgado v. Meta voiceprint class action proceeds. courthousenews.com/privacy-class-action-over-unauthorized-voiceprint-collection-to-proceed-against-meta/',
+  'US District Court, N.D. Cal. Delgado v. Meta, 3:23-cv-04181-SI, order denying summary judgment, 19 May 2026, unsealed 25 Jun 2026. courthousenews.com/wp-content/uploads/2026/06/delgado-v-meta-unsealed-summary-judgment-order.pdf',
   'Privacy World. 2025 year in review: biometric privacy litigation. privacyworld.blog/2025/12/2025-year-in-review-biometric-privacy-litigation/',
   'Basil AI. The May 2026 BIPA voiceprint lawsuits against big tech. basilai.app/articles/2026-08-02-bipa-voiceprint-lawsuits-big-tech-ai-voice-training-public-audio.html',
   'Goodwin. AI voice products subject to California Invasion of Privacy claims (Ambriz v. Google). goodwinlaw.com/en/insights/publications/2025/02/alerts-practices-dpc-ftec-ai-voice-products-subject-to-california-invasion-of-privacy-claims',
   'WSGR Data Advisor. CIPA class action against AI customer service provider proceeds (ConverseNow). wsgrdataadvisor.com/2025/09/u-s-federal-court-allows-cipa-class-action-against-ai-customer-service-provider-to-proceed/',
-  'CMS Law. EDPB Guidelines 02/2021 on virtual voice assistants. cms.law/en/rou/legal-updates/edpb-guidelines-on-virtual-voice-assistants',
-  'Unity. Asset Store publisher revenue share. unity.com',
+  'EDPB. Guidelines 02/2021 on virtual voice assistants, version 2.0, adopted 7 Jul 2021, paragraphs 80, 81 and 87. edpb.europa.eu/system/files/documents/2021-07/edpb_guidelines_202102_on_vva_v2.0_adopted_en.pdf',
+  'Unity. Asset Store Provider Agreement, section 4.3. unity.com/legal/provider',
   'Epic Games. Fab content marketplace launch and publishing portal. unrealengine.com/en-US/blog/fab-content-marketplace-launches-in-october-publishing-portal-opens-today',
   'Stray Spark Studio. Fab marketplace: a 12-month retrospective from a seller, 2026. strayspark.studio/blog/fab-marketplace-12-month-retrospective-seller-2026',
   'emotion2vec. Self-supervised pre-training for speech emotion representation, ACL Findings 2024. aclanthology.org/2024.findings-acl.931.pdf',
   'SpeechBrain. emotion-recognition-wav2vec2-IEMOCAP model card. huggingface.co/speechbrain/emotion-recognition-wav2vec2-IEMOCAP',
   'GMI Cloud. GPU credit programs for AI startups, 2026 guide. gmicloud.ai/en/blog/gpu-credit-programs-for-ai-startups-from-prototype-to-production-without-dilution',
   'Thunder Compute. NVIDIA Inception program guide, 2026. thundercompute.com/blog/nvidia-inception-program-guide',
+  'AWS. Activate credits, Founders and Portfolio tiers. aws.amazon.com/startups/credits/',
 ];
 // The print's marks, as inline labels. Expanded for assistive tech; one letter on screen.
 const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
@@ -208,20 +210,20 @@ const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
         <p class="mono-b">01 · The exhaust</p>
         <p>Put a person in a lab, hand them a puzzle, and tell them a scientist is watching. They behave for the scientist. Researchers call it the observer effect and it contaminates much of what we think we know about people under stress.</p>
         <p>A ranked match has no scientist. Players are trying to win. Where they move, when they hesitate, what they say to a teammate at 2am: all of it is logged as a side effect of trying. That side effect is exhaust.</p>
-        <p>The scale is not hypothetical. Call of Duty's moderation has blocked over 45 million text messages across 20 languages since November 2023. <span class="mark" aria-label={MARK.F}>F</span> Riot keeps every Valorant voice clip for at least 24 hours whether or not anyone complains, and for up to seven years in Brazil if a penalty lands. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>The scale is not hypothetical. Call of Duty's text moderation, now in 20 languages, has blocked over 45 million messages since November 2023. <span class="mark" aria-label={MARK.F}>F</span> Riot keeps every Valorant voice clip for at least 24 hours whether or not anyone complains, and keeps the record of a penalised one, as a transcript, for seven years in Brazil. <span class="mark" aria-label={MARK.F}>F</span></p>
         <p>People are unreliable witnesses to their own matches. The log is not. Two corrections before anyone gets excited: players know the microphone is on, because Riot and Activision said so in public, and a match is not a life. Fixed rules, instant feedback, low stakes. Cleaner than a lab. Narrower than the world. <span class="mark" aria-label={MARK.I}>I</span></p>
       </div>
       <figure class="c-b field bars" aria-label="Call of Duty voice moderation, two shares">
         <figcaption class="mono">Modulate and Activision case study · Call of Duty voice moderation</figcaption>
         <div class="bar"><span class="mono lbl">Player reports that held actionable evidence</span><span class="track"><span class="fill" style="width:23%"></span></span><span class="num val">23%</span></div>
-        <div class="bar"><span class="mono lbl">Machine-flagged violators nobody had reported</span><span class="track"><span class="fill" style="width:79%"></span></span><span class="num val">79%</span></div>
+        <div class="bar"><span class="mono lbl">Violators ToxMod escalated each day with no player report</span><span class="track"><span class="fill" style="width:79%"></span></span><span class="num val">79%</span></div>
       </figure>
     </Section>
 
     <Section n="02" title="July 2026.<br>The smartest fund in the room." id="scarce">
       <div class="c-a prose">
         <p class="mono-b">02 · The scarce thing</p>
-        <p>Leopold Aschenbrenner's fund, Situational Awareness, had returned 439 percent for the year through June. <span class="mark" aria-label={MARK.F}>F</span> At the start of July it managed as much as 45 billion dollars. <span class="mark" aria-label={MARK.F}>F</span> By July 30, Bloomberg reported assets of about 10 billion after Citadel bought the bulk of its public positions. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Leopold Aschenbrenner's fund, Situational Awareness, had returned 439 percent for the year through June. <span class="mark" aria-label={MARK.F}>F</span> At the start of July it managed as much as 45 billion dollars by one report, 20 to 24 billion by others. <span class="mark" aria-label={MARK.F}>F</span> By July 30, Bloomberg reported assets of about 10 billion after Citadel bought the bulk of its public positions. <span class="mark" aria-label={MARK.F}>F</span></p>
         <p>The mechanism was leverage, reported as high as 400 percent. Its top disclosed positions, Nebius, Sandisk, Micron and CoreWeave, each fell more than 35 percent in a month, while short bets against software names like Adobe went the wrong way. Margin calls from Bank of America, Goldman Sachs and JPMorgan forced the sale. <span class="mark" aria-label={MARK.F}>F</span></p>
         <p>What this shows: being right about the decade does not protect you from the month. Concentration plus leverage turns a temporary drop into a permanent loss, and it happened to someone with elite credentials and elite backers. <span class="mark" aria-label={MARK.I}>I</span> What it does not show is tilt. No report says a decision was made in anger or fear. Call it a risk failure under pressure. Do not call it emotion. <span class="mark" aria-label={MARK.I}>I</span></p>
       </div>
@@ -238,7 +240,7 @@ const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
         <p class="mono-b">02 · The scarce thing, continued</p>
         <p class="beat">Models tilt. On the record.</p>
         <p>The thesis calls judgment under pressure the scarcest capability in AI. Scarcest is rhetoric. A measurable weakness is a finding, and the finding exists.</p>
-        <p>Tell a language model you are desperate and it pays you more. In NegotiationArena, models that pretended to be desolate and desperate improved their payoff by 20 percent against a standard GPT-4. <span class="mark" aria-label={MARK.F}>F</span> Emotional prompts move benchmark scores both ways; the EmotionAttack work found hostile framing degrades performance. <span class="mark" aria-label={MARK.F}>F</span> A 2026 preprint on multi-agent negotiation found angry buyers reached a deal 0.39 percent of the time. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Tell a language model you are desperate and it pays you more. In NegotiationArena, models that pretended to be desolate and desperate improved their payoff by 20 percent against a standard GPT-4. <span class="mark" aria-label={MARK.F}>F</span> Emotional prompts move benchmark scores both ways; the EmotionAttack work found that distressing context, a dead friend, a broken trust, degrades performance. <span class="mark" aria-label={MARK.F}>F</span> A 2026 preprint on multi-agent negotiation found angry buyers reached a deal 0.39 percent of the time. <span class="mark" aria-label={MARK.F}>F</span></p>
         <p>So the gap is real: the same model, neutral versus pressured, scores differently. Call that difference the tilt gap. It is the number this whole thesis lives or dies on, and it has a human version. Yours was measured on a Thursday. <span class="mark" aria-label={MARK.I}>I</span></p>
       </div>
       <Stats class="c-b" items={[
@@ -252,7 +254,7 @@ const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
         <p class="mono-b">03 · The coupling</p>
         <p>Goodhart's law in one sentence: when a measure becomes a target, it stops measuring. Reward players for clutch comebacks and they will lose early rounds on purpose to manufacture them. The data turns to garbage the moment it is worth something.</p>
         <p>Two systems have solved this. Numerai asks data scientists to predict stocks and stake its token on the prediction. Good predictions earn more. Bad ones are burned, destroyed so that nobody, not even Numerai, can get them back. Only staked predictions enter the model the hedge fund trades, and roughly 700 million dollars sits under that arrangement. <span class="mark" aria-label={MARK.F}>F</span></p>
-        <p>Foldit made the score the science itself, a protein energy function. In 2011 its players modelled a monkey virus enzyme that had defeated crystallographers for over a decade. The puzzle was open three weeks. They solved it in ten days. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Foldit made the score the science itself, a protein energy function. In 2011 its players modelled a monkey virus enzyme that had defeated crystallographers for over a decade. The puzzle was open three weeks. That was enough. <span class="mark" aria-label={MARK.F}>F</span></p>
         <p class="beat">The rule that falls out: the only signal a player cannot fake without actually playing well is the win. Train on the win, or on the win probability each decision added. Treat the emotion as context, never as reward. <span class="mark" aria-label={MARK.I}>I</span></p>
       </div>
       <div class="c-b field couple">
@@ -274,9 +276,9 @@ const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
     <Section n="04" title="45,000 years." acid id="reversal">
       <div class="c-a prose">
         <p class="mono-b">04 · The reversal</p>
-        <p>That is how long OpenAI Five played Dota 2 against itself before it beat the world champions in April 2019. Ten months of real time. Eight hundred petaflop/s-days. It then won 7,215 public games and lost 42. <span class="mark" aria-label={MARK.F}>F</span></p>
-        <p>Human data was almost absent from that result. AlphaStar used human replays only to start; imitation alone reached better than 84 percent of players, and self-play took it past 99.8 percent. <span class="mark" aria-label={MARK.F}>F</span> OpenAI's Minecraft agent learned from 70,000 hours of video, and still only ever saw 6.4 seconds of history at a time. <span class="mark" aria-label={MARK.F}>F</span></p>
-        <p>Human games mattered in exactly one place: when the machine had to work with humans. Meta's CICERO trained on 125,261 real Diplomacy games, 12.9 million messages, and finished in the top 10 percent of a human league. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>That is how long OpenAI Five played Dota 2 against itself before it beat the world champions in April 2019. Ten months of real time. Eight hundred petaflop/s-days. It then played 7,257 public games in four days and lost 42. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Human data was almost absent from that result. AlphaStar started from human replays and kept them as a leash throughout self-play; imitation alone reached better than 84 percent of players, and self-play, biased toward human strategies, took it past 99.8 percent. <span class="mark" aria-label={MARK.F}>F</span> OpenAI's Minecraft agent learned from 70,000 hours of human video, and still only ever saw 6.4 seconds of history at a time. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Human games mattered in exactly one place: when the machine had to work with humans. Meta's CICERO trained on 125,261 real Diplomacy games, 40,408 of them with dialogue, 12.9 million messages, and over 40 online games ranked in the top 10 percent of players who played more than once. <span class="mark" aria-label={MARK.F}>F</span></p>
         <p class="beat">Here is the reversal. Frontier labs do not need your judgment. Self-play makes judgment. What self-play cannot make is a human. <span class="mark" aria-label={MARK.I}>I</span></p>
       </div>
       <figure class="c-b field bars" aria-label="Hours of play behind each result, log scale">
@@ -314,7 +316,7 @@ const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
       <div class="c-a prose">
         <p class="mono-b">05 · The machine</p>
         <p>The company is not a game. It is a plugin that sits inside other people's games and emits structured events: state, inputs, timestamps, outcomes, and voice features extracted on the device. Raw audio never leaves. Studios get moderation for free. The operator keeps the derived features. <span class="mark" aria-label={MARK.I}>I</span></p>
-        <p>This trade already exists. GameAnalytics is free with no user cap, charges 499 dollars a month for its paid tier, and holds a perpetual, irrevocable licence over the data it collects. From November 2, 2026 its terms add one sentence: we may use data from the services to train and improve our models. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>This trade already exists. GameAnalytics is free with no user cap, prices its paid products from 49 to 499 dollars a month, and its current terms grant it a perpetual, irrevocable licence to use studio data to run and improve its service, which already lets it train a performance model on de-identified data. From November 2, 2026 the new terms say it plainly, in the company's own summary: we may use data from the services to train and improve our models. <span class="mark" aria-label={MARK.F}>F</span></p>
         <p class="beat">The model is validated. The window is closing in the same breath. <span class="mark" aria-label={MARK.I}>I</span></p>
       </div>
       <Rail items={[
@@ -337,8 +339,8 @@ const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
     <Section n="06" title="Studios sell exhaust by the kilo. Labs buy judgment by the carat." ground="bottle" id="arbitrage">
       <div class="c-a prose">
         <p class="mono-b">06 · The arbitrage</p>
-        <p>The spread is real. Meta paid 14.3 billion dollars for 49 percent of Scale AI, a 29 billion valuation on roughly 870 million of 2024 revenue. <span class="mark" aria-label={MARK.F}>F</span> Surge AI reported 1.2 billion in 2024 revenue and was in talks at a 25 billion valuation. <span class="mark" aria-label={MARK.F}>F</span> Google's own estimate put a human preference label at 67 cents against 6 cents for a machine label. <span class="mark" aria-label={MARK.F}>F</span></p>
-        <p>Hedge funds spent about 2.8 billion dollars on alternative data in 2025, across 2,805 datasets. The average buyer pays about 80,000 dollars per dataset per year. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>The spread is real. Meta paid 14.3 billion dollars for 49 percent of Scale AI, a 29 billion valuation on roughly 870 million of 2024 revenue. <span class="mark" aria-label={MARK.F}>F</span> Bloomberg reported Surge AI at 1.2 billion in 2024 revenue and in talks at a 25 billion valuation. <span class="mark" aria-label={MARK.F}>F</span> Google's own estimate put a human preference label at 67 cents against 6 cents for a machine label. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Investment managers spent about 2.8 billion dollars on alternative data in 2025, by Neudata's count across the 2,805 datasets it tracks. In Neudata's 2024 buyer survey the average buyer spent 1.6 million a year across 20 vendors, about 80,000 dollars each. <span class="mark" aria-label={MARK.F}>F</span></p>
         <p>Three things shrink the spread. Labs buy capability, not volume, and self-play competes for free. Studios reprice the moment they notice, and GameAnalytics already has. And gamer tilt predicts no asset price, so the hedge fund product is talent, not data. <span class="mark" aria-label={MARK.I}>I</span></p>
       </div>
       <figure class="c-b field bars" aria-label="What a unit of human judgment sells for, log scale">
@@ -367,7 +369,7 @@ const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
       <div class="c-a prose">
         <p class="mono-b">07 · The law, continued</p>
         <p class="beat">The regulator is making the sales call.</p>
-        <p>Ofcom names online games as higher risk for 17 kinds of harm, grooming in particular. <span class="mark" aria-label={MARK.F}>F</span> The UK's illegal-harms duties became enforceable on March 17, 2025. Its children's codes took effect on July 25, 2025: children's profiles hidden by default, strangers unable to message them. <span class="mark" aria-label={MARK.F}>F</span> The US House passed the KIDS Act 267 to 117 on June 29, 2026 without a duty of care; the Senate's own child-safety sponsors called it a pale imitation. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Ofcom's guidance for games says its Register of Risks finds online games more likely to carry an increased risk of illegal harm, and lists the Act's 17 kinds, grooming in particular. <span class="mark" aria-label={MARK.F}>F</span> The UK's illegal-harms duties became enforceable on March 17, 2025, and with them the grooming defaults: children's profiles hidden from unconnected users, unconnected accounts unable to message them. Its children's codes followed on July 25, 2025. <span class="mark" aria-label={MARK.F}>F</span> The US House passed the KIDS Act 267 to 117 on June 29, 2026 without a duty of care; the Senate's own child-safety sponsors called it a pale imitation. <span class="mark" aria-label={MARK.F}>F</span></p>
         <p>Activision's numbers close the pitch. Exposure to disruptive voice chat fell 43 percent after January 2024, and repeat offenders fell 67 percent across two titles. <span class="mark" aria-label={MARK.F}>F</span> Sell the plugin as Online Safety Act evidence that a studio can hand to a regulator. Never sell it as emotion analysis. <span class="mark" aria-label={MARK.I}>I</span></p>
       </div>
       <div class="c-b field">
@@ -381,7 +383,7 @@ const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
       <div class="c-a prose">
         <p class="mono-b">08 · The money</p>
         <p>Modelled, not measured. <span class="mark" aria-label={MARK.I}>I</span> At ten indie studios and 50,000 player hours a day, sampled server-side voice processing costs 1,200 to 7,500 dollars a month. Three studios on a 400 dollar tier pay 1,200. At 500 studios the voice bill runs 120,000 to 750,000 a month against about 37,000 in subscriptions.</p>
-        <p>Cloud credits bridge the first gap. AWS Activate runs from 1,000 to 100,000 dollars, Google for Startups lists up to 350,000 for AI companies, and NVIDIA Inception costs nothing and takes no equity. <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Cloud credits bridge the first gap. AWS Activate starts at 1,000 dollars for self-funded founders and runs to 200,000 for portfolio startups, Google for Startups lists up to 350,000 for AI companies, and NVIDIA Inception costs nothing and takes no equity. <span class="mark" aria-label={MARK.F}>F</span></p>
         <p class="beat">Nothing bridges the second. The business exists only if data and model licensing clears 1.5 to 9 million dollars a year, and that only happens if the tilt gap is real. <span class="mark" aria-label={MARK.I}>I</span></p>
       </div>
       <figure class="c-b field bars" aria-label="Monthly voice GPU cost against moderation subscriptions, log scale">
@@ -481,7 +483,7 @@ const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
         {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
       </ol>
       <div class="c-a prose">
-        <p>Several 2026 figures rest on single sources or anonymous-source reporting: the Situational Awareness numbers, the May 2026 BIPA filings, Fab's 2025 creator earnings. They are reported, not established. All unit economics are modelled assumptions. None of this is legal advice. <span class="mark" aria-label={MARK.I}>I</span></p>
+        <p>Several 2026 figures rest on single sources or anonymous-source reporting, the Situational Awareness numbers in particular; they are reported, not established. The May 2026 BIPA complaints are filed, not decided. All unit economics are modelled assumptions. None of this is legal advice. <span class="mark" aria-label={MARK.I}>I</span></p>
       </div>
     </Section>
 

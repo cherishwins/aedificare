@@ -27,7 +27,7 @@ Shipped (2026-09-15):
 | Route | What | State |
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
-| `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty sources, F/I/Q marks | live |
+| `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty-one sources, F/I/Q marks | live |
 | `/the-floor` | 16 Sep 2026 · *The Floor*, amends The Markup with the builder's own field numbers | **draft**: set the date, flip `draft`, it goes live |
 | `/edition-03` | 15 Sep 2026 · *The Markup* (printed as Edition 03), eight sections, twelve sources | live |
 | `/edition-01` | 11 Sep 2026 · *The Snapshot Problem* (printed as Edition 01), twelve sections, thirty-three sources, three registers | live |
@@ -689,8 +689,35 @@ for a shortlist for bios and cards, which is a separate deliverable.
    print gives it (its drift is the same 1.003 the date would give). The
    home OG card's month was typed ("September 2026") and now reads the
    newest published edition's date. The 1.4 MB PDF is `public/pdf/edition-04.pdf`.
-   Not done: the edition's fifty sources were not re-verified by the
-   builder; the print marks what it verified and the port keeps the marks.
+   **The fifty sources were then re-checked** (2026-10-03, three passes,
+   every URL fetched, the gated and 403'd ones read through the primary
+   document or a named second source; reports in the session's
+   scratchpad). Fifty-one claims held as written. Twenty-four sentences
+   and table rows were reworded on the page, the print left as issued, where a source
+   said less than the sentence: Riot's seven years is for transcripts;
+   the 45 million Call of Duty messages ran under 14 languages for most of
+   the period; the 79 percent sits in a PDF behind a form; Foldit's "ten
+   days" is Wikipedia's; the $45 billion is one CNBC source against
+   $20 to 24 billion from three outlets; EmotionAttack's stimuli are grief,
+   not hostility; AlphaStar kept human replays throughout; OpenAI Five's
+   7,215 "wins" include 3,140 abandonments, so the page now counts games
+   played; VPT is imitation, not self-play; CICERO's messages come from
+   40,408 of the 125,261 games; GameAnalytics' paid tiers start at $49 and
+   its new terms narrow the licence while widening the training right;
+   Neudata counts investment managers and its $80,000 is a 2024 survey;
+   the hidden-profile defaults are the March 2025 illegal-harms codes,
+   not the July children's codes; the 17 harms are the Register's for
+   every service; the EDPB's adopted text says "in principle consent",
+   not "only"; AWS Activate's own ceiling is $200,000; the closing caveat
+   named a Fab figure the page never carries. Nine sources were replaced
+   or pointed at the document that holds the fact (OpenAI Five's paper
+   in place of a Tines report nothing cited, the EDPB PDF for a note on
+   its draft, the Delgado order, canonical arXiv, article URLs for bare
+   domains) and AWS's own credits page was added as a fifty-first. The
+   figures the sources confirm are unchanged, so the charts are. Five
+   primaries could not be reached from the sandbox at all (Bloomberg,
+   CNBC, Quartz, Ofcom, callofduty.com) and were tested at second hand;
+   the owner, on a normal connection, can open them.
 
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text
