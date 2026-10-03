@@ -28,6 +28,30 @@ import { HOUSE } from './rose.mjs';
 
 const RAW = [
   {
+    slug: 'the-tilt-gap', path: '/the-tilt-gap', print: 'Edition 04',
+    title: 'The Tilt Gap', acid: 'Gap',
+    lede: 'Games, exhaust, and the thing no credential certifies.',
+    date: '2026-10-03', dateLabel: '3 Oct 2026',
+    seed: '20261003', pdf: '/pdf/edition-04.pdf',
+    contents: [
+      { n: '00', t: 'The brief', id: 'brief' },
+      { n: '01', t: 'The exhaust', id: 'exhaust' },
+      { n: '02', t: 'The scarce thing', id: 'scarce' },
+      { n: '03', t: 'The coupling', id: 'coupling' },
+      { n: '04', t: 'The reversal', id: 'reversal' },
+      { n: '05', t: 'The machine', id: 'machine' },
+      { n: '06', t: 'The arbitrage', id: 'arbitrage' },
+      { n: '07', t: 'The law', id: 'law' },
+      { n: '08', t: 'The money', id: 'money' },
+      { n: '09', t: 'The experiment', id: 'experiment' },
+      { n: '10', t: 'The predictions', id: 'predictions' },
+      { n: '11', t: 'The build order', id: 'order' },
+      { n: '12', t: 'The kill switch', id: 'kill' },
+      { n: '13', t: 'Your tilt gap', id: 'yours' },
+      { n: '14', t: 'Sources', id: 'sources' },
+    ],
+  },
+  {
     slug: 'the-floor', path: '/the-floor',
     title: 'The Floor', acid: 'Floor',
     lede: 'The Markup quoted the datasheet. The builder had measured the radio a year before.',

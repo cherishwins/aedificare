@@ -27,6 +27,7 @@ Shipped (2026-09-15):
 | Route | What | State |
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
+| `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty sources, F/I/Q marks | live |
 | `/the-floor` | 16 Sep 2026 · *The Floor*, amends The Markup with the builder's own field numbers | **draft**: set the date, flip `draft`, it goes live |
 | `/edition-03` | 15 Sep 2026 · *The Markup* (printed as Edition 03), eight sections, twelve sources | live |
 | `/edition-01` | 11 Sep 2026 · *The Snapshot Problem* (printed as Edition 01), twelve sections, thirty-three sources, three registers | live |
@@ -272,7 +273,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   Findings). 1.4 MB; do not let this grow into the 107 MB northerntemper
   carried.
 - `tools/`: `verify.cjs`, `check-brand.cjs`, `check-budget.cjs`,
-  `check-docs.cjs`, `check-contents.cjs` (every contents entry in
+  `check-docs.cjs`, `check-audit.cjs` (the dependency audit: high and
+  critical advisories fail the build unless `tools/audit-allowlist.json`
+  names them with a reason and an `until` date, after which they fail
+  again; written 2026-10-03 when GHSA-ch52-4w7c-c8xp covered every
+  version of `http-cache-semantics`, a build-time dependency of astro
+  with no patched release, and `npm audit`'s only fix was astro 2),
+  `check-contents.cjs` (every contents entry in
   `src/lib/editions.mjs` must exist as an id and a heading in the built
   edition page, and every published page's meta description must run 100
   to 200 characters, or the build fails), `generate-llms-full.cjs`,
@@ -329,7 +336,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   by `.github/workflows/film.yml`, filed by `.github/workflows/release.yml`
   under the repo's Releases as `film-<slug>`, and downloaded from there;
   or rendered on the owner's Mac with the same command.
-- `.github/workflows/verify.yml`: build (with the three checkers), audit,
+- `.github/workflows/verify.yml`: build (with the three checkers), the
+  audit through `tools/check-audit.cjs`,
   sweep, on every PR and push to `main`.
 - `.github/workflows/film.yml`: manual dispatch, `slug` and `format`
   inputs. Renders a narrated film on a clean runner (build, Playwright,
@@ -658,6 +666,31 @@ for a shortlist for bios and cards, which is a separate deliverable.
   only place anything is issued and the only URL a share should carry.
 
 ## Findings from the uploads (2026-09-15)
+
+0c. **Edition 04 · The Tilt Gap arrived as a finished print (2026-10-03)**,
+   twenty-five pages, fifty sources, Chromium-rendered 12:03 UTC, with the
+   founder's thesis it breaks pasted alongside (a manifesto, build plan and
+   business plan for a game-telemetry plugin; not added to the repo, the
+   edition is the issued text). Ported to `src/pages/the-tilt-gap.astro`
+   with the prose verbatim. The print's F, I and Q marks (verified fact,
+   sourced inference, open question) are kept as inline mono labels with
+   the expansion in `aria-label`, because which sentences the author will
+   defend is part of the argument. Figures rebuilt as computed bars on log
+   scales (hours of play, 10³ to 10⁹; the price of a unit of judgment, 10⁻²
+   to 10⁵; monthly cost against revenue, $1k to $1M, ranges plotted at the
+   high end and labelled in full), the four directions, three jurisdictions,
+   six predictions and three tests as tables in fields, the timeline and
+   build order as date lists, the spawn record as a mono `pre`. The print's
+   two part dividers became one Flash slap on the reversal. Sources sit on
+   Void, not Bottle, because the list's Malachite numbers are 4.52:1 on
+   Bottle and the rule is never to trust that line. URL is the title
+   (`/the-tilt-gap`), per "the code is the date"; the print name lives in
+   `print` and the JSON-LD `alternativeHeadline`. Seed `20261003` as the
+   print gives it (its drift is the same 1.003 the date would give). The
+   home OG card's month was typed ("September 2026") and now reads the
+   newest published edition's date. The 1.4 MB PDF is `public/pdf/edition-04.pdf`.
+   Not done: the edition's fifty sources were not re-verified by the
+   builder; the print marks what it verified and the port keeps the marks.
 
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text

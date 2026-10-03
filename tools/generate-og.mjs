@@ -30,8 +30,11 @@ fs.mkdirSync(OUT, { recursive: true });
 // Per-card composition only; the words come from the editions list.
 const X = { 'ns-01': -0.18, 'ns-02': -0.3, 'edition-02': -0.22, 'edition-03': 0.037, 'edition-01': -0.06 };
 const COUNT = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'][PUBLISHED.length] ?? String(PUBLISHED.length);
+// The month on the home card is the newest published edition's, read from the list: it was typed once and
+// said September into October.
+const MONTH = new Date(PUBLISHED[0].date + 'T00:00:00Z').toLocaleString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 const CARDS = [
-  { slug: 'home', words: ['AEDIFICARE'], acid: 'AEDIFICARE', line: `${COUNT} editions · September 2026`, seed: '0500', k: [5, 7, 3], x: -0.06 },
+  { slug: 'home', words: ['AEDIFICARE'], acid: 'AEDIFICARE', line: `${COUNT} editions · ${MONTH}`, seed: '0500', k: [5, 7, 3], x: -0.06 },
   // The desk's card, hotlinked by apt.grok.me as its og:image: the home
   // card's rose with the one word that says what the desk is.
   { slug: 'desk', words: ['DESK'], acid: 'DESK', line: 'The desk of Aedificare · drafts before they are issued', seed: '0500', k: [5, 7, 3], x: 0.037 },

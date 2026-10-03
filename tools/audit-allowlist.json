@@ -1,0 +1,9 @@
+[
+  {
+    "id": "GHSA-ch52-4w7c-c8xp",
+    "package": "http-cache-semantics",
+    "reason": "Build-time only: astro imports it in dist/assets/build/remote.js, the cache for remote images fetched during a build, and this site has no remote images. Nothing ships to a browser. The advisory covers every published version (<=4.2.0, the latest) with no patched release; npm's only fix is astro 2.",
+    "added": "2026-10-03",
+    "until": "2026-12-31"
+  }
+]
