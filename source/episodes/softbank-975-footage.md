@@ -22,6 +22,19 @@ the item itself. "Public domain" here means a work of the US government
 | money-press (12 s, thumbnail B) | `money-press-at-440.mpeg` | National Archives, "The Treasury Story" (1969): https://archive.org/details/gov.archives.arc.11865 (file https://archive.org/download/gov.archives.arc.11865/gov.archives.arc.11865.mpeg) | archive.org licenseurl: CC0 1.0 | Currency printing from about 440 s; check the moment before naming the in-point. Alternative: "Washington Stories: Bureau of Engraving and Printing", Public Domain Mark, https://archive.org/details/WashingtonStoriesBureauOfEngravingAndPrintingEngraving |
 | server-hall (10 s) | `server-hall-at-68.mp4` | NASA Ames, "Modular Supercomputer B-roll Resource" (2019): https://images.nasa.gov/details/ARC-20190821-AAV3214-ModularSupercomputer-BRollResource-NASAWeb | NASA-produced, public domain | Racks from about 68 s. |
 
+## Credits and the file names
+
+Beside the files, attach `credits.txt` to the same Release: one line per
+file, `id: source, licence`, in the order above (for example
+`son-stargate: White House livestream, 21 Jan 2025, public domain`). The
+film's description carries them under "Footage:", and the render names
+every file in use that has no line. Names are matched case-blind, with
+spaces and underscores read as hyphens, so `Son Stargate-at-402.5.MP4`
+still lands; a file whose `-at-` number is past its own end is refused for
+a clip and played from its start for footage, and the render says so.
+Shoot the tote bag landscape: a portrait picture in the wide film sits
+between two black bars rather than filling the frame.
+
 ## Still to find
 
 - **tote-bag**: your own photograph of a plain tote bag, released CC0. It is thumbnail A's frame.
