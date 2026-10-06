@@ -44,7 +44,13 @@ const URL_IDX = argv.indexOf('--url');
 const LIVE = URL_IDX >= 0 ? argv[URL_IDX + 1].replace(/\/$/, '') : null;
 const ROOT = (URL_IDX >= 0 ? argv.filter((_, i) => i !== URL_IDX && i !== URL_IDX + 1)[0] : argv[0]) || 'dist';
 const ORIGIN = LIVE || 'https://local.test';
-const PAGES = ['/', '/the-floor', '/edition-03', '/ns-01', '/ns-02', '/edition-01', '/edition-02', '/404.html'];
+// The pages are read from the editions list, drafts included, never typed: a typed list missed The Tilt
+// Gap from 3 Oct to 6 Oct 2026, so every sweep in that window passed without opening it.
+let PAGES = [];
+const loadPages = async () => {
+  const { EDITIONS } = await import(require('node:url').pathToFileURL(path.join(__dirname, '../src/lib/editions.mjs')).href);
+  PAGES = ['/', ...EDITIONS.map((e) => e.path), '/404.html'];
+};
 const VIEWPORTS = [320, 360, 390, 414, 600, 768, 1024, 1280, 1920, 2560];
 
 const MIME = { html: 'text/html', css: 'text/css', js: 'text/javascript', png: 'image/png', svg: 'image/svg+xml',
@@ -154,6 +160,7 @@ const RENDER_PROBE = () => ({
 });
 
 (async () => {
+  await loadPages();
   if (!LIVE && !fs.existsSync(ROOT)) { console.error(`verify: no build at ${ROOT}`); process.exit(1); }
   if (LIVE) console.log(`  live sweep of ${LIVE}`);
   // No service worker, by decision (CLAUDE.md Q10). Its absence is asserted, not assumed.

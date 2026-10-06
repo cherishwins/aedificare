@@ -27,6 +27,7 @@ Shipped (2026-09-15):
 | Route | What | State |
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
+| `/the-fourth-axis` | 6 Oct 2026 · *The Fourth Axis* (printed as Edition 05), twelve sections, thirty-eight sources, three registers | live |
 | `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty-one sources, F/I/Q marks | live |
 | `/the-floor` | 16 Sep 2026 · *The Floor*, amends The Markup with the builder's own field numbers | **draft**: set the date, flip `draft`, it goes live |
 | `/edition-03` | 15 Sep 2026 · *The Markup* (printed as Edition 03), eight sections, twelve sources | live |
@@ -37,7 +38,7 @@ Shipped (2026-09-15):
 | `/404` | | live |
 | `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/ai.txt` `/humans.txt` | discoverability | generated or static |
 | `/index.json` `/og/desk.png` | the index as JSON and the desk's card, for apt.grok.me to fetch and hotlink | generated |
-| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` | the print editions as uploaded | as uploaded |
+| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` | the print editions as uploaded | as uploaded |
 
 ## Brand — source of truth, and the overrides
 
@@ -253,8 +254,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   discoverability links, JSON-LD, skip link, the script.
 - `src/components/`: `Mark`, `RoseField`, `Dove`, `Masthead`, `Section`,
   `Rail`, `Pull`, `Stats`, `EditionEnd`.
-- `src/pages/`: `index`, `edition-03`, `ns-01`, `ns-02`, `edition-01`,
-  `edition-02`, `the-floor`, `404`, and the generated `feed.xml.ts`,
+- `src/pages/`: `index`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
+  `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `404`, and the generated `feed.xml.ts`,
   `llms.txt.ts`, `robots.txt.ts`, `index.json.ts` (the index as JSON for
   the desk and any companion; `vercel.json` sends it with
   `Access-Control-Allow-Origin: *`). Shared figure styles (big numbers by length, computed
@@ -272,7 +273,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `.vercelignore`. Edition 02's font path bug is fixed in place (see
   Findings). 1.4 MB; do not let this grow into the 107 MB northerntemper
   carried.
-- `tools/`: `verify.cjs`, `check-brand.cjs`, `check-budget.cjs`,
+- `tools/`: `verify.cjs` (the sweep; its pages are read from
+  `src/lib/editions.mjs`, drafts included, because a typed list left The
+  Tilt Gap unswept from 3 to 6 Oct 2026), `check-brand.cjs`, `check-budget.cjs`,
   `check-docs.cjs`, `check-audit.cjs` (the dependency audit: high and
   critical advisories fail the build unless `tools/audit-allowlist.json`
   names them with a reason and an `until` date, after which they fail
@@ -739,6 +742,43 @@ for a shortlist for bios and cards, which is a separate deliverable.
    primaries could not be reached from the sandbox at all (Bloomberg,
    CNBC, Quartz, Ofcom, callofduty.com) and were tested at second hand;
    the owner, on a normal connection, can open them.
+
+0d. **Edition 05 · The Fourth Axis arrived as a finished print (2026-10-06)**,
+   fourteen pages, thirty-one sources, Chromium-rendered 00:12 UTC, with the
+   research brief it was written from pasted alongside (not added to the
+   repo). Ported to `src/pages/the-fourth-axis.astro` with the prose verbatim
+   and the three registers of Edition 01 (Measured, Record, Position);
+   inline citations kept as mono labels, Flash on Bottle and in fields where
+   small Malachite fails AA. Figures computed: the 2^n paths from n, the
+   stream schematics, the looped block, the Cars bars, Qwen3-Next's 48
+   layers in their 3:1 order, the attempts table, the stack, the map, and
+   the three clocks as a year table (an SVG timeline was unreadable at
+   320px). Seed `7C21` and k 21/4, 37/5, 19/6 from the colophon; the end
+   carries `7C21-B`. Web wording swaps "page 13" and "page 10" for sections.
+   **Checked before it went up** (three parallel passes, every source
+   opened): all seven patent numbers and all arXiv IDs exist; thirty-six
+   problems, sixty edits. The lead was the largest: "the number on model
+   architecture, pretraining or alignment is zero" is contradicted by
+   OpenAI's own filings (US20240370779A1, US20260017861A1, US20260073164A1),
+   so the page quotes the analyst's characterisation and names the
+   exceptions, and "the brain goes on arXiv" became "most of the brain".
+   Also: the memory filing published June 2025, not 2026; the Chung Ang
+   filing has a paper (arXiv 2503.08064), so it left the "patented, no
+   paper" column (six became five); eighteen months runs from priority,
+   not filing; Titans posted 31 Dec 2024 and was not the first test-time
+   memory paper, so the clock's "notepad beat the brain" now names
+   Titans; value residuals' "13 to 16 percent and half the KV cache"
+   merged two models; the GPT-2 sinks paper found one circuit, not three;
+   Kimi Linear's 75 percent and six times are ceilings; NVIDIA's context
+   memory tier is in its own release, not press only; Meta's 2025 sparse
+   memory finetuning (11 percent forgetting) joined the attempts table and
+   the case against. Seven sources were added (32 to 38). The print PDF is
+   left as issued and still carries the uncorrected lead; the owner was
+   told. Reports in the session's scratchpad.
+   **Two repo faults the port exposed**: the home's meta description listed
+   every edition and a sixth broke the 200-character ceiling (it now stops
+   at the newest editions that fit); and `tools/verify.cjs` swept a typed
+   page list that never gained The Tilt Gap (it now reads the registry).
 
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text

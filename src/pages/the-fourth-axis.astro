@@ -1,0 +1,521 @@
+---
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import Section from '../components/Section.astro';
+import Rail from '../components/Rail.astro';
+import Stats from '../components/Stats.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, LICENCE, describe, seedDrift } from '../lib/editions.mjs';
+import { SITE, abs } from '../config.mjs';
+
+// Edition 05, ported from the print of 6 Oct 2026 with the prose verbatim.
+// Three registers, as in Edition 01: Measured (a bracketed number points to
+// a primary source), Record (a patent-office or filing record) and Position
+// (the author's, set as a beat). Where the print says "page 13" or "page 10"
+// the page says the section, because a web page has no page numbers.
+const ed = edition('the-fourth-axis');
+
+// The cover rose is the print's still: the house layers frozen at the k the
+// colophon gives (21/4, 37/5, 19/6). Malachite only: Acid on this surface is
+// spent on one word of the title.
+const cover = HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: 'The Fourth Axis',
+  alternativeHeadline: `Printed as ${ed.print}`,
+  datePublished: ed.date,
+  author: { '@type': 'Person', name: 'Jesse James' },
+  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
+  url: abs(ed.path),
+  mainEntityOfPage: abs(ed.path),
+  license: LICENCE.url,
+  isAccessibleForFree: true,
+  description: ed.lede,
+};
+
+// The four axes, the spine of the edition.
+const axes = [['Depth', 'Identity path, 2015'], ['Tokens', 'Registers and sinks, 2023'], ['Time', 'State-space hybrids, 2025'], ['Runs', 'Open']];
+
+// Veit et al.: n residual blocks give 2^n paths. Computed from n, never typed.
+const N = 4;
+const PATHS = 2 ** N;
+const blockW = 96, gap = 44, x0 = 20, base = 112;
+const blocks = Array.from({ length: N }, (_, i) => ({ x: x0 + i * (blockW + gap), label: `F${i + 1}` }));
+const pathsW = x0 * 2 + N * blockW + (N - 1) * gap;
+
+// One stream against n streams, schematic.
+const streams = 4;
+
+// Top-1 on Cars from one token (Darcet et al., table).
+const cars = [['Normal patch', 10.8], ['Stolen background patch', 85.2], ['CLS token', 91.5]];
+
+// Qwen3-Next: 48 layers, three linear to one full, in that repeating order.
+const qwen = Array.from({ length: 48 }, (_, i) => ((i + 1) % 4 === 0 ? 'full' : 'linear'));
+const qwenLinear = qwen.filter((l) => l === 'linear').length;
+const qwenFull = qwen.length - qwenLinear;
+
+const sinks = [
+  ['2023', 'Artifact', 'StreamingLLM: the first token is a sink [12]'],
+  ['2023', 'Diagnosis', 'Vision transformers need registers [11]'],
+  ['2025', 'Designed in', 'gpt-oss: learned sink logits [13]'],
+  ['2026', 'Dropped', 'MiniMax tests it, leaves it out [14]'],
+  ['2026', 'One circuit', 'Not the only one [15]'],
+];
+
+const attempts = [
+  ['Titans [21]', 'Fast weights', 'Within context', 'Reproduction contested'],
+  ['HOPE [23]', 'Yes, at inference', 'Claimed', 'No release, no curve'],
+  ['SEAL [24]', 'Yes, by self-edit', 'Yes', 'Forgets on repeat'],
+  ['TTT, next token [25]', 'Fast weights', 'Within context', 'Resets'],
+  ['Retrievable Gradients [26]', 'Apply, then revert', 'As stored gradients', 'Not in the weights'],
+  ['Memory Layers [27] [35]', 'At training; sparse updates after deployment in a 2025 follow-up', 'Yes, in the follow-up', 'Still forgets: an 11 percent drop'],
+];
+
+// Where persistence across runs lives, deepest in the stack last.
+const stack = [
+  ['Weights', 'Nothing shipped here'],
+  ['Fast weights', 'Research only. Titans, TTT, HOPE'],
+  ['Cache', 'Prompt caching patent [03]. NVIDIA context memory tier [29]'],
+  ['Notepad', 'ChatGPT Memory application: a human-readable notepad, capped [02]'],
+  ['Server state', 'Stateful GPT patent [01]. Responses API [04]'],
+  ['Silicon', 'Groq deterministic memory, compiler-scheduled [05]'],
+];
+
+const published = [['Titans', 'Google, 2024'], ['Memory Layers at Scale', 'Meta, 2024'], ['Hyper-connections', 'ByteDance, 2024'], ['Attention sinks', 'MIT, Meta and others, 2023'], ['Registers', 'Meta and Inria, 2023'], ['mHC', 'DeepSeek, 2025']];
+const patented = [['Stateful GPTs', 'OpenAI, US12400074B1'], ['Memory', 'OpenAI, US20250200361A1'], ['Prompt caching', 'OpenAI, US12596764B1'], ['Responses API', 'OpenAI, US12591766B1'], ['Deterministic memory', 'Groq, US12561279B2']];
+
+// The clock: three lanes, the year each event falls in, as the print places them.
+const LANES = ['Papers', 'Patents', 'Products'];
+const clock = [
+  [2021, 'Patents', 'Groq priority'],
+  [2022, 'Patents', 'OpenAI earliest priority. Groq first filed'],
+  [2023, 'Papers', 'Sinks, registers'],
+  [2023, 'Patents', 'Memory priority, December'],
+  [2024, 'Papers', 'TTT layers. Hyper-connections. Memory layers. Titans, 31 December'],
+  [2024, 'Patents', 'Groq continuation filed'],
+  [2024, 'Products', 'ChatGPT Memory, test in February, every tier by September'],
+  [2025, 'Papers', 'Chung Ang paper. HOPE'],
+  [2025, 'Patents', 'Memory published, June. Chung Ang filed'],
+  [2025, 'Products', 'gpt-oss sinks'],
+  [2026, 'Papers', 'Mamba-3. Hyperloop. TTT with next-token prediction'],
+  [2026, 'Patents', 'Chung Ang published'],
+  [2026, 'Products', 'NVIDIA context memory. Qwen3.5 hybrid'],
+];
+const years = [...new Set(clock.map(([y]) => y))];
+const cell = (y, lane) => clock.filter(([cy, cl]) => cy === y && cl === lane).map(([, , t]) => t).join('. ');
+
+const sources = [
+  'OpenAI. Stateful pretrained transformers in a generative response engine. US12400074B1, granted. USPTO record.',
+  'OpenAI. Selective learning of information for the generation of personalized responses by a generative response engine. US20250200361A1, published 19 Jun 2025, pending / WO2025128397A1. Google Patents record.',
+  'OpenAI. Prompt caching in generative response engines. US12596764B1, granted. Google Patents record.',
+  'OpenAI. Application programming interface with generative response engine state management (the Responses API). US12591766B1, granted. Google Patents record.',
+  'Abts, Groq Inc. Deterministic memory for tensor streaming processors. US12561279B2, a continuation filed 3 Jun 2024, priority 7 Jul 2021. USPTO record.',
+  'Zhu et al., ByteDance. Hyper-connections. arXiv:2409.19606, ICLR 2025.',
+  'Xie et al., DeepSeek-AI. mHC: manifold-constrained hyper-connections. arXiv:2512.24880, 31 Dec 2025.',
+  'PatentVest. What is OpenAI actually patenting? Analysis of all 69 published families, 23 Jul 2026. Exceptions on models: US20240370779A1, US20260017861A1, US20260073164A1.',
+  'Zeitoun, Torroba-Hennigen, Kim, MIT. Hyperloop transformers. arXiv:2604.21254, Apr 2026.',
+  'Srivastava, Greff, Schmidhuber. Highway networks, May 2015. He et al. Deep residual learning, Dec 2015. He et al. Identity mappings in deep residual networks, 2016.',
+  'Darcet, Oquab, Mairal, Bojanowski, Meta. Vision transformers need registers. arXiv:2309.16588, ICLR 2024.',
+  'Xiao et al. Efficient streaming language models with attention sinks. arXiv:2309.17453, 2023; ICLR 2024.',
+  'OpenAI. gpt-oss-120b and gpt-oss-20b model card, 5 Aug 2025, arXiv:2508.10925: learned per-head sink logits.',
+  'MiniMax. MiniMax sparse attention. arXiv:2606.13392, 2026.',
+  'Ran-Milo, Ofek, Mendel, Tel Aviv University. A mechanistic account of attention sinks in GPT-2: one circuit, broader implications for mitigation. arXiv:2604.14722, Apr 2026.',
+  'Veit, Wilber, Belongie. Residual networks behave like ensembles of relatively shallow networks. NeurIPS 2016.',
+  'Qwen team, Alibaba. Qwen3-Next-80B-A3B model card and blog, Sep 2025; Qwen3.5, blog and model card, Feb 2026.',
+  'Moonshot AI. Kimi Linear. arXiv:2510.26692, 2025.',
+  'Mamba-3: improved sequence modeling using state space principles. arXiv:2603.15569, ICLR 2026.',
+  'MiniMax. MiniMax-M2 technical report. arXiv:2605.26494, 2026.',
+  'Behrouz, Zhong, Mirrokni, Google. Titans: learning to memorize at test time. arXiv:2501.00663, posted 31 Dec 2024.',
+  'Titans revisited: a lightweight reimplementation and critical analysis. arXiv:2510.09551, 2025.',
+  'Behrouz, Razaviyayn, Zhong, Mirrokni, Google Research. Nested learning: the illusion of deep learning architectures (HOPE). NeurIPS 2025; arXiv:2512.24695, Dec 2025; blog 7 Nov 2025.',
+  'Zweiger et al., MIT. Self-adapting language models (SEAL). arXiv:2506.10943, 2025.',
+  'Test-time training with next-token prediction. arXiv:2606.21803, 2026.',
+  'Retrievable gradients: continual post-training without cumulative weight drift. arXiv:2606.15734, 2026.',
+  'Berges et al., Meta. Memory layers at scale. arXiv:2412.09764, Dec 2024.',
+  'Attention once is all you need: efficient streaming inference with stateful transformers. arXiv:2605.13784, 2026.',
+  'NVIDIA. BlueField-4 powers Inference Context Memory Storage Platform, press release, 5 Jan 2026; technical blog, 16 Mar 2026. Related filing: Dynamic key value pair cache scheduling, US20260133908A1, published 14 May 2026.',
+  'Kim, Jin, Chung Ang University. Continual learning method and device for multimodality data. US20260093780A1, filed 29 Sep 2025, published 2 Apr 2026. Google Patents record.',
+  'Zhou et al. Value residual learning (ResFormer, SVFormer). arXiv:2410.17897, ACL 2025.',
+  'Stabilizing recurrent dynamics for test-time scalable latent reasoning in looped language models. arXiv:2605.26733, May 2026.',
+  'Movahedi et al. Fixed-point reasoners: stable and adaptive deep looped transformers. arXiv:2606.18206, Jun 2026.',
+  'Lu et al. Looped world models. arXiv:2606.18208, Jun 2026.',
+  'Lin, Zettlemoyer, Ghosh, Yih, Markosyan, Berges, Oğuz, Meta. Continual learning via sparse memory finetuning. arXiv:2510.15103, Oct 2025.',
+  'Jin, Kim, Chung-Ang University. Continual learning for multiple modalities. arXiv:2503.08064, Mar 2025.',
+  'Sun et al. Test-time training with self-supervision for generalization under distribution shifts. arXiv:1909.13231, 2019.',
+  'Sun et al. Learning to (learn at test time): RNNs with expressive hidden states (TTT layers). arXiv:2407.04620, Jul 2024.',
+];
+---
+<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
+      <Masthead />
+      <div class="grid cover-grid">
+        <h1 class="c-full display" data-flex="cursor">The Fourth<br><span class="acid">Axis</span></h1>
+        <p class="c-a lede">{ed.lede}</p>
+      </div>
+      <div class="foot mono cover-foot">
+        <span>{ed.dateLabel} · {SITE.author}</span>
+        <span>r = cos(kθ) · seed {ed.seed}</span>
+      </div>
+    </section>
+
+    <Section n="00" title="The filing" ground="bottle" id="filing">
+      <div class="c-a">
+        <p class="num acid figure fig-m" aria-hidden="true">69</p>
+      </div>
+      <div class="c-a prose">
+        <p class="mono reg">Record · [08] [01]</p>
+        <p>OpenAI holds 69 published patent families. Forty-nine were filed by OpenAI itself, the earliest with a priority date of July 2022; the other twenty were acquired. A patent analyst who read all 69 found the portfolio protects products, not the models themselves. The exceptions are few: image-model training, the Whisper architecture, an embedding pretraining method.</p>
+        <p>What the company patents, again and again, is how a product keeps state. A granted patent for stateful custom GPTs. A published application for ChatGPT Memory. Granted patents for prompt caching and server-side conversation state. Most of the brain goes on arXiv. The notebook goes to the patent office.</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">Every architectural breakthrough of the last decade gave information a place to persist.</p>
+        <p>The identity path let it persist across depth. Registers let it persist across tokens. State-space memory let it persist across time. Nobody has given it a way to persist across runs.</p>
+        <p class="beat">Three axes solved. The fourth is unsolved, and it is where the money went.</p>
+      </div>
+      <dl class="c-full field axes">
+        {axes.map(([a, d]) => (<div><dt>{a}</dt><dd class="mono">{d}</dd></div>))}
+      </dl>
+      <Rail items={[
+        ['How to read · Measured', 'Three registers. <b>Measured</b> text carries a bracketed number pointing to a primary source in section 07.'],
+        ['Record', 'A patent-office or filing record; numbers and dates come from the record itself, and the OpenAI counts come from a patent analyst’s reading of the published filings as of July 2026, so open them before you quote them.'],
+        ['Position', 'Set condensed and bold. It is mine, stated without hedging, owned by name.'],
+      ]} />
+    </Section>
+
+    <Section n="01" title="Across depth" id="depth">
+      <div class="c-a prose">
+        <p class="mono reg">Measured · [10] [16]</p>
+        <p>Plain networks got worse as they got deeper: a 34-layer plain net trained to higher error than an 18-layer one. The identity path fixed it in 2015: Highway Networks in May, ResNet in December at 152 layers, a 1001-layer pre-activation ResNet on CIFAR the next year. The reason it worked was stranger than the fix.</p>
+        <p>Veit and colleagues showed a residual net behaves as an ensemble of short paths. Delete a block and half the paths survive. In a 110-layer network almost all of the gradient comes from paths ten to thirty-four layers deep. The long paths contribute almost nothing.</p>
+      </div>
+      <figure class="c-full field diagram" aria-label={`A residual net as ${PATHS} paths`}>
+        <figcaption class="mono">Veit et al., 2016: a residual net as 2^n paths <span class="cite">[16]</span></figcaption>
+        <svg viewBox={`0 0 ${pathsW + 140} 150`} role="img" aria-hidden="true">
+          <line x1={x0 - 10} y1={base} x2={pathsW - 10} y2={base} stroke="#00B24F" stroke-width="2" />
+          {blocks.map((b) => (<>
+            <path d={`M ${b.x - 14} ${base} Q ${b.x + blockW / 2} ${base - 92} ${b.x + blockW + 14} ${base}`} fill="none" stroke="#00B24F" stroke-width="2" />
+            <rect x={b.x} y={base - 22} width={blockW} height="44" fill="#050A06" stroke="#FFFFFF" stroke-width="1.5" />
+            <text x={b.x + blockW / 2} y={base + 7} text-anchor="middle" class="svg-t">{b.label}</text>
+          </>))}
+          <text x={pathsW + 4} y={base + 7} class="svg-t b">{PATHS} paths</text>
+        </svg>
+        <p class="mono note">Delete a block and half the paths survive. In a 110-layer net most of the gradient comes from paths 10 to 34 layers deep.</p>
+      </figure>
+      <div class="c-a prose">
+        <p class="mono reg">Measured · [06] [07] [31]</p>
+        <p>The identity path then kept its form for nearly a decade, in DeepSeek's phrase <span class="cite">[07]</span>. It is being rewired now. Hyper-connections widened the stream into n parallel streams with a learned mixing matrix <span class="cite">[06]</span>. DeepSeek's manifold-constrained version pins that matrix to a doubly stochastic form, which tamed the loss surge and gradient-norm instability the first version showed at 27B scale <span class="cite">[07]</span>. Value residuals send first-layer values to every layer: the same loss with 16 percent fewer parameters. A variant that shares the first layer's values outright halves the KV cache, at a small cost in loss <span class="cite">[31]</span>.</p>
+      </div>
+      <figure class="c-full field diagram two" aria-label="One residual stream against n streams">
+        <div>
+          <p class="mono-b">One stream</p>
+          <svg viewBox="0 0 440 120" role="img" aria-hidden="true">
+            <line x1="10" y1="80" x2="430" y2="80" stroke="#00B24F" stroke-width="2" />
+            {[0, 1, 2, 3].map((i) => (<path d={`M ${40 + i * 100} 80 Q ${80 + i * 100} 20 ${120 + i * 100} 80`} fill="none" stroke="#00B24F" stroke-width="2" />))}
+          </svg>
+          <p class="mono note">Identity path, 2015 to 2024. x + F(x). Nearly a decade in its original form.</p>
+        </div>
+        <div>
+          <p class="mono-b">n streams</p>
+          <svg viewBox="0 0 440 120" role="img" aria-hidden="true">
+            {Array.from({ length: streams }, (_, s) => (<line x1="10" y1={24 + s * 24} x2="430" y2={24 + s * 24} stroke="#00B24F" stroke-width="2" />))}
+            {[110, 220, 330].map((x) => (<rect x={x - 6} y="12" width="12" height={streams * 24} fill="#FFFFFF" />))}
+          </svg>
+          <p class="mono note">Hyper-connections, 2024. mHC, 2025 <span class="cite">[06] [07]</span>. Every block reads, writes and mixes all streams. Schematic: the mixing matrix is learned and input-dependent.</p>
+        </div>
+      </figure>
+      <div class="c-a prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">The one wire that kept its form for a decade is now a switchboard. Depth is no longer a line. It is a bus.</p>
+      </div>
+    </Section>
+
+    <Section n="01" title="Depth as time" ground="bottle" id="loop">
+      <div class="c-a prose">
+        <p class="mono reg">Measured · [09] [32] [33] [34]</p>
+        <p>The second rewiring treats depth as a dial. A looped transformer runs one block L times over the same tokens with the same weights. MIT's Hyperloop adds a hyper-connection per pass and matches or beats depth-matched baselines, and the stabilized mHC baseline, in its main runs at 240M, 1B and 2B scale, with roughly half the parameters. A wave of looped and recurrent-depth papers landed between April and June 2026 on the same idea: latent reasoning, fixed-point reasoners, looped world models <span class="cite">[32] [33] [34]</span>.</p>
+      </div>
+      <figure class="c-full field diagram" aria-label="A looped block: one block, the same weights, L passes">
+        <figcaption class="mono">Depth becomes a dial <span class="cite">[09]</span></figcaption>
+        <svg viewBox="0 0 700 150" role="img" aria-hidden="true">
+          <text x="10" y="96" class="svg-t">Tokens in</text>
+          <line x1="150" y1="90" x2="230" y2="90" stroke="#00B24F" stroke-width="2" />
+          <rect x="230" y="66" width="160" height="48" fill="#063B22" stroke="#FFFFFF" stroke-width="1.5" />
+          <text x="310" y="96" text-anchor="middle" class="svg-t">One block</text>
+          <path d="M 250 66 C 250 10, 370 10, 370 66" fill="none" stroke="#00B24F" stroke-width="2" />
+          <text x="310" y="28" text-anchor="middle" class="svg-t">L passes</text>
+          <line x1="390" y1="90" x2="470" y2="90" stroke="#00B24F" stroke-width="2" />
+          <text x="482" y="96" class="svg-t">Tokens out</text>
+        </svg>
+        <p class="mono note">Hyperloop: a looped middle block with per-pass hyper-connections. Half the parameters of a depth-matched baseline.</p>
+      </figure>
+      <div class="c-a prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">If the ensemble paper was right, depth was never the thing. Paths were. A loop is a way to buy paths without buying layers.</p>
+        <p class="beat">The practical result is that a model can think longer on a hard token and shorter on an easy one. Earlier looped models already set the count per token <span class="cite">[09]</span>. Depth has a knob.</p>
+      </div>
+      <Stats class="c-b" items={[
+        ['~50%', 'Fewer parameters, Hyperloop vs depth-matched [09]'],
+        ['16%', 'Fewer parameters at the same loss, value residuals [31]'],
+        ['9', 'Years before the identity path was widened [06]'],
+      ]} />
+    </Section>
+
+    <Section n="02" title="Across tokens" id="tokens">
+      <div class="c-a prose">
+        <p class="mono reg">Measured · [11]</p>
+        <p>Large vision transformers were caught repurposing their own input. About two percent of patch tokens, mostly over blank background, carried norms roughly ten times normal and held little of their own pixels. Trained as classifiers, those stolen patches named the car. The model needed somewhere to hold the whole image and took the least useful tokens it had. Learned register tokens, discarded at output, made the artifact vanish; one was enough, and the authors used four.</p>
+      </div>
+      <figure class="c-b field bars" aria-label="Top-1 accuracy on the Cars dataset from one token">
+        <figcaption class="mono">Top-1 on the Cars dataset from one token, percent <span class="cite">[11]</span></figcaption>
+        {cars.map(([l, v], i) => (
+          <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class:list={['fill', i === 1 && 'hot']} style={`width:${v}%`}></span></span><span class="num val">{v}</span></div>
+        ))}
+        <p class="mono note">A background patch that dropped its own pixels can name the car. It was holding the whole image.</p>
+      </figure>
+      <div class="c-a prose">
+        <p class="mono reg">Measured · [12] [13] [14] [15]</p>
+        <p>Language models do the same thing with the first token: attention sinks <span class="cite">[12]</span>. In 2025 OpenAI designed the sink in rather than leaving the model to improvise one, a learned per-head logit with no value row <span class="cite">[13]</span>. In 2026 MiniMax tested the same trick: it took over the sink in some heads but not others, gave no consistent gain, and was left out of the final model <span class="cite">[14]</span>. A mechanistic account of sinks in GPT-2 traced them to one circuit of three parts, each necessary in GPT-2, and each missing from some other model that still has a sink <span class="cite">[15]</span>.</p>
+      </div>
+      <div class="c-b field">
+        <dl class="dates">
+          {sinks.map(([y, h, t]) => (<><dt class="mono-b">{y}</dt><dd><b>{h}.</b> {t}</dd></>))}
+        </dl>
+      </div>
+      <div class="c-a prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">A model with nowhere to put a thought will steal a token. Give it one on purpose. Then check that it took it.</p>
+      </div>
+    </Section>
+
+    <Section n="03" title="Across time" ground="bottle" id="time">
+      <div class="c-a prose">
+        <p class="mono reg">Measured · [17] [18] [19]</p>
+        <p>Persistence across time shipped as a ratio. Qwen3-Next runs 48 layers at three to one: 36 linear-attention layers carrying a delta-rule state, 12 full attention <span class="cite">[17]</span>. Kimi Linear cuts the KV cache by up to 75 percent against full attention, and at a million tokens the freed memory buys up to six times the decoding throughput <span class="cite">[18]</span>. Mamba-3 gives the state complex values, and parity, a state-tracking test where Mamba-2 sat near random, goes to about 100 percent; at 1.5B its MIMO variant scores 1.8 points of average accuracy above Gated DeltaNet, the next best model; the base variant, 0.6 <span class="cite">[19]</span>.</p>
+      </div>
+      <figure class="c-full field" aria-label={`Qwen3-Next 80B-A3B, ${qwen.length} layers: ${qwenLinear} linear, ${qwenFull} full attention`}>
+        <figcaption class="mono">Qwen3-Next 80B-A3B, {qwen.length} layers <span class="cite">[17]</span></figcaption>
+        <div class="layers" aria-hidden="true">{qwen.map((l) => (<span class:list={['layer', l]}></span>))}</div>
+        <dl class="key">
+          <dt class="num">{qwenLinear}</dt><dd class="mono">Gated DeltaNet, linear</dd>
+          <dt class="num">{qwenFull}</dt><dd class="mono">Full attention</dd>
+        </dl>
+        <p class="mono note">Parity, a state-tracking test <span class="cite">[19]</span>: Mamba-2 near random. Mamba-3, complex-valued state: about 100 percent.</p>
+      </figure>
+      <Stats class="c-b" items={[
+        ['75%', 'Smaller KV cache at most, Kimi Linear [18]'],
+        ['6x', 'Decode throughput at most, 1M tokens [18]'],
+        ['+1.8', 'Points, Mamba-3 MIMO at 1.5B [19]'],
+      ]} />
+      <div class="c-a prose">
+        <p class="mono reg">Measured · [20]</p>
+        <p>One lab walked it back. MiniMax-M2 runs full attention in every layer. Its technical report says no efficient-attention variant reliably matched full attention in production on reasoning, coding and agent tasks.</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">Time persistence is solved for the benchmark and contested for the agent. The state is cheap to carry and expensive to trust.</p>
+      </div>
+    </Section>
+
+    <section class="surface flash" aria-label="Position">
+      <div class="grid">
+        <p class="c-full display slap" data-flex="cursor">They patented<br>the notepad</p>
+      </div>
+    </section>
+
+    <Section n="04" title="Across runs" id="runs">
+      <div class="c-a prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">Weights are a photograph taken the day training stopped. Everything after is read off a caption. The fourth axis is whether the photograph can change without tearing.</p>
+        <p class="mono reg">Measured · [21] to [27], [35]</p>
+        <p>The attempts are serious and all partial. Titans adds a neural memory that learns at test time, gated by surprise; an independent reproduction found the memory helps but the full model does not always win <span class="cite">[21] [22]</span>. Google's HOPE treats its own weights as writable memory with blocks updating at different frequencies, with no public code and no forgetting curve: its continual-learning results are end-of-sequence accuracies, not retention across repeated updates <span class="cite">[23]</span>. SEAL lets a model write its own training data and apply it: on an ARC subset, 0 percent in context, 20 percent with untrained self-edits, 72.5 percent with SEAL. Repeat the edits and it forgets <span class="cite">[24]</span>. Retrievable Gradients store a gradient per document, apply it, then revert, so nothing drifts and nothing stays <span class="cite">[26]</span>.</p>
+      </div>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="Six attempts at persistence across runs">
+        <table class="ledger">
+          <caption class="sr">Six attempts at persistence across runs: whether each writes weights, whether it survives the run, and the catch.</caption>
+          <thead><tr><th scope="col">Attempt</th><th scope="col">Writes weights</th><th scope="col">Survives the run</th><th scope="col">The catch</th></tr></thead>
+          <tbody>
+            {attempts.map(([a, w, s, c]) => (<tr><th scope="row">{a}</th><td>{w}</td><td>{s}</td><td>{c}</td></tr>))}
+          </tbody>
+        </table>
+      </div>
+      <div class="c-a prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">Every row is partial. The partial is always in the same column. Nobody has a weight that learns on Tuesday and remembers Monday.</p>
+      </div>
+    </Section>
+
+    <Section n="04" title="What shipped" ground="bottle" id="shipped">
+      <div class="c-a prose">
+        <p class="mono reg">Record · [01] to [05]</p>
+        <p>Persistence across runs shipped. It shipped around the weights, not in them. OpenAI's application for what reads as ChatGPT Memory describes a human-readable personalization notepad capped at a set number of notes; the model may be trained by reinforcement learning, or use heuristics, to decide what is saved, and an offline pass rewrites similar notes into one <span class="cite">[02]</span>. Prompt caching hashes a prompt's prefix so a repeat request lands on the same server and reuses its computed tokens, for minutes to an hour <span class="cite">[03]</span>. The Responses API keeps conversation state server-side and resumes from an identifier <span class="cite">[04]</span>. A stateful-GPT patent has a custom GPT change state mid-conversation, rewriting its system prompt when a user's message calls for it <span class="cite">[01]</span>. Groq's granted patent gives its tensor streaming processors a deterministic, globally addressed memory whose reads and writes the compiler schedules; priority 2021, this continuation filed 2024 <span class="cite">[05]</span>.</p>
+      </div>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="Where persistence across runs lives">
+        <table class="ledger stack">
+          <caption class="sr">Where persistence across runs actually lives, October 2026. Deeper in the stack is lower on the list.</caption>
+          <thead><tr><th scope="col">Layer</th><th scope="col">What lives there</th></tr></thead>
+          <tbody>
+            {stack.map(([l, t], i) => (<tr class:list={[i === 0 && 'hot']}><th scope="row">{l}</th><td>{t}</td></tr>))}
+          </tbody>
+        </table>
+        <p class="mono note">Where persistence across runs actually lives, October 2026. Deeper in the stack is lower on the list.</p>
+      </div>
+      <div class="c-a prose">
+        <p class="mono reg">Measured · [28] [29]</p>
+        <p>The software mirror: a 2026 preprint argues that for streaming workloads, session state kept across requests is not an optimization but a requirement for constant query latency <span class="cite">[28]</span>. At CES 2026 NVIDIA announced a context-memory storage tier for KV cache that it says extends AI agents' long-term memory; its technical blog puts it on NVMe flash, and NVIDIA has a published application on moving multi-turn KV cache between memory tiers down to SSD <span class="cite">[29]</span>.</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">Nothing shipped in the weights. Everything shipped around them. That is the market telling you where the unsolved problem is.</p>
+      </div>
+    </Section>
+
+    <Section n="05" title="The map" id="map">
+      <div class="c-a prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">What a lab publishes is what it is proud of. What it patents is what it sells.</p>
+      </div>
+      <div class="c-full field map">
+        <div>
+          <p class="mono-b">Published. No patent found.</p>
+          <dl class="pairs">{published.map(([n, w]) => (<><dt>{n}</dt><dd class="mono">{w}</dd></>))}</dl>
+        </div>
+        <div>
+          <p class="mono-b">Patented. No paper.</p>
+          <dl class="pairs">{patented.map(([n, w]) => (<><dt>{n}</dt><dd class="mono">{w}</dd></>))}</dl>
+        </div>
+        <p class="mono note">What a lab publishes is what it is proud of. What it patents is what it sells. <span class="cite">[01] to [05], [08]</span></p>
+      </div>
+      <Stats class="c-b" items={[
+        [String(published.length), 'Architectures published, no patent found'],
+        [String(patented.length), 'Memory and state patents, no paper'],
+        ['18', 'Months from priority to publication'],
+      ]} />
+      <div class="c-a prose">
+        <p class="mono reg">Record · [30] [36]</p>
+        <p>Outside the frontier labs, papers get patented too. A Korean university patented the continual-learning method it had already posted to arXiv: prompts summed over time on a frozen backbone, filed in the US in September 2025, published April 2026. Reading the patent tells you what the university thinks is worth owning; reading arXiv would not.</p>
+        <p class="mono reg">Measured</p>
+        <p>No patent was located for Titans, Memory Layers, hyper-connections, attention sinks, registers or mHC. Applications publish eighteen months after their earliest priority date, unless the applicant asks for earlier publication, or for none. A Titans filing made before the paper posted would have published by mid-2026, and none has been located. One filed later in the US grace year, or under a non-publication request, could still be dark. Absence of a record is not absence of a filing.</p>
+        <p class="mono reg">Position</p>
+        <p class="beat">Read the filings. They are the only place a lab tells you, on the record, what it thinks is worth owning.</p>
+      </div>
+    </Section>
+
+    <Section n="05" title="The clock" ground="bottle" id="clock">
+      <div class="c-a prose">
+        <p class="mono reg">Record and measured</p>
+        <p>Three clocks run at different speeds. Papers post within weeks of a result. Filings surface eighteen months after priority. Products ship when the business is ready, which is sometimes before the paper exists.</p>
+      </div>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="Three clocks, 2021 to 2026">
+        <table class="ledger clock">
+          <caption class="sr">Papers, patents and products by year, 2021 to 2026.</caption>
+          <thead><tr><th scope="col">Year</th>{LANES.map((l) => (<th scope="col">{l}</th>))}</tr></thead>
+          <tbody>
+            {years.map((y) => (<tr><th scope="row" class="mono-b">{y}</th>{LANES.map((l) => (<td>{cell(y, l)}</td>))}</tr>))}
+          </tbody>
+        </table>
+        <p class="mono note">A memory feature reached users before Titans was posted, and its filing was public before HOPE. The notepad beat that brain to market.</p>
+      </div>
+      <Stats class="c-b" items={[
+        ['Feb 2024', 'ChatGPT Memory, first test group'],
+        ['Dec 2024', 'Titans posted, 31 December [21]'],
+        ['Jun 2025', 'Memory filing published [02]'],
+      ]} />
+      <div class="c-a prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">ChatGPT Memory went to a test group in February 2024 and to every tier that September. Titans, Google's test-time memory, was posted on 31 December 2024, and test-time training goes back to 2019 <span class="cite">[37] [38]</span>. The notepad reached users before Titans did, and the gap has not closed.</p>
+        <p class="beat">If you want to know what persistence will look like in 2028, the filings of 2026 are the only forward-looking document that exists.</p>
+      </div>
+    </Section>
+
+    <Section n="06" title="Where it is wrong" id="wrong">
+      <div class="c-a prose">
+        <p class="mono-b">06 · The case against</p>
+      </div>
+      <Rail items={[
+        ['A', '<b>Absence of a patent is not absence of a filing.</b> Eighteen months of lag means most 2025 filings are still dark, though grants on fast-tracked applications, three of them in section 05, surface sooner. The map in section 05 is a map of what is visible, and the publish-versus-patent split could narrow in 2027 as filings surface.'],
+        ['B', '<b>The four axes are my lens, not their taxonomy.</b> None of the cited papers uses the word persistence. Depth, tokens, time and runs is a synthesis. It organizes the material; it does not come from it. Treat it as a frame to argue with.'],
+        ['C', '<b>The fourth axis may already be moving.</b> HOPE writes its own weights at inference [23]. Retrievable Gradients persist across runs without drift, outside the weights [26]. Meta’s sparse memory finetuning already writes new facts into memory-layer weights after deployment, losing 11 percent on old ones against 89 percent for full finetuning [35]. Not flat, but closer than anything else here. One published forgetting curve that stays flat across repeated updates ends this paper’s claim, and that paper could be in the NeurIPS 2026 camera-readies.'],
+        ['D', '<b>A filing is a hedge, not a roadmap.</b> Companies patent defensively. A memory filing proves the mechanism was worth protecting, not that it is the mechanism in production today, and a product can change under a patent without a new filing.'],
+      ]} />
+      <Stats class="c-b" items={[
+        ['0', 'Production models learning across runs in the weights'],
+        ['4', 'Serious partial answers: HOPE, SEAL, Retrievable Gradients, sparse memory finetuning'],
+        ['1', 'Flat forgetting curve would end the argument'],
+      ]} />
+    </Section>
+
+    <Section n="07" title="Sources" id="sources">
+      <div class="c-full">
+        <p class="mono">Primary sources · read in October 2026</p>
+      </div>
+      <ol class="c-full sources">
+        {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
+      </ol>
+      <div class="c-a prose">
+        <p class="mono reg">Colophon</p>
+        <p>Set in Bricolage Grotesque and Martian Mono. The cover rose is computed from r = cos(kθ), frozen at k = 21/4, 37/5 and 19/6: a still from a film. Preprints dated 2026 are recent; open them before citing. Patent numbers from a patent analyst should be opened at the office record before they are repeated.</p>
+      </div>
+    </Section>
+
+    <Section n="08" title="The axis" ground="bottle" id="axis">
+      <div class="c-a prose">
+        <p>A decade of architecture can be read as one project with three finished parts. The identity path taught a network to carry a signal through a hundred layers without losing it. Registers taught it to hold a thought that belongs to no token. State-space memory taught it to carry that thought across a million positions.</p>
+        <p>Then the run ends, the state is discarded, and the next run starts from the photograph.</p>
+        <p class="beat">Three axes are architecture. The fourth is still a product feature. Until a weight can learn on Tuesday and keep Monday, that is the whole business.</p>
+      </div>
+    </Section>
+
+    <EditionEnd slug={ed.slug} seed="7C21-B">
+      Three axes are architecture.<br>The fourth is still a product feature.
+    </EditionEnd>
+  </main>
+</Base>
+
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -20%; right: -14%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 40px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover-foot { border-top-color: transparent; }
+  /* Registers, as in Edition 01. Malachite on Void; Flash on Bottle, where small Malachite fails AA. */
+  .reg { color: var(--malachite); margin-bottom: 6px; }
+  .bottle .reg { color: var(--flash); }
+  .prose .reg { margin-top: 1.4em; }
+  /* Inline citations, as the print sets them: mono, small, Malachite; Flash on Bottle. */
+  .cite { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 500; font-size: 12px; letter-spacing: .04em; color: var(--malachite); white-space: nowrap; }
+  .bottle .cite, .field .cite { color: var(--flash); }
+  .note { margin-top: 14px; max-width: 80ch; }
+  .axes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; margin: 0; }
+  .axes dt { font-variation-settings: 'opsz' 96, 'wdth' 75, 'wght' 800; font-size: clamp(24px, 3vw, 40px); text-transform: uppercase; line-height: 1; margin-bottom: 8px; }
+  .axes dd { margin: 0; }
+  .diagram svg { display: block; width: 100%; max-width: 760px; height: auto; margin-top: 12px; }
+  .diagram.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 4vw, 56px); }
+  .svg-t { font-family: 'Martian Mono', ui-monospace, monospace; font-size: 22px; letter-spacing: .04em; text-transform: uppercase; fill: #FFFFFF; }
+  .svg-t.b { font-weight: 700; }
+  .bar .fill.hot { background: var(--acid); }
+  .bars .note { margin-top: 10px; }
+  .dates { display: grid; grid-template-columns: max-content 1fr; column-gap: 20px; row-gap: 14px; margin: 0; }
+  .dates dd { margin: 0; font-size: 16px; line-height: 1.45; }
+  .layers { display: grid; grid-template-columns: repeat(48, minmax(0, 1fr)); gap: 3px; margin: 14px 0; max-width: 900px; }
+  .layer { display: block; aspect-ratio: 1 / 2; background: var(--malachite); }
+  .layer.full { background: var(--flash); }
+  .key { display: grid; grid-template-columns: max-content 1fr; column-gap: 14px; row-gap: 6px; align-items: baseline; margin: 0; }
+  .key dt { font-size: 28px; }
+  .key dd { margin: 0; }
+  .stack tr.hot th, .stack tr.hot td { background: var(--acid); color: var(--void); }
+  .map { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px clamp(24px, 4vw, 64px); }
+  .map .note { grid-column: 1 / -1; }
+  .pairs { display: grid; grid-template-columns: 1fr max-content; column-gap: 16px; row-gap: 10px; margin: 12px 0 0; }
+  .pairs dt { font-variation-settings: 'wdth' 82, 'wght' 700; font-size: 16px; text-transform: uppercase; }
+  .pairs dd { margin: 0; text-align: right; }
+  .clock td { font-size: 16px; }
+  .ledger th[scope='row'] { white-space: nowrap; }
+  @media (max-width: 760px) {
+    .axes, .diagram.two, .map { grid-template-columns: 1fr; }
+    .pairs { grid-template-columns: 1fr; }
+    .pairs dd { text-align: left; margin-bottom: 8px; }
+    .layers { gap: 2px; }
+  }
+</style>

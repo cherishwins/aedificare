@@ -28,6 +28,27 @@ import { HOUSE } from './rose.mjs';
 
 const RAW = [
   {
+    slug: 'the-fourth-axis', path: '/the-fourth-axis', print: 'Edition 05',
+    title: 'The Fourth Axis', acid: 'Axis',
+    lede: 'Depth, tokens, time. Three solved. The fourth is where the money went.',
+    date: '2026-10-06', dateLabel: '6 Oct 2026',
+    seed: '7C21', k: [21 / 4, 37 / 5, 19 / 6], pdf: '/pdf/edition-05.pdf',
+    contents: [
+      { n: '00', t: 'The filing', id: 'filing' },
+      { n: '01', t: 'Across depth', id: 'depth' },
+      { n: '01', t: 'Depth as time', id: 'loop' },
+      { n: '02', t: 'Across tokens', id: 'tokens' },
+      { n: '03', t: 'Across time', id: 'time' },
+      { n: '04', t: 'Across runs', id: 'runs' },
+      { n: '04', t: 'What shipped', id: 'shipped' },
+      { n: '05', t: 'The map', id: 'map' },
+      { n: '05', t: 'The clock', id: 'clock' },
+      { n: '06', t: 'Where it is wrong', id: 'wrong' },
+      { n: '07', t: 'Sources', id: 'sources' },
+      { n: '08', t: 'The axis', id: 'axis' },
+    ],
+  },
+  {
     slug: 'the-tilt-gap', path: '/the-tilt-gap', print: 'Edition 04',
     title: 'The Tilt Gap', acid: 'Gap',
     lede: 'Games, exhaust, and the thing no credential certifies.',

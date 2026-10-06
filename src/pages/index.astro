@@ -21,7 +21,14 @@ const month = new Date(PUBLISHED[0].date + 'T00:00:00Z').toLocaleString('en-GB',
 const line = `${count[0].toUpperCase()}${count.slice(1)} editions · ${month}`;
 // The meta description is the index itself, read from the list: LinkedIn's
 // Post Inspector warns under 100 characters and the line alone is 30.
-const description = [line, ...PUBLISHED.map((e) => `${e.code}, ${e.title}`)].join(' · ');
+// It names the newest editions first and stops before 200 characters, the ceiling tools/check-contents.cjs
+// enforces: a sixth edition took the full list to 217 (2026-10-06), and every edition after would add more.
+let description = line;
+for (const e of PUBLISHED) {
+  const next = `${description} · ${e.code}, ${e.title}`;
+  if (next.length > 200) break;
+  description = next;
+}
 
 ---
 <Base title="Aedificare" description={description} path="/" ogImage="/og/home.png">
