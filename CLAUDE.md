@@ -27,6 +27,7 @@ Shipped (2026-09-15):
 | Route | What | State |
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
+| `/the-fourth-axis` | 6 Oct 2026 · *The Fourth Axis* (printed as Edition 05), twelve sections, thirty-one sources, three registers | live |
 | `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty-one sources, F/I/Q marks | live |
 | `/the-floor` | 16 Sep 2026 · *The Floor*, amends The Markup with the builder's own field numbers | **draft**: set the date, flip `draft`, it goes live |
 | `/edition-03` | 15 Sep 2026 · *The Markup* (printed as Edition 03), eight sections, twelve sources | live |
@@ -37,7 +38,7 @@ Shipped (2026-09-15):
 | `/404` | | live |
 | `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/ai.txt` `/humans.txt` | discoverability | generated or static |
 | `/index.json` `/og/desk.png` | the index as JSON and the desk's card, for apt.grok.me to fetch and hotlink | generated |
-| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` | the print editions as uploaded | as uploaded |
+| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` | the print editions as uploaded | as uploaded |
 
 ## Brand — source of truth, and the overrides
 
@@ -253,8 +254,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   discoverability links, JSON-LD, skip link, the script.
 - `src/components/`: `Mark`, `RoseField`, `Dove`, `Masthead`, `Section`,
   `Rail`, `Pull`, `Stats`, `EditionEnd`.
-- `src/pages/`: `index`, `edition-03`, `ns-01`, `ns-02`, `edition-01`,
-  `edition-02`, `the-floor`, `404`, and the generated `feed.xml.ts`,
+- `src/pages/`: `index`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
+  `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `404`, and the generated `feed.xml.ts`,
   `llms.txt.ts`, `robots.txt.ts`, `index.json.ts` (the index as JSON for
   the desk and any companion; `vercel.json` sends it with
   `Access-Control-Allow-Origin: *`). Shared figure styles (big numbers by length, computed
@@ -272,7 +273,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `.vercelignore`. Edition 02's font path bug is fixed in place (see
   Findings). 1.4 MB; do not let this grow into the 107 MB northerntemper
   carried.
-- `tools/`: `verify.cjs`, `check-brand.cjs`, `check-budget.cjs`,
+- `tools/`: `verify.cjs` (the sweep; its pages are read from
+  `src/lib/editions.mjs`, drafts included, because a typed list left The
+  Tilt Gap unswept from 3 to 6 Oct 2026), `check-brand.cjs`, `check-budget.cjs`,
   `check-docs.cjs`, `check-audit.cjs` (the dependency audit: high and
   critical advisories fail the build unless `tools/audit-allowlist.json`
   names them with a reason and an `until` date, after which they fail
