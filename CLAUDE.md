@@ -281,7 +281,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   names them with a reason and an `until` date, after which they fail
   again; written 2026-10-03 when GHSA-ch52-4w7c-c8xp covered every
   version of `http-cache-semantics`, a build-time dependency of astro
-  with no patched release, and `npm audit`'s only fix was astro 2),
+  with no patched release, and `npm audit`'s only fix was astro 2; that
+  release, 4.3.0, shipped and the entry was removed on 2026-10-06, the day
+  a new source-map-js advisory turned CI red and `npm audit fix` took both
+  to patched versions, so the allowlist is empty and stays the place a
+  future exemption goes),
   `check-contents.cjs` (every contents entry in
   `src/lib/editions.mjs` must exist as an id and a heading in the built
   edition page, and every published page's meta description must run 100

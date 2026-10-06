@@ -45,9 +45,10 @@ Now I came back with 500." at 00:06:46.080; no "dollars", so the caption
 has none. The earlier hint named a 30 Apr 2025 White House Short, the wrong
 event.
 
-s12 is the MOF's current-month file. From 1 Oct the September rows move to
-https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/historical/jgbcme_all.csv
-(same columns; 4 Sep 2026, 7Y = 2.493). Switch the URL before the upload.
+s12 is the MOF's historical file. It was the current-month file until the
+September rows rolled into the history on 1 Oct; switched on 6 Oct 2026,
+when the historical file was confirmed to hold 4 Sep 2026 with 7Y = 2.493
+(row 2026/9/4, same columns).
 s15 (softbank.jp) answers 403 to the checker's declared agent and 200 to a
 browser; no quote cites it, so the check does not fetch it.
 
@@ -67,7 +68,7 @@ Arithmetic, ours, said as ours in the narration: 9.75 - 5.05 = 4.70 points;
 - s8 | Fortune | Sam Altman: OpenAI won't go public this year as IPO now would come at an 'ill-advised moment' | 2026-09-12 | https://fortune.com/2026/09/12/sam-altman-openai-ipo-delay-ill-advised-moment-safety-concerns/
 - s9 | SB Energy, SEC Form S-1/A | Registration statement, amendment 2 | 2026-09-21 | https://www.sec.gov/Archives/edgar/data/2133037/000162828026062846/sbenergy-sx1a2.htm
 - s11 | US Department of the Treasury | Daily Treasury Par Yield Curve Rates, 2026 | 2026-09-24 | https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2026/all?type=daily_treasury_yield_curve&field_tdr_date_value=2026&page&_format=csv
-- s12 | Ministry of Finance, Japan | Interest Rate (September 2026), Japanese Government Bonds | 2026-09-04 | https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/jgbcme.csv
+- s12 | Ministry of Finance, Japan | Interest Rate, Japanese Government Bonds, historical data | 2026-09-04 | https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/historical/jgbcme_all.csv
 - s13 | US Securities and Exchange Commission, via eCFR | 17 CFR 230.144A, Private resales of securities to institutions, (a)(1)(i) | 2026 | https://www.ecfr.gov/current/title-17/section-230.144A
 - s14 | SoftBank Group | Earnings Results for Q1 FY2026, Investor Briefing: Finance | 2026-08-06 | https://group.softbank/media/Project/sbg/sbg/pdf/ir/presentations/2026/investor-finance_q1fy2026_01_en.pdf
 - s15 | SoftBank Mobile and Suntory Beverage & Food | Collaboration commercial between Alien Jones and the Shirato family (Japanese: 宇宙人ジョーンズと白戸家のコラボCM) | 2012-08-20 | https://www.softbank.jp/corp/group/sbm/news/press/2012/20120820_02/
