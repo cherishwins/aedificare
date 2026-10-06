@@ -4,14 +4,19 @@
  * Google account. No dependencies.
  *
  * Before running, in Google Cloud (console.cloud.google.com), free:
- *   1. A project (any name). APIs & Services → Library → enable "YouTube Data API v3".
- *   2. OAuth consent screen: External. Add the channel's Google account as a
- *      test user. Then set the publishing status to "In production": while it
- *      stays "Testing", Google expires every refresh token after seven days,
- *      which would break the pipeline weekly. Production without verification
- *      shows an "unverified app" warning on the consent page; click through it.
- *      Only this account ever consents, so verification is not needed.
- *   3. Credentials → Create credentials → OAuth client ID → Desktop app.
+ *   1. A project (any name; an existing one will do). APIs & Services →
+ *      Library → enable "YouTube Data API v3" AND "YouTube Analytics API":
+ *      the second is a separate API, and without it youtube-analytics.mjs
+ *      answers 403 even with the right scope.
+ *   2. Google Auth Platform (the console's name for the OAuth consent
+ *      screen): Branding, any app name; Audience, External, add the channel's
+ *      Google account as a test user, then "Publish app" so the status reads
+ *      "In production": while it stays "Testing", Google expires every
+ *      refresh token after seven days, which would break the pipeline weekly.
+ *      Production without verification shows an "unverified app" warning on
+ *      the consent page; click through it. Only this account ever consents,
+ *      so verification is not needed.
+ *   3. Google Auth Platform → Clients → Create client → Desktop app.
  *      Copy the client ID and secret. (There is no "YouTube API key" for
  *      uploads: an API key only reads public data; uploading acts on a
  *      channel and needs this OAuth client plus the refresh token below.)
