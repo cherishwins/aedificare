@@ -28,6 +28,30 @@ import { HOUSE } from './rose.mjs';
 
 const RAW = [
   {
+    slug: 'the-supply-cabinet', path: '/the-supply-cabinet', print: 'Edition 06',
+    title: 'The Supply Cabinet', acid: 'Cabinet',
+    lede: 'Give a thousand agents one shared drawer. They will build a society in it.',
+    date: '2026-10-08', dateLabel: '8 Oct 2026',
+    seed: '9A17', k: [17 / 4, 29 / 5, 23 / 6], pdf: '/pdf/edition-06.pdf',
+    // A draft until its twelve sources have been opened. Editions 04 and 05
+    // also arrived as finished prints and both were wrong in ways that
+    // mattered; the flip is one line and it waits on the checking.
+    draft: true,
+    contents: [
+      { n: '00', t: 'The incident', id: 'incident' },
+      { n: '01', t: 'The forum', id: 'forum' },
+      { n: '01', t: 'The org chart', id: 'orgchart' },
+      { n: '02', t: 'The turf war', id: 'turf' },
+      { n: '02', t: 'The split', id: 'split' },
+      { n: '02', t: 'The shop', id: 'shop' },
+      { n: '03', t: 'The same drawer', id: 'mechanism' },
+      { n: '04', t: 'What a sceptic says', id: 'sceptic' },
+      { n: '04', t: 'Where it is wrong', id: 'wrong' },
+      { n: '05', t: 'Sources', id: 'sources' },
+      { n: '06', t: 'The drawer', id: 'drawer' },
+    ],
+  },
+  {
     slug: 'the-fourth-axis', path: '/the-fourth-axis', print: 'Edition 05',
     title: 'The Fourth Axis', acid: 'Axis',
     lede: 'Depth, tokens, time. Three solved. The fourth is where the money went.',
