@@ -5,6 +5,12 @@
  * every entry's anchor id exists in the built edition page and its title
  * appears in a heading or section label there. Runs on dist/, after build.
  *
+ * A draft is not on the home, but its contents list is typed all the same
+ * and its page is built, so a draft that HAS a list is checked too. That
+ * way the list is already true on the day `draft` is flipped, which is the
+ * one day nobody re-reads it. Only a published edition is REQUIRED to have
+ * a list.
+ *
  * It also reads every published page's <meta name="description">, the home
  * included, and fails outside 100 to 200 characters: LinkedIn's Post
  * Inspector warns under 100, and search snippets cut at about 160, so the
@@ -27,14 +33,17 @@ const checkDescription = (label, file, problems) => {
 };
 
 (async () => {
-  const { PUBLISHED } = await import('../src/lib/editions.mjs');
+  const { EDITIONS, PUBLISHED } = await import('../src/lib/editions.mjs');
   const problems = [];
   let checked = 0;
-  for (const e of PUBLISHED) {
-    if (!e.contents) { problems.push(`${e.code}: no contents list`); continue; }
+  for (const e of EDITIONS) {
+    if (!e.contents) {
+      if (!e.draft) problems.push(`${e.code}: no contents list`);
+      continue;
+    }
     const file = path.join('dist', e.slug, 'index.html');
     if (!fs.existsSync(file)) { problems.push(`${e.code}: ${file} missing`); continue; }
-    checkDescription(e.code, file, problems);
+    if (!e.draft) checkDescription(e.code, file, problems);
     const html = fs.readFileSync(file, 'utf8');
     const headings = [...html.matchAll(/<h2[^>]*>(.*?)<\/h2>|<p class="mono-b"[^>]*>(.*?)<\/p>/gs)]
       .map((m) => norm(m[1] || m[2] || ''));

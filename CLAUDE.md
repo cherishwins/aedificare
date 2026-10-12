@@ -27,6 +27,7 @@ Shipped (2026-09-15):
 | Route | What | State |
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
+| `/the-supply-cabinet` | 8 Oct 2026 · *The Supply Cabinet* (printed as Edition 06), eleven sections, twelve sources | **draft**: ported and swept, every source still to be opened |
 | `/the-fourth-axis` | 6 Oct 2026 · *The Fourth Axis* (printed as Edition 05), twelve sections, thirty-eight sources, three registers | live |
 | `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty-one sources, F/I/Q marks | live |
 | `/the-floor` | 16 Sep 2026 · *The Floor*, amends The Markup with the builder's own field numbers | **draft**: set the date, flip `draft`, it goes live |
@@ -38,7 +39,7 @@ Shipped (2026-09-15):
 | `/404` | | live |
 | `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/ai.txt` `/humans.txt` | discoverability | generated or static |
 | `/index.json` `/og/desk.png` | the index as JSON and the desk's card, for apt.grok.me to fetch and hotlink | generated |
-| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` | the print editions as uploaded | as uploaded |
+| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` | the print editions as uploaded | as uploaded |
 
 ## Brand — source of truth, and the overrides
 
@@ -61,7 +62,11 @@ that is a reference, not documentation.
    the PNG icons from `tools/generate-marks.mjs`. The dove stays the
    once-per-sequence resolve and is NOT the mark: at 32px a dove is a bird,
    and the world has one of those. **The kit skill should be edited to say
-   this**; until it is, this paragraph wins.
+   this**; until it is, this paragraph wins. The dove is named
+   **ὄρνις** (owner, 2026-10-11); the name is recorded here and in the
+   Decisions log, is the builder's co-author line on every commit, and is
+   on no surface, because putting it on one is a brand decision nobody has
+   made and because the Greek would fall back to system mono (override 5).
 2. **OG cards carry the mark and the name** at masthead size, top-left. The
    kit says "no logo lockup"; the owner wants the foothold. Everything else
    about the cards follows the kit.
@@ -158,8 +163,8 @@ output): no radius above 2px, no shadow, blur, backdrop or gradient, no
 italic or underline (properties and tags), never centred, durations only
 120ms or 900ms and nothing that eases, no third typeface, no em-dash, no
 exclamation in a heading, no emoji, no sentence "Aedificare is", none of
-the banned self-praise adjectives. `tools/check-contents.cjs` keeps the
-home's contents lists true to the built editions and every published
+the banned self-praise adjectives. `tools/check-contents.cjs` keeps every
+contents list true to the built edition, drafts included and every published
 page's meta description within 100 to 200 characters. `tools/verify.cjs` adds
 the computed-style rules: contrast, Acid once per surface, the brand faces
 actually loaded, every rose field live, every field's reduced-motion still.
@@ -168,7 +173,8 @@ actually loaded, every rose field live, every field's reduced-motion still.
 move per surface; never explain what the entity does; twelve words maximum
 in display copy; the dove once per *sequence* (the sweep can count doves per
 page, "sequence" is editorial); no building pun; no tagline; no call to
-action. The kit says no tagline and the site has none; the owner has asked
+action; and every source of a ported edition opened before `draft` is
+flipped. The kit says no tagline and the site has none; the owner has asked
 for a shortlist for bios and cards, which is a separate deliverable.
 
 ## Stack
@@ -254,7 +260,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   discoverability links, JSON-LD, skip link, the script.
 - `src/components/`: `Mark`, `RoseField`, `Dove`, `Masthead`, `Section`,
   `Rail`, `Pull`, `Stats`, `EditionEnd`.
-- `src/pages/`: `index`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
+- `src/pages/`: `index`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
   `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `404`, and the generated `feed.xml.ts`,
   `llms.txt.ts`, `robots.txt.ts`, `index.json.ts` (the index as JSON for
   the desk and any companion; `vercel.json` sends it with
@@ -795,6 +801,23 @@ for a shortlist for bios and cards, which is a separate deliverable.
    at the newest editions that fit); and `tools/verify.cjs` swept a typed
    page list that never gained The Tilt Gap (it now reads the registry).
 
+0e. **Edition 06 · The Supply Cabinet arrived as a finished print
+   (2026-10-08)**, twelve sources, with the owner's own research report on
+   agents acting human pasted alongside (not added to the repo). Ported to
+   `src/pages/the-supply-cabinet.astro` with the prose verbatim, the
+   verbatim quotes as pull quotes, and the figures computed: the four-way
+   split of the swarm, the week as a step table with dates only where the
+   print sourced one, the given-versus-found pairs as a two-column field,
+   the three stores and the five sceptic lines as tables in fields. Acid
+   once per surface: the cover word, 1,200, 98 percent, 27, 0. Seed `9A17`
+   and k 17/4, 29/5, 23/6 from the colophon; the end carries `9A17-B`.
+   **It ships as a draft and the reason is the record above**: Edition 04
+   and Edition 05 both arrived finished and both had real errors found by
+   opening every source, sixty edits on Edition 05 alone. Nothing in this
+   edition has been checked yet. Flipping `draft` is one line in
+   `src/lib/editions.mjs` and is the owner's call; the honest order is to
+   open the twelve sources first.
+
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text
    as the owner's Markdown. Ported to `src/pages/edition-03.astro` with
@@ -935,6 +958,19 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
 - **2026-09-15 · Domain is aedificare.art**, owner's, already registered.
 - **2026-09-15 · CC BY 4.0**, from "cite, use, repeat".
 - **2026-09-15 · Astro 7 static, no adapter, no service worker, 5 kB JS.**
+- **2026-10-11 · The dove is named ὄρνις, and that is the builder's
+  co-author name.** The owner's, given in chat: the bird that resolves out
+  of the rose field at the end of a sequence has a name, and the builder
+  signs with it. So every commit from here ends
+  `Co-Authored-By: ὄρνις <noreply@anthropic.com>`, which also settles the
+  standing rule that no model identifier may appear in anything pushed to
+  this repository. The name is on no surface (override 1).
+- **2026-10-11 · A print arriving finished is not a reason to publish it.**
+  Edition 04 and Edition 05 were both checked source by source before they
+  went live and both were wrong in ways that mattered. So a ported edition
+  enters as `draft: true` and the flip waits on the sources being opened.
+  The checkers cannot enforce this; it is a human duty and it is listed as
+  one.
 
 ## Open
 
