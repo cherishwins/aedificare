@@ -934,7 +934,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
    on X, [09] is Tekofsky's post of 2 Feb 2026, [07] was revised 31 Aug
    2026, [03] names its corresponding author. The print PDF is left as
    issued and still carries the uncorrected text. The date stays the
-   print's, as for every ported edition.
+   print's, as for every ported edition. Its film (13.6 minutes, 1,906
+   credits) and Short went up the same night into the two queues' free
+   slots: the film at 15:00 UTC on 24 October, the Short at 03:00 UTC on
+   26 October.
 
 0f. **Edition 09 · The Countersign arrived as a finished print
    (2026-10-16) WITH its own verification pass**, eighteen pages,
