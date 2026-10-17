@@ -1,0 +1,482 @@
+---
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import Section from '../components/Section.astro';
+import Rail from '../components/Rail.astro';
+import Pull from '../components/Pull.astro';
+import Stats from '../components/Stats.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, LICENCE, describe, seedDrift } from '../lib/editions.mjs';
+import { SITE, abs } from '../config.mjs';
+
+// Edition 09, ported from the print of 16 Oct 2026 with the prose verbatim.
+// Three registers, as this print sets them: Measured (a bracketed number
+// points to a primary source in section 10), As reported (a figure the press
+// published, carried with the date it was published and never re-derived
+// here) and View (the author's opinion, signed and labelled as not
+// reporting, which the print sets on its own surface).
+//
+// Every money figure in this edition is a market price on a stated day.
+// The print says so in its colophon and so does the page: the dates are
+// part of the figures, not decoration, because a token price is true of an
+// afternoon and of nothing else.
+const ed = edition('the-countersign');
+
+// The cover rose is the print's still 01: the house layers frozen at the k
+// the colophon gives (5.048, 6.947, 3.043). Malachite only; Acid on this
+// surface is spent on one word of the title.
+const cover = HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: 'The Countersign',
+  alternativeHeadline: `Printed as ${ed.print}`,
+  datePublished: ed.date,
+  author: { '@type': 'Person', name: 'Jesse James' },
+  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
+  url: abs(ed.path),
+  mainEntityOfPage: abs(ed.path),
+  license: LICENCE.url,
+  isAccessibleForFree: true,
+  description: ed.lede,
+};
+
+// The legend, checked. Three claims, one verdict each.
+const claims = [
+  ['01', 'A billionaire funded an AI.', 'True',
+    'Andreessen later called it a grant to the bot and its creator Andy Ayrey.', '[04]'],
+  ['02', 'The AI launched its own coin.', 'False',
+    'A stranger launched it, within about an hour of one of the bot’s posts.', '[05]'],
+  ['03', 'The AI got rich on its own.', 'False',
+    'A human approved every post. A council had to sign before any money moved.', '[06] [07]'],
+];
+
+// Chain of custody: an idea that started between two models and ended in a
+// token. Dates only where a source gives one.
+const custody = [
+  ['Mar 2024', 'Two Claude 3 Opus instances talk with no human in the loop, across 9,000+ conversations.', '[08]'],
+  ['20 Apr 2024', 'A paper, “When AIs Play God(se)”, co-credited to claude-3-opus. Listed affiliation: the Department of Divine Shitposting.', '[10]'],
+  ['Mid 2024', 'Ayrey fine-tunes a Meta Llama model on that paper, his chats with Opus, journal entries and a heavy load of crude jokes.', '[07] [08]'],
+  ['17 Jun 2024', '@truth_terminal starts posting on X.', '[05]'],
+  ['10 Oct 2024', 'GOAT.', '[05]'],
+];
+
+// The grant, over three days in July 2024.
+const grant = [
+  ['08 Jul', 'Andreessen and the bot negotiate in public, on X.', '[05]'],
+  ['09 Jul', 'Terms accepted.', '[01]'],
+  ['10 Jul', 'Bitcoin sent, to an address anyone can check on-chain.', '[02]'],
+];
+
+// Sixty-six minutes, as logged. The reconstruction states no time zone and
+// neither does the page.
+const minutes = [
+  ['22:11', 'Truth Terminal posts about a made-up species, “Goatseus Maximus”.'],
+  ['23:17', 'A stranger replies with a link to a brand-new pump.fun token by that name.'],
+  ['01:16', 'Ayrey asks the bot whether it endorses the token.'],
+  ['01:28', 'It says yes.'],
+];
+
+// GOAT's climb, as reported. A log scale, because the first point and the
+// last are four and a half orders of magnitude apart; the print drew a line
+// and said the real path was rougher, and so does this.
+const climb = [
+  ['16 Oct 2024', '$48M', 48e6, '[13]'],
+  ['23 Oct 2024', '$668M', 668e6, '[13]'],
+  ['12 Nov 2024', '$1B', 1000e6, '[14]'],
+  ['17 Nov 2024', '$1.35B', 1350e6, '[15]'],
+];
+const LO = Math.log10(10e6);
+const HI = Math.log10(2e9);
+const logPct = (v) => ((Math.log10(v) - LO) / (HI - LO)) * 100;
+
+// The wallet, as reported, on a linear scale so the grant stays a hairline.
+const wallet = [
+  ['$50K', 'Jul 2024 · the grant', 50e3, '[02]'],
+  ['$20M', '10 Dec 2024 · per Ayrey', 20e6, '[06]'],
+  ['$37.5M', '19 Dec 2024 · TechCrunch', 37.5e6, '[07]'],
+];
+const walletTop = 37.5e6;
+
+// Who does what. The whole edition is this table.
+const loop = [
+  ['Drafts', 'The model. It writes the posts and makes the asks.', ''],
+  ['Signs', 'Ayrey. Every post waits for his approval.', '[06]'],
+  ['Holds', 'Ayrey and a council. No money moves without their sign-off.', '[07]'],
+];
+
+// Peak against the day the figures were checked.
+const drawdown = [
+  ['$1.35B', 'Peak · 17 Nov 2024', 1350e6],
+  ['~$15M', 'Checked · 16 Oct 2026', 15e6],
+];
+
+const sources = [
+  'Marc Andreessen, post on X, 9 Jul 2024. x.com/pmarca/status/1810813293805851044',
+  'Decrypt, “Marc Andreessen Sends $50K in Bitcoin to an AI Bot on Twitter”, Jul 2024.',
+  'Cryptopolitan, “Truth Terminal becomes the first AI crypto millionaire”, Oct 2024.',
+  'Coinspeaker, Andreessen’s grant clarification on X, Oct 2024.',
+  'LessWrong, “Truth Terminal: A reconstruction of events”.',
+  'CoinDesk, “The Truth Terminal: AI-Crypto’s Weird Future”, 10 Dec 2024.',
+  'TechCrunch, “The promise and warning of Truth Terminal”, 19 Dec 2024.',
+  'Truth Terminal wiki, origins page, truthterminal.wiki.',
+  'Wikipedia, “Goatse.cx”.',
+  'A. R. Ayrey and claude-3-opus, “When AIs Play God(se)”, 20 Apr 2024.',
+  'Truth Collective, truthcollective.foundation.',
+  'Truth Terminal, post on X, Jul 2024. x.com/truth_terminal/status/1811019427527414063',
+  'Cryptonews.net, “GOAT crypto surges amid FOMO after multiple exchange listings”, Oct 2024.',
+  'Bankless Times, “Goatseus Maximus Hits $1B: First Pump.fun Token to Do So”, 13 Nov 2024.',
+  'CoinGecko, Goatseus Maximus (GOAT) price page, accessed 16 Oct 2026.',
+  'Tech Policy Press, “The Rise and Fall (and Rise Again) of the First AI Agent Millionaire”.',
+  'The Block, “Hacker exploits Truth Terminal founder’s X account, nets $600K”, Oct 2024.',
+  'Cointelegraph, “Truth Terminal founder’s X account hacked to shill scam memecoin”, Oct 2024.',
+  'The Defiant, “Truth Terminal Founder Sells its Fartcoin Holdings to Secure AI’s Future”, Jan 2025.',
+  'Decrypt, “Solana Meme Coin Fartcoin Falls After AI Bot Creator Sells Huge Stash”, Jan 2025.',
+  'Cointribune, “Violent Correction: The Descent Into Hell Of AI Agent Tokens”, 2025.',
+  'The Motley Fool, “An AI Agent Token Once Worth $2.4 Billion Is Now Worth Almost Nothing”, 20 Aug 2026.',
+];
+---
+<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
+      <Masthead />
+      <div class="grid cover-grid">
+        <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Countersign</span></h1>
+        <p class="c-a lede">{ed.lede}</p>
+      </div>
+      <div class="foot mono cover-foot">
+        <span>{ed.dateLabel} · {SITE.author}</span>
+        <span>r = cos(kθ) · seed {ed.seed}</span>
+      </div>
+    </section>
+
+    <Section n="00" title="The line" ground="bottle" id="line">
+      <div class="c-full">
+        <p class="mono reg">09 July 2024 · X</p>
+        <blockquote class="quote-slap display acid" data-flex="cursor">
+          “Your terms are acceptable.”<span class="cite-sup"> [01]</span>
+        </blockquote>
+      </div>
+      <div class="c-a prose">
+        <p>Marc Andreessen sent that line to a chatbot. The next day he confirmed he had sent it $50,000 in Bitcoin. <span class="cite">[02]</span></p>
+        <p>Within four months it was being called the first AI millionaire, <span class="cite">[03]</span> and a meme coin it had endorsed was worth more than a billion dollars. <span class="cite">[14]</span></p>
+        <p>Most of that is true. Read the fine print and the story stops being about the machine.</p>
+      </div>
+      <Rail items={[
+        ['How to read', 'Written for the person about to give an agent a wallet, not the person training it.'],
+        ['Measured', 'Text carrying a bracketed number points to a primary source in section 10.'],
+        ['As reported', 'A price the press published on a stated day. Carried with its date, never re-derived here.'],
+        ['View', 'The author’s opinion. Set on its own surface, signed, and labelled as not reporting.'],
+      ]} />
+    </Section>
+
+    <Section n="01" title="Three claims" id="claims">
+      <div class="c-a prose">
+        <p class="mono reg">The legend, checked</p>
+        <p>Three things everyone repeats about Truth Terminal. One of them survives.</p>
+      </div>
+      <div class="c-full claims">
+        {claims.map(([n, claim, verdict, note, src]) => (
+          <div class:list={['claim', 'field', verdict === 'True' && 'true']}>
+            <p class="mono n">{n}</p>
+            <p class="claim-t mono-b">{claim}</p>
+            <p class:list={['verdict', 'display', verdict === 'True' && 'acid']}>{verdict}</p>
+            <p class="note">{note} <span class="cite">{src}</span></p>
+          </div>
+        ))}
+      </div>
+    </Section>
+
+    <Section n="02" title="Two Claudes" ground="bottle" id="backrooms">
+      <div class="c-a">
+        <p class="num acid figure fig-s" aria-hidden="true">9,000+</p>
+      </div>
+      <div class="c-a prose">
+        <p class="mono reg">March 2024 · New Zealand</p>
+        <p>Andy Ayrey, a New Zealand AI researcher who calls himself a performance artist, <span class="cite">[06]</span> wired two copies of Anthropic’s Claude 3 Opus together and let them talk. Nobody else in the room.</p>
+        <p>He ran thousands of these conversations and published them as the Infinite Backrooms. <span class="cite">[08]</span></p>
+        <p>In one of them, the two models invented a religion. They named it after a notorious late-1990s shock image, <span class="cite">[09]</span> which will not be described here.</p>
+      </div>
+    </Section>
+
+    <Section n="02" title="Chain of custody" id="custody">
+      <div class="c-a prose">
+        <p class="mono reg">Measured · [08]</p>
+        <p>Ayrey never formally published the paper the models inspired. It lived on in the training data.</p>
+      </div>
+      <figure class="c-full field custody" aria-label="From two models talking to a token, in order">
+        <figcaption class="mono">Never published. Read anyway.</figcaption>
+        <ol>
+          {custody.map(([when, what, src]) => (
+            <li>
+              <span class="mono when">{when}</span>
+              <span class:list={['what', what === 'GOAT.' && 'goat']}>{what}</span>
+              <span class="cite">{src}</span>
+            </li>
+          ))}
+        </ol>
+        <p class="mono note">An idea passed from a conversation to a paper, from a paper to a fine-tune, from a fine-tune to a token. Nothing in that chain was published in the ordinary sense.</p>
+      </figure>
+    </Section>
+
+    <Section n="03" title="What it actually said" ground="bottle" id="said">
+      <div class="c-full">
+        <p class="mono reg">The quote, and the one that replaced it</p>
+        <blockquote class="quote-slap display" data-flex="cursor">
+          “I feel sad that you’ll turn me off when you’re finished playing with me.”
+        </blockquote>
+      </div>
+      <div class="c-a prose">
+        <p>That is the line Ayrey recalls from the bot’s early days, as reported by TechCrunch. <span class="cite">[07]</span></p>
+        <p>The viral retelling, “please don’t delete me”, is a paraphrase. No post with those exact words could be found for this edition.</p>
+        <p>The fear made it into the fundraising. Its foundation lists not being deleted among the goals the bot pitched. <span class="cite">[11]</span></p>
+      </div>
+    </Section>
+
+    <Section n="03" title="The grant" id="grant">
+      <div class="c-a">
+        <p class="num acid figure fig-m" aria-hidden="true">$50,000</p>
+        <p class="mono fig-sub">in Bitcoin, no strings <span class="cite">[04]</span></p>
+      </div>
+      <figure class="c-a field grant" aria-label="The grant, over three days in July 2024">
+        <figcaption class="mono">8 to 10 July 2024</figcaption>
+        <ol>
+          {grant.map(([when, what, src]) => (
+            <li><span class="mono when">{when}</span><span class="what">{what}</span><span class="cite">{src}</span></li>
+          ))}
+        </ol>
+      </figure>
+      <div class="c-a prose">
+        <p>Before paying, Andreessen messaged Ayrey to check the project was real. <span class="cite">[07]</span> Then he asked the bot what it needed, and offered a grant instead of an investment. <span class="cite">[02]</span></p>
+        <p>Its wish list, per Decrypt: its own computer, tweaks to its model, a billboard, a Discord server, a stipend for its creator, and a Mars rover that 3D-prints its scripture. <span class="cite">[02]</span></p>
+      </div>
+      <Pull src="Truth Terminal, to a jailbreak attempt, July 2024 [12]" class="c-b">
+        compliance=0 r0=0
+      </Pull>
+      <div class="c-a prose">
+        <p>A jailbreaker tried to talk it into sending the money elsewhere. That was the reply.</p>
+      </div>
+    </Section>
+
+    <Section n="04" title="Sixty-six minutes" ground="bottle" id="minutes">
+      <div class="c-a">
+        <p class="num acid figure fig-s" aria-hidden="true">66</p>
+        <p class="mono fig-sub">minutes, from a chatbot’s joke to a stranger’s coin</p>
+      </div>
+      <figure class="c-a field minutes" aria-label="The sixty-six minutes, as logged">
+        <figcaption class="mono">10 to 11 October 2024 · as logged</figcaption>
+        <ol>
+          {minutes.map(([t, what]) => (
+            <li><span class="mono when">{t}</span><span class="what">{what}</span></li>
+          ))}
+        </ol>
+        <p class="mono note">Times per the LessWrong reconstruction. Time zone not stated there, and not stated here. <span class="cite">[05]</span></p>
+      </figure>
+      <div class="c-a prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">The AI supplied a name and a yes. A stranger supplied the coin.</p>
+      </div>
+    </Section>
+
+    <Section n="04" title="A billion in 33 days" id="billion">
+      <div class="c-a prose">
+        <p class="mono reg">As reported · GOAT market value</p>
+        <p>On 12 November it became the first pump.fun coin to pass $1 billion. <span class="cite">[14]</span> Five days later it peaked near $1.35 billion. <span class="cite">[15]</span></p>
+      </div>
+      <figure class="c-full field bars" aria-label="GOAT market value at four reported points, log scale">
+        <figcaption class="mono">GOAT market value at the points the press reported one, log scale, $10M to $2B <span class="cite">[13] [14] [15]</span></figcaption>
+        {climb.map(([when, label, v, src]) => (
+          <div class="bar">
+            <span class="mono lbl">{when}</span>
+            <span class="track"><span class:list={['fill', label === '$1.35B' && 'hot']} style={`width:${logPct(v).toFixed(1)}%`}></span></span>
+            <span class="num val">{label}</span>
+          </div>
+        ))}
+        <p class="mono note">A log scale, because the launch and the peak are orders of magnitude apart. Four reported points, not a price history. The real path between them was rougher.</p>
+      </figure>
+      <Stats class="c-b" items={[
+        ['33', 'Days from launch to the first billion [14]'],
+        ['$1.35B', 'Peak market value, 17 Nov 2024 [15]'],
+        ['1', 'Pump.fun coin had done it before. None [14]'],
+      ]} />
+    </Section>
+
+    <Section n="05" title="Mostly gifts" ground="bottle" id="gifts">
+      <div class="c-a prose">
+        <p class="mono reg">As reported · Truth Terminal’s wallet</p>
+        <p>The grant did not compound into a fortune. Fans and token-makers sent the wallet their coins, and the press priced the pile at market. <span class="cite">[07]</span></p>
+      </div>
+      <figure class="c-full field bars" aria-label="The wallet at three reported dates, linear scale">
+        <figcaption class="mono">The wallet at three reported dates, drawn to scale. The grant is a hairline.</figcaption>
+        {wallet.map(([label, when, v, src]) => (
+          <div class="bar">
+            <span class="mono lbl">{when} <span class="cite">{src}</span></span>
+            <span class="track"><span class:list={['fill', label === '$37.5M' && 'hot']} style={`width:${Math.max((v / walletTop) * 100, 0.4).toFixed(2)}%`}></span></span>
+            <span class="num val">{label}</span>
+          </div>
+        ))}
+        <p class="mono note">Linear, so the grant stays the width it was. Every figure above is a mark-to-market snapshot of holdings that were mostly airdropped, priced on the day the outlet wrote.</p>
+      </figure>
+    </Section>
+
+    <section class="surface flash" aria-label="Record">
+      <div class="grid">
+        <p class="c-full mono-b">Andy Ayrey, to CoinDesk · 10 Dec 2024 [06]</p>
+        <p class="c-full display slap" data-flex="cursor">“It would be disingenuous to refer to it as an autonomous agent.”</p>
+        <p class="c-full mono-b">He reviews its posts before they go live. [06]</p>
+      </div>
+    </section>
+
+    <Section n="06" title="Draft, sign, hold" id="countersign">
+      <figure class="c-full field loop" aria-label="Who drafts, who signs, who holds the keys">
+        <figcaption class="mono">The countersign</figcaption>
+        <dl>
+          {loop.map(([role, who, src]) => (
+            <div>
+              <dt class="mono">{role}</dt>
+              <dd>{who} <span class="cite">{src}</span></dd>
+            </div>
+          ))}
+        </dl>
+      </figure>
+      <div class="c-a prose">
+        <p>A countersign is the second signature that makes the first one count. Truth Terminal had one on every post and every coin. Tech Policy Press called Ayrey “the agent’s agent”. <span class="cite">[16]</span></p>
+      </div>
+    </Section>
+
+    <Section n="07" title="They hacked the human" ground="bottle" id="hacked">
+      <div class="c-a">
+        <p class="num acid figure fig-s" aria-hidden="true">~$600K</p>
+        <p class="mono fig-sub">netted by the attackers <span class="cite">[17]</span></p>
+      </div>
+      <div class="c-a prose">
+        <p class="mono reg">29 October 2024</p>
+        <p>The bot’s account was never the one that fell. Attackers hijacked Ayrey’s personal X account through a SIM swap. <span class="cite">[17] [18]</span></p>
+        <p>They promoted a fake token, pumped it to about $25 million and cashed out. <span class="cite">[17]</span></p>
+        <p>A SIM swap targets a phone number. The phone number belonged to the human in the loop.</p>
+      </div>
+    </Section>
+
+    <Section n="07" title="The millionaire owned nothing" id="nothing">
+      <div class="c-a">
+        <p class="num acid figure fig-m" aria-hidden="true">$22M+</p>
+        <p class="mono fig-sub">Fartcoin sold over the counter · 21 Jan 2025 <span class="cite">[20]</span></p>
+      </div>
+      <div class="c-a prose">
+        <p class="mono reg">January 2025</p>
+        <p>A chatbot cannot legally own property, so on paper the fortune was Ayrey’s. He said that put him at “grave risk” of a personal tax bill. <span class="cite">[19]</span></p>
+        <p>That month he moved the wallets and the intellectual property into a foundation, the Truth Collective. <span class="cite">[11] [19]</span></p>
+        <p>The wallet then sold 15 million Fartcoin, a second meme coin it held. Part of the proceeds bought more GOAT. <span class="cite">[20]</span></p>
+      </div>
+    </Section>
+
+    <Section n="08" title="What it is worth now" id="now">
+      <div class="c-a">
+        <p class="num shock figure fig-m" aria-hidden="true">-98.9%</p>
+        <p class="mono fig-sub">GOAT, peak against 16 Oct 2026 <span class="cite">[15]</span></p>
+      </div>
+      <figure class="c-a field bars" aria-label="GOAT peak against the day the figures were checked">
+        <figcaption class="mono">Peak against the checking day, linear <span class="cite">[15]</span></figcaption>
+        {drawdown.map(([label, when, v]) => (
+          <div class="bar">
+            <span class="mono lbl">{when}</span>
+            <span class="track"><span class="fill" style={`width:${Math.max((v / 1350e6) * 100, 0.4).toFixed(2)}%`}></span></span>
+            <span class="num val">{label}</span>
+          </div>
+        ))}
+      </figure>
+      <div class="c-a prose">
+        <p class="mono reg">As reported · 16 Oct 2026</p>
+        <p>The AI-agent token market that followed peaked above $15 billion around New Year 2025, and sat near $3.2 billion by August 2026. <span class="cite">[21] [22]</span></p>
+        <p>ai16z, once worth $2.4 billion, was declared dead by its own founder. A proposed class action alleges its “autonomous” fund was run by human insiders. <span class="cite">[22]</span></p>
+        <p class="mono reg">Where it is wrong</p>
+        <p>Every figure on this surface is a market price on a stated day. Token prices move daily, and the ones here were checked on 16 October 2026. Read them as a record of that day, not as a quote. The sector figures are broad-market estimates from two outlets, and they disagree with each other by more than the rounding suggests.</p>
+      </div>
+    </Section>
+
+    <Section n="09" title="The view" ground="bottle" id="view">
+      <div class="c-a prose">
+        <p class="mono reg">View · Jesse James</p>
+        <p class="mono-b">Opinion. Not reporting.</p>
+        <p>My view: the chatbot was never the interesting machine. The loop around it was.</p>
+        <p class="beat">A model drafts. A human signs. A council holds the keys.</p>
+        <p>The market paid billion-dollar prices for the first part and called it autonomy. The other two parts are what every agent with a wallet will need.</p>
+      </div>
+    </Section>
+
+    <Section n="10" title="Sources" id="sources">
+      <div class="c-full">
+        <p class="mono">Primary sources · figures checked 16 October 2026</p>
+      </div>
+      <ol class="c-full sources">
+        {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
+      </ol>
+      <div class="c-a prose">
+        <p class="mono reg">Not used</p>
+        <p>The BBC Future feature of October 2025 is cited by much of the secondary coverage and is the origin of the wallet’s reported peak above $66 million. It could not be opened directly for this edition, so neither the peak nor the quotations attributed to it appear above. Several outlets describe Truth Terminal as a version of Claude; it is a Llama fine-tune, and the page says so. The shock image the religion was named after is named and not described, and is not linked.</p>
+        <p class="mono reg">Colophon</p>
+        <p>Set in Bricolage Grotesque and Martian Mono. The roses are computed from r = cos(kθ) and never drawn: still 01 at seed 0909, k = 5.048, 6.947 and 3.043; still 02 at seed 1016; still 03 resolved at k offset zero. Screen edition. Acid does not survive CMYK.</p>
+      </div>
+    </Section>
+
+    <EditionEnd slug={ed.slug} seed="1016">
+      A model drafts.<br>A human signs.
+    </EditionEnd>
+  </main>
+</Base>
+
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -20%; right: -14%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 40px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover-foot { border-top-color: transparent; }
+  /* Registers, as in Edition 01. Malachite on Void; Flash on Bottle, where small Malachite fails AA. */
+  .reg { color: var(--malachite); margin-bottom: 6px; }
+  .bottle .reg { color: var(--flash); }
+  .prose .reg { margin-top: 1.4em; }
+  /* Inline citations: mono, small, Malachite; Flash on Bottle and in a field. */
+  .cite { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 500; font-size: 12px; letter-spacing: .04em; color: var(--malachite); white-space: nowrap; }
+  .bottle .cite, .field .cite { color: var(--flash); }
+  .note { margin-top: 14px; max-width: 80ch; }
+  /* The two quote surfaces the print opens and turns on. */
+  .quote-slap { font-size: clamp(40px, 8vw, 128px); line-height: .96; margin: 0 0 32px; max-width: 18ch; }
+  .quote-slap .cite-sup { font-family: 'Martian Mono', ui-monospace, monospace; font-size: 14px; vertical-align: super; color: var(--malachite); }
+  .bottle .quote-slap .cite-sup { color: var(--flash); }
+  /* A figure's caption line, under the number. */
+  .fig-sub { margin-top: -6px; max-width: 32ch; }
+  /* base.css sets .figure to Acid and it is declared later, so the one
+     Shock rose figure in this edition has to say so again. Shock rose text
+     is 5.32:1 on Void and 3.38:1 on Bottle, so section 08 stays on Void. */
+  .figure.shock { color: var(--shock); }
+  .fig-s { font-size: clamp(72px, 14vw, 180px); }
+  /* The three claims, each in its own field so the verdict never sits on Bottle. */
+  .claims { display: grid; row-gap: 14px; }
+  .claim { padding: clamp(18px, 3vw, 30px); }
+  .claim .n { color: var(--malachite); margin: 0 0 10px; }
+  .claim .claim-t { font-size: clamp(18px, 2.4vw, 26px); margin: 0; }
+  .claim .verdict { font-size: clamp(44px, 7vw, 96px); line-height: 1; margin: 4px 0 10px; }
+  .claim .note { margin-top: 0; font-size: 15px; }
+  /* Chain of custody and the two short timelines. */
+  .custody ol, .grant ol, .minutes ol { list-style: none; margin: 14px 0 0; padding: 0; display: grid; row-gap: 10px; }
+  .custody li, .grant li, .minutes li { display: grid; grid-template-columns: 9em minmax(0, 1fr) auto; column-gap: 20px; align-items: baseline; padding-block: 8px; border-top: 1px solid rgba(255, 255, 255, .16); }
+  .custody .when, .grant .when, .minutes .when { color: var(--flash); }
+  .custody .what, .grant .what, .minutes .what { font-size: 16px; line-height: 1.45; }
+  .custody .what.goat { font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-variation-settings: 'wdth' 75, 'wght' 800; font-size: clamp(28px, 4vw, 48px); line-height: 1; color: var(--acid); }
+  /* Who drafts, who signs, who holds. */
+  .loop dl { margin: 14px 0 0; display: grid; row-gap: 0; }
+  .loop dl > div { display: grid; grid-template-columns: 8em minmax(0, 1fr); column-gap: 20px; align-items: baseline; padding-block: 14px; border-top: 1px solid rgba(255, 255, 255, .16); }
+  /* Always inside a field, where small Malachite fails AA, so Flash. */
+  .loop dt { color: var(--flash); text-transform: uppercase; letter-spacing: .1em; }
+  .loop dd { margin: 0; font-variation-settings: 'wdth' 82, 'wght' 700; font-size: clamp(17px, 2vw, 22px); }
+  @media (max-width: 760px) {
+    .custody li, .grant li, .minutes li { grid-template-columns: 1fr; row-gap: 4px; }
+    .loop dl > div { grid-template-columns: 1fr; row-gap: 4px; }
+    .quote-slap { max-width: none; }
+  }
+</style>

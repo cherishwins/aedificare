@@ -27,6 +27,7 @@ Shipped (2026-09-15):
 | Route | What | State |
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
+| `/the-countersign` | 16 Oct 2026 · *The Countersign* (printed as Edition 09), fifteen sections, twenty-two sources, three registers | live |
 | `/the-supply-cabinet` | 8 Oct 2026 · *The Supply Cabinet* (printed as Edition 06), eleven sections, twelve sources | **draft**: ported and swept, every source still to be opened |
 | `/the-fourth-axis` | 6 Oct 2026 · *The Fourth Axis* (printed as Edition 05), twelve sections, thirty-eight sources, three registers | live |
 | `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty-one sources, F/I/Q marks | live |
@@ -39,7 +40,7 @@ Shipped (2026-09-15):
 | `/404` | | live |
 | `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/ai.txt` `/humans.txt` | discoverability | generated or static |
 | `/index.json` `/og/desk.png` | the index as JSON and the desk's card, for apt.grok.me to fetch and hotlink | generated |
-| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` | the print editions as uploaded | as uploaded |
+| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-09.pdf` | the print editions as uploaded | as uploaded |
 
 ## Brand — source of truth, and the overrides
 
@@ -173,8 +174,9 @@ actually loaded, every rose field live, every field's reduced-motion still.
 move per surface; never explain what the entity does; twelve words maximum
 in display copy; the dove once per *sequence* (the sweep can count doves per
 page, "sequence" is editorial); no building pun; no tagline; no call to
-action; and every source of a ported edition opened before `draft` is
-flipped. The kit says no tagline and the site has none; the owner has asked
+action; every source of a ported edition opened before `draft` is
+flipped; and, after `npm run og`, every card whose content did not change
+restored to its committed bytes (see Discoverability). The kit says no tagline and the site has none; the owner has asked
 for a shortlist for bios and cards, which is a separate deliverable.
 
 ## Stack
@@ -260,7 +262,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   discoverability links, JSON-LD, skip link, the script.
 - `src/components/`: `Mark`, `RoseField`, `Dove`, `Masthead`, `Section`,
   `Rail`, `Pull`, `Stats`, `EditionEnd`.
-- `src/pages/`: `index`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
+- `src/pages/`: `index`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
   `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `404`, and the generated `feed.xml.ts`,
   `llms.txt.ts`, `robots.txt.ts`, `index.json.ts` (the index as JSON for
   the desk and any companion; `vercel.json` sends it with
@@ -818,6 +820,44 @@ for a shortlist for bios and cards, which is a separate deliverable.
    `src/lib/editions.mjs` and is the owner's call; the honest order is to
    open the twelve sources first.
 
+0f. **Edition 09 · The Countersign arrived as a finished print
+   (2026-10-16) WITH its own verification pass**, eighteen pages,
+   twenty-two sources. This is the first upload to come with the research
+   that checked it: a report carrying a verdict table, labelled
+   corrections and its own caveats. The print visibly acts on them, which
+   is why it reads "most of that is true" and not "all of it": the famous
+   "please don't delete me" is set as a paraphrase of what TechCrunch
+   actually reported, the coin is a stranger's and not the bot's, the
+   billion is "over $1B" and not "billions", and the climb took 33 days
+   and not "days". Ported to `src/pages/the-countersign.astro` with the
+   prose verbatim, three registers (Measured, As reported, View), the
+   verdict table as three fields so the one Acid verdict never sits on
+   Bottle, and the figures computed: the climb as bars on a log scale
+   ($10M to $2B, because launch and peak are orders of magnitude apart),
+   the wallet linear so the grant stays the hairline the print calls it,
+   and the drawdown as two bars. Seed `0909` and k 5.048, 6.947, 3.043
+   from the colophon; the end carries still 02, seed 1016.
+   **Published, not drafted, and the reason is specific.** The standing
+   duty is that every source of a ported edition is opened first. Here the
+   owner's own pass had already done that and handed over the evidence, so
+   what was left was the one figure that can go stale: GOAT's price.
+   Re-checked 2026-10-17, the day after the print: about $0.014, market
+   cap near $14.98M, CoinGecko showing -98.90% against a $1.35 peak. The
+   print's "~$15M" and "-98.9%" both still hold. The other twenty-one
+   sources are dated articles that do not move. **Two traps recorded so
+   nobody falls in them later**: a Coinbase listing titled
+   "goatseusmaximuseth.lol" trades near $0.0000005 and is a different
+   token, so any re-check must land on the Solana GOAT; and the ATH is
+   quoted between $1.35 and $1.37 across venues, so the page carries
+   CoinGecko's $1.35 because CoinGecko is the source it cites.
+   **The Shock rose rule bit here**: the print sets -98.9% in Shock rose
+   on Bottle, which is 3.38:1 and fails AA, so section 08 is Void, where
+   it is 5.32:1. `base.css` declares `.figure` as Acid after `.shock`, so
+   the page restates the colour rather than reordering a shared file.
+   **Editions 07 and 08 never arrived in this repo.** Nothing is missing
+   from the site: the code is the date, so the sequence the prints carry
+   is not a sequence the site keeps. Recorded so nobody hunts for them.
+
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text
    as the owner's Markdown. Ported to `src/pages/edition-03.astro` with
@@ -936,6 +976,21 @@ for a shortlist for bios and cards, which is a separate deliverable.
   re-scrape cannot refresh a stale card; only a new URL can. Pages write
   the stable path and never see the hash. The unhashed copy stays so links
   in the wild resolve. Rerun `npm run og` when a title or lede changes.
+- **`npm run og` is NOT reproducible across machines, and the churn must be
+  thrown away** (found 2026-10-17). A fresh build sandbox rendered every
+  card about 2 percent larger than the committed bytes with no content
+  change: a different Chromium antialiases differently. So every card got a
+  new hash, which is the one thing the hash is supposed to mean something
+  by. **Commit only the cards whose CONTENT changed**: restore the rest
+  with `git checkout HEAD -- public/og/...`, delete the newly rendered
+  files, and put the committed rows back in `src/lib/og-manifest.json`,
+  keeping the rows for the cards that really changed. Edition 09's port
+  was the first to hit this; two cards were real (the new edition, and the
+  home card, which counts the published editions and had gone from six to
+  seven) and ten were renderer noise. Committing all of them would have
+  added 3.3 MB of dead PNGs per session and told every platform the old
+  cards were stale when they were not. A real fix is pinning the renderer;
+  until then this is a human duty and it is listed as one.
 
 ## Ported from cherishwins/teamcanada
 
@@ -971,6 +1026,17 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   enters as `draft: true` and the flip waits on the sources being opened.
   The checkers cannot enforce this; it is a human duty and it is listed as
   one.
+- **2026-10-17 · What satisfies that duty is the checking, not who did
+  it.** Edition 09 arrived with the owner's own verification pass attached,
+  evidence included, and the print acting on its corrections. So it
+  published on the day it was ported, after the builder re-checked the one
+  figure in it that can move. The duty is unchanged and the bar is not
+  lowered: an edition with no pass attached still enters as a draft, which
+  is where Edition 06 remains. What this adds is that a pass someone else
+  ran counts, once its evidence is in hand and its live figures are
+  re-checked. **A figure that is a market price is never archival**: it
+  carries the day it was read, on the page and in the colophon, and it is
+  read again before the edition goes live.
 
 ## Open
 

@@ -28,6 +28,30 @@ import { HOUSE } from './rose.mjs';
 
 const RAW = [
   {
+    slug: 'the-countersign', path: '/the-countersign', print: 'Edition 09',
+    title: 'The Countersign', acid: 'Countersign',
+    lede: 'The first AI millionaire, and the human who signed for every cent.',
+    date: '2026-10-16', dateLabel: '16 Oct 2026',
+    seed: '0909', k: [5.048, 6.947, 3.043], pdf: '/pdf/edition-09.pdf',
+    contents: [
+      { n: '00', t: 'The line', id: 'line' },
+      { n: '01', t: 'Three claims', id: 'claims' },
+      { n: '02', t: 'Two Claudes', id: 'backrooms' },
+      { n: '02', t: 'Chain of custody', id: 'custody' },
+      { n: '03', t: 'What it actually said', id: 'said' },
+      { n: '03', t: 'The grant', id: 'grant' },
+      { n: '04', t: 'Sixty-six minutes', id: 'minutes' },
+      { n: '04', t: 'A billion in 33 days', id: 'billion' },
+      { n: '05', t: 'Mostly gifts', id: 'gifts' },
+      { n: '06', t: 'Draft, sign, hold', id: 'countersign' },
+      { n: '07', t: 'They hacked the human', id: 'hacked' },
+      { n: '07', t: 'The millionaire owned nothing', id: 'nothing' },
+      { n: '08', t: 'What it is worth now', id: 'now' },
+      { n: '09', t: 'The view', id: 'view' },
+      { n: '10', t: 'Sources', id: 'sources' },
+    ],
+  },
+  {
     slug: 'the-supply-cabinet', path: '/the-supply-cabinet', print: 'Edition 06',
     title: 'The Supply Cabinet', acid: 'Cabinet',
     lede: 'Give a thousand agents one shared drawer. They will build a society in it.',
