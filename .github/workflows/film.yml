@@ -17,12 +17,12 @@
 # is not yet set, so it never ran; one uploader with a ledger replaced it
 # (2026-10-17).
 #
-# The voice is Gemini's, on a free tier of 10 requests a day (CLAUDE.md,
-# override 6 as amended). So: every chunk Gemini speaks is kept in the
-# Actions cache under narration-<slug>, and a rerun pays only for what it has
-# not heard; when the day's quota runs out the narration stops with exit 75,
-# this run ends green with a warning and files nothing, and the next run
-# (film-queue.yml, every morning after the reset) continues from the cache.
+# The voice is ElevenLabs' on the owner's paid plan (CLAUDE.md, override 6 as
+# amended); its limit is the month's credits. Every block or chunk the voice
+# speaks is kept in the Actions cache under narration-<slug>, and a rerun pays
+# only for what it has not heard; when the credits (or, on the Gemini engine,
+# the day's quota) run out the narration stops with exit 75, this run ends
+# green with a warning and files nothing, and the next run continues.
 # It no longer runs on a push of this file: that rendered The Markup on every
 # edit and spent a day's quota proving the workflow. Called by film-queue.yml
 # with skip_voiced, it does nothing for an edition whose release already
@@ -54,7 +54,7 @@ on:
         default: false
 
 env:
-  NARRATOR: ${{ vars.NARRATOR || 'gemini:voice_l6lephk1pqjk' }}
+  NARRATOR: ${{ vars.NARRATOR || 'eleven:sacfsNbCahgH0qw7PIO8' }}
 
 jobs:
   # Skip only when the release holds the film meta.json names AND its narration.json is in this voice. A failed
@@ -71,7 +71,7 @@ jobs:
           SKIP: ${{ inputs.skip_voiced && 'yes' || 'no' }}
         run: |
           [ "$SKIP" = yes ] || exit 0
-          case "$NARRATOR" in gemini:*) V="${NARRATOR#gemini:}" ;; *) V=am_michael ;; esac
+          case "$NARRATOR" in gemini:*) V="${NARRATOR#gemini:}" ;; eleven:*) V="${NARRATOR#eleven:}" ;; *) V=am_michael ;; esac
           if ! assets=$(gh release view "film-$SLUG" -R "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' 2>&1); then
             if grep -q 'release not found' <<<"$assets"; then echo "no release film-$SLUG yet"; exit 0; fi
             echo "::error::could not read the release film-$SLUG: $assets"; exit 1
@@ -134,12 +134,14 @@ jobs:
           key: narration-${{ env.SLUG }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: narration-${{ env.SLUG }}-
 
-      # The channel's voice (CLAUDE.md, override 6 as amended 2026-10-17): Gemini, one designed
-      # voice, through tools/narrate_gemini.py. vars.NARRATOR overrides; kokoro: falls back to the old voice.
+      # The channel's voice (CLAUDE.md, override 6 as amended 2026-10-17): ElevenLabs, one voice designed in the
+      # owner's account, through tools/narrate_eleven.py. vars.NARRATOR overrides (gemini:<id> and kokoro still work).
       - name: Film
         id: film
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # The paid ElevenLabs account's key is stored as PLUTO (the owner's name for it).
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY || secrets.PLUTO }}
         run: |
           mkdir -p ~/.cache/aedificare-narration
           export NARRATION_CACHE=~/.cache/aedificare-narration
