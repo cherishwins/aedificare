@@ -42,7 +42,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { HOUSE } from '../src/lib/rose.mjs';
 import { EDITIONS, seedDrift, LICENCE, numberWord } from '../src/lib/editions.mjs';
-import { SITE } from '../src/config.mjs';
+import { SITE, NARRATOR } from '../src/config.mjs';
 import { ACID, MAL, BOTTLE, VOID, FLASH, SHOCK, GROUND, FORMATS, kLabel, esc, css, mastHtml, fieldHtml, doveHtml, findFfmpeg, openContext, encoder, browser } from './lib/film.mjs';
 
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
@@ -127,7 +127,8 @@ async function script() {
 
 /* ---- 2. the voice ------------------------------------------------------- */
 function narrate() {
-  const r = spawnSync('uv', ['run', 'tools/narrate.py', DIR], { stdio: 'inherit' });
+  // The channel's voice unless NARRATOR overrides it (src/config.mjs); narrate.py itself refuses to guess one.
+  const r = spawnSync('uv', ['run', 'tools/narrate.py', DIR], { stdio: 'inherit', env: { ...process.env, NARRATOR: process.env.NARRATOR || NARRATOR } });
   // 75: the day's Gemini quota is spent and the chunks so far are cached (tools/narrate_gemini.py); the workflow reads it.
   if (r.status !== 0) { console.error('generate-film: narration failed'); process.exit(r.status === 75 ? 75 : 1); }
   // The bed, computed from the edition's seed; --music <file> replaces it at render, --music none drops it.

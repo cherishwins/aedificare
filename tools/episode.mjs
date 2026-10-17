@@ -36,7 +36,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { browser, findFfmpeg, openContext, css, esc, FORMATS, ACID, MAL, BOTTLE, VOID, FLASH } from './lib/film.mjs';
 import { markPath } from '../src/lib/rose.mjs';
-import { SITE } from '../src/config.mjs';
+import { NARRATOR, SITE } from '../src/config.mjs';
 import { chartBody, chartCss, parseChart, CHART_TYPES, hotValues, findSpoken, rowKey, numKey } from './lib/chart.mjs';
 
 const [STEP, FILE] = process.argv.slice(2);
@@ -391,13 +391,14 @@ function sheet(T) {
 }
 
 /* ---- narrate ----------------------------------------------------------------- */
-const spoken = () => JSON.stringify({ voice: 'am_michael', narrator: process.env.NARRATOR || 'kokoro', speed: +(S.meta.speed || 1.05), seed: SEED, blocks: S.blocks.map((b, i) => ({ i, kind: b.kind, text: b.text || '', read: b.read })) }, null, 1) + '\n';
+const NARRATE_AS = process.env.NARRATOR || NARRATOR; // the channel's voice unless NARRATOR overrides it
+const spoken = () => JSON.stringify({ voice: 'am_michael', narrator: NARRATE_AS, speed: +(S.meta.speed || 1.05), seed: SEED, blocks: S.blocks.map((b, i) => ({ i, kind: b.kind, text: b.text || '', read: b.read })) }, null, 1) + '\n';
 /** The narration on disk is stale when the words, the block order, the speed or the narrator changed since it was spoken. */
 const stale = () => !fs.existsSync(path.join(DIR, 'narration.json')) || !fs.existsSync(path.join(DIR, 'script.json')) || fs.readFileSync(path.join(DIR, 'script.json'), 'utf8') !== spoken();
 
 function narrate() {
   fs.writeFileSync(path.join(DIR, 'script.json'), spoken());
-  const r = spawnSync('uv', ['run', '-q', 'tools/narrate.py', DIR], { stdio: 'inherit' });
+  const r = spawnSync('uv', ['run', '-q', 'tools/narrate.py', DIR], { stdio: 'inherit', env: { ...process.env, NARRATOR: NARRATE_AS } });
   if (r.status !== 0) { console.error('episode: narration failed'); process.exit(r.status === 75 ? 75 : 1); }
 }
 

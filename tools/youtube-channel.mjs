@@ -81,8 +81,14 @@ const PRIVACY = arg('--privacy', 'private');
 const PUBLISH_AT = arg('--publish-at', null);
 const EVERY_H = +arg('--every', 0);
 // The channel speaks in one voice (CLAUDE.md, override 6): a render whose description names another is never uploaded.
-const VOICE = arg('--voice', (process.env.NARRATOR || 'eleven:sacfsNbCahgH0qw7PIO8').replace(/^(gemini|eleven):/, ''));
-if (!['list', 'sync', 'upload', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>]'); process.exit(1); }
+const { NARRATOR } = await import(new URL('../src/config.mjs', import.meta.url).href);
+const VOICE = arg('--voice', (process.env.NARRATOR || NARRATOR).replace(/^(gemini|eleven):/, ''));
+// A render in the channel's voice matched (by file name or title, which do not change with the voice) to a video
+// whose description names no such voice is a NEW render of a video already up in an OLDER voice: never synced onto
+// it, and uploaded beside it only with --replace-old-voice, because replacing a live video is the owner's call.
+const REPLACE = process.argv.includes('--replace-old-voice');
+const inVoice = (text) => String(text || '').toLowerCase().includes(VOICE.toLowerCase());
+if (!['list', 'sync', 'upload', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>] [--every <hours>] [--replace-old-voice]'); process.exit(1); }
 // Nothing goes public from a machine (CLAUDE.md, the bed, the Short, the upload): public is refused here, and a scheduled publish is the owner's call, made by passing a time.
 if (!['private', 'unlisted'].includes(PRIVACY)) { console.error('youtube-channel: --privacy is private or unlisted; publishing is the owner\'s, in Studio or with --publish-at'); process.exit(1); }
 if (PUBLISH_AT && !(Date.parse(PUBLISH_AT) > Date.now())) { console.error(`youtube-channel: --publish-at ${PUBLISH_AT} is not a future ISO time`); process.exit(1); }
@@ -186,15 +192,16 @@ const rows = videos.map((v) => {
   const r = renders.find((x) => x.ledgerId === v.id)
     || renders.find((x) => key(x.meta.file) === key(file))
     || renders.find((x) => x.meta.title === v.snippet.title && x.meta.kind === kind && !matched.has(x));
-  if (r) matched.add(r);
-  return { v, r, file };
+  const older = !!r && inVoice(r.meta.description) && !inVoice(v.snippet.description);
+  if (r && !(older && REPLACE)) matched.add(r);
+  return { v, r, file, older };
 });
 
 /* ---- list --------------------------------------------------------------------- */
 console.log(`${channel.snippet.title} · ${channel.snippet.customUrl || channel.id} · ${channel.statistics.subscriberCount} subscribers · ${videos.length} uploads\n`);
-for (const { v, r, file } of rows) {
+for (const { v, r, file, older } of rows) {
   const s = v.statistics || {};
-  console.log(`${v.id}  ${v.status.privacyStatus.padEnd(8)} ${v.snippet.publishedAt.slice(0, 10)}  ${dur(v.contentDetails.duration).padStart(6)}  ${String(s.viewCount ?? '-').padStart(6)} views  ${r ? `${r.tag}/${r.metaName}` : 'no render'}`);
+  console.log(`${v.id}  ${v.status.privacyStatus.padEnd(8)} ${v.snippet.publishedAt.slice(0, 10)}  ${dur(v.contentDetails.duration).padStart(6)}  ${String(s.viewCount ?? '-').padStart(6)} views  ${r ? `${r.tag}/${r.metaName}` : 'no render'}${older ? '  (OLDER VOICE: the render is new, the video is not; replacing it is the owner\'s call)' : ''}`);
   console.log(`             ${v.snippet.title}${file ? `  [${file}]` : ''}`);
 }
 const missing = renders.filter((r) => !matched.has(r));
@@ -205,7 +212,7 @@ if (missing.length) {
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'channel.json'), JSON.stringify({
   at: new Date().toISOString(), channel: { id: channel.id, title: channel.snippet.title, handle: channel.snippet.customUrl, subscribers: +channel.statistics.subscriberCount },
-  videos: rows.map(({ v, r, file }) => ({ id: v.id, title: v.snippet.title, privacy: v.status.privacyStatus, published: v.snippet.publishedAt, duration: v.contentDetails.duration, views: +(v.statistics?.viewCount ?? 0), file, release: r ? `${r.tag}/${r.metaName}` : null })),
+  videos: rows.map(({ v, r, file, older }) => ({ id: v.id, title: v.snippet.title, privacy: v.status.privacyStatus, published: v.snippet.publishedAt, duration: v.contentDetails.duration, views: +(v.statistics?.viewCount ?? 0), file, release: r ? `${r.tag}/${r.metaName}` : null, olderVoice: older })),
   notOnChannel: missing.map((r) => ({ release: r.tag, file: r.meta.file, kind: r.meta.kind, title: r.meta.title, slates: r.slates, filedAs: r.ledgerId })),
 }, null, 1) + '\n');
 if (CMD === 'list') process.exit(0);
@@ -255,8 +262,9 @@ if (CMD === 'upload') {
 /* ---- sync --------------------------------------------------------------------- */
 console.log(`\nsync${DRY ? ' (dry run)' : ''}:`);
 let changed = 0;
-for (const { v, r } of rows) {
+for (const { v, r, older } of rows) {
   if (!r) continue;
+  if (older) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: refused, the video is in an older voice and the render in ${VOICE}; its captions and chapters would not fit the video's audio. Replace it (upload --replace-old-voice, then the old one private in Studio) or leave it`); continue; }
   const same = v.snippet.title === r.meta.title && v.snippet.description === r.meta.description;
   if (same && !FORCE) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: already matches, skipped`); continue; }
   console.log(`  ${v.id} ${r.tag}/${r.metaName}: ${same ? 'forced' : 'title or description differs'}, updating`);

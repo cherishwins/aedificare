@@ -11,6 +11,11 @@ export const SITE = {
   channel: 'https://www.youtube.com/@aedificare_art',
 };
 
+// The channel's narrator (CLAUDE.md, override 6): the ElevenLabs voice designed in the owner's account. The film
+// tools and the upload guard read it from here; the workflows pass a repository variable NARRATOR only to override
+// it. One voice, written once.
+export const NARRATOR = 'eleven:sacfsNbCahgH0qw7PIO8';
+
 /** Absolute URL for a site-relative path. */
 export const abs = (path = '/') => new URL(path, SITE.origin).href;
 

@@ -72,7 +72,7 @@ if (ONLY.includes('kokoro')) try {
   const dir = path.join(OUT, 'kokoro');
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, 'script.json'), JSON.stringify({ voice: 'am_michael', blocks: PARAS.map((text, i) => ({ i, kind: 'p', read: true, text })) }));
-  execFileSync('uv', ['run', 'tools/narrate.py', dir], { stdio: 'inherit' });
+  execFileSync('uv', ['run', 'tools/narrate.py', dir], { stdio: 'inherit', env: { ...process.env, NARRATOR: 'kokoro' } });
   mp3(path.join(dir, 'narration.wav'), '01-kokoro-am_michael');
   index.push('01-kokoro-am_michael.mp3  Kokoro-82M am_michael, the current voice (control)');
 } catch (e) { console.error('control: Kokoro failed:', e.message); }
@@ -189,6 +189,8 @@ if (ONLY.includes('narrate')) {
     const dir = path.join(OUT, 'narrate');
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'script.json'), JSON.stringify({ voice: 'am_michael', blocks: PARAS.map((text, i) => ({ i, kind: i === 0 ? 'title' : 'p', read: true, text })) }));
+    const { NARRATOR } = await import(new URL('../src/config.mjs', import.meta.url).href);
+    process.env.NARRATOR ||= NARRATOR;
     execFileSync('uv', ['run', 'tools/narrate.py', dir], { stdio: 'inherit' });
     const N = JSON.parse(fs.readFileSync(path.join(dir, 'narration.json'), 'utf8'));
     const name = `13-narrate-${String(process.env.NARRATOR || 'kokoro').replace(/[^a-z0-9]+/gi, '-')}`;
