@@ -102,6 +102,9 @@ jobs:
           fi
 
       - name: Render
+        env:
+          NARRATOR: ${{ vars.NARRATOR || 'gemini:voice_l6lephk1pqjk' }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: node tools/episode.mjs all "source/episodes/$SLUG.md" --music "$MUSIC"
 
       # The Short: the chapters named in the script's short:, tall, from the same narration.
