@@ -39,12 +39,14 @@ timestamps, so they come from forced alignment: the script is known, so
 facebook/wav2vec2-base-960h (Apache-2.0, through transformers) and a CTC
 Viterbi pass written here find each word in the audio. Numbers are spelled
 out (num2words) before Gemini sees them, so what it says is what the aligner
-looks for. Blocks are spoken a section's worth at a time (about two minutes,
-so a film is a handful of requests) and cut apart at the aligned boundaries,
-then laid out with the same gaps as the Kokoro path. A chunk the aligner
-cannot place falls back to proportional timing and says so. A voice id that
-no longer exists fails the run rather than falling back to another voice:
-the channel speaks in one voice or not at all.
+looks for. Blocks are spoken about four minutes at a time (a film is three to
+five requests) and cut apart at the aligned boundaries, then laid out with the
+same gaps as the Kokoro path. Every alignment is scored, and a chunk whose
+audio does not say its words is spoken again or fails the run; nothing is
+placed by proportion. Chunks are cached, and the free tier's daily quota
+stops the run with exit 75 so the next run continues (narrate_gemini.py says
+how). A voice id that no longer exists fails the run rather than falling back
+to another voice: the channel speaks in one voice or not at all.
 
 transformers>=5.17 is stated because kokoro does not bound it: on 2 Oct 2026
 a fresh resolve (every Python from 3.11 to 3.14) backtracked to transformers
