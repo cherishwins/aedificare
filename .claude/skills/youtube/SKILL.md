@@ -85,6 +85,14 @@ re-renders them), and `public`. With `publish_at` each video stays private
 until YouTube publishes it at that time; `every_hours` spaces a batch. Run
 `dry=true` first and read the plan.
 
+**A video already up in an older voice** (The Markup's film and Short,
+uploaded by hand in Kokoro before the voice changed) is matched to its new
+render by file name, so `list` marks the pair OLDER VOICE, `sync` refuses
+to put the new captions and chapters on the old audio, and `upload` leaves
+the new render alone unless `--replace-old-voice` is passed. Replacing a
+live video (and making the old one private in Studio) is the owner's call;
+ask, and say what the old one has earned so far.
+
 **Hand uploads** still work: the owner uploads the file exactly as
 downloaded from the release, and `youtube.yml action=sync` sets the
 generated title, description with chapters and sources, category,

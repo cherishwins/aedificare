@@ -174,7 +174,12 @@ def align(spoken_words, ktokens):
     return out
 
 
-ENGINE = os.environ.get('NARRATOR', '')
+ENGINE = os.environ.get('NARRATOR', '').strip()
+if not ENGINE:
+    # Never a voice by default: an unset NARRATOR used to mean Kokoro, which made a film in a voice the channel no
+    # longer speaks. tools/generate-film.mjs and tools/episode.mjs pass the channel's (src/config.mjs).
+    sys.exit('narrate: NARRATOR is not set. The channel speaks as src/config.mjs NARRATOR says; '
+             'set NARRATOR=kokoro to mean the old Kokoro voice on purpose.')
 if ENGINE.startswith('eleven:'):
     from narrate_eleven import narrate_eleven  # tools/narrate_eleven.py, beside this file
     narrate_eleven(DIR, SCRIPT, ENGINE.split(':', 1)[1], normalise, GAP_BEFORE, GAP_AFTER, SR)

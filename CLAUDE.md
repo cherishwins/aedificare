@@ -140,7 +140,11 @@ that is a reference, not documentation.
    asked for "sexier, like ScarJo"; a named person's voice is never
    imitated (this rule, YouTube's voice-likeness detection, and that
    actor's own public objection to a sound-alike in 2024), so the brief
-   names qualities, never a person. It speaks through
+   names qualities, never a person. The voice is written once, as
+   `NARRATOR` in `src/config.mjs`; the film tools and the upload guard
+   read it there, a repository variable `NARRATOR` only overrides it, and
+   `tools/narrate.py` refuses to run with no narrator rather than fall
+   back to Kokoro. It speaks through
    `tools/narrate_eleven.py` (`NARRATOR=eleven:sacfsNbCahgH0qw7PIO8`) on
    eleven_v4_turbo, which costs about 0.2 credits a character (105 for
    525, read twice), so the seven films are about 15,000 credits. The
@@ -285,7 +289,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
 
 ## File map
 
-- `src/config.mjs`: the origin, name, author, and `BUILD`, the first eight
+- `src/config.mjs`: the origin, name, author, the channel's `NARRATOR` (the
+  one place the voice is written), and `BUILD`, the first eight
   characters of `VERCEL_GIT_COMMIT_SHA` ("dev" locally), shipped as
   `<meta name="build">` by `src/layouts/Base.astro`.
 - `src/lib/editions.mjs`: **the editions, once.** Home, feed, llms.txt,

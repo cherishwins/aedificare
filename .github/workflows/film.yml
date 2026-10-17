@@ -54,16 +54,21 @@ on:
         default: false
 
 env:
-  NARRATOR: ${{ vars.NARRATOR || 'eleven:sacfsNbCahgH0qw7PIO8' }}
+  NARRATOR: ${{ vars.NARRATOR }}  # empty: the channel's voice from src/config.mjs
 
 jobs:
-  # Skip only when the release holds the film meta.json names AND its narration.json is in this voice. A failed
-  # upload that left meta.json without its film, or a gh error, must not read as done (review, 2026-10-17).
+  # Skip only when the release is a complete upload in the channel's voice: meta.json goes up last and only over a
+  # complete set (release.yml), so its description naming the voice, and the film it names being on the release,
+  # mean done. The same test the upload guard applies (tools/youtube-channel.mjs). A gh error is never "done".
   voiced:
     runs-on: ubuntu-latest
     outputs:
       skip: ${{ steps.check.outputs.skip }}
     steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: src/config.mjs
+          sparse-checkout-cone-mode: false
       - id: check
         env:
           GH_TOKEN: ${{ github.token }}
@@ -71,19 +76,20 @@ jobs:
           SKIP: ${{ inputs.skip_voiced && 'yes' || 'no' }}
         run: |
           [ "$SKIP" = yes ] || exit 0
-          case "$NARRATOR" in gemini:*) V="${NARRATOR#gemini:}" ;; eleven:*) V="${NARRATOR#eleven:}" ;; *) V=am_michael ;; esac
+          N="${NARRATOR:-$(node --input-type=module -e "import('./src/config.mjs').then((m) => console.log(m.NARRATOR))")}"
+          case "$N" in gemini:*) V="${N#gemini:}" ;; eleven:*) V="${N#eleven:}" ;; *) V=am_michael ;; esac
           if ! assets=$(gh release view "film-$SLUG" -R "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' 2>&1); then
             if grep -q 'release not found' <<<"$assets"; then echo "no release film-$SLUG yet"; exit 0; fi
             echo "::error::could not read the release film-$SLUG: $assets"; exit 1
           fi
-          grep -qx narration.json <<<"$assets" && grep -qx meta.json <<<"$assets" || { echo "film-$SLUG has no narration.json or meta.json; rendering"; exit 0; }
-          gh release download "film-$SLUG" -R "$GITHUB_REPOSITORY" -p narration.json -p meta.json
-          have="$(jq -r .voice narration.json)"; film="$(jq -r .file meta.json)"
-          if [ "$have" = "$V" ] && grep -qxF -- "$film" <<<"$assets"; then
+          grep -qx meta.json <<<"$assets" || { echo "film-$SLUG has no meta.json; rendering"; exit 0; }
+          gh release download "film-$SLUG" -R "$GITHUB_REPOSITORY" -p meta.json
+          film="$(jq -r .file meta.json)"
+          if jq -r .description meta.json | grep -qiF -- "$V" && grep -qxF -- "$film" <<<"$assets"; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::film-$SLUG is already in $V; nothing to render"
+            echo "::notice::film-$SLUG is already filed in $V; nothing to render"
           else
-            echo "film-$SLUG: narration voice $have, film $film; rendering in $V"
+            echo "film-$SLUG is not a complete upload in $V; rendering"
           fi
 
   film:
@@ -150,7 +156,7 @@ jobs:
           s=$?
           if [ "$s" -eq 75 ]; then
             echo "quota=true" >> "$GITHUB_OUTPUT"
-            echo "::warning::the day's Gemini quota ran out; the chunks so far are cached and the next run continues"
+            echo "::warning::the voice's quota ran out (ElevenLabs: the month's credits; Gemini: the day's requests); the narration so far is cached and the next run after the reset continues"
             exit 0
           fi
           exit "$s"

@@ -104,7 +104,7 @@ jobs:
           PUBLISH_AT: ${{ inputs.publish_at }}
           EVERY_HOURS: ${{ inputs.every_hours }}
           DRY: ${{ inputs.dry }}
-          NARRATOR: ${{ vars.NARRATOR || 'eleven:sacfsNbCahgH0qw7PIO8' }}
+          NARRATOR: ${{ vars.NARRATOR }}  # empty: the channel's voice from src/config.mjs
         run: |
           set -o pipefail
           args=("$ACTION")

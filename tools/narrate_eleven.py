@@ -83,13 +83,18 @@ def speak(text, voice, key, prev_text, next_text):
         wait = delay
         try:
             res = call(f'text-to-speech/{voice}/with-timestamps?output_format={FORMAT}', key, body)
+            if not isinstance(res, dict):
+                raise ValueError(f'a reply that is not an object: {str(res)[:120]}')
             pcm = base64.b64decode(res.get('audio_base64') or '')
             if len(pcm) < 2:
                 raise ValueError('empty audio in the reply')
             audio = np.frombuffer(pcm[:len(pcm) // 2 * 2], dtype='<i2').astype(np.float32) / 32768.0
             return audio, res.get('alignment')
         except urllib.error.HTTPError as e:
-            msg = e.read().decode(errors='replace')
+            try:
+                msg = e.read().decode(errors='replace')
+            except Exception:  # noqa: BLE001 - a body cut off mid-read is still the status it came with
+                msg = ''
             low = msg.lower()
             if 'quota_exceeded' in low or 'quota' in low and e.code in (401, 402, 403):
                 raise Quota(msg[:300])
@@ -105,6 +110,8 @@ def speak(text, voice, key, prev_text, next_text):
             if e.code not in (429, 500, 502, 503, 504):
                 sys.exit(f'narrate: ElevenLabs refused ({e.code}): {msg[:600]}')
             last = f'{e.code}: {msg[:200]}'
+        except http.client.InvalidURL as e:
+            sys.exit(f'narrate: a malformed request URL ({e}); is the voice id in NARRATOR clean?')
         except (urllib.error.URLError, OSError, http.client.HTTPException, ValueError) as e:
             last = f'{type(e).__name__}: {str(e)[:200]}'
         if attempt < 7:
@@ -120,25 +127,87 @@ def word_spans(text):
 
 
 def times_from_alignment(text, alignment):
-    """Each word's (start, end) in seconds from the reply's character times, or None if they do not fit the text."""
-    if not alignment:
+    """Each word's (start, end) in seconds from the reply's character times, or None if they do not fit the text.
+    Whitespace is ignored on both sides (a stray leading space must not throw the reply's times away); every other
+    character must match, and every time used must be a number."""
+    if not isinstance(alignment, dict):
         return None
     chars = alignment.get('characters') or []
     st, en = alignment.get('character_start_times_seconds') or [], alignment.get('character_end_times_seconds') or []
-    if ''.join(chars) != text or len(st) != len(chars) or len(en) != len(chars):
+    if len(st) != len(chars) or len(en) != len(chars):
         return None
-    return [(float(st[a]), float(en[b - 1])) for a, b in word_spans(text)]
+    reply = [(c, i) for i, c in enumerate(chars) if isinstance(c, str) and c.strip()]  # (char, index in the reply)
+    mine = [(c, i) for i, c in enumerate(text) if not c.isspace()]
+    if ''.join(c for c, _ in reply) != ''.join(c for c, _ in mine):
+        return None
+    at = {ti: ri for (_, ti), (_, ri) in zip(mine, reply)}  # text index -> reply index, for non-space characters
+    out = []
+    for a, b in word_spans(text):
+        s0, e0 = st[at[a]], en[at[b - 1]]
+        if not isinstance(s0, (int, float)) or not isinstance(e0, (int, float)):
+            return None
+        out.append((float(s0), float(e0)))
+    return out
+
+
+SETTINGS = None  # the voice's stored settings, read once a run (voice_settings); part of every block's cache key
 
 
 def cache_file(voice, text):
-    h = hashlib.sha256(json.dumps(['eleven', MODEL, voice, text]).encode()).hexdigest()[:32]
+    # The delivery is the voice's stored settings in the owner's account, so they are in the key: a change there
+    # makes every block new rather than mixing two deliveries in one film. The format is in it too.
+    h = hashlib.sha256(json.dumps(['eleven', MODEL, voice, FORMAT, SETTINGS, text], sort_keys=True).encode()).hexdigest()[:32]
     return os.path.join(G.CACHE, f'eleven-{h}')
 
 
+def reject_file(voice, text):
+    return cache_file(voice, text) + f'.gate{G.GATE_VERSION}.rejected'
+
+
+def rejected(voice, text):
+    p = reject_file(voice, text)
+    if os.path.exists(p) and time.time() - os.path.getmtime(p) < G.REJECT_DAYS * 86400:
+        return open(p).read().strip()
+    return None
+
+
+def heard(voice, text):
+    cf = cache_file(voice, text)
+    return os.path.exists(cf + '.flac') and os.path.exists(cf + '.json')
+
+
+def read_cached(cf, SR):
+    """(audio, word times) from the cache, or None when either file is missing, damaged or at another rate."""
+    try:
+        audio, sr = sf.read(cf + '.flac', dtype='float32')
+        wt = json.load(open(cf + '.json'))['words']
+        if sr != SR or not wt:
+            raise ValueError(f'rate {sr} or no words')
+        return audio, wt
+    except Exception:  # noqa: BLE001 - a damaged entry is only a block to speak again
+        for ext in ('.flac', '.json'):
+            if os.path.exists(cf + ext):
+                os.remove(cf + ext)
+        return None
+
+
 def narrate_eleven(DIR, SCRIPT, voice, normalise, GAP_BEFORE, GAP_AFTER, SR):
+    global SETTINGS
     key = os.environ.get('ELEVENLABS_API_KEY')
     if not key:
         sys.exit('narrate: NARRATOR is eleven but ELEVENLABS_API_KEY is not set')
+    voice = voice.strip()
+    if not re.fullmatch(r'[A-Za-z0-9]+', voice):
+        sys.exit(f'narrate: {voice!r} is not an ElevenLabs voice id (letters and digits only)')
+    try:
+        SETTINGS = call(f'voices/{voice}/settings', key)
+    except urllib.error.HTTPError as e:
+        if e.code in (400, 404):
+            sys.exit(f'narrate: voice {voice} is not in this ElevenLabs account ({e.code}); '
+                     'refusing to fall back to another voice; the channel speaks in one voice')
+        sys.exit(f'narrate: could not read the settings of voice {voice} ({e.code})')
+    except Exception as e:  # noqa: BLE001 - without its settings a block's cache key would be a guess
+        sys.exit(f'narrate: could not read the settings of voice {voice}: {str(e)[:200]}')
     t0 = time.time()
     prepared = {}
     for b in SCRIPT['blocks']:
@@ -154,40 +223,44 @@ def narrate_eleven(DIR, SCRIPT, voice, normalise, GAP_BEFORE, GAP_AFTER, SR):
     order = [b for b in SCRIPT['blocks'] if b.get('read') and prepared[b['i']][3]]
     texts = {b['i']: ' '.join(prepared[b['i']][3]) for b in order}
     total = sum(len(t) for t in texts.values())
-    have = sum(os.path.exists(cache_file(voice, t) + '.flac') for t in texts.values())
+    have = sum(heard(voice, t) for t in texts.values())
     used0, limit, tier = credits(key)
-    print(f'narrate: ElevenLabs {MODEL}, voice {voice}, {len(order)} blocks, {total} characters, {have} blocks already heard'
+    print(f'narrate: ElevenLabs {MODEL}, voice {voice} (settings {json.dumps(SETTINGS, sort_keys=True)}), '
+          f'{len(order)} blocks, {total} characters, {have} blocks already heard'
           + (f'; plan {tier}, {used0} of {limit} credits used' if limit else ''), flush=True)
 
-    pieces, asked, asked_chars = {}, 0, 0
+    pieces, asked, asked_chars, by_aligner = {}, 0, 0, 0
     for k, b in enumerate(order):
         text = texts[b['i']]
         words = prepared[b['i']][3]
         cf = cache_file(voice, text)
-        when = G.rejected(voice, 'eleven:' + text)
-        if when and not os.path.exists(cf + '.flac'):
+        when = rejected(voice, text)
+        if when and not heard(voice, text):
             sys.exit(f'narrate: block {b["i"]} failed the alignment check {G.SPEAK_TRIES} times on {when}; it is not asked for '
-                     f'again for {G.REJECT_DAYS} days. Fix its text, or delete {G.reject_path(voice, "eleven:" + text)}. '
+                     f'again for {G.REJECT_DAYS} days. Fix its text, or delete {reject_file(voice, text)}. '
                      f'It reads: {text[:160]!r}')
         why = None
         for attempt in range(G.SPEAK_TRIES):
-            fresh = not (attempt == 0 and os.path.exists(cf + '.flac') and os.path.exists(cf + '.json'))
+            got = read_cached(cf, SR) if attempt == 0 and heard(voice, text) else None
+            fresh = got is None
             if not fresh:
-                audio, _ = sf.read(cf + '.flac', dtype='float32')
-                wt = json.load(open(cf + '.json'))['words']
+                audio, wt = got
             else:
                 prev_text = texts[order[k - 1]['i']] if k else None
                 next_text = texts[order[k + 1]['i']] if k + 1 < len(order) else None
                 try:
                     audio, alignment = speak(text, voice, key, prev_text, next_text)
                 except Quota as q:
-                    done = sum(os.path.exists(cache_file(voice, t) + '.flac') for t in texts.values())
+                    done = sum(heard(voice, t) for t in texts.values())
                     print(f'narrate: the ElevenLabs credits are spent ({q}).\n'
                           f'narrate: {done} of {len(order)} blocks are kept in {G.CACHE}; rerun when credits are back to continue',
                           file=sys.stderr, flush=True)
                     sys.exit(G.QUOTA_EXIT)
                 asked += 1; asked_chars += len(text)
                 wt = times_from_alignment(text, alignment)
+                if wt is None:
+                    print(f'narrate: block {b["i"]}: the reply\'s character times do not fit its text; timing it with the aligner',
+                          file=sys.stderr, flush=True)
             dur = len(audio) / SR
             em, spf = G.emissions(audio, SR)
             aligned = G.force_align(em, words)
@@ -195,10 +268,13 @@ def narrate_eleven(DIR, SCRIPT, voice, normalise, GAP_BEFORE, GAP_AFTER, SR):
             if why is None:
                 if wt is None:  # the reply's characters did not match the text: take the aligner's times
                     wt = G.fill([None if x is None else (x[0] * spf, x[1] * spf) for x in aligned[0]])
+                    by_aligner += 1
                 if fresh:
                     os.makedirs(G.CACHE, exist_ok=True)
                     sf.write(cf + '.part.flac', audio, SR, subtype='PCM_16'); os.replace(cf + '.part.flac', cf + '.flac')
-                    json.dump({'words': wt}, open(cf + '.json', 'w'))
+                    with open(cf + '.part.json', 'w') as f:
+                        json.dump({'words': wt}, f)
+                    os.replace(cf + '.part.json', cf + '.json')
                 break
             print(f'narrate: block {b["i"]} failed the alignment check ({why}); '
                   f'{"speaking it again" if attempt < G.SPEAK_TRIES - 1 else "giving up"}', file=sys.stderr, flush=True)
@@ -208,7 +284,7 @@ def narrate_eleven(DIR, SCRIPT, voice, normalise, GAP_BEFORE, GAP_AFTER, SR):
                         os.remove(cf + ext)
         if why is not None:
             os.makedirs(G.CACHE, exist_ok=True)
-            with open(G.reject_path(voice, 'eleven:' + text), 'w') as f:
+            with open(reject_file(voice, text), 'w') as f:
                 f.write(time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime()))
             sys.exit(f'narrate: block {b["i"]} would not align after {G.SPEAK_TRIES} tries ({why}); '
                      f'nothing is placed by guesswork. It reads: {text[:160]!r}')
@@ -250,4 +326,5 @@ def narrate_eleven(DIR, SCRIPT, voice, normalise, GAP_BEFORE, GAP_AFTER, SR):
     used1, _, _ = credits(key)
     cost = f', {used1 - used0} credits for {asked_chars} characters' if used0 is not None and used1 is not None else ''
     print(f'narrate: {len(audio) / SR / 60:.1f} min of narration in {(time.time() - t0) / 60:.1f} min wall, '
-          f'{asked} request(s) to ElevenLabs, {len(order) - asked} block(s) from the cache{cost}', flush=True)
+          f'{asked} request(s) to ElevenLabs, {len(order) - asked} block(s) from the cache, '
+          f'{by_aligner} timed by the aligner{cost}', flush=True)

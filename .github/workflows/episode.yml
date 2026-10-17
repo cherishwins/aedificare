@@ -53,7 +53,7 @@ on:
 
 # One voice for every step: the Short re-narrated in Kokoro when only the Render step carried it (review, 2026-10-17).
 env:
-  NARRATOR: ${{ vars.NARRATOR || 'eleven:sacfsNbCahgH0qw7PIO8' }}
+  NARRATOR: ${{ vars.NARRATOR }}  # empty: the channel's voice from src/config.mjs
 
 concurrency:
   group: episode-${{ github.ref }}-${{ inputs.slug || 'softbank-975' }}
@@ -130,7 +130,7 @@ jobs:
           s=$?
           if [ "$s" -eq 75 ]; then
             echo "quota=true" >> "$GITHUB_OUTPUT"
-            echo "::warning::the day's Gemini quota ran out; the chunks so far are cached and a rerun continues"
+            echo "::warning::the voice's quota ran out (ElevenLabs: the month's credits; Gemini: the day's requests); the narration so far is cached and a rerun after the reset continues"
             exit 0
           fi
           exit "$s"
