@@ -76,7 +76,13 @@ ${roseSvg(c.k, c.seed)}
 <div class="seed">r = cos(kθ) · seed ${c.seed} · k ${kLabel(c.k)}</div>`;
 
 /** Alt text derived from the card, so it cannot drift from what the card says. */
-const altFor = (c) => `Aedificare share card: ${c.words.join(' ')}, in acid green and white type over a green rose curve. ${c.line.replace(/ · /g, '. ')}.`;
+// The line already ends in a full stop when it ends in a lede, so adding
+// one gave screen readers "every cent..". Only close the sentence when
+// the line has not closed it already.
+const altFor = (c) => {
+  const line = c.line.replace(/ \u00b7 /g, '. ');
+  return `Aedificare share card: ${c.words.join(' ')}, in acid green and white type over a green rose curve. ${line}${/[.!?]$/.test(line) ? '' : '.'}`;
+};
 
 const hashed = {};
 const b = await chromium.launch();
