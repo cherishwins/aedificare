@@ -44,6 +44,16 @@ jobs:
       - name: Build
         run: npm run build
 
+      # The film workflows run unattended (film-queue.yml at 08:20 UTC on main) and no longer prove themselves on a
+      # push, so every workflow is linted here: expressions, workflow_call inputs and secrets, job outputs. actionlint
+      # v1.7.7, checksum from its release; shellcheck off, as the scripts were written without it.
+      - name: Lint workflows
+        run: |
+          curl -sSL -o al.tgz https://github.com/rhysd/actionlint/releases/download/v1.7.7/actionlint_1.7.7_linux_amd64.tar.gz
+          echo '023070a287cd8cccd71515fedc843f1985bf96c436b7effaecce67290e7e0757  al.tgz' | sha256sum -c -
+          tar xzf al.tgz actionlint
+          ./actionlint -shellcheck=
+
       # High and critical advisories fail the build unless tools/audit-allowlist.json names them, with a reason and
       # an expiry (tools/check-audit.cjs); an advisory with no patched release anywhere is the case it exists for.
       - name: Audit dependencies

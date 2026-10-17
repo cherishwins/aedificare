@@ -41,6 +41,7 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_API_KEY_TEST: ${{ secrets.ELEVENLABS_API_KEY_TEST }}
           ONLY: ${{ inputs.only || 'kokoro,gemini,eleven' }}
         run: node tools/voice-samples.mjs --out out --only "$ONLY"
 

@@ -652,6 +652,8 @@ function describe(T, bedLine) {
 async function render() {
   const issues = await check(S, { quiet: true });
   if (issues.length) { await check(S); console.error('episode: fix the check before rendering'); process.exit(1); }
+  // The Short is cut from the film's narration; speaking it again here could only change the voice or spend the quota.
+  if (stale() && SHORT) { console.error('episode: the narration is stale or missing for this narrator; render the film first, then the Short'); process.exit(1); }
   if (stale()) narrate();
   const FFx = findFfmpeg();
   if (FFx.codec !== 'libx264') { console.error('episode: needs an ffmpeg with libx264'); process.exit(1); }

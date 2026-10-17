@@ -13,7 +13,9 @@
  *       is worth paying for): a voice DESIGNED from the same description as
  *       the Gemini analyst (text-to-voice, never a clone), saved, then the
  *       same passage read by the best text-to-speech model the account lists
- *       (v4 Turbo first). Needs ELEVENLABS_API_KEY; about 2,000 of a free
+ *       (v4 Turbo first), designed with a fixed seed so a second account can
+ *       rebuild the same voice. Needs ELEVENLABS_API_KEY_TEST (the free
+ *       account) or ELEVENLABS_API_KEY (the paid one); about 2,000 of a free
  *       plan's 10,000 monthly credits. A free plan has no commercial rights,
  *       so this is a listening test and never a published voice.
  *
@@ -123,7 +125,8 @@ if (!ONLY.includes('gemini')) {
 }
 
 /* ---- 11: ElevenLabs -------------------------------------------------------- */
-const XI = process.env.ELEVENLABS_API_KEY;
+// The free account's key for listening tests (a free plan has no commercial rights), the paid one otherwise.
+const XI = process.env.ELEVENLABS_API_KEY_TEST || process.env.ELEVENLABS_API_KEY;
 if (ONLY.includes('eleven') && !XI) console.log('ELEVENLABS_API_KEY not set: no ElevenLabs sample');
 if (ONLY.includes('eleven') && XI) {
   const EL = 'https://api.elevenlabs.io/v1';
@@ -139,7 +142,9 @@ if (ONLY.includes('eleven') && XI) {
     const tts = models.filter((m) => m.can_do_text_to_speech !== false).map((m) => m.model_id);
     console.log(`ElevenLabs models: ${tts.join(', ')}`);
     const pick = tts.find((m) => /v4/i.test(m) && /turbo/i.test(m)) || tts.find((m) => /v4/i.test(m)) || tts.find((m) => /eleven_v3$/.test(m)) || 'eleven_multilingual_v2';
-    const design = await xi('text-to-voice/design', { voice_description: ANALYST, model_id: 'eleven_ttv_v3', text: TEXT.slice(0, 1000) });
+    // A fixed seed: the same description, model and seed design the same voice, so the paid account can rebuild
+    // exactly the voice this test designs on the free one (designed voices are stored per account).
+    const design = await xi('text-to-voice/design', { voice_description: ANALYST, model_id: 'eleven_ttv_v3', text: TEXT.slice(0, 1000), seed: 20261017 });
     const prev = design.previews?.[0];
     if (!prev?.generated_voice_id) throw new Error(`no preview: ${JSON.stringify(design).slice(0, 400)}`);
     const saved = await xi('text-to-voice', { voice_name: 'aedificare-analyst', voice_description: ANALYST, generated_voice_id: prev.generated_voice_id });

@@ -57,7 +57,8 @@ env:
   NARRATOR: ${{ vars.NARRATOR || 'gemini:voice_l6lephk1pqjk' }}
 
 jobs:
-  # The release's meta.json names the voice in its description ("Voice: synthetic, <model> <voice>").
+  # Skip only when the release holds the film meta.json names AND its narration.json is in this voice. A failed
+  # upload that left meta.json without its film, or a gh error, must not read as done (review, 2026-10-17).
   voiced:
     runs-on: ubuntu-latest
     outputs:
@@ -69,10 +70,20 @@ jobs:
           SLUG: ${{ inputs.slug }}
           SKIP: ${{ inputs.skip_voiced && 'yes' || 'no' }}
         run: |
-          V="${NARRATOR#gemini:}"
-          if [ "$SKIP" = yes ] && gh release download "film-$SLUG" -R "$GITHUB_REPOSITORY" -p meta.json -O meta.json 2>/dev/null && grep -q -- "$V" meta.json; then
+          [ "$SKIP" = yes ] || exit 0
+          case "$NARRATOR" in gemini:*) V="${NARRATOR#gemini:}" ;; *) V=am_michael ;; esac
+          if ! assets=$(gh release view "film-$SLUG" -R "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' 2>&1); then
+            if grep -q 'release not found' <<<"$assets"; then echo "no release film-$SLUG yet"; exit 0; fi
+            echo "::error::could not read the release film-$SLUG: $assets"; exit 1
+          fi
+          grep -qx narration.json <<<"$assets" && grep -qx meta.json <<<"$assets" || { echo "film-$SLUG has no narration.json or meta.json; rendering"; exit 0; }
+          gh release download "film-$SLUG" -R "$GITHUB_REPOSITORY" -p narration.json -p meta.json
+          have="$(jq -r .voice narration.json)"; film="$(jq -r .file meta.json)"
+          if [ "$have" = "$V" ] && grep -qxF -- "$film" <<<"$assets"; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "::notice::film-$SLUG is already in $V; nothing to render"
+          else
+            echo "film-$SLUG: narration voice $have, film $film; rendering in $V"
           fi
 
   film:
@@ -80,8 +91,9 @@ jobs:
     if: needs.voiced.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    # Per edition, not per branch: two renders of one edition serialize, and the second restores the first's cache.
     concurrency:
-      group: film-${{ github.ref }}-${{ inputs.slug }}
+      group: film-${{ inputs.slug }}
       cancel-in-progress: false
     outputs:
       quota: ${{ steps.film.outputs.quota }}

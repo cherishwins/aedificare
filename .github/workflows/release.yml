@@ -93,8 +93,16 @@ jobs:
           # One file per call, so a refused file is one missing asset and not an empty release.
           FAILED=()
           for f in out/*.mp4 out/*.srt out/*.txt out/*.json out/*.png out/*.md; do
+            case "$f" in out/meta.json|out/meta-short.json) continue ;; esac
             gh release upload "$TAG" "$f" --clobber || FAILED+=("$f")
           done
+          # The meta files last, and only over a complete set: film-queue.yml reads meta.json as "this edition is
+          # filed", so it must never stand beside a film that failed to upload.
+          if [ "${#FAILED[@]}" -eq 0 ]; then
+            for f in out/meta.json out/meta-short.json; do
+              gh release upload "$TAG" "$f" --clobber || FAILED+=("$f")
+            done
+          fi
           echo "Filed under https://github.com/${{ github.repository }}/releases/tag/$TAG"
           gh release view "$TAG" --json assets --jq '.assets[] | "\(.name)  \(.size) bytes"'
           if [ "${#FAILED[@]}" -gt 0 ]; then echo "::error::not uploaded: ${FAILED[*]}"; exit 1; fi

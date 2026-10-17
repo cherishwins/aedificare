@@ -51,35 +51,49 @@ Read this before every answer about the channel. Do not answer from memory.
 
 ## Getting a render onto the channel
 
-There are two routes, and the choice is about the **private lock**: every
-video the API uploads stays private until the Google Cloud project passes
-YouTube's API compliance audit (free form, days to weeks;
-support.google.com/youtube/contact/yt_api_form), and Studio cannot make it
-public. Metadata edits are not locked.
+The three YouTube values live only in the repository's Actions secrets (no
+session holds them), so the channel is run by dispatching
+`.github/workflows/youtube.yml`: `probe`, `list`, `upload`, `sync`. Its
+summary is the log; read it with the job logs.
 
-**Until the audit passes (the default route):**
-1. The owner downloads the film from the release `film-<slug>` (or
-   `film-ep-<slug>`) and uploads it by hand in Studio with its file name
-   unchanged, setting visibility there.
-2. The session runs:
-   ```sh
-   node tools/youtube-channel.mjs sync --dry   # the plan
-   node tools/youtube-channel.mjs sync         # title, description with chapters and sources, category, language, licence, captions, thumbnail
-   ```
-   A video whose title and description already match is skipped (`--force`
-   overrides). `--only film-ns-02` limits it to one release.
+**Rendering is the queue's job.** The voice is Gemini's free tier, ten
+requests a day (CLAUDE.md, override 6 and the 2026-10-17 decisions).
+`film-queue.yml` renders every published edition each morning after the
+reset, one at a time, skipping those already in the voice; chunks are
+cached under `narration-<slug>` in the Actions cache, and a spent quota
+ends a run green and files nothing. So do not hand-dispatch Gemini renders
+while the queue is working: they spend the same ten requests. When one is
+needed anyway, dispatch it **on `main`**: a cache written on a branch
+cannot be read by the queue on `main`, so a branch render is paid for
+twice. `film.yml` and `episode.yml` render and file to Releases only; for
+an episode pass `upload=no`, because `youtube.yml` is the one uploader.
 
-**After the audit passes:** dispatch `film.yml` (it uploads whenever the
-secrets exist) or `episode.yml` (`upload=film` is its default). The
-workflow renders, files the release and uploads private. Before the audit
-the same runs also upload, private and locked, and spend 3,200 units for
-the film and its Short. That is harmless but wasted, so dispatch
-`episode.yml` with `upload=no` until the audit passes.
-The owner watches it in Studio and presses Publish.
+**Uploading.** The probe of 2026-10-17 found this project's API uploads
+NOT locked private, so the API route works:
 
-Either way, **nothing goes public from a machine.** Never pass
-`--privacy public` and never set a video public through the API. The owner
-watches every film before it is public.
+```
+youtube.yml  action=upload  privacy=private  publish_at=<ISO time>  every_hours=24
+```
+
+It uploads every render not yet on the channel, oldest edition first, a
+film before its Short, at most `max` a run, files each video's id back on
+its release (`youtube.json`), and refuses: a render with unticked shots in
+`shots.md` (slates), a render whose description names a voice other than
+the channel's (the Releases still hold Kokoro films until the queue
+re-renders them), and `public`. With `publish_at` each video stays private
+until YouTube publishes it at that time; `every_hours` spaces a batch. Run
+`dry=true` first and read the plan.
+
+**Hand uploads** still work: the owner uploads the file exactly as
+downloaded from the release, and `youtube.yml action=sync` sets the
+generated title, description with chapters and sources, category,
+language, licence, captions and thumbnail.
+
+Either way, **nothing goes public from a machine without the owner's say.**
+Never pass `--privacy public`. A scheduled `publish_at` is the owner's call
+(on 2026-10-17 they asked for the films to go out: "let's get our work out
+there"), and a scheduled video can be changed or cancelled in Studio until
+its time.
 
 ## What must be true before a render goes up
 
@@ -119,14 +133,24 @@ no conclusion about the channel.
 
 10,000 units a day per project. A list costs a few units. A sync that
 changes a video costs about 500 (update 50, captions 400, thumbnail 50).
-An API upload costs 1,600. A full sync of every release fits in one day; a
-second forced sync the same day may not.
+An API upload costs about 500 more (since 1 June 2026 videos.insert has
+its own bucket of 100 a day; captions, thumbnail and listing come out of
+the 10,000). A full sync of every release fits in one day; a second forced
+sync the same day may not. The voice has its own limit: Gemini's free tier
+is ten text-to-speech requests a day, a film about four.
 
 ## When something fails
 
 - `invalid_grant` on token refresh: the refresh token was revoked, or it
-  expired because the consent screen is still in Testing (seven-day tokens).
-  The owner publishes the app and mints again.
+  expired because the consent screen is still in Testing (seven-day tokens;
+  the token minted on 2026-10-17 dies about 24 October). The lasting fix is
+  aedificare.art verified in Search Console, then the app In production,
+  then mint again (CLAUDE.md, Open 9).
+- A film run ends green with "the day's Gemini quota ran out": expected on
+  the free tier; the chunks are cached and the next morning's queue run
+  continues. A run that fails on "would not align after 3 tries" means
+  Gemini keeps saying that chunk differently from the text: look at the
+  chunk's words (a token spelled oddly) and fix the spelling or the text.
 - Thumbnail 403: the channel is not phone-verified. The video still
   updated.
 - A video shows `no render`: it was uploaded under another file name and
