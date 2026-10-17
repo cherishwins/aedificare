@@ -1140,8 +1140,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   carries the day it was read, on the page and in the colophon, and it is
   read again before the edition goes live.
 - **2026-10-17 · The films go up as two queues, a film a morning and a
-  Short an evening.** Every published edition's film and Short, in the
-  channel's voice, plus the onegov news Short, went up private through
+  Short an evening.** Six editions' films and Shorts in the channel's
+  voice (all but The Markup's) and the onegov news Short went up private through
   `youtube.yml` with YouTube's own `publishAt`: films at 15:00 UTC (8am
   Pacific) one a day from 18 October, Shorts at 03:00 UTC (8pm Pacific)
   one a day from the evening of the 18th, thirteen videos over a week.
@@ -1309,8 +1309,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    Releases are all in the Kokoro voice and the channel must not change
    voice after it starts publishing; two designed Gemini voices exist in
    the project for a year from last use. **Uploaded the same evening**:
-   all seven edition films and their Shorts in the ElevenLabs voice,
-   scheduled (Decisions log, "two queues"); `list` reads the channel's
+   six edition films and their Shorts in the ElevenLabs voice and the
+   onegov Short, scheduled (Decisions log, "two queues"); `list` reads the channel's
    long uploads as `allowed` and every thumbnail went through, so the
    channel is verified. Still the owner's: The Markup in the new voice
    (`upload --replace-old-voice`, then the old pair private in Studio),
