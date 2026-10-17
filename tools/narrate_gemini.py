@@ -343,14 +343,15 @@ def force_align(em, words):
     return spans, [float(np.mean(x)) if x else None for x in letters]
 
 
-def check_chunk(words, dur, aligned):
-    """None when the alignment is believable, else why not. Forcing always places every word, so this is the gate."""
+def check_chunk(words, dur, aligned, rate_test=True):
+    """None when the alignment is believable, else why not. Forcing always places every word, so this is the gate.
+    rate_test=False skips the words-a-second test, which means nothing on a block of two or three words."""
     if aligned is None:
         return 'the audio is too short to hold the words'
     spans, scores = aligned
     n = sum(s is not None for s in spans)
     rate = n / max(dur, 1e-6)
-    if not RATE_LO <= rate <= RATE_HI:
+    if rate_test and not RATE_LO <= rate <= RATE_HI:
         return f'{rate:.1f} words a second is not speech'
     bad = [s is not None and s < BAD_WORD for s in scores]
     share = sum(bad) / max(n, 1)

@@ -56,17 +56,18 @@ session holds them), so the channel is run by dispatching
 `.github/workflows/youtube.yml`: `probe`, `list`, `upload`, `sync`. Its
 summary is the log; read it with the job logs.
 
-**Rendering is the queue's job.** The voice is Gemini's free tier, ten
-requests a day (CLAUDE.md, override 6 and the 2026-10-17 decisions).
-`film-queue.yml` renders every published edition each morning after the
-reset, one at a time, skipping those already in the voice; chunks are
-cached under `narration-<slug>` in the Actions cache, and a spent quota
-ends a run green and files nothing. So do not hand-dispatch Gemini renders
-while the queue is working: they spend the same ten requests. When one is
-needed anyway, dispatch it **on `main`**: a cache written on a branch
-cannot be read by the queue on `main`, so a branch render is paid for
-twice. `film.yml` and `episode.yml` render and file to Releases only; for
-an episode pass `upload=no`, because `youtube.yml` is the one uploader.
+**Rendering is the queue's job.** The voice is ElevenLabs on the owner's
+paid plan (CLAUDE.md, override 6): 40,000 credits a month, about 0.2 a
+character on eleven_v4_turbo, so a film is about 2,000 to 3,000.
+`film-queue.yml` renders every published edition not yet in the voice each
+morning, one at a time; narration is cached under `narration-<slug>` in the
+Actions cache, and spent credits end a run green with a warning and file
+nothing. Dispatch a render **on `main`** when one is needed outside the
+queue: a cache written on a branch cannot be read by the queue on `main`.
+`film.yml` and `episode.yml` render and file to Releases only; for an
+episode pass `upload=no`, because `youtube.yml` is the one uploader. Before
+a new voice or engine spends a film's credits, prove it on the passage:
+`voice-samples.yml only=narrate narrator=<NARRATOR>`.
 
 **Uploading.** The probe of 2026-10-17 found this project's API uploads
 NOT locked private, so the API route works:
@@ -136,8 +137,8 @@ changes a video costs about 500 (update 50, captions 400, thumbnail 50).
 An API upload costs about 500 more (since 1 June 2026 videos.insert has
 its own bucket of 100 a day; captions, thumbnail and listing come out of
 the 10,000). A full sync of every release fits in one day; a second forced
-sync the same day may not. The voice has its own limit: Gemini's free tier
-is ten text-to-speech requests a day, a film about four.
+sync the same day may not. The voice has its own limit: the ElevenLabs
+plan's monthly credits (the run's log prints what it spent and what is left).
 
 ## When something fails
 
@@ -146,9 +147,9 @@ is ten text-to-speech requests a day, a film about four.
   the token minted on 2026-10-17 dies about 24 October). The lasting fix is
   aedificare.art verified in Search Console, then the app In production,
   then mint again (CLAUDE.md, Open 9).
-- A film run ends green with "the day's Gemini quota ran out": expected on
-  the free tier; the chunks are cached and the next morning's queue run
-  continues. A run that fails on "would not align after 3 tries" means
+- A film run ends green with "the credits are spent" (ElevenLabs) or "the
+  day's Gemini quota ran out": the narration so far is cached and the next
+  run continues once credits are back; tell the owner the reset date. A run that fails on "would not align after 3 tries" means
   Gemini keeps saying that chunk differently from the text: look at the
   chunk's words (a token spelled oddly) and fix the spelling or the text.
 - Thumbnail 403: the channel is not phone-verified. The video still

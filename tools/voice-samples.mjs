@@ -43,6 +43,14 @@ import { execFileSync } from 'node:child_process';
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
 const OUT = arg('--out', 'brand/voice-samples');
 const ONLY = arg('--only', 'kokoro,gemini,eleven').split(',');
+// --eleven-voice "<description>" --label <name> designs another ElevenLabs voice; --previews writes the three
+// candidates the design returns (each already reading the passage) instead of saving one, so a brief is heard
+// three ways for the price of one design and no voice slot is spent until one is chosen.
+const ELEVEN_VOICE = arg('--eleven-voice', '');
+const LABEL = arg('--label', 'analyst').replace(/[^a-z0-9-]/gi, '-').toLowerCase();
+const PREVIEWS = process.argv.includes('--previews');
+// --save <generated_voice_id> keeps a chosen design candidate as a voice in the account and reads the passage with it.
+const SAVE = arg('--save', '');
 fs.mkdirSync(OUT, { recursive: true });
 
 /* ---- the passage: cover + the first two paragraphs of section 00 ---------- */
@@ -136,29 +144,61 @@ if (ONLY.includes('eleven') && XI) {
     return raw ? Buffer.from(await r.arrayBuffer()) : r.json();
   };
   // The same description the Gemini analyst was designed from, so the comparison is the engine, not the brief.
-  const ANALYST = 'A man in his forties with a low, dry, unhurried voice and crisp diction: a financial analyst who finds the numbers quietly absurd and never raises his voice about it. Neutral international English accent. An original voice, not modelled on any real person.';
+  const ANALYST = ELEVEN_VOICE || 'A man in his forties with a low, dry, unhurried voice and crisp diction: a financial analyst who finds the numbers quietly absurd and never raises his voice about it. Neutral international English accent. An original voice, not modelled on any real person.';
   try {
+    // What the account has used, before and after, so a run says what a character costs on this plan.
+    const used = async () => { try { const u = await xi('user/subscription'); return u; } catch (e) { console.error(`  subscription: ${e.message.slice(0, 200)}`); return null; } };
+    const before = await used();
+    if (before) console.log(`ElevenLabs plan ${before.tier}: ${before.character_count} of ${before.character_limit} credits used, resets ${new Date(before.next_character_count_reset_unix * 1000).toISOString().slice(0, 10)}`);
     const models = await xi('models');
     const tts = models.filter((m) => m.can_do_text_to_speech !== false).map((m) => m.model_id);
     console.log(`ElevenLabs models: ${tts.join(', ')}`);
     const pick = tts.find((m) => /v4/i.test(m) && /turbo/i.test(m)) || tts.find((m) => /v4/i.test(m)) || tts.find((m) => /eleven_v3$/.test(m)) || 'eleven_multilingual_v2';
     // A fixed seed: the same description, model and seed design the same voice, so the paid account can rebuild
     // exactly the voice this test designs on the free one (designed voices are stored per account).
-    const design = await xi('text-to-voice/design', { voice_description: ANALYST, model_id: 'eleven_ttv_v3', text: TEXT.slice(0, 1000), seed: 20261017 });
+    const design = SAVE ? { previews: [{ generated_voice_id: SAVE }] } : await xi('text-to-voice/design', { voice_description: ANALYST, model_id: 'eleven_ttv_v3', text: TEXT.slice(0, 1000), seed: 20261017 });
     const prev = design.previews?.[0];
     if (!prev?.generated_voice_id) throw new Error(`no preview: ${JSON.stringify(design).slice(0, 400)}`);
-    const saved = await xi('text-to-voice', { voice_name: 'aedificare-analyst', voice_description: ANALYST, generated_voice_id: prev.generated_voice_id });
+    if (PREVIEWS) {
+      design.previews.forEach((p, k) => {
+        const name = `12-elevenlabs-${LABEL}-preview-${k + 1}`;
+        fs.writeFileSync(path.join(OUT, `${name}.mp3`), Buffer.from(p.audio_base_64, 'base64'));
+        index.push(`${name}.mp3  ElevenLabs voice design (eleven_ttv_v3), candidate ${k + 1} of ${design.previews.length}, generated_voice_id ${p.generated_voice_id} (saved only once chosen): ${ANALYST}`);
+        console.log(`  ${name}: done (${p.duration_secs ?? '?'} s, ${p.media_type || 'audio'})`);
+      });
+      throw Object.assign(new Error('previews written'), { done: true });
+    }
+    const saved = await xi('text-to-voice', { voice_name: `aedificare-${LABEL}`, voice_description: ANALYST, generated_voice_id: prev.generated_voice_id });
     const vid = saved.voice_id;
     if (!vid) throw new Error(`no voice id: ${JSON.stringify(saved).slice(0, 400)}`);
     const audio = await xi(`text-to-speech/${vid}?output_format=mp3_44100_128`, { text: TEXT, model_id: pick }, true);
-    const name = `11-elevenlabs-designed-analyst-${pick}`;
+    const after = await used();
+    if (before && after) console.log(`ElevenLabs: ${after.character_count - before.character_count} credits for ${TEXT.length} characters on ${pick}${SAVE ? '' : ' plus the design'}; ${after.character_limit - after.character_count} left`);
+    const name = `11-elevenlabs-designed-${LABEL}-${pick}`;
     fs.writeFileSync(path.join(OUT, `${name}.mp3`), audio);
     index.push(`${name}.mp3  ElevenLabs ${pick}, DESIGNED voice "analyst" (id ${vid}), the same description as the Gemini analyst (09): ${ANALYST}`);
     console.log(`  ${name}: done`);
-  } catch (e) { console.error(`  ElevenLabs: ${e.message}`); }
+  } catch (e) { if (!e.done) console.error(`  ElevenLabs: ${e.message}`); }
 }
 
-const INDEX = ONLY.length === 3 ? 'index.txt' : `index-${ONLY.join('-')}.txt`;
+/* ---- 13: the narration engine itself, on the passage ---------------------------------------------------------------
+ * --only narrate with NARRATOR set runs tools/narrate.py exactly as a film does, on the passage's blocks, so a new
+ * engine is proved against the real API on 45 seconds before a film spends its credits on it. */
+if (ONLY.includes('narrate')) {
+  try {
+    const dir = path.join(OUT, 'narrate');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'script.json'), JSON.stringify({ voice: 'am_michael', blocks: PARAS.map((text, i) => ({ i, kind: i === 0 ? 'title' : 'p', read: true, text })) }));
+    execFileSync('uv', ['run', 'tools/narrate.py', dir], { stdio: 'inherit' });
+    const N = JSON.parse(fs.readFileSync(path.join(dir, 'narration.json'), 'utf8'));
+    const name = `13-narrate-${String(process.env.NARRATOR || 'kokoro').replace(/[^a-z0-9]+/gi, '-')}`;
+    mp3(path.join(dir, 'narration.wav'), name);
+    const words = N.blocks.flatMap((b) => b.words);
+    index.push(`${name}.mp3  tools/narrate.py with NARRATOR=${process.env.NARRATOR}: ${N.model} ${N.voice}, ${N.duration} s, ${words.length} words timed; first words ${words.slice(0, 6).map((w) => `${w.w}@${w.s}`).join(' ')}`);
+  } catch (e) { console.error(`  narrate: ${e.message}`); }
+}
+
+const INDEX = ONLY.length === 3 ? 'index.txt' : `index-${ONLY.join('-')}${LABEL !== 'analyst' ? `-${LABEL}` : ''}.txt`;
 fs.writeFileSync(path.join(OUT, INDEX), [`Passage (${TEXT.split(/\s+/).length} words), from source/film/edition-03.md:`, '', TEXT, '', 'Files:', ...index, ''].join('\n'));
 console.log(`\n${index.length} samples in ${OUT} (${INDEX})`);
 if (!index.length) process.exit(1);

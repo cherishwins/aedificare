@@ -81,7 +81,7 @@ const PRIVACY = arg('--privacy', 'private');
 const PUBLISH_AT = arg('--publish-at', null);
 const EVERY_H = +arg('--every', 0);
 // The channel speaks in one voice (CLAUDE.md, override 6): a render whose description names another is never uploaded.
-const VOICE = arg('--voice', (process.env.NARRATOR || 'gemini:voice_l6lephk1pqjk').replace(/^gemini:/, ''));
+const VOICE = arg('--voice', (process.env.NARRATOR || 'eleven:sacfsNbCahgH0qw7PIO8').replace(/^(gemini|eleven):/, ''));
 if (!['list', 'sync', 'upload', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>]'); process.exit(1); }
 // Nothing goes public from a machine (CLAUDE.md, the bed, the Short, the upload): public is refused here, and a scheduled publish is the owner's call, made by passing a time.
 if (!['private', 'unlisted'].includes(PRIVACY)) { console.error('youtube-channel: --privacy is private or unlisted; publishing is the owner\'s, in Studio or with --publish-at'); process.exit(1); }

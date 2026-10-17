@@ -121,6 +121,31 @@ that is a reference, not documentation.
    falling back. The Markup's film and Short went up by hand in the old
    voice before this; they stay up until re-rendered, and that is the
    owner's call.
+   **Then ElevenLabs, a woman, American (same day, still before anything
+   was published).** The owner asked whether ElevenLabs, first on the
+   Artificial Analysis arena (1330 against Gemini 3.8 Flash TTS's 1275,
+   which listeners prefer about 58 to 42), was worth paying for; heard
+   it beside Gemini; chose it ("that's why you paid for it"); then asked
+   for a woman's voice and refused British ("that woman's British too")
+   in favour of what suits "the average" English-speaking viewer. Both
+   designed Gemini voices read as English to the owner and to an accent
+   classifier (SpeechBrain CommonAccent ECAPA: England first for both,
+   US first for every ElevenLabs candidate), so the classifier stood in
+   for the owner's ear when picking among candidates. The voice is
+   **"aedificare-husky-american"** (`sacfsNbCahgH0qw7PIO8`), designed in
+   the owner's paid ElevenLabs account (Starter, 40,000 credits a month,
+   commercial licence, the key stored as the repository secret `PLUTO`)
+   from a description: a woman in her early thirties, low, husky,
+   slightly smoky, General American, warm, intimate, unhurried. The owner
+   asked for "sexier, like ScarJo"; a named person's voice is never
+   imitated (this rule, YouTube's voice-likeness detection, and that
+   actor's own public objection to a sound-alike in 2024), so the brief
+   names qualities, never a person. It speaks through
+   `tools/narrate_eleven.py` (`NARRATOR=eleven:sacfsNbCahgH0qw7PIO8`) on
+   eleven_v4_turbo, which costs about 0.2 credits a character (105 for
+   525, read twice), so the seven films are about 15,000 credits. The
+   Gemini engine stays in the repo, retired, because it works and
+   because a voice is cheap to keep and expensive to rebuild.
 7. **The films get a voice of their own** (owner, 2026-09-24, later:
    "let's be like Fireship but Patrick Boyle dry humor, a unique
    Frankenstein voice"). Override 6 read the edition verbatim; this
@@ -333,7 +358,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   alignment is scored and a chunk whose audio does not say its words is
   spoken again, then fails the run, because forcing always "succeeds" and
   the first version's fallback could never fire (review, 2026-10-17); chunks
-  are cached and the daily quota exits 75), `voice-samples.mjs`
+  are cached and the daily quota exits 75; or ElevenLabs through
+  `narrate_eleven.py` when `NARRATOR` is `eleven:<voice id>`, the channel's
+  voice since 2026-10-17: one request a block, every word's time from the
+  reply's character times, the same wav2vec2 gate, a block cache, spent
+  credits exit 75), `voice-samples.mjs`
   (the same passage in every candidate voice, filed under the Release
   `voice-samples`: Kokoro, Gemini, and an ElevenLabs voice designed from
   the Gemini analyst's own description with a fixed seed, so the paid
@@ -443,12 +472,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   With `skip_voiced` it does nothing for an edition whose release already
   names the voice. It no longer runs when the file itself changes: a proof
   render spent a day's quota (2026-10-17).
-- `.github/workflows/film-queue.yml`: every morning at 08:20 UTC, after
-  the free tier resets at midnight Pacific, runs `film.yml` once per
-  published edition from `src/lib/editions.mjs`, oldest first, one at a
-  time, with `skip_voiced`. The day's ten requests go to the first films
-  not yet in the voice; the rest wait for tomorrow. Once every film is
-  voiced a run is seven quick skips.
+- `.github/workflows/film-queue.yml`: every morning at 08:20 UTC runs
+  `film.yml` once per published edition from `src/lib/editions.mjs`,
+  oldest first, one at a time, with `skip_voiced`, so every edition not
+  yet in the channel's voice is rendered and filed; once every film is
+  voiced a run is seven quick skips. Written for Gemini's ten requests a
+  day; on ElevenLabs one run can voice them all, and the schedule stays
+  as the net for new editions and for a run stopped by the credits.
 - `.github/workflows/release.yml`: **the filing system for films.** A
   GitHub Release per edition named `film-<slug>`, holding the film, the
   Short, captions, sheets, meta and thumbnail as assets: permanent where
@@ -1088,6 +1118,11 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   not the builder's: zero budget is a hard constraint here, and the owner
   has been burned by Google bills before. Nothing in the pipeline changes
   either way.
+- **2026-10-17 · The channel's voice is ElevenLabs, a woman, American.**
+  Override 6 has the reasons and the voice. Recorded here too because it
+  reverses the decision above it within hours: the free tier stopped
+  mattering when the owner paid for the better voice, and nothing had
+  been published, so the switch cost nothing but a morning.
 - **2026-10-17 · What satisfies that duty is the checking, not who did
   it.** Edition 09 arrived with the owner's own verification pass attached,
   evidence included, and the print acting on its corrections. So it

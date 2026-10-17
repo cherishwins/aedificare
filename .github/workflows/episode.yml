@@ -53,7 +53,7 @@ on:
 
 # One voice for every step: the Short re-narrated in Kokoro when only the Render step carried it (review, 2026-10-17).
 env:
-  NARRATOR: ${{ vars.NARRATOR || 'gemini:voice_l6lephk1pqjk' }}
+  NARRATOR: ${{ vars.NARRATOR || 'eleven:sacfsNbCahgH0qw7PIO8' }}
 
 concurrency:
   group: episode-${{ github.ref }}-${{ inputs.slug || 'softbank-975' }}
@@ -121,6 +121,7 @@ jobs:
         id: render
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY || secrets.PLUTO }}
         run: |
           mkdir -p ~/.cache/aedificare-narration
           export NARRATION_CACHE=~/.cache/aedificare-narration
