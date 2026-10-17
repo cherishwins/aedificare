@@ -1139,6 +1139,20 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   re-checked. **A figure that is a market price is never archival**: it
   carries the day it was read, on the page and in the colophon, and it is
   read again before the edition goes live.
+- **2026-10-17 · The films go up as two queues, a film a morning and a
+  Short an evening.** Six editions' films and Shorts in the channel's
+  voice (all but The Markup's) and the onegov news Short went up private through
+  `youtube.yml` with YouTube's own `publishAt`: films at 15:00 UTC (8am
+  Pacific) one a day from 18 October, Shorts at 03:00 UTC (8pm Pacific)
+  one a day from the evening of the 18th, thirteen videos over a week.
+  The first plan was one queue alternating every twelve hours, and the dry
+  run showed why not: the onegov Short has no film, so every film after it
+  would have landed at 8pm. Two queues keep the hours, and each Short still
+  publishes after its own film because films start twelve hours earlier.
+  Publishing is YouTube's at the scheduled time, so the token expiring does
+  not stop it. The ids are on each release (`youtube.json`,
+  `youtube-short.json`) and not typed here. The Markup stays up in the old
+  voice; replacing it is the owner's call.
 
 ## Open
 
@@ -1294,7 +1308,13 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    to choose by ear before anything else is uploaded, because the films on
    Releases are all in the Kokoro voice and the channel must not change
    voice after it starts publishing; two designed Gemini voices exist in
-   the project for a year from last use.
+   the project for a year from last use. **Uploaded the same evening**:
+   six edition films and their Shorts in the ElevenLabs voice and the
+   onegov Short, scheduled (Decisions log, "two queues"); `list` reads the channel's
+   long uploads as `allowed` and every thumbnail went through, so the
+   channel is verified. Still the owner's: The Markup in the new voice
+   (`upload --replace-old-voice`, then the old pair private in Studio),
+   and the lasting token.
    **The channel is the owner's existing one** (owner, 2026-09-25: "I'm
    going to use this channel because people like me and follow me
    already"): "OF8 SupraNational Global Conglomerate", 155 subscribers,
