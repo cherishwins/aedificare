@@ -69,6 +69,10 @@ LEAD, TAIL, FADE = 0.2, 0.15, 0.01  # seconds of air before the first word and a
 # 15 percent hole, or with six words added to the text that it does not say, scored runs of 6 to 70 bad words.
 RATE_LO, RATE_HI = 1.0, 4.2   # words a second; deadpan Gemini reads at 2.1 to 2.4
 BAD_WORD, BAD_SHARE, BAD_RUN = -6.0, 0.1, 5
+# Never fewer than three bad words: the share was calibrated on 500-word chunks, and on a seven-word ElevenLabs
+# block one word the aligner hears oddly ("Door A: Open space stays smooth forever", ns-01, 2026-10-17) is 14
+# percent, two proper nouns 29. A skip or a cut-off still fails, on three bad words or on the run test.
+GATE_VERSION = 2  # in every rejection marker, so a chunk rejected by an older gate is asked for again
 
 
 class Quota(Exception):
@@ -359,7 +363,7 @@ def check_chunk(words, dur, aligned, rate_test=True):
     for b in bad:
         run = run + 1 if b else 0
         best = max(best, run)
-    if share > BAD_SHARE:
+    if sum(bad) >= max(3, BAD_SHARE * n):
         return f'{share:.0%} of the words are not in the audio'
     if best >= BAD_RUN:
         return f'a run of {best} words is not in the audio (a skipped or garbled passage)'
@@ -396,9 +400,13 @@ def cached(voice, text):
         return None
 
 
+def reject_path(voice, text):
+    return cache_path(voice, f'gate-{GATE_VERSION}:{text}')[:-5] + '.rejected'
+
+
 def rejected(voice, text):
-    """The day this exact chunk last failed every try, if within REJECT_DAYS, else None."""
-    p = cache_path(voice, text)[:-5] + '.rejected'
+    """The day this exact chunk last failed every try under this gate, if within REJECT_DAYS, else None."""
+    p = reject_path(voice, text)
     if os.path.exists(p) and time.time() - os.path.getmtime(p) < REJECT_DAYS * 86400:
         return open(p).read().strip()
     return None
@@ -469,7 +477,7 @@ def narrate_gemini(DIR, SCRIPT, voice, normalise, GAP_BEFORE, GAP_AFTER, SR):
         if when:
             sys.exit(f'narrate: chunk {ci + 1} of {len(chunks)} failed the alignment check {SPEAK_TRIES} times on {when}; '
                      f'it is not asked for again for {REJECT_DAYS} days. Fix its text (a word Gemini says differently from '
-                     f'its spelling), or delete {cache_path(voice, text)[:-5]}.rejected. It begins: {text[:160]!r}')
+                     f'its spelling), or delete {reject_path(voice, text)}. It begins: {text[:160]!r}')
         why = None
         for attempt in range(SPEAK_TRIES):
             got = cached(voice, text) if attempt == 0 else None
@@ -499,7 +507,7 @@ def narrate_gemini(DIR, SCRIPT, voice, normalise, GAP_BEFORE, GAP_AFTER, SR):
                 os.remove(cache_path(voice, text))
         if why is not None:
             os.makedirs(CACHE, exist_ok=True)
-            with open(cache_path(voice, text)[:-5] + '.rejected', 'w') as f:
+            with open(reject_path(voice, text), 'w') as f:
                 f.write(time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime()))
             sys.exit(f'narrate: chunk {ci + 1} of {len(chunks)} would not align after {SPEAK_TRIES} tries ({why}); '
                      f'nothing is placed by guesswork. It begins: {text[:160]!r}')
