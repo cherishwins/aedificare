@@ -199,9 +199,12 @@ const rows = videos.map((v) => {
   const file = v.fileDetails?.fileName || '';
   // A film and its Short share a title, so the title fallback also needs the kind: YouTube's Shorts run three minutes at most.
   const kind = secs(v.contentDetails.duration) <= 180 ? 'short' : 'film';
+  // The title route skips a render another video already claimed, except for a video in an older voice: that one is
+  // the video the render replaces, and once the replacement is up and claims the render through its ledger, the old
+  // video (whose file name the API may leave empty) must still be found, or retire never sees it.
   const r = renders.find((x) => x.ledgerId === v.id)
     || renders.find((x) => key(x.meta.file) === key(file))
-    || renders.find((x) => x.meta.title === v.snippet.title && x.meta.kind === kind && !matched.has(x));
+    || renders.find((x) => x.meta.title === v.snippet.title && x.meta.kind === kind && (!matched.has(x) || (inVoice(x.meta.description) && !inVoice(v.snippet.description))));
   const older = !!r && inVoice(r.meta.description) && !inVoice(v.snippet.description);
   if (r && !(older && REPLACE)) matched.add(r);
   return { v, r, file, older };
