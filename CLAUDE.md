@@ -1151,8 +1151,16 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   publishes after its own film because films start twelve hours earlier.
   Publishing is YouTube's at the scheduled time, so the token expiring does
   not stop it. The ids are on each release (`youtube.json`,
-  `youtube-short.json`) and not typed here. The Markup stays up in the old
-  voice; replacing it is the owner's call.
+  `youtube-short.json`) and not typed here. **The Markup was replaced**
+  (owner, the same evening: "yeah replace the markup with the new voice"):
+  its new film publishes at 03:00 UTC on the 18th (8pm Pacific, the evening
+  before the run starts) and its Short at 21:00 UTC (off both slots), and
+  `youtube-channel.mjs retire` makes each old Kokoro video private only
+  once its replacement is public, never deleted, so the old film's 75 views
+  stay with it. A review caught that the old pair has no file name in the
+  API and would have vanished from matching once the new pair claimed the
+  render, leaving both voices public; the title route now keeps an
+  older-voice video matched.
 
 ## Open
 
@@ -1312,9 +1320,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    six edition films and their Shorts in the ElevenLabs voice and the
    onegov Short, scheduled (Decisions log, "two queues"); `list` reads the channel's
    long uploads as `allowed` and every thumbnail went through, so the
-   channel is verified. Still the owner's: The Markup in the new voice
-   (`upload --replace-old-voice`, then the old pair private in Studio),
-   and the lasting token.
+   channel is verified. The Markup was replaced in the new voice the same
+   evening (Decisions log). Still the owner's: the lasting token.
    **The channel is the owner's existing one** (owner, 2026-09-25: "I'm
    going to use this channel because people like me and follow me
    already"): "OF8 SupraNational Global Conglomerate", 155 subscribers,
