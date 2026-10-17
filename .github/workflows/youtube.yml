@@ -1,0 +1,114 @@
+# The channel, run from GitHub. The builder dispatches this (or the owner
+# presses Run workflow under Actions); the three YouTube credentials live only
+# in this repository's Actions secrets, so no session, laptop or chat ever
+# holds them.
+#
+#   action=list    what is on the channel, what is rendered and not yet there
+#   action=upload  each render on Releases that is not on the channel yet,
+#                  oldest first, at most `max` a run, private by default;
+#                  refuses drafts whose shots.md still lists missing shots;
+#                  files each video's id back on its release
+#   action=sync    the generated title, description, chapters, captions and
+#                  thumbnail onto every matched video (including hand uploads)
+#
+# tools/youtube-channel.mjs does the work; .claude/skills/youtube/SKILL.md is
+# how a session decides which action to run. The job summary carries the
+# result, so a run is read from its page without downloading anything.
+name: youtube
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'list, upload or sync'
+        required: true
+        default: list
+        type: choice
+        options: [list, upload, sync]
+      only:
+        description: 'One release (film-ns-01, film-ep-softbank-975), or empty for all'
+        required: false
+        default: ''
+      kinds:
+        description: 'upload: film,short or film or short'
+        required: false
+        default: 'film,short'
+      max:
+        description: 'upload: most videos this run (about 2,100 of 10,000 daily quota units each)'
+        required: false
+        default: '4'
+      privacy:
+        description: 'upload: private or unlisted (public is never set from here)'
+        required: false
+        default: private
+        type: choice
+        options: [private, unlisted]
+      publish_at:
+        description: 'upload: an ISO time to have YouTube publish it (stays private until then); empty to leave publishing to Studio'
+        required: false
+        default: ''
+      dry:
+        description: 'upload or sync: print the plan only'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: youtube
+  cancel-in-progress: false
+
+jobs:
+  youtube:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      HAS_YT: ${{ secrets.YT_REFRESH_TOKEN != '' && secrets.YT_CLIENT_ID != '' && secrets.YT_CLIENT_SECRET != '' }}
+    steps:
+      - name: Credentials
+        if: env.HAS_YT != 'true'
+        run: |
+          echo "::error::YT_CLIENT_ID, YT_CLIENT_SECRET and YT_REFRESH_TOKEN are not all set in Settings → Secrets and variables → Actions (tools/youtube-auth.mjs says how to make them)"
+          exit 1
+
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: ${{ inputs.action }}
+        env:
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          ACTION: ${{ inputs.action }}
+          ONLY: ${{ inputs.only }}
+          KINDS: ${{ inputs.kinds }}
+          MAX: ${{ inputs.max }}
+          PRIVACY: ${{ inputs.privacy }}
+          PUBLISH_AT: ${{ inputs.publish_at }}
+          DRY: ${{ inputs.dry }}
+        run: |
+          set -o pipefail
+          args=("$ACTION")
+          [ -n "$ONLY" ] && args+=(--only "$ONLY")
+          [ "$DRY" = "true" ] && [ "$ACTION" != "list" ] && args+=(--dry)
+          if [ "$ACTION" = "upload" ]; then
+            args+=(--kinds "$KINDS" --max "$MAX" --privacy "$PRIVACY")
+            [ -n "$PUBLISH_AT" ] && args+=(--publish-at "$PUBLISH_AT")
+          fi
+          node tools/youtube-channel.mjs "${args[@]}" 2>&1 | tee youtube.log
+          { echo '## youtube: '"$ACTION"; echo; echo '```'; cat youtube.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the channel record
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: channel
+          path: brand/youtube/channel.json
+          if-no-files-found: ignore
+          retention-days: 30

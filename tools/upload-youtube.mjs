@@ -4,12 +4,14 @@
  * the meta.json the render wrote, so the title, description, chapters,
  * captions and thumbnail are the generated ones and nothing is typed.
  *
- *   node tools/upload-youtube.mjs brand/youtube/edition-03/meta.json [--privacy private|unlisted|public] [--playlist <id>]
+ *   node tools/upload-youtube.mjs brand/youtube/edition-03/meta.json [--privacy private|unlisted|public] [--publish-at <ISO time>] [--playlist <id>]
  *   node tools/upload-youtube.mjs brand/youtube/edition-03/meta.json --update <videoId> [--playlist <id>]
  *
  * UPLOAD (the first form) does a resumable upload, PRIVATE by default, then
  * captions, thumbnail and an optional playlist insert; the owner presses
- * Publish in Studio after watching. THE PRIVATE LOCK: YouTube keeps every
+ * Publish in Studio after watching, or passes --publish-at, which keeps the
+ * video private and has YouTube publish it at that time (status.publishAt;
+ * the owner's call, never the default). THE PRIVATE LOCK: YouTube keeps every
  * video uploaded through the API by an API project created after 28 July
  * 2020 private until that project passes YouTube's API compliance audit (a
  * free form, days to weeks), and Studio will not flip it. Apply at
@@ -38,7 +40,10 @@ import { Readable } from 'node:stream';
 
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
 const META = process.argv[2];
-const PRIVACY = arg('--privacy', 'private');
+const PUBLISH_AT = arg('--publish-at', null);
+// A scheduled publish is only valid on a private video (developers.google.com/youtube/v3/docs/videos, status.publishAt).
+const PRIVACY = PUBLISH_AT ? 'private' : arg('--privacy', 'private');
+if (PUBLISH_AT && !(Date.parse(PUBLISH_AT) > Date.now())) { console.error(`upload-youtube: --publish-at ${PUBLISH_AT} is not a future ISO time`); process.exit(1); }
 const UPDATE = arg('--update', null);
 // In update mode the playlist is touched only when asked for explicitly: the hand upload may already be in it.
 const PLAYLIST = arg('--playlist', UPDATE ? null : (process.env.YT_PLAYLIST_ID || null));
@@ -88,11 +93,11 @@ if (UPDATE) {
   const size = fs.statSync(video).size;
   const start = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status`, {
     method: 'POST', headers: { ...auth, 'content-type': 'application/json; charset=UTF-8', 'x-upload-content-type': 'video/mp4', 'x-upload-content-length': String(size) },
-    body: JSON.stringify({ snippet, status: { privacyStatus: PRIVACY, ...status } }),
+    body: JSON.stringify({ snippet, status: { privacyStatus: PRIVACY, ...(PUBLISH_AT ? { publishAt: new Date(PUBLISH_AT).toISOString() } : {}), ...status } }),
   });
   if (!start.ok) await fail('upload session', start);
   const session = start.headers.get('location');
-  console.log(`  uploading ${meta.file} (${Math.round(size / 1048576)} MB) as ${PRIVACY}`);
+  console.log(`  uploading ${meta.file} (${Math.round(size / 1048576)} MB) as ${PRIVACY}${PUBLISH_AT ? `, to publish at ${PUBLISH_AT}` : ''}`);
   const put = await fetch(session, { method: 'PUT', headers: { 'content-type': 'video/mp4', 'content-length': String(size) }, body: Readable.toWeb(fs.createReadStream(video)), duplex: 'half' });
   if (!put.ok) await fail('upload', put);
   id = (await put.json()).id;
@@ -128,5 +133,5 @@ if (PLAYLIST) {
   if (!pl.ok) console.error('  playlist failed (the video is up):', pl.status, await pl.text()); else console.log(`  playlist: ${PLAYLIST}`);
 }
 
-fs.writeFileSync(path.join(dir, meta.kind === 'short' ? 'youtube-short.json' : 'youtube.json'), JSON.stringify({ id, url: `https://youtu.be/${id}`, privacy: UPDATE ? 'unchanged' : PRIVACY, mode: UPDATE ? 'update' : 'upload', at: new Date().toISOString(), title: meta.title }, null, 1) + '\n');
+fs.writeFileSync(path.join(dir, meta.kind === 'short' ? 'youtube-short.json' : 'youtube.json'), JSON.stringify({ id, url: `https://youtu.be/${id}`, privacy: UPDATE ? 'unchanged' : PRIVACY, publishAt: UPDATE ? undefined : PUBLISH_AT || undefined, mode: UPDATE ? 'update' : 'upload', at: new Date().toISOString(), title: meta.title }, null, 1) + '\n');
 console.log(`  done: https://studio.youtube.com/video/${id}/edit`);
