@@ -138,7 +138,7 @@ const get = async (url) => {
   if (!r.ok) { console.error(`youtube-channel: ${url.split('?')[0]} failed`, r.status, await r.text()); process.exit(1); }
   return r.json();
 };
-const channel = (await get('channels?part=snippet,contentDetails,statistics&mine=true')).items?.[0];
+const channel = (await get('channels?part=snippet,contentDetails,statistics,status&mine=true')).items?.[0];
 if (!channel) { console.error('youtube-channel: the token is not signed in to a channel'); process.exit(1); }
 
 /* ---- probe -------------------------------------------------------------------- */
@@ -198,10 +198,12 @@ const rows = videos.map((v) => {
 });
 
 /* ---- list --------------------------------------------------------------------- */
-console.log(`${channel.snippet.title} · ${channel.snippet.customUrl || channel.id} · ${channel.statistics.subscriberCount} subscribers · ${videos.length} uploads\n`);
+// Over fifteen minutes needs a verified channel; unverified, YouTube takes the upload and then rejects it for length.
+const LONG = channel.status?.longUploadsStatus || 'not reported';
+console.log(`${channel.snippet.title} · ${channel.snippet.customUrl || channel.id} · ${channel.statistics.subscriberCount} subscribers · ${videos.length} uploads · long uploads ${LONG}\n`);
 for (const { v, r, file, older } of rows) {
   const s = v.statistics || {};
-  console.log(`${v.id}  ${v.status.privacyStatus.padEnd(8)} ${v.snippet.publishedAt.slice(0, 10)}  ${dur(v.contentDetails.duration).padStart(6)}  ${String(s.viewCount ?? '-').padStart(6)} views  ${r ? `${r.tag}/${r.metaName}` : 'no render'}${older ? '  (OLDER VOICE: the render is new, the video is not; replacing it is the owner\'s call)' : ''}`);
+  console.log(`${v.id}  ${v.status.privacyStatus.padEnd(8)} ${v.snippet.publishedAt.slice(0, 10)}  ${dur(v.contentDetails.duration).padStart(6)}  ${String(s.viewCount ?? '-').padStart(6)} views  ${r ? `${r.tag}/${r.metaName}` : 'no render'}${v.status.publishAt ? `  publishes ${v.status.publishAt}` : ''}${v.status.uploadStatus === 'rejected' ? `  REJECTED (${v.status.rejectionReason})` : ''}${older ? '  (OLDER VOICE: the render is new, the video is not; replacing it is the owner\'s call)' : ''}`);
   console.log(`             ${v.snippet.title}${file ? `  [${file}]` : ''}`);
 }
 const missing = renders.filter((r) => !matched.has(r));
@@ -211,8 +213,8 @@ if (missing.length) {
 }
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'channel.json'), JSON.stringify({
-  at: new Date().toISOString(), channel: { id: channel.id, title: channel.snippet.title, handle: channel.snippet.customUrl, subscribers: +channel.statistics.subscriberCount },
-  videos: rows.map(({ v, r, file, older }) => ({ id: v.id, title: v.snippet.title, privacy: v.status.privacyStatus, published: v.snippet.publishedAt, duration: v.contentDetails.duration, views: +(v.statistics?.viewCount ?? 0), file, release: r ? `${r.tag}/${r.metaName}` : null, olderVoice: older })),
+  at: new Date().toISOString(), channel: { id: channel.id, title: channel.snippet.title, handle: channel.snippet.customUrl, subscribers: +channel.statistics.subscriberCount, longUploads: LONG },
+  videos: rows.map(({ v, r, file, older }) => ({ id: v.id, title: v.snippet.title, privacy: v.status.privacyStatus, publishAt: v.status.publishAt || null, upload: v.status.uploadStatus, published: v.snippet.publishedAt, duration: v.contentDetails.duration, views: +(v.statistics?.viewCount ?? 0), file, release: r ? `${r.tag}/${r.metaName}` : null, olderVoice: older })),
   notOnChannel: missing.map((r) => ({ release: r.tag, file: r.meta.file, kind: r.meta.kind, title: r.meta.title, slates: r.slates, filedAs: r.ledgerId })),
 }, null, 1) + '\n');
 if (CMD === 'list') process.exit(0);
@@ -220,11 +222,13 @@ if (CMD === 'list') process.exit(0);
 /* ---- upload ------------------------------------------------------------------- */
 if (CMD === 'upload') {
   // In the order the work was issued (an edition's own date, else the day its release was filed), a film before its Short.
+  // Two editions on one day go in the registry's order, which is newest first, so the later index is the earlier edition.
   const { EDITIONS } = await import(new URL('../src/lib/editions.mjs', import.meta.url).href);
   const issued = (r) => EDITIONS.find((e) => e.slug === r.meta.slug)?.date || (r.rel.published_at || r.rel.created_at).slice(0, 10);
+  const place = (r) => { const i = EDITIONS.findIndex((e) => e.slug === r.meta.slug); return i < 0 ? -1 : EDITIONS.length - i; };
   const queue = missing
     .filter((r) => KINDS.includes(r.meta.kind))
-    .sort((a, b) => issued(a).localeCompare(issued(b)) || a.tag.localeCompare(b.tag) || (a.meta.kind === b.meta.kind ? 0 : a.meta.kind === 'film' ? -1 : 1));
+    .sort((a, b) => issued(a).localeCompare(issued(b)) || place(a) - place(b) || a.tag.localeCompare(b.tag) || (a.meta.kind === b.meta.kind ? 0 : a.meta.kind === 'film' ? -1 : 1));
   console.log(`\nupload${DRY ? ' (dry run)' : ''}: ${queue.length} rendered and not on the channel; at most ${MAX} this run, ${PUBLISH_AT ? `private until ${PUBLISH_AT}` : PRIVACY}`);
   let done = 0;
   for (const r of queue) {
@@ -233,6 +237,7 @@ if (CMD === 'upload') {
     if (r.slates) { console.log(`  ${r.tag}/${r.meta.file}: refused, ${r.slates} shots still play as slates (shots.md)`); continue; }
     if (!String(r.meta.description || '').toLowerCase().includes(VOICE.toLowerCase())) { console.log(`  ${r.tag}/${r.meta.file}: refused, not in the channel's voice ${VOICE} (${(String(r.meta.description).match(/Voice: [^\n]*/) || ['no voice line'])[0]}); render it again first`); continue; }
     if (r.ledgerId) { console.log(`  ${r.tag}/${r.meta.file}: refused, filed as ${r.ledgerId}, which is not on the channel; delete ${r.ledgerName} from the release to upload it again`); continue; }
+    if (r.meta.duration > 900 && ['disallowed', 'eligible'].includes(LONG)) { console.log(`  ${r.tag}/${r.meta.file}: refused, ${Math.round(r.meta.duration / 60)} min and the channel's long uploads are ${LONG}; YouTube would reject it for length. The owner verifies the channel at youtube.com/verify, then the next run takes it`); continue; }
     if (done >= MAX) { console.log(`  ${r.tag}/${r.meta.file}: next run (the cap of ${MAX} keeps a run inside one day's quota)`); continue; }
     done++;
     console.log(`  ${r.tag}/${r.meta.file}: ${DRY ? 'would upload' : 'uploading'} "${r.meta.title}"${PUBLISH_AT ? `, publishing ${new Date(Date.parse(PUBLISH_AT) + (done - 1) * EVERY_H * 3600e3).toISOString()}` : ''}`);
