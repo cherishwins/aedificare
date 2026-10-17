@@ -104,6 +104,7 @@ jobs:
           PUBLISH_AT: ${{ inputs.publish_at }}
           EVERY_HOURS: ${{ inputs.every_hours }}
           DRY: ${{ inputs.dry }}
+          NARRATOR: ${{ vars.NARRATOR || 'gemini:voice_l6lephk1pqjk' }}
         run: |
           set -o pipefail
           args=("$ACTION")
