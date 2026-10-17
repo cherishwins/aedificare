@@ -1,0 +1,23 @@
+Privacy: Aedificare uploader
+
+The Aedificare uploader is a private tool that puts Aedificare's own films
+on Aedificare's own YouTube channel (@aedificare_art). It is used by the
+channel's owner and no one else.
+
+What it accesses: the channel owner's YouTube account, through Google
+OAuth, with these permissions: upload videos, manage their titles,
+descriptions, captions, thumbnails and playlists, and read the channel's
+videos and analytics. It acts on that one channel only.
+
+What it stores: one OAuth refresh token, kept as an encrypted secret in
+the channel owner's GitHub repository, and the IDs of the videos it
+uploaded, filed beside the films in the same repository. It stores no
+data about viewers or any other person, sells nothing, shares nothing,
+and shows no ads.
+
+Removing access: the owner can revoke it at any time at
+https://myaccount.google.com/permissions; YouTube's own terms apply to
+the channel (https://www.youtube.com/t/terms), and Google's privacy policy
+to the account (https://policies.google.com/privacy).
+
+Contact: the owner, through https://aedificare.art.
