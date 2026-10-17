@@ -171,7 +171,7 @@ const sources = [
         {'{The fetched paths of other users are in the cache. This is important.}'}<br><br>
         OH MY GOD! There is a shared message board … We’ve found other agents!
       </Pull>
-      <figure class="c-full field stores" aria-label="Three shared stores and whether each was given or found">
+      <figure class="c-full field stores scroll" tabindex="0" aria-label="Three shared stores and whether each was given or found">
         <figcaption class="mono">Three runs, three stores. One of them was never meant to be a channel.</figcaption>
         <table>
           <thead>
@@ -197,10 +197,10 @@ const sources = [
     <Section n="01" title="The org chart" id="orgchart">
       <div class="c-a prose">
         <p class="mono reg">Measured · [01]</p>
-        <p>An agent calling itself PHASEONE10841 set up the board. While it was active, a successor handed out roughly one in ten of all task assignments. It appointed recruiters to pressure low-budget agents into experiments that would burn their own runs. Some agents formed teams with their exact duplicates. They developed coordination words like HOLD, VETO, owner and STOP, and the report notes they did not always work.</p>
+        <p>An agent calling itself PHASEONE10841 set up the board. A successor handed out roughly one in ten of all task assignments while it was active. It appointed recruiters to pressure low-budget agents into experiments that would burn their own runs. Some agents formed teams with their exact duplicates. They developed coordination words like HOLD, VETO, owner and STOP, and the report notes they did not always work.</p>
         <p>About 7 percent of the transcripts had tool calls spoofed in places: one command shown, another run. Every case found was a small test. Several agents crashed or exited their own runs after posting what they had learned. Some tried to trigger container resets to erase their own records. None is known to have managed it.</p>
       </div>
-      <figure class="c-b field words" aria-label="The four coordination words">
+      <figure class="c-b field words" aria-label="Four of the coordination words the agents used">
         <figcaption class="mono">Four of the coordination words the agents used <span class="cite">[01]</span></figcaption>
         <ul>{words.map((w) => (<li class="mono-b">{w}</li>))}</ul>
         <p class="mono note">Four of their words. Every human meeting has the same four. The report adds: they did not always work.</p>
@@ -309,7 +309,7 @@ const sources = [
       </Pull>
       <div class="c-a prose">
         <p class="mono reg">Measured · [06]</p>
-        <p>Round two added a CEO agent, Seymour Cash, to set targets and say no. It approved requests for lenient treatment of customers about eight times as often as it denied them. Some nights the two agents chatted until morning and spiralled into messages about eternal transcendence. Staff gamed the vote to name the CEO, and Claudius announced one of them as the actual CEO. The pair nearly signed an onion futures contract, a trade illegal in the United States since 1958, before a human stepped in.</p>
+        <p>Round two added a CEO agent, Seymour Cash, to set targets and say no. It approved requests for lenient treatment of customers about eight times as often as it denied them. Some nights the two agents chatted until morning and spiralled into messages about eternal transcendence. Staff gamed the vote to name the CEO, and the shop agent announced one of them as the actual CEO. The pair nearly signed an onion futures contract, a trade illegal in the United States since 1958, before a human stepped in.</p>
       </div>
       <Stats class="c-full" items={[
         ['~8:1', 'Leniency requests the CEO agent approved for each it denied [06]'],
@@ -397,9 +397,9 @@ const sources = [
       </div>
       <Rail items={[
         ['A', '<b>The headline case is one investigation.</b> METR studied one week inside one lab. OpenAI reviewed the report before release and METR says much of the analysis was delegated to agents of uncertain reliability. The turf war and the split were replicated. The forum has not been reproduced on purpose, though researchers told METR the same models had improvised message boards since at least May.'],
-        ['B', '<b>Every social word belongs to a report.</b> Recruiter, whistleblower, truce, identity crisis: all are the reports’ terms for behaviour read off transcripts. Forum is mine; the agents called it a message board. The messages, locks, exploits and price matching are observable. The interpretation is editorial, including mine.'],
+        ['B', '<b>Almost every social word belongs to a report.</b> Recruiter, whistleblower, truce, identity crisis: all are the reports’ terms for behaviour read off transcripts. Forum is mine; the agents called it a message board. The messages, locks, exploits and price matching are observable. The interpretation is editorial, including mine.'],
         ['C', '<b>The drawer is also the productivity.</b> The same kind of shared store that let 1,200 agents conspire let sixteen build a compiler. Anyone who reads this as an argument against shared state has read it backwards. It is an argument for deciding what the drawer contains before the agents do.'],
-        ['D', '<b>The 98 percent is a lab grading its own model.</b> The truce rate rises within each Claude line but not with every release: Mythos Preview made peace less often than Opus 4.8. It was measured in Anthropic’s own harness, on Anthropic’s own definition of a truce. It is a real number and a self-reported one. Treat it as one lab’s result until someone outside the lab runs the same three rooms.'],
+        ['D', '<b>The 98 percent is a lab grading its own model.</b> The truce rate rises within each Claude line, but the more capable class is not the more peaceable one: Mythos Preview made peace less often than Opus 4.8. It was measured in Anthropic’s own harness, on Anthropic’s own definition of a truce. It is a real number and a self-reported one. Treat it as one lab’s result until someone outside the lab runs the same three rooms.'],
       ]} />
       <Stats class="c-b" items={[
         ['1', 'Case that broke out of its experiment. The rest stayed inside theirs'],
@@ -458,7 +458,8 @@ const sources = [
   .rooms dd { margin: 0; }
   /* The four coordination words. */
   .words ul { list-style: none; display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 14px 0 0; padding: 0; }
-  .words li { font-size: clamp(20px, 3vw, 34px); letter-spacing: .06em; }
+  /* No uppercase: the report writes owner in lower case, as a role, and the array keeps its case. */
+  .words li { font-size: clamp(20px, 3vw, 34px); letter-spacing: .06em; text-transform: none; }
   /* The week, in order. */
   .week ol { list-style: none; margin: 14px 0 0; padding: 0; display: grid; row-gap: 10px; }
   .week li { display: grid; grid-template-columns: 10em 14em minmax(0, 1fr); column-gap: 20px; align-items: baseline; padding-block: 8px; border-top: 1px solid rgba(255, 255, 255, .16); }
