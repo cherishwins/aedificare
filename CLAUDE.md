@@ -103,6 +103,24 @@ that is a reference, not documentation.
    uploaded as SRT, never burned, so no frame breaks the type rules. The
    entity is still never explained: the narration is the edition's prose
    and a generated record line, nothing else.
+   **The voice changed on 2026-10-17, before the channel's run began**
+   (owner: "you can use one of different ones you decide"). Kokoro was
+   judged not good enough; research ranked the options that pass the rules
+   (commercial use, no clone, word timing) and Gemini 3.8 Flash TTS came
+   out best for the money at about a quarter of a dollar a film, in the
+   owner's own Google project. The owner heard samples
+   (`tools/voice-samples.mjs`) and left the pick to the builder, who chose
+   the DESIGNED voice "aedificare-analyst" (`voice_l6lephk1pqjk`: a man in
+   his forties, low, dry, unhurried, a financial analyst who finds the
+   numbers quietly absurd; written as a description, never taken from a
+   recording), because it is the brief in one line and belongs to this
+   channel alone. It speaks through `tools/narrate_gemini.py` when the
+   workflows set `NARRATOR=gemini:voice_l6lephk1pqjk` (a repository
+   variable `NARRATOR` overrides; `kokoro` in it brings back am_michael).
+   One voice still holds: a missing voice id fails the render rather than
+   falling back. The Markup's film and Short went up by hand in the old
+   voice before this; they stay up until re-rendered, and that is the
+   owner's call.
 7. **The films get a voice of their own** (owner, 2026-09-24, later:
    "let's be like Fireship but Patrick Boyle dry humor, a unique
    Frankenstein voice"). Override 6 read the edition verbatim; this
@@ -302,7 +320,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `generate-og.mjs`, `generate-marks.mjs`, `generate-social.mjs`,
   `generate-video.mjs` (the silent films), `generate-film.mjs` (the
   narrated films, three steps: script, narrate, render; `--short` for the
-  Short), `narrate.py` (the voice, Kokoro-82M through `uv`), `bed.py` (the
+  Short), `narrate.py` (the voice, Kokoro-82M through `uv`, or Gemini
+  through `narrate_gemini.py` when `NARRATOR` names a Gemini voice: chunks
+  of about two minutes spoken in one style, words placed by forced
+  alignment with wav2vec2-base-960h and a CTC Viterbi pass, numbers spelled
+  out first so the voice and the aligner agree, measured at a median 96 ms
+  against Kokoro's own timestamps on the same audio), `voice-samples.mjs`
+  (the same passage in every candidate voice, filed under the Release
+  `voice-samples`), `bed.py` (the
   computed music bed, through `uv`), `lib/film.mjs` (what the two film
   generators share: palette, ffmpeg search, surface CSS, the Chromium
   context, the encoder), `upload-youtube.mjs` (a rendered film to the

@@ -10,7 +10,7 @@
  *   node tools/youtube-channel.mjs list
  *   node tools/youtube-channel.mjs sync   [--dry] [--force] [--only <tag>]
  *   node tools/youtube-channel.mjs upload [--dry] [--only <tag>] [--kinds film,short] [--max 10]
- *                                         [--privacy private|unlisted] [--publish-at <ISO time>]
+ *                                         [--privacy private|unlisted] [--publish-at <ISO time>] [--every <hours>]
  *
  * LIST prints every upload (id, privacy, date, length, views, file name,
  * title) and the release it came from, then the renders on Releases that
@@ -44,7 +44,9 @@
  * video's id on the release as youtube.json (the film) or youtube-short.json
  * (the Short), so the next run, and every list, knows the video is there
  * even when the API leaves its file name empty. Private by default;
- * --publish-at keeps it private and has YouTube publish it at that time.
+ * --publish-at keeps it private and has YouTube publish it at that time;
+ * with --every <hours>, each later upload in the run is scheduled that many
+ * hours after the one before, so a batch goes out as a run, not a dump.
  * Filing the id needs GH_TOKEN with contents: write (the workflow has it).
  *
  * A video is matched by the id filed on its release first, then by file
@@ -74,6 +76,7 @@ const KINDS = arg('--kinds', 'film,short').split(',');
 const MAX = +arg('--max', 10);
 const PRIVACY = arg('--privacy', 'private');
 const PUBLISH_AT = arg('--publish-at', null);
+const EVERY_H = +arg('--every', 0);
 if (!['list', 'sync', 'upload', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>]'); process.exit(1); }
 // Nothing goes public from a machine (CLAUDE.md, the bed, the Short, the upload): public is refused here, and a scheduled publish is the owner's call, made by passing a time.
 if (!['private', 'unlisted'].includes(PRIVACY)) { console.error('youtube-channel: --privacy is private or unlisted; publishing is the owner\'s, in Studio or with --publish-at'); process.exit(1); }
@@ -219,7 +222,7 @@ if (CMD === 'upload') {
     if (r.ledgerId) { console.log(`  ${r.tag}/${r.meta.file}: refused, filed as ${r.ledgerId}, which is not on the channel; delete ${r.ledgerName} from the release to upload it again`); continue; }
     if (done >= MAX) { console.log(`  ${r.tag}/${r.meta.file}: next run (the cap of ${MAX} keeps a run inside one day's quota)`); continue; }
     done++;
-    console.log(`  ${r.tag}/${r.meta.file}: ${DRY ? 'would upload' : 'uploading'} "${r.meta.title}"`);
+    console.log(`  ${r.tag}/${r.meta.file}: ${DRY ? 'would upload' : 'uploading'} "${r.meta.title}"${PUBLISH_AT ? `, publishing ${new Date(Date.parse(PUBLISH_AT) + (done - 1) * EVERY_H * 3600e3).toISOString()}` : ''}`);
     if (DRY) continue;
     const dir = path.join(OUT, r.tag);
     fs.mkdirSync(dir, { recursive: true });
@@ -227,7 +230,9 @@ if (CMD === 'upload') {
       if (asset(r.rel, name)) fs.writeFileSync(path.join(dir, name), fetchAsset(r.rel, name));
     }
     saveAsset(r.rel, r.meta.file, path.join(dir, r.meta.file));
-    execFileSync(process.execPath, ['tools/upload-youtube.mjs', path.join(dir, r.metaName), '--privacy', PRIVACY, ...(PUBLISH_AT ? ['--publish-at', PUBLISH_AT] : [])], { stdio: 'inherit' });
+    const at = PUBLISH_AT ? new Date(Date.parse(PUBLISH_AT) + (done - 1) * EVERY_H * 3600e3).toISOString() : null;
+    if (at) console.log(`    publishes ${at}`);
+    execFileSync(process.execPath, ['tools/upload-youtube.mjs', path.join(dir, r.metaName), '--privacy', PRIVACY, ...(at ? ['--publish-at', at] : [])], { stdio: 'inherit' });
     fs.rmSync(path.join(dir, r.meta.file));
     // File the id on the release, replacing any earlier ledger of the same name.
     const ledgerFile = path.join(dir, r.ledgerName);

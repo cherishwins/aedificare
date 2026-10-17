@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.10"
-# dependencies = ["kokoro>=0.9.4", "soundfile", "numpy", "torch", "transformers>=5.17"]
+# dependencies = ["kokoro>=0.9.4", "soundfile", "numpy", "torch", "transformers>=5.17", "num2words"]
 # [[tool.uv.index]]
 # name = "pytorch-cpu"
 # url = "https://download.pytorch.org/whl/cpu"
@@ -27,6 +27,25 @@ Run through uv so nothing is installed into the repo:
   uv run tools/narrate.py brand/youtube/edition-03
 Owner decision 2026-09-24: the channel speaks; the voice is am_michael.
 
+THE GEMINI VOICE (2026-10-17; the owner left the choice to the builder after
+hearing the samples from tools/voice-samples.mjs). With
+NARRATOR=gemini:<voice id> and GEMINI_API_KEY in the environment, the same
+blocks are spoken by gemini-3.8-flash-tts in that voice, a voice DESIGNED
+from a written description and stored in the owner's Google project (never
+replicated from a recording), with one deadpan style for every film. The
+outputs are the same two files with the same shape, so tools/generate-film.mjs
+and tools/episode.mjs render from them unchanged. Gemini gives no word
+timestamps, so they come from forced alignment: the script is known, so
+facebook/wav2vec2-base-960h (Apache-2.0, through transformers) and a CTC
+Viterbi pass written here find each word in the audio. Numbers are spelled
+out (num2words) before Gemini sees them, so what it says is what the aligner
+looks for. Blocks are spoken a section's worth at a time (about two minutes,
+so a film is a handful of requests) and cut apart at the aligned boundaries,
+then laid out with the same gaps as the Kokoro path. A chunk the aligner
+cannot place falls back to proportional timing and says so. A voice id that
+no longer exists fails the run rather than falling back to another voice:
+the channel speaks in one voice or not at all.
+
 transformers>=5.17 is stated because kokoro does not bound it: on 2 Oct 2026
 a fresh resolve (every Python from 3.11 to 3.14) backtracked to transformers
 4.12.2, whose tokenizers 0.10.3 has no wheel and no longer compiles, and the
@@ -34,13 +53,13 @@ episode workflow failed at the narration. 5.17 and 5.18 both narrate with
 word timestamps.
 """
 import json
+import os
 import re
 import sys
 import time
 
 import numpy as np
 import soundfile as sf
-from kokoro import KPipeline
 
 DIR = sys.argv[1]
 SCRIPT = json.load(open(f'{DIR}/script.json'))
@@ -146,6 +165,14 @@ def align(spoken_words, ktokens):
             return None
     return out
 
+
+ENGINE = os.environ.get('NARRATOR', '')
+if ENGINE.startswith('gemini:'):
+    from narrate_gemini import narrate_gemini  # tools/narrate_gemini.py, beside this file
+    narrate_gemini(DIR, SCRIPT, ENGINE.split(':', 1)[1], normalise, GAP_BEFORE, GAP_AFTER, SR)
+    sys.exit(0)
+
+from kokoro import KPipeline
 
 t0 = time.time()
 pipe = KPipeline(lang_code='a', repo_id='hexgrad/Kokoro-82M')

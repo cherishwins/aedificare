@@ -73,7 +73,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      # The channel's voice (CLAUDE.md, override 6 as amended 2026-10-17): Gemini, one designed
+      # voice, through tools/narrate_gemini.py. vars.NARRATOR overrides; kokoro: falls back to the old voice.
       - name: Film
+        env:
+          NARRATOR: ${{ vars.NARRATOR || 'gemini:voice_l6lephk1pqjk' }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: node tools/generate-film.mjs --slug "$SLUG" --format "$FORMAT"
 
       # The Short reuses the narration: section 00 and the record, tall.

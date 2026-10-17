@@ -50,6 +50,10 @@ on:
         description: 'upload: an ISO time to have YouTube publish it (stays private until then); empty to leave publishing to Studio'
         required: false
         default: ''
+      every_hours:
+        description: 'upload with publish_at: hours between one scheduled video and the next (0 = all at the same time)'
+        required: false
+        default: '0'
       dry:
         description: 'upload or sync: print the plan only'
         required: false
@@ -98,6 +102,7 @@ jobs:
           MAX: ${{ inputs.max }}
           PRIVACY: ${{ inputs.privacy }}
           PUBLISH_AT: ${{ inputs.publish_at }}
+          EVERY_HOURS: ${{ inputs.every_hours }}
           DRY: ${{ inputs.dry }}
         run: |
           set -o pipefail
@@ -106,7 +111,7 @@ jobs:
           [ "$DRY" = "true" ] && [ "$ACTION" != "list" ] && [ "$ACTION" != "probe" ] && args+=(--dry)
           if [ "$ACTION" = "upload" ]; then
             args+=(--kinds "$KINDS" --max "$MAX" --privacy "$PRIVACY")
-            [ -n "$PUBLISH_AT" ] && args+=(--publish-at "$PUBLISH_AT")
+            [ -n "$PUBLISH_AT" ] && args+=(--publish-at "$PUBLISH_AT" --every "${EVERY_HOURS:-0}")
           fi
           node tools/youtube-channel.mjs "${args[@]}" 2>&1 | tee youtube.log
           { echo '## youtube: '"$ACTION"; echo; echo '```'; cat youtube.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
