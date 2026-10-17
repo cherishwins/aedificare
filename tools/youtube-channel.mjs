@@ -6,8 +6,11 @@
  * only). So a hand upload is matched to its render by its file name, and
  * nobody pastes a video id back.
  *
+ *   node tools/youtube-channel.mjs probe
  *   node tools/youtube-channel.mjs list
- *   node tools/youtube-channel.mjs sync [--dry] [--force] [--only <tag>]
+ *   node tools/youtube-channel.mjs sync   [--dry] [--force] [--only <tag>]
+ *   node tools/youtube-channel.mjs upload [--dry] [--only <tag>] [--kinds film,short] [--max 10]
+ *                                         [--privacy private|unlisted] [--publish-at <ISO time>]
  *
  * LIST prints every upload (id, privacy, date, length, views, file name,
  * title) and the release it came from, then the renders on Releases that
@@ -21,14 +24,40 @@
  * already match is skipped unless --force, because each update spends about
  * 500 of the project's 10,000 daily quota units. --dry prints the plan.
  *
- * A video is matched by file name first and, failing that, by a title equal
- * to the render's (a hand upload whose title was pasted from sheet.txt).
+ * PROBE answers one question before any film goes up: does this Google
+ * Cloud project's upload come out locked private? Since 28 July 2020 YouTube
+ * has locked API uploads from unaudited projects created after that date,
+ * and a locked video can never be unlocked, only uploaded again
+ * (support.google.com/youtube/answer/7300965); in October 2026 the
+ * videos.insert reference began saying the opposite, while the revision
+ * history and the help page still say it. So the probe uploads a
+ * three-second Void clip as unlisted, waits for YouTube to process it,
+ * reports the privacy YouTube actually gave it, and deletes it. Needs ffmpeg.
+ *
+ * UPLOAD puts on the channel, through tools/upload-youtube.mjs, each render
+ * that is not there yet: oldest release first, a film before its Short, at
+ * most --max a run. Since 1 June 2026 videos.insert has its own bucket, 100
+ * a day, so the cap is the shared 10,000 units: about 500 per video (400
+ * captions, 50 thumbnail, 50 listing), about twenty videos a day. It
+ * refuses a render whose release carries a shots.md with an unticked shot,
+ * because a missing shot plays as a slate. After each upload it files the
+ * video's id on the release as youtube.json (the film) or youtube-short.json
+ * (the Short), so the next run, and every list, knows the video is there
+ * even when the API leaves its file name empty. Private by default;
+ * --publish-at keeps it private and has YouTube publish it at that time.
+ * Filing the id needs GH_TOKEN with contents: write (the workflow has it).
+ *
+ * A video is matched by the id filed on its release first, then by file
+ * name, then by a title equal to the render's and of the same kind (a hand
+ * upload whose title was pasted from sheet.txt).
  *
  * Credentials as tools/upload-youtube.mjs: YT_CLIENT_ID, YT_CLIENT_SECRET,
  * YT_REFRESH_TOKEN, the token minted by tools/youtube-auth.mjs with the read
  * scope. Release files come down with curl (GH_TOKEN or GITHUB_TOKEN if set;
  * the repository is public, so neither is needed off a shared address).
- * Quota: list costs a few units; sync about 500 per video it changes.
+ * Quota: list costs a few units; sync about 500 per video it changes;
+ * upload one of the 100 daily uploads plus about 500 units per video;
+ * probe one upload plus about 60 units.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -41,13 +70,21 @@ const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0
 const DRY = process.argv.includes('--dry');
 const FORCE = process.argv.includes('--force');
 const ONLY = arg('--only', null);
-if (!['list', 'sync'].includes(CMD)) { console.error('youtube-channel: list | sync [--dry] [--force] [--only <tag>]'); process.exit(1); }
+const KINDS = arg('--kinds', 'film,short').split(',');
+const MAX = +arg('--max', 10);
+const PRIVACY = arg('--privacy', 'private');
+const PUBLISH_AT = arg('--publish-at', null);
+if (!['list', 'sync', 'upload', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>]'); process.exit(1); }
+// Nothing goes public from a machine (CLAUDE.md, the bed, the Short, the upload): public is refused here, and a scheduled publish is the owner's call, made by passing a time.
+if (!['private', 'unlisted'].includes(PRIVACY)) { console.error('youtube-channel: --privacy is private or unlisted; publishing is the owner\'s, in Studio or with --publish-at'); process.exit(1); }
+if (PUBLISH_AT && !(Date.parse(PUBLISH_AT) > Date.now())) { console.error(`youtube-channel: --publish-at ${PUBLISH_AT} is not a future ISO time`); process.exit(1); }
 const { YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN } = process.env;
 if (!YT_CLIENT_ID || !YT_CLIENT_SECRET || !YT_REFRESH_TOKEN) { console.error('youtube-channel: YT_CLIENT_ID, YT_CLIENT_SECRET and YT_REFRESH_TOKEN must be set (tools/youtube-auth.mjs says how)'); process.exit(1); }
 
 /* ---- GitHub: the renders on Releases ---------------------------------------- */
 const ghToken = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
-const curl = (url, accept) => execFileSync('curl', ['-sSLf', '-H', `accept: ${accept}`, ...(ghToken ? ['-H', `authorization: Bearer ${ghToken}`] : []), url], { maxBuffer: 1 << 26 });
+const ghAuth = ghToken ? ['-H', `authorization: Bearer ${ghToken}`] : [];
+const curl = (url, accept) => execFileSync('curl', ['-sSLf', '-H', `accept: ${accept}`, ...ghAuth, url], { maxBuffer: 1 << 26 });
 const releases = [];
 for (let page = 1; ; page++) {
   const batch = JSON.parse(curl(`https://api.github.com/repos/${REPO}/releases?per_page=100&page=${page}`, 'application/vnd.github+json'));
@@ -56,6 +93,8 @@ for (let page = 1; ; page++) {
 }
 const asset = (rel, name) => rel.assets.find((a) => a.name === name);
 const fetchAsset = (rel, name) => curl(asset(rel, name).url, 'application/octet-stream');
+// A film is a gigabyte: straight to disk, never through memory.
+const saveAsset = (rel, name, to) => execFileSync('curl', ['-sSLf', '-H', 'accept: application/octet-stream', ...ghAuth, '-o', to, asset(rel, name).url]);
 // One entry per rendered video: the wide film from meta.json, the Short from meta-short.json.
 const renders = [];
 for (const rel of releases) {
@@ -63,7 +102,11 @@ for (const rel of releases) {
     if (!asset(rel, metaName)) continue;
     const meta = JSON.parse(fetchAsset(rel, metaName));
     if (!asset(rel, meta.file)) continue;
-    renders.push({ tag: rel.tag_name, metaName, meta, rel });
+    const ledgerName = metaName === 'meta.json' ? 'youtube.json' : 'youtube-short.json';
+    const ledger = asset(rel, ledgerName) ? JSON.parse(fetchAsset(rel, ledgerName)) : null;
+    // An episode lists its missing shots in shots.md; each one plays as a slate, so the render is a draft.
+    const slates = asset(rel, 'shots.md') ? (String(fetchAsset(rel, 'shots.md')).match(/^- \[ \]/gm) || []).length : 0;
+    renders.push({ tag: rel.tag_name, metaName, meta, rel, ledgerName, ledgerId: ledger?.id || null, slates });
   }
 }
 const key = (name) => (name || '').toLowerCase();
@@ -83,6 +126,36 @@ const get = async (url) => {
 };
 const channel = (await get('channels?part=snippet,contentDetails,statistics&mine=true')).items?.[0];
 if (!channel) { console.error('youtube-channel: the token is not signed in to a channel'); process.exit(1); }
+
+/* ---- probe -------------------------------------------------------------------- */
+if (CMD === 'probe') {
+  const clip = path.join(OUT, 'probe.mp4');
+  fs.mkdirSync(OUT, { recursive: true });
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=0x050A06:s=1280x720:d=3:r=24', '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo', '-shortest', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', clip]);
+  const body = fs.readFileSync(clip);
+  const start = await fetch('https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status', {
+    method: 'POST', headers: { ...auth, 'content-type': 'application/json; charset=UTF-8', 'x-upload-content-type': 'video/mp4', 'x-upload-content-length': String(body.length) },
+    body: JSON.stringify({ snippet: { title: 'probe', description: 'An automated test of the upload route; deleted within minutes.', categoryId: '28' }, status: { privacyStatus: 'unlisted', selfDeclaredMadeForKids: false } }),
+  });
+  if (!start.ok) { console.error('youtube-channel: probe upload session failed', start.status, await start.text()); process.exit(1); }
+  const put = await fetch(start.headers.get('location'), { method: 'PUT', headers: { 'content-type': 'video/mp4' }, body });
+  if (!put.ok) { console.error('youtube-channel: probe upload failed', put.status, await put.text()); process.exit(1); }
+  const id = (await put.json()).id;
+  console.log(`probe: uploaded ${id} as unlisted; waiting for YouTube to process it`);
+  let st;
+  for (let i = 0; i < 40; i++) {
+    await new Promise((r) => setTimeout(r, 15000));
+    st = (await get(`videos?part=status&id=${id}`)).items?.[0]?.status;
+    if (st && st.uploadStatus !== 'uploaded') break;
+  }
+  console.log(`probe: uploadStatus ${st?.uploadStatus}, privacyStatus ${st?.privacyStatus}${st?.rejectionReason ? `, rejected: ${st.rejectionReason}` : ''}${st?.failureReason ? `, failed: ${st.failureReason}` : ''}`);
+  const del = await fetch(`${API}/videos?id=${id}`, { method: 'DELETE', headers: auth });
+  console.log(`probe: ${del.ok ? 'deleted' : `NOT deleted (${del.status}); delete ${id} in Studio`}`);
+  if (st?.privacyStatus === 'unlisted') console.log('probe: NOT LOCKED. API uploads from this project keep the privacy they are given; upload and publish-at work.');
+  else if (st?.privacyStatus === 'private') console.log('probe: LOCKED. API uploads from this project are forced private and can never be made public; upload by hand in Studio and use sync, and apply for the audit.');
+  else console.log('probe: inconclusive (still processing or failed); run it again.');
+  process.exit(0);
+}
 const ids = [];
 for (let pageToken = ''; ;) {
   const p = await get(`playlistItems?part=contentDetails&maxResults=50&playlistId=${channel.contentDetails.relatedPlaylists.uploads}${pageToken ? `&pageToken=${pageToken}` : ''}`);
@@ -102,7 +175,8 @@ const rows = videos.map((v) => {
   const file = v.fileDetails?.fileName || '';
   // A film and its Short share a title, so the title fallback also needs the kind: YouTube's Shorts run three minutes at most.
   const kind = secs(v.contentDetails.duration) <= 180 ? 'short' : 'film';
-  const r = renders.find((x) => key(x.meta.file) === key(file))
+  const r = renders.find((x) => x.ledgerId === v.id)
+    || renders.find((x) => key(x.meta.file) === key(file))
     || renders.find((x) => x.meta.title === v.snippet.title && x.meta.kind === kind && !matched.has(x));
   if (r) matched.add(r);
   return { v, r, file };
@@ -118,15 +192,54 @@ for (const { v, r, file } of rows) {
 const missing = renders.filter((r) => !matched.has(r));
 if (missing.length) {
   console.log('\nRendered, not on the channel:');
-  for (const r of missing) console.log(`  ${r.tag}/${r.meta.file}  ${r.meta.kind}  ${Math.round(r.meta.duration / 60)} min  "${r.meta.title}"`);
+  for (const r of missing) console.log(`  ${r.tag}/${r.meta.file}  ${r.meta.kind}  ${Math.round(r.meta.duration / 60)} min  "${r.meta.title}"${r.slates ? `  (draft: ${r.slates} shots missing)` : ''}${r.ledgerId ? `  (filed as ${r.ledgerId}, not on the channel: deleted?)` : ''}`);
 }
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'channel.json'), JSON.stringify({
   at: new Date().toISOString(), channel: { id: channel.id, title: channel.snippet.title, handle: channel.snippet.customUrl, subscribers: +channel.statistics.subscriberCount },
   videos: rows.map(({ v, r, file }) => ({ id: v.id, title: v.snippet.title, privacy: v.status.privacyStatus, published: v.snippet.publishedAt, duration: v.contentDetails.duration, views: +(v.statistics?.viewCount ?? 0), file, release: r ? `${r.tag}/${r.metaName}` : null })),
-  notOnChannel: missing.map((r) => ({ release: r.tag, file: r.meta.file, kind: r.meta.kind, title: r.meta.title })),
+  notOnChannel: missing.map((r) => ({ release: r.tag, file: r.meta.file, kind: r.meta.kind, title: r.meta.title, slates: r.slates, filedAs: r.ledgerId })),
 }, null, 1) + '\n');
 if (CMD === 'list') process.exit(0);
+
+/* ---- upload ------------------------------------------------------------------- */
+if (CMD === 'upload') {
+  // In the order the work was issued (an edition's own date, else the day its release was filed), a film before its Short.
+  const { EDITIONS } = await import(new URL('../src/lib/editions.mjs', import.meta.url).href);
+  const issued = (r) => EDITIONS.find((e) => e.slug === r.meta.slug)?.date || (r.rel.published_at || r.rel.created_at).slice(0, 10);
+  const queue = missing
+    .filter((r) => KINDS.includes(r.meta.kind))
+    .sort((a, b) => issued(a).localeCompare(issued(b)) || a.tag.localeCompare(b.tag) || (a.meta.kind === b.meta.kind ? 0 : a.meta.kind === 'film' ? -1 : 1));
+  console.log(`\nupload${DRY ? ' (dry run)' : ''}: ${queue.length} rendered and not on the channel; at most ${MAX} this run, ${PUBLISH_AT ? `private until ${PUBLISH_AT}` : PRIVACY}`);
+  let done = 0;
+  for (const r of queue) {
+    // A Short-only episode renders its wide cut under three minutes too; the same minute twice on one channel is a duplicate, so the Short stands alone.
+    if (r.meta.kind === 'film' && r.meta.duration <= 180 && renders.some((x) => x.tag === r.tag && x.meta.kind === 'short')) { console.log(`  ${r.tag}/${r.meta.file}: skipped, ${r.meta.duration} s wide cut of a Short-only episode; the Short goes up instead`); continue; }
+    if (r.slates) { console.log(`  ${r.tag}/${r.meta.file}: refused, ${r.slates} shots still play as slates (shots.md)`); continue; }
+    if (r.ledgerId) { console.log(`  ${r.tag}/${r.meta.file}: refused, filed as ${r.ledgerId}, which is not on the channel; delete ${r.ledgerName} from the release to upload it again`); continue; }
+    if (done >= MAX) { console.log(`  ${r.tag}/${r.meta.file}: next run (the cap of ${MAX} keeps a run inside one day's quota)`); continue; }
+    done++;
+    console.log(`  ${r.tag}/${r.meta.file}: ${DRY ? 'would upload' : 'uploading'} "${r.meta.title}"`);
+    if (DRY) continue;
+    const dir = path.join(OUT, r.tag);
+    fs.mkdirSync(dir, { recursive: true });
+    for (const name of [r.metaName, r.meta.captions, r.meta.thumbnail].filter(Boolean)) {
+      if (asset(r.rel, name)) fs.writeFileSync(path.join(dir, name), fetchAsset(r.rel, name));
+    }
+    saveAsset(r.rel, r.meta.file, path.join(dir, r.meta.file));
+    execFileSync(process.execPath, ['tools/upload-youtube.mjs', path.join(dir, r.metaName), '--privacy', PRIVACY, ...(PUBLISH_AT ? ['--publish-at', PUBLISH_AT] : [])], { stdio: 'inherit' });
+    fs.rmSync(path.join(dir, r.meta.file));
+    // File the id on the release, replacing any earlier ledger of the same name.
+    const ledgerFile = path.join(dir, r.ledgerName);
+    if (!ghToken) { console.log(`  (no GH_TOKEN: ${r.ledgerName} written to ${ledgerFile} but not filed on the release)`); continue; }
+    const old = asset(r.rel, r.ledgerName);
+    if (old) execFileSync('curl', ['-sSLf', '-X', 'DELETE', ...ghAuth, old.url]);
+    execFileSync('curl', ['-sSLf', '-X', 'POST', ...ghAuth, '-H', 'content-type: application/json', '--data-binary', `@${ledgerFile}`, `https://uploads.github.com/repos/${REPO}/releases/${r.rel.id}/assets?name=${r.ledgerName}`], { stdio: ['ignore', 'ignore', 'inherit'] });
+    console.log(`  filed ${r.ledgerName} on ${r.tag}`);
+  }
+  console.log(`  ${done} ${DRY ? 'to upload' : 'uploaded'}`);
+  process.exit(0);
+}
 
 /* ---- sync --------------------------------------------------------------------- */
 console.log(`\nsync${DRY ? ' (dry run)' : ''}:`);
