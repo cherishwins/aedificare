@@ -339,7 +339,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   the Gemini analyst's own description with a fixed seed, so the paid
   account can rebuild the voice the free one designed, when
   `ELEVENLABS_API_KEY_TEST` (the free account, tests only) or
-  `ELEVENLABS_API_KEY` (the paid account, 40k credits) is set;
+  `ELEVENLABS_API_KEY` (the paid account, 40k credits, stored as the
+  repository secret `PLUTO`, the owner's name for it) is set;
   `--only` picks engines so one can be tried without spending another's
   quota; the owner asked on 2026-10-17 whether ElevenLabs, #1 on the
   arena, is worth paying for, and the free plan's credits cover the test
