@@ -226,6 +226,12 @@ if (CMD === 'upload') {
   const { EDITIONS } = await import(new URL('../src/lib/editions.mjs', import.meta.url).href);
   const issued = (r) => EDITIONS.find((e) => e.slug === r.meta.slug)?.date || (r.rel.published_at || r.rel.created_at).slice(0, 10);
   const place = (r) => { const i = EDITIONS.findIndex((e) => e.slug === r.meta.slug); return i < 0 ? -1 : EDITIONS.length - i; };
+  // Fails closed: only 'allowed' takes a film over fifteen minutes. 'eligible' is fixed by phone verification; 'disallowed' is a
+  // channel not in good standing (strikes, Content ID blocks), which verification does not fix.
+  const tooLong = (r) => r.meta.duration > 900 && LONG !== 'allowed';
+  const LONG_FIX = LONG === 'eligible' ? 'The owner verifies the channel by phone at youtube.com/verify; the next run takes it'
+    : LONG === 'disallowed' ? 'The channel is not in good standing (Studio shows the strike or block); verifying does not lift it'
+    : 'YouTube did not report the channel\'s status; youtube.com/verify shows it';
   const queue = missing
     .filter((r) => KINDS.includes(r.meta.kind))
     .sort((a, b) => issued(a).localeCompare(issued(b)) || place(a) - place(b) || a.tag.localeCompare(b.tag) || (a.meta.kind === b.meta.kind ? 0 : a.meta.kind === 'film' ? -1 : 1));
@@ -237,7 +243,10 @@ if (CMD === 'upload') {
     if (r.slates) { console.log(`  ${r.tag}/${r.meta.file}: refused, ${r.slates} shots still play as slates (shots.md)`); continue; }
     if (!String(r.meta.description || '').toLowerCase().includes(VOICE.toLowerCase())) { console.log(`  ${r.tag}/${r.meta.file}: refused, not in the channel's voice ${VOICE} (${(String(r.meta.description).match(/Voice: [^\n]*/) || ['no voice line'])[0]}); render it again first`); continue; }
     if (r.ledgerId) { console.log(`  ${r.tag}/${r.meta.file}: refused, filed as ${r.ledgerId}, which is not on the channel; delete ${r.ledgerName} from the release to upload it again`); continue; }
-    if (r.meta.duration > 900 && ['disallowed', 'eligible'].includes(LONG)) { console.log(`  ${r.tag}/${r.meta.file}: refused, ${Math.round(r.meta.duration / 60)} min and the channel's long uploads are ${LONG}; YouTube would reject it for length. The owner verifies the channel at youtube.com/verify, then the next run takes it`); continue; }
+    if (tooLong(r)) { console.log(`  ${r.tag}/${r.meta.file}: refused, ${Math.round(r.meta.duration / 60)} min and the channel's long uploads are ${LONG}; YouTube would reject it for length. ${LONG_FIX}`); continue; }
+    // A Short's description sends the viewer to the film, so it waits while its film is held for length.
+    const film = r.meta.kind === 'short' && missing.find((x) => x.tag === r.tag && x.meta.kind === 'film');
+    if (film && tooLong(film)) { console.log(`  ${r.tag}/${r.meta.file}: held, its film is held for length and this Short points at it; it goes up with the film`); continue; }
     if (done >= MAX) { console.log(`  ${r.tag}/${r.meta.file}: next run (the cap of ${MAX} keeps a run inside one day's quota)`); continue; }
     done++;
     console.log(`  ${r.tag}/${r.meta.file}: ${DRY ? 'would upload' : 'uploading'} "${r.meta.title}"${PUBLISH_AT ? `, publishing ${new Date(Date.parse(PUBLISH_AT) + (done - 1) * EVERY_H * 3600e3).toISOString()}` : ''}`);
