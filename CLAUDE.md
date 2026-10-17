@@ -1174,6 +1174,26 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    channel, only the channel owner's OAuth consent can. From the secrets
    on, `tools/youtube-channel.mjs` matches hand uploads to renders by
    file name, so no video id is pasted back.
+   **Connected, 2026-10-17.** The OAuth client lives in the owner's
+   Google Cloud project "music" (`gen-lang-client-0610780259`, not
+   `theoem` as first planned); the channel account consented through the
+   OAuth Playground with the project's own client; the three values are
+   repository secrets, so `.github/workflows/youtube.yml` runs from a
+   dispatch and no session holds them. The consent screen hard-blocked the
+   channel account while the app was In production and unverified (the
+   branding check could not confirm the domain), so the token was minted in
+   Testing with the channel account as a test user: **it dies seven days
+   after consent**, and a lasting token needs either the domain verified in
+   Search Console (then In production) or the client moved to a project the
+   channel account owns. `probe` ran the same day: the upload stayed
+   unlisted, so this project's API uploads are **not locked private**,
+   whatever the 2020 note says. `list` matched The Markup's film and Short
+   (already up by hand) and named the other renders. Voice samples
+   (`tools/voice-samples.mjs`, Release `voice-samples`) went to the owner
+   to choose by ear before anything else is uploaded, because the films on
+   Releases are all in the Kokoro voice and the channel must not change
+   voice after it starts publishing; two designed Gemini voices exist in
+   the project for a year from last use.
    **The channel is the owner's existing one** (owner, 2026-09-25: "I'm
    going to use this channel because people like me and follow me
    already"): "OF8 SupraNational Global Conglomerate", 155 subscribers,
