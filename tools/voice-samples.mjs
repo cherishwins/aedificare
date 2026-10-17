@@ -181,6 +181,23 @@ if (ONLY.includes('eleven') && XI) {
   } catch (e) { if (!e.done) console.error(`  ElevenLabs: ${e.message}`); }
 }
 
+/* ---- 13: the narration engine itself, on the passage ---------------------------------------------------------------
+ * --only narrate with NARRATOR set runs tools/narrate.py exactly as a film does, on the passage's blocks, so a new
+ * engine is proved against the real API on 45 seconds before a film spends its credits on it. */
+if (ONLY.includes('narrate')) {
+  try {
+    const dir = path.join(OUT, 'narrate');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'script.json'), JSON.stringify({ voice: 'am_michael', blocks: PARAS.map((text, i) => ({ i, kind: i === 0 ? 'title' : 'p', read: true, text })) }));
+    execFileSync('uv', ['run', 'tools/narrate.py', dir], { stdio: 'inherit' });
+    const N = JSON.parse(fs.readFileSync(path.join(dir, 'narration.json'), 'utf8'));
+    const name = `13-narrate-${String(process.env.NARRATOR || 'kokoro').replace(/[^a-z0-9]+/gi, '-')}`;
+    mp3(path.join(dir, 'narration.wav'), name);
+    const words = N.blocks.flatMap((b) => b.words);
+    index.push(`${name}.mp3  tools/narrate.py with NARRATOR=${process.env.NARRATOR}: ${N.model} ${N.voice}, ${N.duration} s, ${words.length} words timed; first words ${words.slice(0, 6).map((w) => `${w.w}@${w.s}`).join(' ')}`);
+  } catch (e) { console.error(`  narrate: ${e.message}`); }
+}
+
 const INDEX = ONLY.length === 3 ? 'index.txt' : `index-${ONLY.join('-')}${LABEL !== 'analyst' ? `-${LABEL}` : ''}.txt`;
 fs.writeFileSync(path.join(OUT, INDEX), [`Passage (${TEXT.split(/\s+/).length} words), from source/film/edition-03.md:`, '', TEXT, '', 'Files:', ...index, ''].join('\n'));
 console.log(`\n${index.length} samples in ${OUT} (${INDEX})`);

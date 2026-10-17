@@ -169,6 +169,10 @@ def align(spoken_words, ktokens):
 
 
 ENGINE = os.environ.get('NARRATOR', '')
+if ENGINE.startswith('eleven:'):
+    from narrate_eleven import narrate_eleven  # tools/narrate_eleven.py, beside this file
+    narrate_eleven(DIR, SCRIPT, ENGINE.split(':', 1)[1], normalise, GAP_BEFORE, GAP_AFTER, SR)
+    sys.exit(0)
 if ENGINE.startswith('gemini:'):
     from narrate_gemini import narrate_gemini  # tools/narrate_gemini.py, beside this file
     narrate_gemini(DIR, SCRIPT, ENGINE.split(':', 1)[1], normalise, GAP_BEFORE, GAP_AFTER, SR)

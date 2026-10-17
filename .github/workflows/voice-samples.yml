@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: 'Which engines: kokoro,gemini,eleven (any subset)'
+        description: 'Which engines: kokoro,gemini,eleven,narrate (any subset)'
         required: false
         default: 'kokoro,gemini,eleven'
       eleven_voice:
@@ -31,6 +31,10 @@ on:
         default: false
       save:
         description: 'ElevenLabs: a generated_voice_id from a previews run to keep as the voice'
+        required: false
+        default: ''
+      narrator:
+        description: 'With only=narrate: the NARRATOR to prove on the passage (eleven:<voice id>, gemini:<voice id>)'
         required: false
         default: ''
 
@@ -64,6 +68,7 @@ jobs:
           LABEL: ${{ inputs.label || 'analyst' }}
           PREVIEWS: ${{ inputs.previews && '--previews' || '' }}
           SAVE: ${{ inputs.save }}
+          NARRATOR: ${{ inputs.narrator }}
         run: node tools/voice-samples.mjs --out out --only "$ONLY" --eleven-voice "$ELEVEN_VOICE" --label "$LABEL" --save "$SAVE" $PREVIEWS
 
       - name: File them as the Release voice-samples
