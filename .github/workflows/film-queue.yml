@@ -1,0 +1,55 @@
+# Every published edition's film, in the channel's voice, without anyone
+# dispatching it. Each morning, just after the Gemini free tier's daily reset
+# (midnight Pacific), this runs film.yml once per published edition, one at
+# a time, oldest first, with skip_voiced: an edition whose release already
+# carries the voice does nothing. The first editions that are not take the
+# day's ten requests; when they run out, film.yml stops green and keeps what
+# it heard in the cache, the rest stop at their first request, and tomorrow's
+# run continues. Once every film is voiced, a run is seven quick skips.
+#
+# Why a queue and not seven dispatches (2026-10-17): six films dispatched at
+# once all hit the free tier's 10 requests a day inside ten minutes and threw
+# away what they had. The list is read from src/lib/editions.mjs, never typed
+# here, so a new edition joins the queue the day it is published.
+name: film-queue
+
+on:
+  schedule:
+    - cron: '20 8 * * *'   # 08:20 UTC: after midnight Pacific in summer and in winter
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  queue:
+    runs-on: ubuntu-latest
+    outputs:
+      slugs: ${{ steps.q.outputs.slugs }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - id: q
+        run: |
+          node --input-type=module -e "
+            const { PUBLISHED } = await import('./src/lib/editions.mjs');
+            const slugs = [...PUBLISHED].sort((a, b) => a.date.localeCompare(b.date)).map((e) => e.slug);
+            console.log(slugs.join(' '));
+            (await import('node:fs')).appendFileSync(process.env.GITHUB_OUTPUT, 'slugs=' + JSON.stringify(slugs) + '\n');
+          "
+
+  film:
+    needs: queue
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        slug: ${{ fromJSON(needs.queue.outputs.slugs) }}
+    uses: ./.github/workflows/film.yml
+    with:
+      slug: ${{ matrix.slug }}
+      skip_voiced: true
+    secrets: inherit

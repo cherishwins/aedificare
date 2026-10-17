@@ -391,14 +391,14 @@ function sheet(T) {
 }
 
 /* ---- narrate ----------------------------------------------------------------- */
-const spoken = () => JSON.stringify({ voice: 'am_michael', speed: +(S.meta.speed || 1.05), seed: SEED, blocks: S.blocks.map((b, i) => ({ i, kind: b.kind, text: b.text || '', read: b.read })) }, null, 1) + '\n';
-/** The narration on disk is stale when the words, the block order or the speed changed since it was spoken. */
+const spoken = () => JSON.stringify({ voice: 'am_michael', narrator: process.env.NARRATOR || 'kokoro', speed: +(S.meta.speed || 1.05), seed: SEED, blocks: S.blocks.map((b, i) => ({ i, kind: b.kind, text: b.text || '', read: b.read })) }, null, 1) + '\n';
+/** The narration on disk is stale when the words, the block order, the speed or the narrator changed since it was spoken. */
 const stale = () => !fs.existsSync(path.join(DIR, 'narration.json')) || !fs.existsSync(path.join(DIR, 'script.json')) || fs.readFileSync(path.join(DIR, 'script.json'), 'utf8') !== spoken();
 
 function narrate() {
   fs.writeFileSync(path.join(DIR, 'script.json'), spoken());
   const r = spawnSync('uv', ['run', '-q', 'tools/narrate.py', DIR], { stdio: 'inherit' });
-  if (r.status !== 0) { console.error('episode: narration failed'); process.exit(1); }
+  if (r.status !== 0) { console.error('episode: narration failed'); process.exit(r.status === 75 ? 75 : 1); }
 }
 
 /* ---- the computed shots ---------------------------------------------------- */

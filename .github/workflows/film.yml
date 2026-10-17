@@ -4,13 +4,9 @@
 # 30 MB; a 14-minute 1080p film is a gigabyte. A public repo's Actions minutes
 # are free and unmetered and its artifacts are free, so this is where a film
 # is made for real: dispatch it with an edition's slug, wait (about an hour:
-# the voice runs on CPU, the frames run at 24 a second through Chromium),
-# download brand/youtube/<slug> from the run's Artifacts. It is the first
-# half of the publish pipeline in CLAUDE.md, Open 9; the second half, the
-# upload through the YouTube Data API, waits on the owner's OAuth client.
-#
-# Also runs once when this file itself changes, so the workflow is proved on
-# the branch that changes it and not trusted on faith.
+# the frames run at 24 a second through Chromium), download
+# brand/youtube/<slug> from the run's Artifacts. It is the first half of the
+# publish pipeline in CLAUDE.md, Open 9.
 #
 # The render is filed as a permanent Release named film-<slug>
 # (release.yml), which is where the owner finds a film: the artifact is the
@@ -20,32 +16,77 @@
 # `env.YT_REFRESH_TOKEN` in the step's own `if`, where the step's own env
 # is not yet set, so it never ran; one uploader with a ledger replaced it
 # (2026-10-17).
+#
+# The voice is Gemini's, on a free tier of 10 requests a day (CLAUDE.md,
+# override 6 as amended). So: every chunk Gemini speaks is kept in the
+# Actions cache under narration-<slug>, and a rerun pays only for what it has
+# not heard; when the day's quota runs out the narration stops with exit 75,
+# this run ends green with a warning and files nothing, and the next run
+# (film-queue.yml, every morning after the reset) continues from the cache.
+# It no longer runs on a push of this file: that rendered The Markup on every
+# edit and spent a day's quota proving the workflow. Called by film-queue.yml
+# with skip_voiced, it does nothing for an edition whose release already
+# carries the voice it would speak in.
 name: film
 
 on:
   workflow_dispatch:
     inputs:
       slug:
-        description: 'Edition slug (edition-03, ns-02, ns-01, edition-01, the-floor)'
+        description: 'Edition slug, as in src/lib/editions.mjs'
         required: true
         default: edition-03
       format:
         description: 'wide (1920x1080) or tall (1080x1920)'
         required: false
         default: wide
-  push:
-    paths: ['.github/workflows/film.yml']
+  workflow_call:
+    inputs:
+      slug:
+        type: string
+        required: true
+      format:
+        type: string
+        default: wide
+      skip_voiced:
+        description: 'Do nothing when the release film-<slug> is already in this voice'
+        type: boolean
+        default: false
 
-concurrency:
-  group: film-${{ github.ref }}-${{ inputs.slug || 'edition-03' }}
-  cancel-in-progress: false
+env:
+  NARRATOR: ${{ vars.NARRATOR || 'gemini:voice_l6lephk1pqjk' }}
 
 jobs:
+  # The release's meta.json names the voice in its description ("Voice: synthetic, <model> <voice>").
+  voiced:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SLUG: ${{ inputs.slug }}
+          SKIP: ${{ inputs.skip_voiced && 'yes' || 'no' }}
+        run: |
+          V="${NARRATOR#gemini:}"
+          if [ "$SKIP" = yes ] && gh release download "film-$SLUG" -R "$GITHUB_REPOSITORY" -p meta.json -O meta.json 2>/dev/null && grep -q -- "$V" meta.json; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::film-$SLUG is already in $V; nothing to render"
+          fi
+
   film:
+    needs: voiced
+    if: needs.voiced.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    concurrency:
+      group: film-${{ github.ref }}-${{ inputs.slug }}
+      cancel-in-progress: false
+    outputs:
+      quota: ${{ steps.film.outputs.quota }}
     env:
-      SLUG: ${{ inputs.slug || 'edition-03' }}
+      SLUG: ${{ inputs.slug }}
       FORMAT: ${{ inputs.format || 'wide' }}
     steps:
       - uses: actions/checkout@v5
@@ -73,19 +114,47 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Every chunk already heard for this edition, from earlier runs (narrate_gemini.py, THE CACHE AND THE QUOTA).
+      - name: Narration cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/aedificare-narration
+          key: narration-${{ env.SLUG }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: narration-${{ env.SLUG }}-
+
       # The channel's voice (CLAUDE.md, override 6 as amended 2026-10-17): Gemini, one designed
       # voice, through tools/narrate_gemini.py. vars.NARRATOR overrides; kokoro: falls back to the old voice.
       - name: Film
+        id: film
         env:
-          NARRATOR: ${{ vars.NARRATOR || 'gemini:voice_l6lephk1pqjk' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: node tools/generate-film.mjs --slug "$SLUG" --format "$FORMAT"
+        run: |
+          mkdir -p ~/.cache/aedificare-narration
+          export NARRATION_CACHE=~/.cache/aedificare-narration
+          set +e
+          node tools/generate-film.mjs --slug "$SLUG" --format "$FORMAT"
+          s=$?
+          if [ "$s" -eq 75 ]; then
+            echo "quota=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::the day's Gemini quota ran out; the chunks so far are cached and the next run continues"
+            exit 0
+          fi
+          exit "$s"
+
+      - name: Keep the narration cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/aedificare-narration
+          key: narration-${{ env.SLUG }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       # The Short reuses the narration: section 00 and the record, tall.
       - name: Short
+        if: steps.film.outputs.quota != 'true'
         run: node tools/generate-film.mjs --slug "$SLUG" --step render --short
 
       - name: Upload the film
+        if: steps.film.outputs.quota != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: film-${{ env.SLUG }}-${{ env.FORMAT }}
@@ -96,11 +165,11 @@ jobs:
   # The filing system: the same files as a permanent Release named film-<slug>.
   release:
     needs: film
-    if: ${{ (inputs.format || 'wide') == 'wide' }}
+    if: ${{ (inputs.format || 'wide') == 'wide' && needs.film.outputs.quota != 'true' }}
     uses: ./.github/workflows/release.yml
     permissions:
       contents: write
       actions: read
     with:
-      slug: ${{ inputs.slug || 'edition-03' }}
+      slug: ${{ inputs.slug }}
       run_id: ${{ github.run_id }}

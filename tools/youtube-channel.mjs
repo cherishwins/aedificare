@@ -40,7 +40,10 @@
  * a day, so the cap is the shared 10,000 units: about 500 per video (400
  * captions, 50 thumbnail, 50 listing), about twenty videos a day. It
  * refuses a render whose release carries a shots.md with an unticked shot,
- * because a missing shot plays as a slate. After each upload it files the
+ * because a missing shot plays as a slate, and a render whose description
+ * names a voice other than the channel's (--voice, default the voice in
+ * NARRATOR), because the channel speaks in one voice and the Releases still
+ * hold films in the old one until they are rendered again. After each upload it files the
  * video's id on the release as youtube.json (the film) or youtube-short.json
  * (the Short), so the next run, and every list, knows the video is there
  * even when the API leaves its file name empty. Private by default;
@@ -77,6 +80,8 @@ const MAX = +arg('--max', 10);
 const PRIVACY = arg('--privacy', 'private');
 const PUBLISH_AT = arg('--publish-at', null);
 const EVERY_H = +arg('--every', 0);
+// The channel speaks in one voice (CLAUDE.md, override 6): a render whose description names another is never uploaded.
+const VOICE = arg('--voice', (process.env.NARRATOR || 'gemini:voice_l6lephk1pqjk').replace(/^gemini:/, ''));
 if (!['list', 'sync', 'upload', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>]'); process.exit(1); }
 // Nothing goes public from a machine (CLAUDE.md, the bed, the Short, the upload): public is refused here, and a scheduled publish is the owner's call, made by passing a time.
 if (!['private', 'unlisted'].includes(PRIVACY)) { console.error('youtube-channel: --privacy is private or unlisted; publishing is the owner\'s, in Studio or with --publish-at'); process.exit(1); }
@@ -219,6 +224,7 @@ if (CMD === 'upload') {
     // A Short-only episode renders its wide cut under three minutes too; the same minute twice on one channel is a duplicate, so the Short stands alone.
     if (r.meta.kind === 'film' && r.meta.duration <= 180 && renders.some((x) => x.tag === r.tag && x.meta.kind === 'short')) { console.log(`  ${r.tag}/${r.meta.file}: skipped, ${r.meta.duration} s wide cut of a Short-only episode; the Short goes up instead`); continue; }
     if (r.slates) { console.log(`  ${r.tag}/${r.meta.file}: refused, ${r.slates} shots still play as slates (shots.md)`); continue; }
+    if (!String(r.meta.description || '').toLowerCase().includes(VOICE.toLowerCase())) { console.log(`  ${r.tag}/${r.meta.file}: refused, not in the channel's voice ${VOICE} (${(String(r.meta.description).match(/Voice: [^\n]*/) || ['no voice line'])[0]}); render it again first`); continue; }
     if (r.ledgerId) { console.log(`  ${r.tag}/${r.meta.file}: refused, filed as ${r.ledgerId}, which is not on the channel; delete ${r.ledgerName} from the release to upload it again`); continue; }
     if (done >= MAX) { console.log(`  ${r.tag}/${r.meta.file}: next run (the cap of ${MAX} keeps a run inside one day's quota)`); continue; }
     done++;

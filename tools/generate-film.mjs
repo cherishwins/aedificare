@@ -128,7 +128,8 @@ async function script() {
 /* ---- 2. the voice ------------------------------------------------------- */
 function narrate() {
   const r = spawnSync('uv', ['run', 'tools/narrate.py', DIR], { stdio: 'inherit' });
-  if (r.status !== 0) { console.error('generate-film: narration failed'); process.exit(1); }
+  // 75: the day's Gemini quota is spent and the chunks so far are cached (tools/narrate_gemini.py); the workflow reads it.
+  if (r.status !== 0) { console.error('generate-film: narration failed'); process.exit(r.status === 75 ? 75 : 1); }
   // The bed, computed from the edition's seed; --music <file> replaces it at render, --music none drops it.
   const b = spawnSync('uv', ['run', 'tools/bed.py', DIR], { stdio: 'inherit' });
   if (b.status !== 0) { console.error('generate-film: bed failed'); process.exit(1); }

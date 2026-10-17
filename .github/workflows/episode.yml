@@ -9,8 +9,11 @@
 # animatic and each later run fills more of it in.
 #
 # Dispatch with the episode's slug (the file source/episodes/<slug>.md on the
-# ref being run). Also runs once when this file itself changes, on the first
-# episode, so the workflow is proved on the branch that changes it. The result is the artifact film-ep-<slug>-wide and the
+# ref being run). It no longer runs on a push of this file (2026-10-17): the
+# voice is Gemini's free tier, ten requests a day, and a proof render of a
+# draft episode spent them; every chunk it speaks is cached under
+# narration-ep-<slug>, and a run stopped by the quota ends green, files
+# nothing, and continues on the next dispatch. The result is the artifact film-ep-<slug>-wide and the
 # Release film-ep-<slug> (release.yml): film, captions, thumbnail, meta and
 # the upload sheet, plus shots.md, the list of what is still missing.
 #
@@ -47,8 +50,6 @@ on:
         description: 'For upload=update: the id of the video uploaded by hand'
         required: false
         default: ''
-  push:
-    paths: ['.github/workflows/episode.yml']
 
 concurrency:
   group: episode-${{ github.ref }}-${{ inputs.slug || 'softbank-975' }}
@@ -60,11 +61,13 @@ jobs:
     timeout-minutes: 120
     permissions:
       contents: read
+    outputs:
+      quota: ${{ steps.render.outputs.quota }}
     env:
       SLUG: ${{ inputs.slug || 'softbank-975' }}
       MUSIC: ${{ inputs.music || 'bed' }}
       GH_TOKEN: ${{ github.token }}
-      UPLOAD: ${{ github.event_name == 'workflow_dispatch' && inputs.upload || 'no' }}
+      UPLOAD: ${{ inputs.upload || 'no' }}
       PRIVACY: ${{ inputs.privacy || 'private' }}
       VIDEO_ID: ${{ inputs.video_id }}
       HAS_YT: ${{ secrets.YT_REFRESH_TOKEN != '' }}
@@ -101,19 +104,48 @@ jobs:
             echo "::notice::no release footage-$SLUG yet; every owner shot renders as a slate"
           fi
 
+      # Every chunk Gemini already spoke for this episode (tools/narrate_gemini.py, THE CACHE AND THE QUOTA).
+      - name: Narration cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/aedificare-narration
+          key: narration-ep-${{ env.SLUG }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: narration-ep-${{ env.SLUG }}-
+
+      # Exit 75 is the day's Gemini quota: the run ends green with a warning, files nothing, and a rerun continues.
       - name: Render
+        id: render
         env:
           NARRATOR: ${{ vars.NARRATOR || 'gemini:voice_l6lephk1pqjk' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: node tools/episode.mjs all "source/episodes/$SLUG.md" --music "$MUSIC"
+        run: |
+          mkdir -p ~/.cache/aedificare-narration
+          export NARRATION_CACHE=~/.cache/aedificare-narration
+          set +e
+          node tools/episode.mjs all "source/episodes/$SLUG.md" --music "$MUSIC"
+          s=$?
+          if [ "$s" -eq 75 ]; then
+            echo "quota=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::the day's Gemini quota ran out; the chunks so far are cached and a rerun continues"
+            exit 0
+          fi
+          exit "$s"
+
+      - name: Keep the narration cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/aedificare-narration
+          key: narration-ep-${{ env.SLUG }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       # The Short: the chapters named in the script's short:, tall, from the same narration.
       - name: Short
+        if: steps.render.outputs.quota != 'true'
         run: node tools/episode.mjs render "source/episodes/$SLUG.md" --music "$MUSIC" --short
 
       # Skipped on a push, without the secrets, or with upload=no. Nothing goes public unless asked for.
       - name: To YouTube
-        if: env.HAS_YT == 'true' && env.UPLOAD != 'no'
+        if: env.HAS_YT == 'true' && env.UPLOAD != 'no' && steps.render.outputs.quota != 'true'
         env:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
@@ -131,6 +163,7 @@ jobs:
           fi
 
       - name: Upload the film
+        if: steps.render.outputs.quota != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: film-ep-${{ env.SLUG }}-wide
@@ -146,6 +179,7 @@ jobs:
 
   release:
     needs: episode
+    if: needs.episode.outputs.quota != 'true'
     uses: ./.github/workflows/release.yml
     permissions:
       contents: write

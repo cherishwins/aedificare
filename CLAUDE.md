@@ -322,10 +322,15 @@ for a shortlist for bios and cards, which is a separate deliverable.
   narrated films, three steps: script, narrate, render; `--short` for the
   Short), `narrate.py` (the voice, Kokoro-82M through `uv`, or Gemini
   through `narrate_gemini.py` when `NARRATOR` names a Gemini voice: chunks
-  of about two minutes spoken in one style, words placed by forced
+  of about four minutes spoken in one style, words placed by forced
   alignment with wav2vec2-base-960h and a CTC Viterbi pass, numbers spelled
-  out first so the voice and the aligner agree, measured at a median 96 ms
-  against Kokoro's own timestamps on the same audio), `voice-samples.mjs`
+  out first so the voice and the aligner agree (signs, fractions, decades,
+  model names and citation marks included), measured at a median 76 ms
+  against Kokoro's own timestamps on the same audio; every chunk's
+  alignment is scored and a chunk whose audio does not say its words is
+  spoken again, then fails the run, because forcing always "succeeds" and
+  the first version's fallback could never fire (review, 2026-10-17); chunks
+  are cached and the daily quota exits 75), `voice-samples.mjs`
   (the same passage in every candidate voice, filed under the Release
   `voice-samples`), `bed.py` (the
   computed music bed, through `uv`), `lib/film.mjs` (what the two film
@@ -413,17 +418,24 @@ for a shortlist for bios and cards, which is a separate deliverable.
   audit through `tools/check-audit.cjs`,
   sweep, on every PR and push to `main`.
 - `.github/workflows/film.yml`: manual dispatch, `slug` and `format`
-  inputs. Renders a narrated film on a clean runner (build, Playwright,
-  ffmpeg, espeak-ng, `uv`) and keeps `brand/youtube/<slug>` as a 90-day
-  artifact, because the build sandbox is ephemeral and can hand back at
-  most 30 MB while a 14-minute 1080p film is a gigabyte. Renders the Short
-  from the same narration. When the repository holds `YT_CLIENT_ID`,
-  `YT_CLIENT_SECRET` and `YT_REFRESH_TOKEN` it uploads both to the channel
-  as private (the `privacy` input can raise that), with captions and
-  thumbnail; without them the upload step is skipped. Also runs once when
-  the file itself changes. The whole publish pipeline: a dispatch, or a
-  merge that touches the workflow, ends with a private video in Studio
-  for the owner to press Publish on.
+  inputs, and callable (`film-queue.yml`). Renders a narrated film on a
+  clean runner (build, Playwright, ffmpeg, espeak-ng, `uv`) and keeps
+  `brand/youtube/<slug>` as a 90-day artifact, because the build sandbox is
+  ephemeral and can hand back at most 30 MB while a 14-minute 1080p film is
+  a gigabyte. Renders the Short from the same narration and files both
+  through `release.yml`. It does not upload: `youtube.yml` is the one
+  uploader. The Gemini chunks it hears are kept in the Actions cache under
+  `narration-<slug>`; when the day's quota runs out it ends green with a
+  warning and files nothing, and the next run continues from the cache.
+  With `skip_voiced` it does nothing for an edition whose release already
+  names the voice. It no longer runs when the file itself changes: a proof
+  render spent a day's quota (2026-10-17).
+- `.github/workflows/film-queue.yml`: every morning at 08:20 UTC, after
+  the free tier resets at midnight Pacific, runs `film.yml` once per
+  published edition from `src/lib/editions.mjs`, oldest first, one at a
+  time, with `skip_voiced`. The day's ten requests go to the first films
+  not yet in the voice; the rest wait for tomorrow. Once every film is
+  voiced a run is seven quick skips.
 - `.github/workflows/release.yml`: **the filing system for films.** A
   GitHub Release per edition named `film-<slug>`, holding the film, the
   Short, captions, sheets, meta and thumbnail as assets: permanent where
@@ -1052,6 +1064,17 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   enters as `draft: true` and the flip waits on the sources being opened.
   The checkers cannot enforce this; it is a human duty and it is listed as
   one.
+- **2026-10-17 · The free tier is the voice's budget, so the films drip.**
+  Six films dispatched at once all stopped inside ten minutes on Gemini's
+  free tier: 10 TTS requests a day. The seven published films are
+  twenty-seven requests at about four minutes a chunk, so on the free tier
+  they take three days, which `film-queue.yml` runs without anyone; every
+  chunk is cached, so nothing heard is paid for twice. Paying ends the
+  wait the same day for about a quarter of a dollar a film (the owner's
+  Google project on its first paid tier), and that is the owner's call,
+  not the builder's: zero budget is a hard constraint here, and the owner
+  has been burned by Google bills before. Nothing in the pipeline changes
+  either way.
 - **2026-10-17 · What satisfies that duty is the checking, not who did
   it.** Edition 09 arrived with the owner's own verification pass attached,
   evidence included, and the print acting on its corrections. So it
