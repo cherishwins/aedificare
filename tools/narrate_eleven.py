@@ -167,7 +167,7 @@ def narrate_eleven(DIR, SCRIPT, voice, normalise, GAP_BEFORE, GAP_AFTER, SR):
         when = G.rejected(voice, 'eleven:' + text)
         if when and not os.path.exists(cf + '.flac'):
             sys.exit(f'narrate: block {b["i"]} failed the alignment check {G.SPEAK_TRIES} times on {when}; it is not asked for '
-                     f'again for {G.REJECT_DAYS} days. Fix its text, or delete {G.cache_path(voice, "eleven:" + text)[:-5]}.rejected. '
+                     f'again for {G.REJECT_DAYS} days. Fix its text, or delete {G.reject_path(voice, "eleven:" + text)}. '
                      f'It reads: {text[:160]!r}')
         why = None
         for attempt in range(G.SPEAK_TRIES):
@@ -208,7 +208,7 @@ def narrate_eleven(DIR, SCRIPT, voice, normalise, GAP_BEFORE, GAP_AFTER, SR):
                         os.remove(cf + ext)
         if why is not None:
             os.makedirs(G.CACHE, exist_ok=True)
-            with open(G.cache_path(voice, 'eleven:' + text)[:-5] + '.rejected', 'w') as f:
+            with open(G.reject_path(voice, 'eleven:' + text), 'w') as f:
                 f.write(time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime()))
             sys.exit(f'narrate: block {b["i"]} would not align after {G.SPEAK_TRIES} tries ({why}); '
                      f'nothing is placed by guesswork. It reads: {text[:160]!r}')
