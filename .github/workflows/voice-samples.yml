@@ -40,7 +40,8 @@ jobs:
       - name: Samples
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          # The paid account's key is stored as PLUTO (the owner's name for it, 2026-10-17).
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY || secrets.PLUTO }}
           ELEVENLABS_API_KEY_TEST: ${{ secrets.ELEVENLABS_API_KEY_TEST }}
           ONLY: ${{ inputs.only || 'kokoro,gemini,eleven' }}
         run: node tools/voice-samples.mjs --out out --only "$ONLY"
