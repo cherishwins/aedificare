@@ -5,11 +5,18 @@
 # listens from the Releases page and the builder can fetch them.
 #
 # Needs the repository secret GEMINI_API_KEY (an AI Studio key on the owner's
-# Google Cloud project); without it only the control is made.
+# Google Cloud project) and, for the ElevenLabs sample, ELEVENLABS_API_KEY;
+# without them only the control is made. `only` picks engines, so one engine
+# can be tried without spending another's quota.
 name: voice-samples
 
 on:
   workflow_dispatch:
+    inputs:
+      only:
+        description: 'Which engines: kokoro,gemini,eleven (any subset)'
+        required: false
+        default: 'kokoro,gemini,eleven'
 
 permissions:
   contents: write
@@ -33,12 +40,15 @@ jobs:
       - name: Samples
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: node tools/voice-samples.mjs --out out
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_API_KEY_TEST: ${{ secrets.ELEVENLABS_API_KEY_TEST }}
+          ONLY: ${{ inputs.only || 'kokoro,gemini,eleven' }}
+        run: node tools/voice-samples.mjs --out out --only "$ONLY"
 
       - name: File them as the Release voice-samples
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view voice-samples >/dev/null 2>&1 || gh release create voice-samples --title 'Voice samples' --notes 'Listening samples for choosing the narrator voice. See index.txt.'
-          for f in out/*.mp3 out/index.txt; do gh release upload voice-samples "$f" --clobber; done
-          { echo '## Voice samples'; echo; echo '```'; cat out/index.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          for f in out/*.mp3 out/index*.txt; do gh release upload voice-samples "$f" --clobber; done
+          { echo '## Voice samples'; echo; echo '```'; cat out/index*.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

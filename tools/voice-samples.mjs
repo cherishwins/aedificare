@@ -9,7 +9,17 @@
  *       description, never replicated from a recording: a cloned voice is
  *       the one thing the channel may not use (CLAUDE.md, override 6)
  *
- *   node tools/voice-samples.mjs [--out brand/voice-samples]
+ *   11  ElevenLabs (2026-10-17, the owner asking whether the leaderboard's #1
+ *       is worth paying for): a voice DESIGNED from the same description as
+ *       the Gemini analyst (text-to-voice, never a clone), saved, then the
+ *       same passage read by the best text-to-speech model the account lists
+ *       (v4 Turbo first), designed with a fixed seed so a second account can
+ *       rebuild the same voice. Needs ELEVENLABS_API_KEY_TEST (the free
+ *       account) or ELEVENLABS_API_KEY (the paid one); about 2,000 of a free
+ *       plan's 10,000 monthly credits. A free plan has no commercial rights,
+ *       so this is a listening test and never a published voice.
+ *
+ *   node tools/voice-samples.mjs [--out brand/voice-samples] [--only kokoro,gemini,eleven]
  *
  * Writes one .mp3 per voice and index.txt (what each file is, and the id of
  * each designed voice, which lives in the Google project for a year after
@@ -32,6 +42,7 @@ import { execFileSync } from 'node:child_process';
 
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
 const OUT = arg('--out', 'brand/voice-samples');
+const ONLY = arg('--only', 'kokoro,gemini,eleven').split(',');
 fs.mkdirSync(OUT, { recursive: true });
 
 /* ---- the passage: cover + the first two paragraphs of section 00 ---------- */
@@ -49,7 +60,7 @@ const mp3 = (wav, name) => {
 };
 
 /* ---- 01: the control ------------------------------------------------------- */
-try {
+if (ONLY.includes('kokoro')) try {
   const dir = path.join(OUT, 'kokoro');
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, 'script.json'), JSON.stringify({ voice: 'am_michael', blocks: PARAS.map((text, i) => ({ i, kind: 'p', read: true, text })) }));
@@ -60,7 +71,9 @@ try {
 
 /* ---- Gemini ---------------------------------------------------------------- */
 const KEY = process.env.GEMINI_API_KEY;
-if (!KEY) {
+if (!ONLY.includes('gemini')) {
+  // skipped by --only
+} else if (!KEY) {
   console.log('GEMINI_API_KEY not set: the control only');
 } else {
   const API = 'https://generativelanguage.googleapis.com/v1beta';
@@ -111,6 +124,41 @@ if (!KEY) {
   }
 }
 
-fs.writeFileSync(path.join(OUT, 'index.txt'), [`Passage (${TEXT.split(/\s+/).length} words), from source/film/edition-03.md:`, '', TEXT, '', 'Files:', ...index, ''].join('\n'));
-console.log(`\n${index.length} samples in ${OUT}`);
+/* ---- 11: ElevenLabs -------------------------------------------------------- */
+// The free account's key for listening tests (a free plan has no commercial rights), the paid one otherwise.
+const XI = process.env.ELEVENLABS_API_KEY_TEST || process.env.ELEVENLABS_API_KEY;
+if (ONLY.includes('eleven') && !XI) console.log('ELEVENLABS_API_KEY not set: no ElevenLabs sample');
+if (ONLY.includes('eleven') && XI) {
+  const EL = 'https://api.elevenlabs.io/v1';
+  const xi = async (p, body, raw = false) => {
+    const r = await fetch(`${EL}/${p}`, body ? { method: 'POST', headers: { 'xi-api-key': XI, 'content-type': 'application/json' }, body: JSON.stringify(body) } : { headers: { 'xi-api-key': XI } });
+    if (!r.ok) throw new Error(`${p} ${r.status}: ${(await r.text()).slice(0, 1500)}`);
+    return raw ? Buffer.from(await r.arrayBuffer()) : r.json();
+  };
+  // The same description the Gemini analyst was designed from, so the comparison is the engine, not the brief.
+  const ANALYST = 'A man in his forties with a low, dry, unhurried voice and crisp diction: a financial analyst who finds the numbers quietly absurd and never raises his voice about it. Neutral international English accent. An original voice, not modelled on any real person.';
+  try {
+    const models = await xi('models');
+    const tts = models.filter((m) => m.can_do_text_to_speech !== false).map((m) => m.model_id);
+    console.log(`ElevenLabs models: ${tts.join(', ')}`);
+    const pick = tts.find((m) => /v4/i.test(m) && /turbo/i.test(m)) || tts.find((m) => /v4/i.test(m)) || tts.find((m) => /eleven_v3$/.test(m)) || 'eleven_multilingual_v2';
+    // A fixed seed: the same description, model and seed design the same voice, so the paid account can rebuild
+    // exactly the voice this test designs on the free one (designed voices are stored per account).
+    const design = await xi('text-to-voice/design', { voice_description: ANALYST, model_id: 'eleven_ttv_v3', text: TEXT.slice(0, 1000), seed: 20261017 });
+    const prev = design.previews?.[0];
+    if (!prev?.generated_voice_id) throw new Error(`no preview: ${JSON.stringify(design).slice(0, 400)}`);
+    const saved = await xi('text-to-voice', { voice_name: 'aedificare-analyst', voice_description: ANALYST, generated_voice_id: prev.generated_voice_id });
+    const vid = saved.voice_id;
+    if (!vid) throw new Error(`no voice id: ${JSON.stringify(saved).slice(0, 400)}`);
+    const audio = await xi(`text-to-speech/${vid}?output_format=mp3_44100_128`, { text: TEXT, model_id: pick }, true);
+    const name = `11-elevenlabs-designed-analyst-${pick}`;
+    fs.writeFileSync(path.join(OUT, `${name}.mp3`), audio);
+    index.push(`${name}.mp3  ElevenLabs ${pick}, DESIGNED voice "analyst" (id ${vid}), the same description as the Gemini analyst (09): ${ANALYST}`);
+    console.log(`  ${name}: done`);
+  } catch (e) { console.error(`  ElevenLabs: ${e.message}`); }
+}
+
+const INDEX = ONLY.length === 3 ? 'index.txt' : `index-${ONLY.join('-')}.txt`;
+fs.writeFileSync(path.join(OUT, INDEX), [`Passage (${TEXT.split(/\s+/).length} words), from source/film/edition-03.md:`, '', TEXT, '', 'Files:', ...index, ''].join('\n'));
+console.log(`\n${index.length} samples in ${OUT} (${INDEX})`);
 if (!index.length) process.exit(1);

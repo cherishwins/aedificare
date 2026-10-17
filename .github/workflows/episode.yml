@@ -51,6 +51,10 @@ on:
         required: false
         default: ''
 
+# One voice for every step: the Short re-narrated in Kokoro when only the Render step carried it (review, 2026-10-17).
+env:
+  NARRATOR: ${{ vars.NARRATOR || 'gemini:voice_l6lephk1pqjk' }}
+
 concurrency:
   group: episode-${{ github.ref }}-${{ inputs.slug || 'softbank-975' }}
   cancel-in-progress: false
@@ -116,7 +120,6 @@ jobs:
       - name: Render
         id: render
         env:
-          NARRATOR: ${{ vars.NARRATOR || 'gemini:voice_l6lephk1pqjk' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           mkdir -p ~/.cache/aedificare-narration

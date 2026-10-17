@@ -61,6 +61,7 @@ CACHE = os.path.expanduser(os.environ.get('NARRATION_CACHE') or '~/.cache/aedifi
 QUOTA_EXIT = 75  # EX_TEMPFAIL: the day's quota is spent; rerun after Google's reset
 MAX_WAIT = 300   # a retry Google asks for beyond this is a quota, not a hiccup
 SPEAK_TRIES = 3  # a chunk that fails the alignment check is spoken again, then the run fails
+REJECT_DAYS = 3  # ...and is not asked for again for this long, so it cannot take 3 of every day's 10 requests
 LEAD, TAIL, FADE = 0.2, 0.15, 0.01  # seconds of air before the first word and after the last; fade at each cut
 # The check (check_chunk), calibrated 2026-10-17 on the Gemini voice samples (three voices, the passage of
 # tools/voice-samples.mjs) and on Kokoro reading 3,400-character chunks of four films: clean audio scored at most
@@ -394,6 +395,14 @@ def cached(voice, text):
         return None
 
 
+def rejected(voice, text):
+    """The day this exact chunk last failed every try, if within REJECT_DAYS, else None."""
+    p = cache_path(voice, text)[:-5] + '.rejected'
+    if os.path.exists(p) and time.time() - os.path.getmtime(p) < REJECT_DAYS * 86400:
+        return open(p).read().strip()
+    return None
+
+
 def keep(voice, text, audio, sr):
     os.makedirs(CACHE, exist_ok=True)
     p = cache_path(voice, text)
@@ -455,6 +464,11 @@ def narrate_gemini(DIR, SCRIPT, voice, normalise, GAP_BEFORE, GAP_AFTER, SR):
     asked = 0
     for ci, (chunk, text) in enumerate(zip(chunks, texts)):
         words = [w for b in chunk for w in prepared[b['i']][3]]
+        when = rejected(voice, text) if not os.path.exists(cache_path(voice, text)) else None
+        if when:
+            sys.exit(f'narrate: chunk {ci + 1} of {len(chunks)} failed the alignment check {SPEAK_TRIES} times on {when}; '
+                     f'it is not asked for again for {REJECT_DAYS} days. Fix its text (a word Gemini says differently from '
+                     f'its spelling), or delete {cache_path(voice, text)[:-5]}.rejected. It begins: {text[:160]!r}')
         why = None
         for attempt in range(SPEAK_TRIES):
             got = cached(voice, text) if attempt == 0 else None
@@ -483,8 +497,11 @@ def narrate_gemini(DIR, SCRIPT, voice, normalise, GAP_BEFORE, GAP_AFTER, SR):
             if not fresh:
                 os.remove(cache_path(voice, text))
         if why is not None:
+            os.makedirs(CACHE, exist_ok=True)
+            with open(cache_path(voice, text)[:-5] + '.rejected', 'w') as f:
+                f.write(time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime()))
             sys.exit(f'narrate: chunk {ci + 1} of {len(chunks)} would not align after {SPEAK_TRIES} tries ({why}); '
-                     'nothing is placed by guesswork')
+                     f'nothing is placed by guesswork. It begins: {text[:160]!r}')
         spans, scores = aligned
         raw = [None if x is None else (x[0] * spf, x[1] * spf) for x in spans]
         times = fill(raw)

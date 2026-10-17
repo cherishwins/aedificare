@@ -251,7 +251,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   runs the same sweep against a LIVE origin over the real network, because
   a deploy status is not a verification; run it after every production
   deploy and before telling anyone the site is up.
-- **Branch → draft PR → owner merges. Never push to `main`.**
+- **Branch → PR → merge. Never push to `main`.** The owner delegated
+  merging on 2026-10-17 ("you can just keep merging, you don't need to
+  wait for me"): the builder merges its own PR once CI is green and the
+  findings of its own review are fixed. Still never a direct push.
 - Anything the owner must action is said in chat, not only in the PR, then
   verified rather than taken on their word.
 
@@ -332,7 +335,15 @@ for a shortlist for bios and cards, which is a separate deliverable.
   the first version's fallback could never fire (review, 2026-10-17); chunks
   are cached and the daily quota exits 75), `voice-samples.mjs`
   (the same passage in every candidate voice, filed under the Release
-  `voice-samples`), `bed.py` (the
+  `voice-samples`: Kokoro, Gemini, and an ElevenLabs voice designed from
+  the Gemini analyst's own description with a fixed seed, so the paid
+  account can rebuild the voice the free one designed, when
+  `ELEVENLABS_API_KEY_TEST` (the free account, tests only) or
+  `ELEVENLABS_API_KEY` (the paid account, 40k credits) is set;
+  `--only` picks engines so one can be tried without spending another's
+  quota; the owner asked on 2026-10-17 whether ElevenLabs, #1 on the
+  arena, is worth paying for, and the free plan's credits cover the test
+  but carry no commercial rights), `bed.py` (the
   computed music bed, through `uv`), `lib/film.mjs` (what the two film
   generators share: palette, ffmpeg search, surface CSS, the Chromium
   context, the encoder), `upload-youtube.mjs` (a rendered film to the
@@ -415,8 +426,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   under the repo's Releases as `film-<slug>`, and downloaded from there;
   or rendered on the owner's Mac with the same command.
 - `.github/workflows/verify.yml`: build (with the three checkers), the
-  audit through `tools/check-audit.cjs`,
-  sweep, on every PR and push to `main`.
+  audit through `tools/check-audit.cjs`, actionlint over every workflow
+  (pinned by checksum; the film workflows run unattended and no longer
+  prove themselves on a push), sweep, on every PR and push to `main`.
 - `.github/workflows/film.yml`: manual dispatch, `slug` and `format`
   inputs, and callable (`film-queue.yml`). Renders a narrated film on a
   clean runner (build, Playwright, ffmpeg, espeak-ng, `uv`) and keeps
