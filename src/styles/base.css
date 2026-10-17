@@ -204,6 +204,8 @@ td.n { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-sett
 .sources { list-style: none; columns: 2; column-gap: clamp(24px, 4vw, 64px); max-width: 100ch; }
 .sources li { break-inside: avoid; display: grid; grid-template-columns: 2.6em 1fr; gap: 12px; margin-bottom: 14px; font-size: 15px; line-height: 1.5; }
 .sources .n { color: var(--malachite); padding-top: .25em; }
+/* A URL has no break opportunity; without this its min-content width widens the 1fr track past a phone's edge. */
+.sources li > span:last-child { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 760px) { .sources { columns: 1; } }
 /* A figure in the grid keeps its own height; it never stretches to the prose beside it. */
 .grid > figure.field, .grid > .field.cells, .grid > figure.bars { align-self: start; }

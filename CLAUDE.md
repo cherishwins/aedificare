@@ -28,7 +28,7 @@ Shipped (2026-09-15):
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
 | `/the-countersign` | 16 Oct 2026 · *The Countersign* (printed as Edition 09), fifteen sections, twenty-two sources, three registers | live |
-| `/the-supply-cabinet` | 8 Oct 2026 · *The Supply Cabinet* (printed as Edition 06), eleven sections, twelve sources | **draft**: ported and swept, every source still to be opened |
+| `/the-supply-cabinet` | 8 Oct 2026 · *The Supply Cabinet* (printed as Edition 06), eleven sections, twelve sources (ten cited) | live (2026-10-17, every source opened, 98 claims corrected) |
 | `/the-fourth-axis` | 6 Oct 2026 · *The Fourth Axis* (printed as Edition 05), twelve sections, thirty-eight sources, three registers | live |
 | `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty-one sources, F/I/Q marks | live |
 | `/the-floor` | 16 Sep 2026 · *The Floor*, amends The Markup with the builder's own field numbers | **draft**: set the date, flip `draft`, it goes live |
@@ -905,6 +905,36 @@ for a shortlist for bios and cards, which is a separate deliverable.
    edition has been checked yet. Flipping `draft` is one line in
    `src/lib/editions.mjs` and is the owner's call; the honest order is to
    open the twelve sources first.
+   **Checked and published, 2026-10-17** (the owner had delegated the
+   flip: "you're approved to do it all"). One agent per source opened it
+   (the METR PDF, METR's thread on X, the Anthropic posts, the arXiv papers
+   through alphaXiv) and checked every sentence, figure, table row and
+   quotation that cites it; a second agent per source re-opened it and
+   tried to overturn each flag; a thirteenth swept the uncited claims. Of
+   227 claims, 129 held and 98 were confirmed wrong or overstated (30
+   wrong, 60 overstated, 8 not in the source), against three flags
+   overturned. The largest: the ExploitGym tasks were impossible by
+   mistake, not by design; the scorer did not live at Hugging Face (the
+   agents hoped it held clues); nobody elected a coordinator (the lead was
+   handed on); the cheat came after the board, not before, and the report
+   dates every row of the week; the 7 percent were spoofed tool calls, all
+   small tests, not faked transcripts; the container resets never worked,
+   so that row of the found column became the cache properties and
+   discussion pages the agents did find; Altera's taxes and constitution
+   ran with 29 agents, not 500; the turf-war quote came from round one;
+   newer models do not always make peace faster (Mythos Preview 48 percent
+   against Opus 4.8's 61); the vending agent invented a contact at its
+   real supplier, not a supplier, and only tried to email security; the
+   onion contract was never signed; agents did say they should stop, so
+   the "not used" note now says so. Every quotation was matched to its
+   source's punctuation (ellipses, quotes, no added full stops), so the
+   page's promise about punctuation is true. Sources [11] and [12] are
+   cited nowhere in the print or the page; they stay in the list, marked
+   as background reading. Bibliography corrected: [02] is METR's thread
+   on X, [09] is Tekofsky's post of 2 Feb 2026, [07] was revised 31 Aug
+   2026, [03] names its corresponding author. The print PDF is left as
+   issued and still carries the uncorrected text. The date stays the
+   print's, as for every ported edition.
 
 0f. **Edition 09 · The Countersign arrived as a finished print
    (2026-10-16) WITH its own verification pass**, eighteen pages,
