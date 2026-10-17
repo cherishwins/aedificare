@@ -118,6 +118,16 @@ its time.
 - **The metadata passed** `upload-youtube.mjs`'s limits: title 100
   characters, description 5,000 bytes, no `<` or `>`. The renderer checks
   these, so a render that finished has passed them.
+- **Over fifteen minutes needs a verified channel.** `list` prints the
+  channel's `longUploadsStatus`; unless it is `allowed`, YouTube takes a
+  longer upload and then rejects it for length, so `upload` refuses a film
+  over 900 s unless the status is `allowed`, and holds that film's Short
+  with it (the Short's description points at the film). `eligible`: the
+  owner verifies by phone at youtube.com/verify (the same step lifts the
+  thumbnail 403 below) and the next run takes both. `disallowed`: the
+  channel is not in good standing, and verifying does not lift it. The
+  channel read `allowed` on 2026-10-17. The Tilt Gap's film runs 20:46;
+  every other edition film is under fifteen.
 - **Licence `youtube`** (Standard YouTube Licence), not Creative Commons.
   `containsSyntheticMedia` false: the voice is synthetic, but it reads an
   original script and imitates no one, which is not one of YouTube's
