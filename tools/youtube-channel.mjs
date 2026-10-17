@@ -6,9 +6,10 @@
  * only). So a hand upload is matched to its render by its file name, and
  * nobody pastes a video id back.
  *
+ *   node tools/youtube-channel.mjs probe
  *   node tools/youtube-channel.mjs list
  *   node tools/youtube-channel.mjs sync   [--dry] [--force] [--only <tag>]
- *   node tools/youtube-channel.mjs upload [--dry] [--only <tag>] [--kinds film,short] [--max 4]
+ *   node tools/youtube-channel.mjs upload [--dry] [--only <tag>] [--kinds film,short] [--max 10]
  *                                         [--privacy private|unlisted] [--publish-at <ISO time>]
  *
  * LIST prints every upload (id, privacy, date, length, views, file name,
@@ -23,10 +24,21 @@
  * already match is skipped unless --force, because each update spends about
  * 500 of the project's 10,000 daily quota units. --dry prints the plan.
  *
+ * PROBE answers one question before any film goes up: does this Google
+ * Cloud project's upload come out locked private? Since 28 July 2020 YouTube
+ * has locked API uploads from unaudited projects created after that date,
+ * and a locked video can never be unlocked, only uploaded again
+ * (support.google.com/youtube/answer/7300965); in October 2026 the
+ * videos.insert reference began saying the opposite, while the revision
+ * history and the help page still say it. So the probe uploads a
+ * three-second Void clip as unlisted, waits for YouTube to process it,
+ * reports the privacy YouTube actually gave it, and deletes it. Needs ffmpeg.
+ *
  * UPLOAD puts on the channel, through tools/upload-youtube.mjs, each render
  * that is not there yet: oldest release first, a film before its Short, at
- * most --max a run (each upload spends about 2,100 of the 10,000 daily
- * units: 1,600 the video, 400 captions, 50 the thumbnail, 50 a list). It
+ * most --max a run. Since 1 June 2026 videos.insert has its own bucket, 100
+ * a day, so the cap is the shared 10,000 units: about 500 per video (400
+ * captions, 50 thumbnail, 50 listing), about twenty videos a day. It
  * refuses a render whose release carries a shots.md with an unticked shot,
  * because a missing shot plays as a slate. After each upload it files the
  * video's id on the release as youtube.json (the film) or youtube-short.json
@@ -44,7 +56,8 @@
  * scope. Release files come down with curl (GH_TOKEN or GITHUB_TOKEN if set;
  * the repository is public, so neither is needed off a shared address).
  * Quota: list costs a few units; sync about 500 per video it changes;
- * upload about 2,100 per video.
+ * upload one of the 100 daily uploads plus about 500 units per video;
+ * probe one upload plus about 60 units.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -58,10 +71,10 @@ const DRY = process.argv.includes('--dry');
 const FORCE = process.argv.includes('--force');
 const ONLY = arg('--only', null);
 const KINDS = arg('--kinds', 'film,short').split(',');
-const MAX = +arg('--max', 4);
+const MAX = +arg('--max', 10);
 const PRIVACY = arg('--privacy', 'private');
 const PUBLISH_AT = arg('--publish-at', null);
-if (!['list', 'sync', 'upload'].includes(CMD)) { console.error('youtube-channel: list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 4] [--privacy private|unlisted] [--publish-at <ISO>]'); process.exit(1); }
+if (!['list', 'sync', 'upload', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>]'); process.exit(1); }
 // Nothing goes public from a machine (CLAUDE.md, the bed, the Short, the upload): public is refused here, and a scheduled publish is the owner's call, made by passing a time.
 if (!['private', 'unlisted'].includes(PRIVACY)) { console.error('youtube-channel: --privacy is private or unlisted; publishing is the owner\'s, in Studio or with --publish-at'); process.exit(1); }
 if (PUBLISH_AT && !(Date.parse(PUBLISH_AT) > Date.now())) { console.error(`youtube-channel: --publish-at ${PUBLISH_AT} is not a future ISO time`); process.exit(1); }
@@ -113,6 +126,36 @@ const get = async (url) => {
 };
 const channel = (await get('channels?part=snippet,contentDetails,statistics&mine=true')).items?.[0];
 if (!channel) { console.error('youtube-channel: the token is not signed in to a channel'); process.exit(1); }
+
+/* ---- probe -------------------------------------------------------------------- */
+if (CMD === 'probe') {
+  const clip = path.join(OUT, 'probe.mp4');
+  fs.mkdirSync(OUT, { recursive: true });
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=0x050A06:s=1280x720:d=3:r=24', '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo', '-shortest', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', clip]);
+  const body = fs.readFileSync(clip);
+  const start = await fetch('https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status', {
+    method: 'POST', headers: { ...auth, 'content-type': 'application/json; charset=UTF-8', 'x-upload-content-type': 'video/mp4', 'x-upload-content-length': String(body.length) },
+    body: JSON.stringify({ snippet: { title: 'probe', description: 'An automated test of the upload route; deleted within minutes.', categoryId: '28' }, status: { privacyStatus: 'unlisted', selfDeclaredMadeForKids: false } }),
+  });
+  if (!start.ok) { console.error('youtube-channel: probe upload session failed', start.status, await start.text()); process.exit(1); }
+  const put = await fetch(start.headers.get('location'), { method: 'PUT', headers: { 'content-type': 'video/mp4' }, body });
+  if (!put.ok) { console.error('youtube-channel: probe upload failed', put.status, await put.text()); process.exit(1); }
+  const id = (await put.json()).id;
+  console.log(`probe: uploaded ${id} as unlisted; waiting for YouTube to process it`);
+  let st;
+  for (let i = 0; i < 40; i++) {
+    await new Promise((r) => setTimeout(r, 15000));
+    st = (await get(`videos?part=status&id=${id}`)).items?.[0]?.status;
+    if (st && st.uploadStatus !== 'uploaded') break;
+  }
+  console.log(`probe: uploadStatus ${st?.uploadStatus}, privacyStatus ${st?.privacyStatus}${st?.rejectionReason ? `, rejected: ${st.rejectionReason}` : ''}${st?.failureReason ? `, failed: ${st.failureReason}` : ''}`);
+  const del = await fetch(`${API}/videos?id=${id}`, { method: 'DELETE', headers: auth });
+  console.log(`probe: ${del.ok ? 'deleted' : `NOT deleted (${del.status}); delete ${id} in Studio`}`);
+  if (st?.privacyStatus === 'unlisted') console.log('probe: NOT LOCKED. API uploads from this project keep the privacy they are given; upload and publish-at work.');
+  else if (st?.privacyStatus === 'private') console.log('probe: LOCKED. API uploads from this project are forced private and can never be made public; upload by hand in Studio and use sync, and apply for the audit.');
+  else console.log('probe: inconclusive (still processing or failed); run it again.');
+  process.exit(0);
+}
 const ids = [];
 for (let pageToken = ''; ;) {
   const p = await get(`playlistItems?part=contentDetails&maxResults=50&playlistId=${channel.contentDetails.relatedPlaylists.uploads}${pageToken ? `&pageToken=${pageToken}` : ''}`);

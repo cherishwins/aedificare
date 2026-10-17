@@ -3,6 +3,9 @@
 # in this repository's Actions secrets, so no session, laptop or chat ever
 # holds them.
 #
+#   action=probe   uploads a three-second clip as unlisted, reports whether
+#                  YouTube locked it private (the unaudited-project lock),
+#                  deletes it; run once before the first real upload
 #   action=list    what is on the channel, what is rendered and not yet there
 #   action=upload  each render on Releases that is not on the channel yet,
 #                  oldest first, at most `max` a run, private by default;
@@ -20,11 +23,11 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'list, upload or sync'
+        description: 'probe, list, upload or sync'
         required: true
         default: list
         type: choice
-        options: [list, upload, sync]
+        options: [probe, list, upload, sync]
       only:
         description: 'One release (film-ns-01, film-ep-softbank-975), or empty for all'
         required: false
@@ -34,9 +37,9 @@ on:
         required: false
         default: 'film,short'
       max:
-        description: 'upload: most videos this run (about 2,100 of 10,000 daily quota units each)'
+        description: 'upload: most videos this run (one of 100 daily uploads and about 500 of 10,000 daily units each)'
         required: false
-        default: '4'
+        default: '10'
       privacy:
         description: 'upload: private or unlisted (public is never set from here)'
         required: false
@@ -79,6 +82,10 @@ jobs:
         with:
           node-version: 22
 
+      - name: ffmpeg for the probe clip
+        if: inputs.action == 'probe'
+        run: command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+
       - name: ${{ inputs.action }}
         env:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
@@ -96,7 +103,7 @@ jobs:
           set -o pipefail
           args=("$ACTION")
           [ -n "$ONLY" ] && args+=(--only "$ONLY")
-          [ "$DRY" = "true" ] && [ "$ACTION" != "list" ] && args+=(--dry)
+          [ "$DRY" = "true" ] && [ "$ACTION" != "list" ] && [ "$ACTION" != "probe" ] && args+=(--dry)
           if [ "$ACTION" = "upload" ]; then
             args+=(--kinds "$KINDS" --max "$MAX" --privacy "$PRIVACY")
             [ -n "$PUBLISH_AT" ] && args+=(--publish-at "$PUBLISH_AT")
