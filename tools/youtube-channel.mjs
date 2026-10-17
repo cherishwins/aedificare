@@ -11,6 +11,8 @@
  *   node tools/youtube-channel.mjs sync   [--dry] [--force] [--only <tag>]
  *   node tools/youtube-channel.mjs upload [--dry] [--only <tag>] [--kinds film,short] [--max 10]
  *                                         [--privacy private|unlisted] [--publish-at <ISO time>] [--every <hours>]
+ *                                         [--replace-old-voice]
+ *   node tools/youtube-channel.mjs retire [--dry]
  *
  * LIST prints every upload (id, privacy, date, length, views, file name,
  * title) and the release it came from, then the renders on Releases that
@@ -52,6 +54,13 @@
  * hours after the one before, so a batch goes out as a run, not a dump.
  * Filing the id needs GH_TOKEN with contents: write (the workflow has it).
  *
+ * RETIRE finishes a replacement. A render in the channel's voice whose video
+ * is up in an older voice is uploaded beside it with upload
+ * --replace-old-voice; once that new video is public, retire makes the old
+ * one private (never deleted, so its views and comments stay and the owner
+ * can restore it). A replacement still private or scheduled leaves the old
+ * one up. About 50 units a video.
+ *
  * A video is matched by the id filed on its release first, then by file
  * name, then by a title equal to the render's and of the same kind (a hand
  * upload whose title was pasted from sheet.txt).
@@ -85,10 +94,11 @@ const { NARRATOR } = await import(new URL('../src/config.mjs', import.meta.url).
 const VOICE = arg('--voice', (process.env.NARRATOR || NARRATOR).replace(/^(gemini|eleven):/, ''));
 // A render in the channel's voice matched (by file name or title, which do not change with the voice) to a video
 // whose description names no such voice is a NEW render of a video already up in an OLDER voice: never synced onto
-// it, and uploaded beside it only with --replace-old-voice, because replacing a live video is the owner's call.
+// it, and uploaded beside it only with --replace-old-voice, because replacing a live video is the owner's call;
+// `retire` then makes the old one private once the new one is public.
 const REPLACE = process.argv.includes('--replace-old-voice');
 const inVoice = (text) => String(text || '').toLowerCase().includes(VOICE.toLowerCase());
-if (!['list', 'sync', 'upload', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>] [--every <hours>] [--replace-old-voice]'); process.exit(1); }
+if (!['list', 'sync', 'upload', 'retire', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>] [--every <hours>] [--replace-old-voice] | retire [--dry]'); process.exit(1); }
 // Nothing goes public from a machine (CLAUDE.md, the bed, the Short, the upload): public is refused here, and a scheduled publish is the owner's call, made by passing a time.
 if (!['private', 'unlisted'].includes(PRIVACY)) { console.error('youtube-channel: --privacy is private or unlisted; publishing is the owner\'s, in Studio or with --publish-at'); process.exit(1); }
 if (PUBLISH_AT && !(Date.parse(PUBLISH_AT) > Date.now())) { console.error(`youtube-channel: --publish-at ${PUBLISH_AT} is not a future ISO time`); process.exit(1); }
@@ -273,12 +283,40 @@ if (CMD === 'upload') {
   process.exit(0);
 }
 
+/* ---- retire ------------------------------------------------------------------- */
+// The second half of a replacement: once the new render is PUBLIC, the video in the older voice goes private (never
+// deleted: its views and comments stay with it, and the owner can bring it back in Studio). Never before, so the
+// channel is not left without the piece if the new upload is held, rejected or still scheduled.
+if (CMD === 'retire') {
+  console.log(`\nretire${DRY ? ' (dry run)' : ''}: a video in an older voice goes private once its replacement in ${VOICE} is public`);
+  let done = 0;
+  for (const { v, r, older } of rows) {
+    if (!older) continue;
+    const next = rows.find((x) => x.r === r && !x.older && x.v.id !== v.id);
+    const name = `${v.id} ${r.tag}/${r.metaName}`;
+    if (v.status.privacyStatus === 'private') { console.log(`  ${name}: already private`); continue; }
+    if (!next) { console.log(`  ${name}: left, no replacement on the channel (upload --replace-old-voice first)`); continue; }
+    if (next.v.status.privacyStatus !== 'public') { console.log(`  ${name}: left until its replacement ${next.v.id} is public${next.v.status.publishAt ? ` (scheduled ${next.v.status.publishAt})` : ''}`); continue; }
+    console.log(`  ${name}: ${DRY ? 'would go' : 'going'} private, replaced by ${next.v.id} (its ${v.statistics?.viewCount ?? 0} views stay with it)`);
+    done++;
+    if (DRY) continue;
+    // The API replaces the whole status part, so every writable field the video has is sent back unchanged beside the privacy.
+    const keep = ['license', 'embeddable', 'publicStatsViewable', 'selfDeclaredMadeForKids', 'containsSyntheticMedia'].filter((k) => k in v.status);
+    const status = { ...Object.fromEntries(keep.map((k) => [k, v.status[k]])), privacyStatus: 'private' };
+    const put = await fetch(`${API}/videos?part=status`, { method: 'PUT', headers: { ...auth, 'content-type': 'application/json' }, body: JSON.stringify({ id: v.id, status }) });
+    if (!put.ok) { console.error(`youtube-channel: ${v.id} could not be made private`, put.status, await put.text()); process.exit(1); }
+    console.log('    private');
+  }
+  console.log(`  ${done} ${DRY ? 'to retire' : 'retired'}`);
+  process.exit(0);
+}
+
 /* ---- sync --------------------------------------------------------------------- */
 console.log(`\nsync${DRY ? ' (dry run)' : ''}:`);
 let changed = 0;
 for (const { v, r, older } of rows) {
   if (!r) continue;
-  if (older) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: refused, the video is in an older voice and the render in ${VOICE}; its captions and chapters would not fit the video's audio. Replace it (upload --replace-old-voice, then the old one private in Studio) or leave it`); continue; }
+  if (older) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: refused, the video is in an older voice and the render in ${VOICE}; its captions and chapters would not fit the video's audio. Replace it (upload --replace-old-voice, then retire once the new one is public) or leave it`); continue; }
   const same = v.snippet.title === r.meta.title && v.snippet.description === r.meta.description;
   if (same && !FORCE) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: already matches, skipped`); continue; }
   console.log(`  ${v.id} ${r.tag}/${r.metaName}: ${same ? 'forced' : 'title or description differs'}, updating`);
