@@ -13,9 +13,12 @@
 # here, so a new edition joins the queue the day it is published.
 name: film-queue
 
+# PAUSED 2026-10-17: the owner is choosing the voice again (a woman's, American), and every
+# morning's ten requests would go to a voice that may be dropped. Put the schedule back once
+# NARRATOR names the chosen voice:
+#   schedule:
+#     - cron: '20 8 * * *'   # 08:20 UTC: after midnight Pacific in summer and in winter
 on:
-  schedule:
-    - cron: '20 8 * * *'   # 08:20 UTC: after midnight Pacific in summer and in winter
   workflow_dispatch:
 
 permissions:

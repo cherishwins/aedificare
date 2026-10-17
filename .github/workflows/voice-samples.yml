@@ -17,6 +17,18 @@ on:
         description: 'Which engines: kokoro,gemini,eleven (any subset)'
         required: false
         default: 'kokoro,gemini,eleven'
+      eleven_voice:
+        description: 'ElevenLabs: a description to design instead of the analyst (never a real person)'
+        required: false
+        default: ''
+      label:
+        description: 'A short name for that voice (file names)'
+        required: false
+        default: 'analyst'
+      previews:
+        description: 'ElevenLabs: write the three design candidates instead of saving one'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -44,7 +56,10 @@ jobs:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY || secrets.PLUTO }}
           ELEVENLABS_API_KEY_TEST: ${{ secrets.ELEVENLABS_API_KEY_TEST }}
           ONLY: ${{ inputs.only || 'kokoro,gemini,eleven' }}
-        run: node tools/voice-samples.mjs --out out --only "$ONLY"
+          ELEVEN_VOICE: ${{ inputs.eleven_voice }}
+          LABEL: ${{ inputs.label || 'analyst' }}
+          PREVIEWS: ${{ inputs.previews && '--previews' || '' }}
+        run: node tools/voice-samples.mjs --out out --only "$ONLY" --eleven-voice "$ELEVEN_VOICE" --label "$LABEL" $PREVIEWS
 
       - name: File them as the Release voice-samples
         env:
