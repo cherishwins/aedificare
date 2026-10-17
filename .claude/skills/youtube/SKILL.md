@@ -90,8 +90,13 @@ uploaded by hand in Kokoro before the voice changed) is matched to its new
 render by file name, so `list` marks the pair OLDER VOICE, `sync` refuses
 to put the new captions and chapters on the old audio, and `upload` leaves
 the new render alone unless `--replace-old-voice` is passed. Replacing a
-live video (and making the old one private in Studio) is the owner's call;
-ask, and say what the old one has earned so far.
+live video is the owner's call; ask, and say what the old one has earned so
+far. Once they say so: `upload` with `replace_old_voice=true` (and `only`
+the release) puts the new pair up scheduled, then `retire` after the new
+film is public sets the old video private. It never deletes (views and
+comments stay, the owner can restore it in Studio) and never acts while
+the replacement is still private or scheduled, so run it after each new
+video's publish time. The owner said replace The Markup on 2026-10-17.
 
 **Hand uploads** still work: the owner uploads the file exactly as
 downloaded from the release, and `youtube.yml action=sync` sets the
