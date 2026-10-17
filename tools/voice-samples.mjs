@@ -49,6 +49,8 @@ const ONLY = arg('--only', 'kokoro,gemini,eleven').split(',');
 const ELEVEN_VOICE = arg('--eleven-voice', '');
 const LABEL = arg('--label', 'analyst').replace(/[^a-z0-9-]/gi, '-').toLowerCase();
 const PREVIEWS = process.argv.includes('--previews');
+// --save <generated_voice_id> keeps a chosen design candidate as a voice in the account and reads the passage with it.
+const SAVE = arg('--save', '');
 fs.mkdirSync(OUT, { recursive: true });
 
 /* ---- the passage: cover + the first two paragraphs of section 00 ---------- */
@@ -144,13 +146,17 @@ if (ONLY.includes('eleven') && XI) {
   // The same description the Gemini analyst was designed from, so the comparison is the engine, not the brief.
   const ANALYST = ELEVEN_VOICE || 'A man in his forties with a low, dry, unhurried voice and crisp diction: a financial analyst who finds the numbers quietly absurd and never raises his voice about it. Neutral international English accent. An original voice, not modelled on any real person.';
   try {
+    // What the account has used, before and after, so a run says what a character costs on this plan.
+    const used = async () => { try { const u = await xi('user/subscription'); return u; } catch (e) { console.error(`  subscription: ${e.message.slice(0, 200)}`); return null; } };
+    const before = await used();
+    if (before) console.log(`ElevenLabs plan ${before.tier}: ${before.character_count} of ${before.character_limit} credits used, resets ${new Date(before.next_character_count_reset_unix * 1000).toISOString().slice(0, 10)}`);
     const models = await xi('models');
     const tts = models.filter((m) => m.can_do_text_to_speech !== false).map((m) => m.model_id);
     console.log(`ElevenLabs models: ${tts.join(', ')}`);
     const pick = tts.find((m) => /v4/i.test(m) && /turbo/i.test(m)) || tts.find((m) => /v4/i.test(m)) || tts.find((m) => /eleven_v3$/.test(m)) || 'eleven_multilingual_v2';
     // A fixed seed: the same description, model and seed design the same voice, so the paid account can rebuild
     // exactly the voice this test designs on the free one (designed voices are stored per account).
-    const design = await xi('text-to-voice/design', { voice_description: ANALYST, model_id: 'eleven_ttv_v3', text: TEXT.slice(0, 1000), seed: 20261017 });
+    const design = SAVE ? { previews: [{ generated_voice_id: SAVE }] } : await xi('text-to-voice/design', { voice_description: ANALYST, model_id: 'eleven_ttv_v3', text: TEXT.slice(0, 1000), seed: 20261017 });
     const prev = design.previews?.[0];
     if (!prev?.generated_voice_id) throw new Error(`no preview: ${JSON.stringify(design).slice(0, 400)}`);
     if (PREVIEWS) {
@@ -166,6 +172,8 @@ if (ONLY.includes('eleven') && XI) {
     const vid = saved.voice_id;
     if (!vid) throw new Error(`no voice id: ${JSON.stringify(saved).slice(0, 400)}`);
     const audio = await xi(`text-to-speech/${vid}?output_format=mp3_44100_128`, { text: TEXT, model_id: pick }, true);
+    const after = await used();
+    if (before && after) console.log(`ElevenLabs: ${after.character_count - before.character_count} credits for ${TEXT.length} characters on ${pick}${SAVE ? '' : ' plus the design'}; ${after.character_limit - after.character_count} left`);
     const name = `11-elevenlabs-designed-${LABEL}-${pick}`;
     fs.writeFileSync(path.join(OUT, `${name}.mp3`), audio);
     index.push(`${name}.mp3  ElevenLabs ${pick}, DESIGNED voice "analyst" (id ${vid}), the same description as the Gemini analyst (09): ${ANALYST}`);

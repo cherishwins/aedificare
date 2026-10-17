@@ -29,6 +29,10 @@ on:
         description: 'ElevenLabs: write the three design candidates instead of saving one'
         type: boolean
         default: false
+      save:
+        description: 'ElevenLabs: a generated_voice_id from a previews run to keep as the voice'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -59,7 +63,8 @@ jobs:
           ELEVEN_VOICE: ${{ inputs.eleven_voice }}
           LABEL: ${{ inputs.label || 'analyst' }}
           PREVIEWS: ${{ inputs.previews && '--previews' || '' }}
-        run: node tools/voice-samples.mjs --out out --only "$ONLY" --eleven-voice "$ELEVEN_VOICE" --label "$LABEL" $PREVIEWS
+          SAVE: ${{ inputs.save }}
+        run: node tools/voice-samples.mjs --out out --only "$ONLY" --eleven-voice "$ELEVEN_VOICE" --label "$LABEL" --save "$SAVE" $PREVIEWS
 
       - name: File them as the Release voice-samples
         env:
