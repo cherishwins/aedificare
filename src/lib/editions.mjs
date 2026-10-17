@@ -57,10 +57,9 @@ const RAW = [
     lede: 'Give a thousand agents one shared drawer. They will build a society in it.',
     date: '2026-10-08', dateLabel: '8 Oct 2026',
     seed: '9A17', k: [17 / 4, 29 / 5, 23 / 6], pdf: '/pdf/edition-06.pdf',
-    // A draft until its twelve sources have been opened. Editions 04 and 05
-    // also arrived as finished prints and both were wrong in ways that
-    // mattered; the flip is one line and it waits on the checking.
-    draft: true,
+    // Published 17 Oct 2026, once every source had been opened: 98 claims
+    // were corrected on the page (CLAUDE.md, Findings 0e). The date stays the
+    // print's, as for every ported edition.
     contents: [
       { n: '00', t: 'The incident', id: 'incident' },
       { n: '01', t: 'The forum', id: 'forum' },

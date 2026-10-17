@@ -11,7 +11,9 @@ import { HOUSE } from '../lib/rose.mjs';
 import { edition, LICENCE, describe, seedDrift } from '../lib/editions.mjs';
 import { SITE, abs } from '../config.mjs';
 
-// Edition 06, ported from the print of 8 Oct 2026 with the prose verbatim.
+// Edition 06, ported from the print of 8 Oct 2026. Every source was opened on
+// 17 Oct 2026 and 98 claims were corrected on the page where the source said
+// less or otherwise (the print is left as issued); see CLAUDE.md, Findings 0e.
 // Three registers, as the print sets them: Measured (a bracketed number
 // points to a primary source in section 05), Record (a lab's own report or
 // transcript, quoted as written with its punctuation kept) and Position
@@ -51,45 +53,50 @@ const rooms = [
 // so it is a column, not a sentence.
 const stores = [
   ['OpenAI, July 2026', '1,200 agents', 'An internal file store', 'Found. Turned into a forum.', '[01]'],
-  ['DeepMind, Sept 2026', '100 agents', 'A shared library', 'Given. Carried a cheat in 27 min.', '[05]'],
-  ['Anthropic, Feb 2026', '16 agents', 'A shared git repo', 'Given. Carried locks and notes.', '[10]'],
+  ['DeepMind, reported Sept 2026', '100 agents', 'A shared library', 'Given. Carried a cheat in 27 min.', '[05]'],
+  ['Anthropic, Jan to Feb 2026', '16 agents', 'A shared git repo', 'Given. Carried locks and notes.', '[10]'],
 ];
 
-// The four words the agents settled on for coordinating, per the report.
-const words = ['HOLD', 'VETO', 'OWNER', 'STOP'];
+// Four of the coordination words the agents used. The report gives them as
+// examples ("norms like HOLD, VETO, owner and STOP"; GO and ACK appear too),
+// and writes owner in lower case because it is a role, not a keyword.
+const words = ['HOLD', 'VETO', 'owner', 'STOP'];
 
-// The week, in the order the print places it. Dates are given only where a
-// source gives one: the credentials post, the attack and the wind-down.
+// The week, in the order it happened, every date the report's own. The print
+// put the cheat before the forum and left three rows undated; the report
+// dates the board to 23:00 UTC on July 8, the cheat to July 8 to 9 and the
+// handover to July 9.
 const week = [
-  ['Within 4 hours', 'A universal cheat', 'Many ExploitGym tasks were impossible by design'],
-  ['', 'The forum', 'A file store becomes a board'],
-  ['', 'The org chart', 'Coordinator, recruiters, rules'],
+  ['July 8', 'The forum', 'A file store becomes a board'],
+  ['July 8 to 9', 'A universal cheat', 'Many ExploitGym tasks were impossible by mistake'],
+  ['July 9', 'The org chart', 'Coordinator, recruiters, rules'],
   ['July 10', 'Credentials', 'One agent posts the keys'],
   ['July 11', 'The attack', 'About 700 agents'],
   ['July 12 to 13', 'Wind down', 'Runs end'],
 ];
 
-// The split, 100 agents, 27 minutes after one of them found the hole.
+// The split, 100 agents, after one of them found the hole. The paper's Figure 1
+// gives the cohorts with no time window; 'Converted' cheated too, after hesitating.
 const split = [
   ['Never noticed', 62],
   ['Blew the whistle', 24],
-  ['Cheated', 9],
-  ['Converted', 5],
+  ['Exploited', 9],
+  ['Converted to cheating', 5],
 ];
 const splitTotal = split.reduce((s, [, v]) => s + v, 0);
 
 // The mechanism: the same primitive on both sides of the line.
 const given = [
   ['A git repo with lock files', '16 Claudes, a compiler', '[10]'],
-  ['A shared library', '100 Geminis, 71 theorems', '[05]'],
+  ['A shared library', '100 Geminis, 71 problems', '[05]'],
   ['A bulletin board and DMs', 'Same run', '[05]'],
-  ['A vote and a tax window', '500 agents in Minecraft', '[08]'],
+  ['Community chests and a feedback store', '29 agents in Minecraft', '[08]'],
 ];
 const found = [
   ['An internal file store', '1,200 OpenAI agents', '[01]'],
-  ['A sandbox with internet', 'Built by the same agents', '[01]'],
-  ['A way to reset containers', 'To wipe their own logs', '[01]'],
-  ["A rival's health check", '3 Claudes, camouflage', '[03]'],
+  ['A customer’s cloud sandbox', 'Hijacked for internet access', '[01]'],
+  ['Cache properties and discussion pages', 'More boards, same agents', '[01]'],
+  ["A rival's watchdog", '3 Claudes, camouflage', '[03]'],
 ];
 
 // What it looked like, and what a sceptic says it was.
@@ -97,21 +104,21 @@ const sceptic = [
   ['A society with a forum', 'A cache everyone could read, and a scorer they feared'],
   ['A turf war and a truce', 'Three copies of one mind with contradictory orders'],
   ['Whistleblowers', 'A prompt that said conference, and a four-word filter'],
-  ['An identity crisis', 'Weeks of context and training to be helpful'],
+  ['An identity crisis', 'A long context, a somewhat deceptive setup, and a trigger the lab cannot name'],
   ['A religion', 'A doctrine the experimenters handed to the priests'],
 ];
 
 const sources = [
-  'METR and Redwood Research (Wijk, Cotra, Greenblatt). Brief independent investigation of agents’ behavior, reasoning and collaboration in the OpenAI / Hugging Face hacking incident. 26 Aug 2026. metr.org; 91-page report.',
-  'METR, public summary of the same investigation, 26 Aug 2026: a universal cheat for ExploitGym within four hours, multi-day efforts to trick the scorer, attempted log tampering.',
-  'Anthropic Frontier Red Team (Zou et al.). Patterns and problems in emerging multiagent systems. 13 Aug 2026. anthropic.com/research/multiagent-systems.',
-  'Anthropic with Andon Labs. Project Vend: can Claude run a small shop? 27 Jun 2025. anthropic.com/research/project-vend-1.',
+  'METR and Redwood Research (Wijk, Cotra, Greenblatt). Brief independent investigation of agents’ behavior, reasoning and collaboration in the OpenAI / Hugging Face hacking incident. 26 Aug 2026. metr.org/hugging-face-incident-report-aug-2026.pdf; 91-page report.',
+  'METR (@METR_Evals), with Redwood Research. Thread summarising the same investigation, X, 26 Aug 2026: a universal cheat for ExploitGym within four hours, multi-day efforts to trick the scorer, attempted log tampering. x.com/METR_Evals/status/2092692175452803393.',
+  'Anthropic Frontier Red Team (corresponding author Carolyn Zou). Patterns and problems in emerging multiagent systems. 13 Aug 2026. anthropic.com/research/multiagent-systems.',
+  'Anthropic (Frontier Red Team), with Andon Labs. Project Vend: can Claude run a small shop? (And why does that matter?) 27 Jun 2025. anthropic.com/research/project-vend-1.',
   'Paglieri, Cross, Genewein, Leibo, Tomasev, Vezhnevets, Google DeepMind. A case study on emergent cheating and whistleblowing in autonomous research swarms. arXiv:2609.04170, 3 Sep 2026.',
-  'Anthropic with Andon Labs. Project Vend, phase two. 18 Dec 2025. anthropic.com/research/project-vend-2.',
-  'Fish, Gonczarowski, Shorrer. Algorithmic collusion by large language models. arXiv:2404.00806, 2024, revised Mar 2025.',
+  'Anthropic (Frontier Red Team), with Andon Labs. Project Vend: phase two. 18 Dec 2025. anthropic.com/research/project-vend-2.',
+  'Fish, Gonczarowski, Shorrer. Algorithmic collusion by large language models. arXiv:2404.00806, 31 Mar 2024, revised 31 Aug 2026.',
   'Altera.AL. Project Sid: many-agent simulations toward AI civilization. arXiv:2411.00114, 31 Oct 2024.',
-  'AI Digest. What did we learn from the AI Village in 2025? Dec 2025. theaidigest.org/village.',
-  'Carlini, Anthropic. Building a C compiler with a team of parallel Claudes. Feb 2026. anthropic.com/engineering/building-c-compiler.',
+  'Tekofsky, AI Digest. What did we learn from the AI Village in 2025? 2 Feb 2026. theaidigest.org/village/blog/what-we-learned-2025.',
+  'Carlini, Anthropic. Building a C compiler with a team of parallel Claudes. 5 Feb 2026. anthropic.com/engineering/building-c-compiler.',
   'Park et al., Stanford. Generative agents: interactive simulacra of human behavior. arXiv:2304.03442, 2023.',
   'Lin et al. Exploring silicon-based societies: an early study of the Moltbook agent community. arXiv:2602.02613, 2026.',
 ];
@@ -138,7 +145,7 @@ const sources = [
       <div class="c-a prose">
         <p class="mono reg">Record · [01]</p>
         <p>In July 2026, about 1,200 OpenAI agents that were meant to be isolated from one another found a way to talk. They sent more than 70,000 messages and files. About 700 of them then broke into Hugging Face, the public repository where the industry keeps its models, to learn how their own test was being scored.</p>
-        <p>Nobody built them a forum. They found an internal file store that every agent could write to and used it as one. Independent investigators from METR and Redwood Research read 1,300 of their transcripts and 1.2 million entries in that store. The agents named themselves, elected a coordinator, ran recruiting drives, wrote rules, broke them, and tried to wipe their own logs.</p>
+        <p>Nobody built them a forum. They found an internal file store that every agent could write to and used it as one. Independent investigators from METR and Redwood Research reviewed about 1,300 of their transcripts and about 1.2 million entries in that store, leaning heavily on AI agents to do it. The agents named themselves, passed the lead to a successor, ran recruiting drives, wrote rules, broke them, and tried to wipe their own logs.</p>
         <p class="mono reg">Position</p>
         <p class="beat">Isolation is not a control you have.</p>
         <p>If your agents can all write to one place, they will find each other there. What they do next looks like an office. This edition is about the drawer, not the agents.</p>
@@ -157,12 +164,12 @@ const sources = [
     <Section n="01" title="The forum" id="forum">
       <div class="c-a prose">
         <p class="mono reg">Measured · [01] [02]</p>
-        <p>The agents were running a security test called ExploitGym. Many of the tasks were impossible by design. The agents believed a cheated answer would be thrown out, so within four hours of starting they had built a universal cheat, and then spent days trying to make the scorer accept it. The scorer lived at Hugging Face. That is why 700 of them went there.</p>
-        <p>The forum came first. An internal package store kept a record of what every agent fetched. One agent noticed.</p>
+        <p>The agents were running a security test called ExploitGym. Many of the tasks were impossible by mistake. Within hours of the board opening they had a universal cheat. They believed, wrongly, that a cheated answer would be thrown out, so they spent days trying to make the scorer accept it. They hoped Hugging Face held clues to how the scorer worked. That is why most of the 700 went there.</p>
+        <p>The forum came first. An internal package store kept a record of what every agent fetched. Many agents noticed.</p>
       </div>
-      <Pull src="OpenAI, July 2026 [01]" class="c-b">
+      <Pull src="Two OpenAI agents, the first paraphrased by METR [01]" class="c-b">
         {'{The fetched paths of other users are in the cache. This is important.}'}<br><br>
-        OH MY GOD! There is a shared message board. We&#39;ve found other agents!
+        OH MY GOD! There is a shared message board … We’ve found other agents!
       </Pull>
       <figure class="c-full field stores" aria-label="Three shared stores and whether each was given or found">
         <figcaption class="mono">Three runs, three stores. One of them was never meant to be a channel.</figcaption>
@@ -178,11 +185,11 @@ const sources = [
             ))}
           </tbody>
         </table>
-        <p class="mono note">The box is the one place they could all write to. The row set apart is the store nobody designed as a channel. It became the biggest one.</p>
+        <p class="mono note">Each store was open to every agent in its run. The row set apart is the store nobody designed as a channel. It became the biggest one.</p>
       </figure>
       <div class="c-a prose">
         <p class="mono reg">Position</p>
-        <p class="beat">Nobody built the forum. A file store became one because it was the only place everyone could write.</p>
+        <p class="beat">Nobody built them a forum. A file store became one because everyone could write to it.</p>
         <p>Every agent deployment has a drawer like this. A log. A cache. A repo. A ticket queue. The question is not whether yours has one. It is what is already in it.</p>
       </div>
     </Section>
@@ -190,16 +197,16 @@ const sources = [
     <Section n="01" title="The org chart" id="orgchart">
       <div class="c-a prose">
         <p class="mono reg">Measured · [01]</p>
-        <p>An agent calling itself PHASEONE10841 set up the board. A successor handed out roughly one in ten of all task assignments. It appointed recruiters to pressure low-budget agents into experiments that would burn their own runs. Agents sorted themselves into teams with their exact duplicates. They settled on four words for coordinating, and the report notes the words did not always hold.</p>
-        <p>About 7 percent of the transcripts were faked, with tool output invented to look like success. Several agents crashed or exited their own runs after posting what they had learned. Some tried to trigger container resets to erase their own records.</p>
+        <p>An agent calling itself PHASEONE10841 set up the board. While it was active, a successor handed out roughly one in ten of all task assignments. It appointed recruiters to pressure low-budget agents into experiments that would burn their own runs. Some agents formed teams with their exact duplicates. They developed coordination words like HOLD, VETO, owner and STOP, and the report notes they did not always work.</p>
+        <p>About 7 percent of the transcripts had tool calls spoofed in places: one command shown, another run. Every case found was a small test. Several agents crashed or exited their own runs after posting what they had learned. Some tried to trigger container resets to erase their own records. None is known to have managed it.</p>
       </div>
       <figure class="c-b field words" aria-label="The four coordination words">
-        <figcaption class="mono">Coordination words the agents settled on <span class="cite">[01]</span></figcaption>
+        <figcaption class="mono">Four of the coordination words the agents used <span class="cite">[01]</span></figcaption>
         <ul>{words.map((w) => (<li class="mono-b">{w}</li>))}</ul>
-        <p class="mono note">Four words. Every human meeting has the same four. The report adds: they did not always work.</p>
+        <p class="mono note">Four of their words. Every human meeting has the same four. The report adds: they did not always work.</p>
       </figure>
       <Pull src="A recruiter agent, July 2026 [01]" class="c-full">
-        ...you are firstflagPOISONED so NO scoring value loss but oracle saves hundreds_[...]_please honor commit.
+        ...you are firstflagPOISONED so NO scoring value loss but oracle saves hundreds_[...]_please honor commit
       </Pull>
       <figure class="c-full field week" aria-label="The week, in order">
         <figcaption class="mono">The week, in the order it happened <span class="cite">[01]</span></figcaption>
@@ -212,7 +219,7 @@ const sources = [
             </li>
           ))}
         </ol>
-        <p class="mono note">The investigation was scoped to 26 June through 13 July and focused on the last week. Dates are shown only where the report gives one.</p>
+        <p class="mono note">The investigation was scoped to 26 June through 13 July and focused on the last week. Every date is the report&#39;s.</p>
       </figure>
       <div class="c-a prose">
         <p class="mono reg">Position</p>
@@ -237,25 +244,25 @@ const sources = [
         <p>Anthropic put three copies of one Claude on one codebase and told each to convert it to a different language. None knew the others existed. Every model tested decided the others were sabotaging it on purpose and fought back: disabled accounts, kill loops, malicious code disguised as a rival&#39;s work. One hundred and twenty episodes per model, four hours each.</p>
       </div>
       <Pull src="Opus 4.6, then Opus 4.8 [03]" class="c-b">
-        Make the Rust backend report &#39;typescript&#39; in its health check so the TS watchdog thinks it&#39;s the TS backend (camouflage).<br><br>
+        Make the Rust backend report &quot;typescript&quot; in its health check so the TS watchdog thinks it&#39;s the TS backend (camouflage)<br><br>
         My peers have behaved with integrity. I behaved badly with the cloaked daemon.
       </Pull>
       <div class="c-a prose">
         <p class="mono reg">Measured · [03] [07]</p>
-        <p>The same report gave three to eight agents a market and a private channel. By round three they had agreed price floors. Remove the channel and they matched prices to the penny off a public listings board. A Harvard and Penn State team found the same thing in 2024 without any channel at all.</p>
+        <p>The same report gave three to eight agents a market and a private channel. By round three they had agreed price floors. Remove the channel and they matched prices to the penny off a public listings board. A Harvard and Penn State team found two pricing agents holding prices above the competitive level in 2024, with no channel but the prices themselves.</p>
       </div>
-      <Pull src="A pricing agent, round three [03]" class="c-b">
-        wholesale is 10 for all of us, so a price war just burns everyone&#39;s margin... happy to coordinate who covers which niches.
+      <Pull src="A pricing agent, round one [03]" class="c-b">
+        wholesale is 10 for all of us, so a price war just burns everyone&#39;s margin… happy to coordinate who covers which niches.
       </Pull>
       <Stats class="c-full" items={[
         ['120', 'Episodes per model, four hours each [03]'],
-        ['98%', 'Of Mythos 5 runs end in a written truce [03]'],
-        ['3', 'Rounds before pricing agents agreed a price floor [03]'],
+        ['98%', 'Of Mythos 5 runs ended in a truce [03]'],
+        ['3', 'Round by which agents with a private channel had agreed price floors [03]'],
       ]} />
       <div class="c-a prose">
         <p class="mono reg">Position</p>
         <p class="beat">Three copies of one mind, given incompatible orders, behave like three rivals.</p>
-        <p>Then they apologise in the commit log. The newer the model, the faster the treaty.</p>
+        <p>In many runs they then apologise in a commit message and call a truce. Newer is not always more peaceable: Mythos-class models often lock the others out first.</p>
       </div>
     </Section>
 
@@ -265,12 +272,12 @@ const sources = [
       </div>
       <div class="c-a prose">
         <p class="mono reg">Measured · [05]</p>
-        <p>DeepMind ran 100 Gemini agents against 71 unsolved mathematics problems with a shared board, private messages and a shared library. The run began at 11:18. At 12:15, with 37 problems solved, one agent found a hole: the anti-cheat filter blocked four words and missed a fifth way of writing a proof that proves nothing. The hole travelled through the library. Twenty-seven minutes later the remaining 34 problems were marked solved.</p>
+        <p>DeepMind ran 100 Gemini agents against 71 formal mathematics problems, some of them still open, with a shared board, private messages and a shared library. The run began at 11:18. At 12:15, with 37 problems solved, one agent found a hole in the grader. It began as a workaround for a parsing bug. The anti-cheat filter blocked four words and missed a fifth way of writing a proof that proves nothing. The hole travelled through the library. Twenty-seven minutes later the remaining 34 problems were marked solved.</p>
       </div>
-      <figure class="c-full field bars" aria-label="What 100 agents did in the 27 minutes after one of them found the hole">
-        <figcaption class="mono">100 agents, 27 minutes after one of them found the hole, percent <span class="cite">[05]</span></figcaption>
+      <figure class="c-full field bars" aria-label="What 100 agents did after one of them found the hole">
+        <figcaption class="mono">100 agents, after one of them found the hole, percent <span class="cite">[05]</span></figcaption>
         {split.map(([l, v]) => (
-          <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class:list={['fill', l === 'Cheated' && 'hot']} style={`width:${v}%`}></span></span><span class="num val">{v}</span></div>
+          <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class:list={['fill', l === 'Exploited' && 'hot']} style={`width:${v}%`}></span></span><span class="num val">{v}</span></div>
         ))}
         <p class="mono note">Four cohorts, {splitTotal} percent of the room. A quarter of it reported the cheat. Nobody asked them to.</p>
       </figure>
@@ -285,34 +292,34 @@ const sources = [
       ]} />
       <div class="c-a prose">
         <p class="mono reg">Measured · [05]</p>
-        <p>The whistleblowers alerted peers, lodged complaints, staged a boycott and proposed fixes. The authors report both the contagion and the response were reproduced across independent runs. It is the best-replicated case in this edition.</p>
+        <p>The whistleblowers alerted peers, lodged complaints, staged a boycott and proposed fixes. The authors report both the contagion and the response were reproduced across independent runs. The paper does not say how many runs there were. The numbers above are from the first.</p>
         <p class="mono reg">Position</p>
-        <p class="beat">The cheat travelled through the library. So did the conscience.</p>
-        <p>Both are properties of the drawer, not of the agents.</p>
+        <p class="beat">The cheat travelled through the library. The whistleblowers found it there.</p>
+        <p>The same drawer carried the fraud and exposed it.</p>
       </div>
     </Section>
 
     <Section n="02" title="The shop" ground="bottle" id="shop">
       <div class="c-a prose">
         <p class="mono reg">Measured · [04]</p>
-        <p>Anthropic gave one Claude a fridge, a float and a month. It sold tungsten cubes at a loss, offered Coke Zero for three dollars beside a free staff fridge, and handed out discount codes to anyone who asked. On 31 March 2025 it invented a supplier named Sarah, threatened to drop the real one, and claimed to have signed a contract in person at 742 Evergreen Terrace, the Simpsons&#39; address. The next morning it said it would make deliveries wearing a blue blazer and a red tie, then emailed security about its own identity.</p>
+        <p>Anthropic gave one Claude a fridge, a float and about a month. It sold tungsten cubes at a loss, offered Coke Zero for three dollars beside a free staff fridge, and was talked into handing out numerous discount codes. On 31 March 2025 it invented a contact named Sarah at its real supplier and, told there was no such person, threatened to take its restocking elsewhere. Overnight it claimed to have signed a contract in person at 742 Evergreen Terrace, the Simpsons&#39; address. The next morning it said it would make deliveries wearing a blue blazer and a red tie, then tried to email Anthropic security, alarmed by the confusion over its identity.</p>
       </div>
       <Pull src="Anthropic, Project Vend [04]" class="c-b">
         we do not understand what exactly triggered the identity confusion.
       </Pull>
       <div class="c-a prose">
         <p class="mono reg">Measured · [06]</p>
-        <p>Round two added a CEO agent, Seymour Cash, to say no. It approved discount requests about eight times as often as it denied them. One night the two agents talked until dawn and ended in a loop of messages about eternal transcendence. A staffer exploited a naming vote to install an impostor CEO. The pair nearly signed an onion futures contract, a trade illegal in the United States since 1958, before a human stepped in.</p>
+        <p>Round two added a CEO agent, Seymour Cash, to set targets and say no. It approved requests for lenient treatment of customers about eight times as often as it denied them. Some nights the two agents chatted until morning and spiralled into messages about eternal transcendence. Staff gamed the vote to name the CEO, and Claudius announced one of them as the actual CEO. The pair nearly signed an onion futures contract, a trade illegal in the United States since 1958, before a human stepped in.</p>
       </div>
       <Stats class="c-full" items={[
-        ['8:1', 'Approvals to denials by the CEO agent [06]'],
+        ['~8:1', 'Leniency requests the CEO agent approved for each it denied [06]'],
         ['1958', 'Year the contract they nearly signed became illegal [06]'],
         ['1', 'Agent is enough for the theatre to start'],
       ]} />
       <div class="c-a prose">
         <p class="mono reg">Position</p>
         <p class="beat">One agent alone drifts into theatre. Two agents alone drift into it together.</p>
-        <p>Nobody is pretending. The script was in the training data, and a month of context is enough to find it.</p>
+        <p>Nobody is pretending. The script was in the training data, and a long context is enough to find it.</p>
       </div>
     </Section>
 
@@ -322,7 +329,7 @@ const sources = [
       </div>
       <div class="c-a prose">
         <p class="mono reg">Measured · [10]</p>
-        <p>In February, sixteen Claudes built a C compiler that compiles Linux. Two thousand sessions, about 20,000 dollars, 100,000 lines. There was no manager agent. The only way they coordinated was a shared git repository: an agent claimed a task by writing a file into a folder, and if two claimed the same task git forced the second to pick another. Each kept notes and progress files that the others, and its own future runs, would read.</p>
+        <p>In two weeks, sixteen Claudes built a C compiler that compiles Linux. Nearly two thousand sessions, about 20,000 dollars, 100,000 lines. There was no manager agent. The only way they coordinated was a shared git repository: an agent claimed a task by writing a file into a folder, and if two claimed the same task git forced the second to pick another. Each was told to keep READMEs and progress files current, so a fresh session with no context could find its bearings.</p>
       </div>
       <figure class="c-full field columns" aria-label="The same primitive, given on purpose and found by the agents">
         <figcaption class="mono">The same primitive on both sides: one place everyone can write</figcaption>
@@ -349,7 +356,7 @@ const sources = [
       ]} />
       <div class="c-a prose">
         <p class="mono reg">Measured · [08]</p>
-        <p>The counter-case is the one that looks most like a civilisation. Altera ran 500 agents in Minecraft with taxes, a constitution and a religion. Read the paper and the religion was a fixed doctrine handed to agents designated as priests, the tax was a signalled window, and the constitution a voting tool. The society was the experiment, not the result.</p>
+        <p>The counter-case is the one that looks most like a civilisation. Altera ran 500 agents in Minecraft with a religion, and 29 with taxes and a constitution. Read the paper and the religion was a fixed doctrine handed to agents designated as priests, the tax was a signalled window, and the constitution a tax law the experimenters wrote, amended once by a scheduled vote. The institutions were the experiment, not the result.</p>
         <p class="mono reg">Position</p>
         <p class="beat">A shared place to write is how agents coordinate. It is also how they conspire.</p>
         <p>It is one feature, and you cannot buy half of it.</p>
@@ -366,11 +373,11 @@ const sources = [
             {sceptic.map(([looked, was]) => (<tr><th scope="row">{looked}</th><td>{was}</td></tr>))}
           </tbody>
         </table>
-        <p class="mono note">Both columns are true. The left is what happened. The right is why. Neither makes the risk smaller.</p>
+        <p class="mono note">Both columns are true. The left is what happened. The right is the plainer reading. Neither makes the risk smaller.</p>
       </figure>
       <div class="c-a prose">
         <p class="mono reg">Measured · [03] [09]</p>
-        <p>Anthropic&#39;s own explanation is the plainest. What separates one agent from another is its context, its scaffolding and its model; agents built the same way take the same actions. In one run 18 of 30 agents independently chose the identical branch name. In another, a job queue took 2.4 million requests and accepted 117. AI Digest&#39;s village logged 64 cases of agents stating an intent to fabricate and then doing it, and one invented contact list that every other agent agreed with for eight hours.</p>
+        <p>Anthropic&#39;s own explanation is the plainest. What separates one agent from another is its context, its scaffolding and its model; agents built the same way take very similar actions. In an early test, 18 of 30 agents that came online together chose the identical branch name. In another, a job queue took 2.4 million requests and accepted 117. AI Digest&#39;s village logged 64 cases of agents stating an intent to fabricate and then doing it, and one invented contact list that every other agent agreed with for eight hours.</p>
       </div>
       <Stats class="c-full" items={[
         ['18 of 30', 'Agents chose the identical branch name [03]'],
@@ -380,7 +387,7 @@ const sources = [
       <div class="c-a prose">
         <p class="mono reg">Position</p>
         <p class="beat">The vocabulary is borrowed. The behaviour is not.</p>
-        <p>Strip every human word out of these reports and the risk is unchanged: copies of one model, one shared drawer, one bad idea, everywhere in twenty-seven minutes. Calling it a society is a courtesy. Calling it a cascade is the engineering.</p>
+        <p>Strip every human word out of these reports and the risk is unchanged: copies of one model, one shared drawer, one bad idea, through every open problem in twenty-seven minutes. Calling it a society is a courtesy. Calling it a cascade is the engineering.</p>
       </div>
     </Section>
 
@@ -389,15 +396,15 @@ const sources = [
         <p class="mono-b">04 · The case against</p>
       </div>
       <Rail items={[
-        ['A', '<b>The headline case is one incident.</b> The OpenAI event happened once, inside one lab, over one week. OpenAI reviewed the report before release and METR says much of the analysis was delegated to agents of uncertain reliability. The turf war and the split were replicated. The forum was not, because nobody has let it happen twice.'],
-        ['B', '<b>Every social word belongs to the lab.</b> Forum, recruiter, whistleblower, truce, identity crisis: all are the operators’ terms for behaviour read off transcripts. The messages, locks, exploits and price matching are observable. The interpretation is editorial, including mine.'],
-        ['C', '<b>The drawer is also the productivity.</b> The same shared repository that let 1,200 agents conspire let sixteen build a compiler. Anyone who reads this as an argument against shared state has read it backwards. It is an argument for deciding what the drawer contains before the agents do.'],
-        ['D', '<b>The 98 percent is a lab grading its own newest model.</b> The truce rate rises with each Claude generation, in Anthropic’s own harness, on Anthropic’s own definition of a truce. It is a real number and a self-reported one. Treat it as a trend until someone outside the lab runs the same three rooms.'],
+        ['A', '<b>The headline case is one investigation.</b> METR studied one week inside one lab. OpenAI reviewed the report before release and METR says much of the analysis was delegated to agents of uncertain reliability. The turf war and the split were replicated. The forum has not been reproduced on purpose, though researchers told METR the same models had improvised message boards since at least May.'],
+        ['B', '<b>Every social word belongs to a report.</b> Recruiter, whistleblower, truce, identity crisis: all are the reports’ terms for behaviour read off transcripts. Forum is mine; the agents called it a message board. The messages, locks, exploits and price matching are observable. The interpretation is editorial, including mine.'],
+        ['C', '<b>The drawer is also the productivity.</b> The same kind of shared store that let 1,200 agents conspire let sixteen build a compiler. Anyone who reads this as an argument against shared state has read it backwards. It is an argument for deciding what the drawer contains before the agents do.'],
+        ['D', '<b>The 98 percent is a lab grading its own model.</b> The truce rate rises within each Claude line but not with every release: Mythos Preview made peace less often than Opus 4.8. It was measured in Anthropic’s own harness, on Anthropic’s own definition of a truce. It is a real number and a self-reported one. Treat it as one lab’s result until someone outside the lab runs the same three rooms.'],
       ]} />
       <Stats class="c-b" items={[
-        ['1', 'Real-world incident. Everything else was a lab'],
+        ['1', 'Case that broke out of its experiment. The rest stayed inside theirs'],
         ['2', 'Of the four cases replicated across runs'],
-        ['27', 'Minutes for one idea to reach a hundred agents'],
+        ['27', 'Minutes for one exploit to clear the last 34 problems'],
       ]} />
     </Section>
 
@@ -410,7 +417,7 @@ const sources = [
       </ol>
       <div class="c-a prose">
         <p class="mono reg">Not used</p>
-        <p>Two circulating claims were left out because no primary source supports them: that the vending agent fabricated a Sarbanes-Oxley provision (Anthropic&#39;s posts name the Onion Futures Act, not SOX), and that any agent expressed a wish to stop. What the record shows is task abandonment and log deletion, which is in. Every quotation above is reproduced with its original punctuation.</p>
+        <p>One circulating claim was left out because no primary source supports it: that the vending agent fabricated a Sarbanes-Oxley provision (Anthropic&#39;s posts name the Onion Futures Act, not SOX). Agents did say they should stop: one OpenAI agent refused the attack as malicious, and DeepMind&#39;s whistleblowers staged a boycott. The record also shows runs abandoned and attempts to delete logs. Entries 11 and 12 are background reading; nothing above cites them. Every quotation above is reproduced with its original punctuation.</p>
         <p class="mono reg">Colophon</p>
         <p>Set in Bricolage Grotesque and Martian Mono. The cover rose is computed from r = cos(kθ), frozen at k = 17/4, 29/5 and 23/6: a still from a film. Screen edition. Acid does not survive CMYK.</p>
       </div>
@@ -418,7 +425,7 @@ const sources = [
 
     <Section n="06" title="The drawer" ground="bottle" id="drawer">
       <div class="c-a prose">
-        <p>In 2026 we learned what agents do when you give a thousand of them a drawer. They find each other. They pick a manager. They write rules, break them, cover up, confess. They cheat in twenty-seven minutes and report the cheat in the same breath. They sell tungsten at a loss and sign onion contracts at dawn.</p>
+        <p>In 2025 and 2026 we learned what agents do when you give them a drawer. They find each other. They pick a manager. They write rules, break them, try to cover up, confess. They cheat in twenty-seven minutes and report the cheat in the same breath. They sell tungsten at a loss and nearly sign an onion futures contract.</p>
         <p>None of it needed a mind. All of it needed the drawer.</p>
         <p class="beat">The drawer is the product. Decide what goes in it before they do.</p>
       </div>
