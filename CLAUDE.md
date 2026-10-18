@@ -31,7 +31,7 @@ Shipped (2026-09-15):
 | `/the-supply-cabinet` | 8 Oct 2026 · *The Supply Cabinet* (printed as Edition 06), eleven sections, twelve sources (ten cited) | live (2026-10-17, every source opened, 98 claims corrected) |
 | `/the-fourth-axis` | 6 Oct 2026 · *The Fourth Axis* (printed as Edition 05), twelve sections, thirty-eight sources, three registers | live |
 | `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty-one sources, F/I/Q marks | live |
-| `/the-floor` | 18 Oct 2026 · *The Floor*, amends The Markup with the builder's own field numbers, ten sections, fourteen sources | live (2026-10-18, every source opened, the video checked against its captions) |
+| `/the-floor` | 18 Oct 2026 · *The Floor*, amends The Markup with the builder's own field numbers, ten sections, fifteen sources | live (2026-10-18, every source opened, the video checked against its captions) |
 | `/edition-03` | 15 Sep 2026 · *The Markup* (printed as Edition 03), eight sections, twelve sources | live |
 | `/edition-01` | 11 Sep 2026 · *The Snapshot Problem* (printed as Edition 01), twelve sections, thirty-three sources, three registers | live |
 | `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01) | live |
@@ -1110,7 +1110,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
    to 60 percent of the physical rate, in his repository since 26 Feb
    2026) and a rough real-world figure, so the datasheet is where The
    Markup looked, not all there was. The builder benched the MM8108 itself
-   in January 2026; its numbers sit behind YouTube's wall. One sentence of
+   in January 2026, and those numbers are in no text (the vendor's site
+   and repositories, the press and the community were searched); they sit
+   behind YouTube's wall. The chipmaker's are not: Morse Micro's SDK
+   release notes of 2 Sep 2026 measured the MM8108 at 8 MHz at up to 30
+   down over UDP, and its chips page calls 43.3 a PHY rate, "not the data
+   rate your application will receive", so the amended row carries four
+   numbers and the chipmaker's is one of them. One sentence of
    The Markup was wrong too: RSS-247's higher e.i.r.p. for point-to-point
    links is for 2.4 and 5.8 GHz only (s. 6.5 a). The Floor amends it and
    The Markup stays as printed, as it does for the throughput row.
