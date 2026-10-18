@@ -180,7 +180,7 @@ const RAW = [
   {
     slug: 'ns-02', path: '/ns-02', print: 'NS-02',
     title: 'The Closest Humans', acid: 'Humans',
-    lede: 'Two men, one year, and a phone call on a Sunday.',
+    lede: 'Two men, one year, and two calls on a Sunday.',
     date: '2026-09-13', dateLabel: '13 Sep 2026',
     seed: '0902', k: [6, 11], pdf: '/pdf/ns-02.pdf',
     amends: 'ns-01',
@@ -197,6 +197,7 @@ const RAW = [
       { n: '08', t: 'The closest humans', id: 'closest' },
       { n: '09', t: 'Meanwhile, in Madrid', id: 'madrid' },
       { n: '10', t: 'Who has not spoken', id: 'silence' },
+      { n: '11', t: 'Sources', id: 'sources' },
     ],
   },
   {
@@ -216,6 +217,7 @@ const RAW = [
       { n: '08', t: 'Four days', id: 'fourdays' },
       { n: '09', t: 'The input was a rumour', id: 'rumour' },
       { n: '10', t: 'What would change my mind', id: 'mind' },
+      { n: '11', t: 'Sources', id: 'sources' },
     ],
   },
   {
