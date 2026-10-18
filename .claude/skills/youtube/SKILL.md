@@ -192,7 +192,12 @@ changes a video costs about 500 (update 50, captions 400, thumbnail 50).
 An API upload costs about 500 more (since 1 June 2026 videos.insert has
 its own bucket of 100 a day; captions, thumbnail and listing come out of
 the 10,000). A full sync of every release fits in one day; a second forced
-sync the same day may not. The voice has its own limit: the ElevenLabs
+sync the same day may not. It ran out once, on 18 October 2026: fourteen
+uploads in one Pacific day, with their caption tracks and thumbnails and the
+day's syncs, holds and list runs, and the last three caption tracks failed
+while the videos went up. So plan about a dozen uploads a day, and leave a
+list run's worth of room to confirm them. The day resets at midnight
+Pacific (07:00 UTC in October). The voice has its own limit: the ElevenLabs
 plan's monthly credits (the run's log prints what it spent and what is left).
 
 ## When something fails
@@ -207,8 +212,18 @@ plan's monthly credits (the run's log prints what it spent and what is left).
   run continues once credits are back; tell the owner the reset date. A run that fails on "would not align after 3 tries" means
   Gemini keeps saying that chunk differently from the text: look at the
   chunk's words (a token spelled oddly) and fix the spelling or the text.
+- An upload or sync run is green but its log says `captions failed (the
+  video is up)` or `thumbnail failed`, and Actions shows a warning: the
+  video is on the channel without them. The render's ledger
+  (`youtube.json`, `youtube-short.json`) now carries `owed`, `list` marks
+  the video OWED, and the next `youtube.yml action=sync` sends what is owed
+  and files the ledger again without it. A ledger filed before this
+  existed (the three NS caption tracks of 18 October) says nothing is
+  owed, so that sync is forced: `action=sync only=<release> set=force`,
+  which resends both of the release's videos, about 500 units each.
 - Thumbnail 403: the channel is not phone-verified. The video still
-  updated.
+  updated, and the ledger owes the thumbnail until a sync after
+  verification sends it.
 - A video shows `no render`: it was uploaded under another file name and
   title. If it is one of ours, the owner can set its title to the
   render's, or run `node tools/upload-youtube.mjs <meta.json> --update <id>`

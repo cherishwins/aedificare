@@ -405,7 +405,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   after it went up, and `upload --replace <release>` puts a corrected
   render up beside the video it replaces, which then reads superseded and
   is retired like an older voice, and holds the replaced video if it was
-  still scheduled, so the two never both publish),
+  still scheduled, so the two never both publish; what an upload could not
+  send, a caption track or a thumbnail, goes into the render's ledger as
+  `owed`, `list` marks the video OWED, and the next `sync` sends it and files
+  the ledger again without it, because on 18 Oct 2026 the day's quota ran
+  out under three caption tracks and the runs went green; `youtube.yml`
+  forces a sync with `set=force`),
   `generate-design-system.mjs` (the claude.ai/design bundle, below),
   `episode.mjs` (the news films, override 8: `check`, `sheet`, `narrate`,
   `render`; quote cards with a highlighter, maps from Natural Earth,

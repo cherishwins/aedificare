@@ -79,6 +79,9 @@ const snippet = { title: meta.title, description: meta.description, categoryId: 
 const status = { license: meta.licence || 'youtube', embeddable: true, selfDeclaredMadeForKids: false, containsSyntheticMedia: false };
 
 let id;
+// What could not be sent (a caption track, a thumbnail): written into the ledger, so the video is not taken as done and
+// youtube-channel.mjs sync sends it once the quota is back. On 18 Oct 2026 three caption tracks failed on quota and the run went green.
+const owed = [];
 if (UPDATE) {
   /* ---- bring an existing video up to the render's metadata ---------------- */
   id = UPDATE;
@@ -121,13 +124,13 @@ if (meta.captions && fs.existsSync(path.join(dir, meta.captions))) {
   const cap = existing
     ? await fetch('https://www.googleapis.com/upload/youtube/v3/captions?uploadType=multipart&part=snippet', { method: 'PUT', headers, body: part({ id: existing.id, snippet: { isDraft: false } }) })
     : await fetch('https://www.googleapis.com/upload/youtube/v3/captions?uploadType=multipart&part=snippet', { method: 'POST', headers, body: part({ snippet: { videoId: id, language: 'en', name: 'English', isDraft: false } }) });
-  if (!cap.ok) console.error('  captions failed (the video is up):', cap.status, await cap.text()); else console.log(`  captions: ${meta.captions}${existing ? ' (replaced)' : ''}`);
+  if (!cap.ok) { owed.push('captions'); console.error('  captions failed (the video is up):', cap.status, await cap.text()); } else console.log(`  captions: ${meta.captions}${existing ? ' (replaced)' : ''}`);
 }
 
 /* ---- thumbnail (needs a phone-verified channel; otherwise YouTube keeps its own frame) ---- */
 if (meta.thumbnail && fs.existsSync(path.join(dir, meta.thumbnail))) {
   const th = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${id}`, { method: 'POST', headers: { ...auth, 'content-type': 'image/png' }, body: fs.readFileSync(path.join(dir, meta.thumbnail)) });
-  if (!th.ok) console.error('  thumbnail failed (the video is up):', th.status, await th.text()); else console.log(`  thumbnail: ${meta.thumbnail}`);
+  if (!th.ok) { owed.push('thumbnail'); console.error('  thumbnail failed (the video is up):', th.status, await th.text()); } else console.log(`  thumbnail: ${meta.thumbnail}`);
 }
 
 /* ---- playlist ------------------------------------------------------------- */
@@ -136,5 +139,17 @@ if (PLAYLIST) {
   if (!pl.ok) console.error('  playlist failed (the video is up):', pl.status, await pl.text()); else console.log(`  playlist: ${PLAYLIST}`);
 }
 
-fs.writeFileSync(path.join(dir, meta.kind === 'short' ? 'youtube-short.json' : 'youtube.json'), JSON.stringify({ id, url: `https://youtu.be/${id}`, privacy: UPDATE ? 'unchanged' : PRIVACY, publishAt: UPDATE ? undefined : PUBLISH_AT || undefined, mode: UPDATE ? 'update' : 'upload', at: new Date().toISOString(), title: meta.title }, null, 1) + '\n');
+const ledgerPath = path.join(dir, meta.kind === 'short' ? 'youtube-short.json' : 'youtube.json');
+// An update of the video the ledger already names keeps the upload's record (privacy, publish time, when) and adds when
+// it was brought up to date; what is still owed is written either way, and dropped once nothing is.
+const prior = UPDATE && fs.existsSync(ledgerPath) ? JSON.parse(fs.readFileSync(ledgerPath, 'utf8')) : null;
+const record = prior && prior.id === id
+  ? { ...prior, title: meta.title, updated: new Date().toISOString() }
+  : { id, url: `https://youtu.be/${id}`, privacy: UPDATE ? 'unchanged' : PRIVACY, publishAt: UPDATE ? undefined : PUBLISH_AT || undefined, mode: UPDATE ? 'update' : 'upload', at: new Date().toISOString(), title: meta.title };
+if (owed.length) record.owed = owed; else delete record.owed;
+fs.writeFileSync(ledgerPath, JSON.stringify(record, null, 1) + '\n');
+if (owed.length) {
+  console.log(`  owed: ${owed.join(' and ')} did not go up; the ledger says so, and youtube-channel.mjs sync sends ${owed.length > 1 ? 'them' : 'it'}`);
+  if (process.env.GITHUB_ACTIONS) console.log(`::warning::${id} is up without its ${owed.join(' and ')} (the error is above; if it is the quota, that resets at midnight Pacific). Run youtube.yml action=sync once it has.`);
+}
 console.log(`  done: https://studio.youtube.com/video/${id}/edit`);
