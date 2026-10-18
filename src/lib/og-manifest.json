@@ -1,11 +1,15 @@
 {
   "/og/home.png": {
-    "src": "/og/home.7c3f58d0.png",
-    "alt": "Aedificare share card: AEDIFICARE, in acid green and white type over a green rose curve. Eight editions. October 2026."
+    "src": "/og/home.774a274e.png",
+    "alt": "Aedificare share card: AEDIFICARE, in acid green and white type over a green rose curve. Nine editions. October 2026."
   },
   "/og/desk.png": {
     "src": "/og/desk.a5d5fa09.png",
     "alt": "Aedificare share card: DESK, in acid green and white type over a green rose curve. The desk of Aedificare. drafts before they are issued."
+  },
+  "/og/edition-02.png": {
+    "src": "/og/edition-02.0658a083.png",
+    "alt": "Aedificare share card: THE SUBTRACTION, in acid green and white type over a green rose curve. 18 Oct 2026. A processor was built, then deliberately reduced, then sold at a fraction of its worth. The reduction is the product."
   },
   "/og/the-countersign.png": {
     "src": "/og/the-countersign.6adb22e4.png",
@@ -42,9 +46,5 @@
   "/og/edition-01.png": {
     "src": "/og/edition-01.9856d5f8.png",
     "alt": "Aedificare share card: THE SNAPSHOT PROBLEM, in acid green and white type over a green rose curve. 11 Sep 2026. Agents formed societies this summer. The models under them learned nothing."
-  },
-  "/og/edition-02.png": {
-    "src": "/og/edition-02.411852ed.png",
-    "alt": "Aedificare share card: THE SUBTRACTION, in acid green and white type over a green rose curve. 2026. A processor was built, then deliberately reduced, then sold at a quarter of its worth. The reduction is the product."
   }
 }

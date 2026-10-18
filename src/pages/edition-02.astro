@@ -1,10 +1,13 @@
 ---
 /**
- * DRAFT. Edition 02 has table cells that were never sourced ("check",
- * "unverified" in the original) and the dove slot was empty. It is built
- * so it can be seen and swept, but it carries noindex, is out of the
- * sitemap and robots, and nothing links to it. A published number that
- * says "check" is a number nobody can check. Flip DRAFT when it is sourced.
+ * Edition 02 · The Subtraction. The print was a chassis marked FACTS PENDING
+ * and was never issued; this page is the first issued text. Every figure and
+ * claim was sourced on 17 and 18 Oct 2026 (CLAUDE.md, Findings 0g): five
+ * researchers by topic, each followed by a skeptic who re-opened every source.
+ * The draft predated the public unlock of the CMP 170HX (a paper in June 2026,
+ * an open tool and a named test by September), so the sections on the fuses
+ * and on what the community recovered say what those sources show. A cell no
+ * source gives reads n/a; nothing on the page says "check".
  */
 import Base from '../layouts/Base.astro';
 import Masthead from '../components/Masthead.astro';
@@ -23,44 +26,96 @@ const div = (k1: number, k2: number, ph: number) => [
   { k: k1, s: 1.0, ph, w: 0.7, c: '#00B24F', o: 0.5 },
   { k: k2, s: 0.71, ph: ph + 0.38, w: 0.7, c: '#00B24F', o: 0.35 },
 ];
-const NS = '<span class="mono mal">not yet sourced</span>';
 
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: 'The Subtraction',
+  alternativeHeadline: `Printed as ${ed.print}`,
+  datePublished: ed.date,
+  author: { '@type': 'Person', name: 'Jesse James' },
+  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
+  url: abs(ed.path),
+  mainEntityOfPage: abs(ed.path),
+  license: LICENCE.url,
+  isAccessibleForFree: true,
+  description: ed.lede,
+};
+
+// The same GA100 die in five configurations. Sources per column are in the note under the table; a cell no
+// source gives reads n/a. The CMP columns are the 8 GB card (four stacks); a 10 GB card with five stacks also shipped.
 const rows: [string, string, string, string, string, string][] = [
   ['Process', 'TSMC N7', 'TSMC N7', 'TSMC N7', 'TSMC N7', 'TSMC N7'],
   ['Die area', '826 mm²', '826 mm²', '826 mm²', '826 mm²', '826 mm²'],
   ['Transistors', '54.2 B', '54.2 B', '54.2 B', '54.2 B', '54.2 B'],
-  ['Die bin', 'GA100 full', 'GA100', 'GA100', 'GA100-105F-A1', 'GA100-105F-A1'],
-  ['GPCs', '8', '7', '7', '7', '7'],
+  ['Die bin', 'GA100 full', 'GA100-883AA-A1', 'GA100-893FF', 'GA100-105F-A1', 'GA100-105F-A1'],
+  ['GPCs', '8', '7', '7', 'n/a', 'n/a'],
   ['Streaming multiprocessors', '128', '108', '108', '70', '70'],
   ['FP32 cores', '8,192', '6,912', '6,912', '4,480', '4,480'],
   ['Tensor cores (3rd gen)', '512', '432', '432', '280', '280'],
-  ['L2 cache', '48 MB', '40 MB', '40 MB', NS, NS],
-  ['Base / boost clock', 'n/a', '1065 / 1410', '1065 / 1410', '1140 / 1410', '1140 / 1410'],
-  ['Memory type', 'HBM2e', 'HBM2', 'HBM2e', 'HBM2e', 'HBM2e'],
+  ['L2 cache', '48 MB', '40 MB', '40 MB', '32 MB', 'n/a'],
+  ['Base / boost clock, MHz', 'n/a', '765 / 1410', '1065 / 1410', '1140 / 1410', '1140 / 1410'],
+  ['Memory type', 'HBM2', 'HBM2', 'HBM2e', 'HBM2e', 'HBM2e'],
   ['Memory bus', '6,144-bit', '5,120-bit', '5,120-bit', '4,096-bit', '4,096-bit'],
-  ['Memory reported', 'n/a', '40 GB', '80 GB', '8 GB', NS],
-  ['Memory physical', 'n/a', '40 GB', '80 GB', '≥32 GB (4 stacks)', '≥32 GB'],
-  ['Bandwidth', 'n/a', '1.56 TB/s', '1.94 to 2.04 TB/s', '1.49 TB/s', '1.49 TB/s'],
-  ['FP32 theoretical', '~20.9 TF', '19.5 TF', '19.5 TF', '12.63 TF', '12.63 TF'],
-  ['FP32 delivered', 'n/a', '19.5 TF', '19.5 TF', '0.39 TF', NS],
-  ['Host interface', 'PCIe 4.0 x16', 'PCIe 4.0 x16', 'PCIe 4.0 x16', 'PCIe 1.0 x4', NS],
+  ['Memory reported', 'n/a', '40 GB', '80 GB', '8 GB', '64 GB'],
+  ['Memory physical', 'n/a', '40 GB', '80 GB', '64 GB', '64 GB'],
+  ['Bandwidth, rated', 'n/a', '1.56 TB/s', '1.94 TB/s', '1.49 TB/s', '1.49 TB/s'],
+  ['FP32 theoretical', 'n/a', '19.5 TF', '19.5 TF', '12.63 TF', '12.63 TF'],
+  ['FP32 delivered', 'n/a', 'uncapped', 'uncapped', '0.39 TF', '12.2 TF'],
+  ['Host interface', 'PCIe 4.0 x16', 'PCIe 4.0 x16', 'PCIe 4.0 x16', 'PCIe 1.0 x4', 'PCIe 2.0 x4'],
   ['Display output', 'none', 'none', 'none', 'none', 'none'],
-  ['Board power', 'n/a', '250 W', '300 W', '250 W', NS],
-  ['Price at launch', 'n/a', '~$10,000 est', '~$15,000 est', '$4,299', 'n/a'],
-  ['Price today', 'n/a', 'n/a', 'n/a', '$400 to $800', '$400 to $800'],
+  ['Board power', 'n/a', '250 W', '300 W', '250 W', '250 W'],
+  ['Price at launch', 'n/a', '£8,299 ex VAT', 'n/a', '~$4,300', 'free tool'],
+  ['Used price, Sep 2026', 'n/a', 'n/a', 'n/a', '$1,300 to $1,700', 'same card'],
 ];
+
+const sources = [
+  'NVIDIA. NVIDIA A100 Tensor Core GPU Architecture, whitepaper V1.0. 2020. images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf',
+  'NVIDIA. NVIDIA A100 40GB PCIe GPU Accelerator, product brief PB-10137-001_v03. Sep 2020. nvidia.com/content/dam/en-zz/Solutions/Data-Center/a100/pdf/A100-PCIE-Prduct-Brief.pdf',
+  'NVIDIA. NVIDIA A100 80GB PCIe GPU, product brief PB-10577-001_v03. Mar 2022. nvidia.com/content/dam/en-zz/Solutions/Data-Center/a100/pdf/PB-10577-001_v02.pdf',
+  'Andermahr, ComputerBase. Nvidia Ampere: Die GA100-GPU im Vollausbau analysiert. 15 May 2020. computerbase.de/2020-05/nvidia-ga100-ampere/',
+  'niconiconi. All GB/s without FLOPS: Nvidia CMP 170HX review, performance lockdown workaround, teardown, watercooling, and repair. 25 Oct 2023. niconiconi.neocities.org/tech-notes/nvidia-cmp-170hx-review/',
+  'WhyCry, VideoCardz. NVIDIA CMP 170HX cryptomining card spotted, passive design offering 164 MH/s hash rate. 2 Sep 2021. videocardz.com/newz/nvidia-cmp-170hx-cryptomining-card-spotted-passive-design-offering-164-mh-s-hash-rate',
+  'Liu, Tom’s Hardware. Nvidia’s Ampere cryptomining monster GPU goes on sale for $4,300. 22 Oct 2021. tomshardware.com/news/nvidia-ampere-cryptomining-monster-gpu-sale-4300-dollars',
+  'Xing. Exploration of cryptocurrency mining-specific GPUs in AI applications: a case study of CMP 170HX. arXiv:2505.03782, 30 Apr 2025.',
+  'Pry. A canary in the crypto mine: defeating stack protection in a GPU secure coprocessor. Zenodo preprint, 26 Jun 2026. doi.org/10.5281/zenodo.20916112',
+  'Lucas N., LTT Labs. Actually download more RAM: NVIDIA CMP 170HX cmpunlocker. 12 Sep 2026. lttlabs.com/articles/2026/09/12/cmp-170hx-cmpunlocker',
+  'Liu, Tom’s Hardware. Nvidia crypto mining GPUs hacked to restore locked-away VRAM in order to feed AI boom. 18 Aug 2026. tomshardware.com/pc-components/gpus/nvidia-crypto-mining-gpus-hacked-to-restore-locked-away-vram-in-order-to-feed-ai-boom-software-mod-unlocks-64gb-of-vram-on-usd250-cmp-170hx',
+  'Munikote. cmpunlocker. GitHub, read 17 Oct 2026. github.com/amoghmunikote/cmpunlocker',
+  'NVIDIA. Form 10-K for the fiscal year ended 30 Jan 2022. sec.gov/Archives/edgar/data/1045810/000104581022000036/nvda-20220130.htm',
+  'ethereum.org. The Merge. ethereum.org/en/roadmap/merge/',
+  'Walton, Tom’s Hardware. GPU mining no longer profitable after Ethereum Merge. 16 Sep 2022. tomshardware.com/news/gpu-mining-is-now-unprofitable',
+  'Walton, Tom’s Hardware. GPU prices fall after Nvidia announcement, Ethereum Merge. 23 Sep 2022. tomshardware.com/news/gpu-one-week-price-change-sept-23',
+  'IBM Redbooks. IBM z17 Technical Introduction, SG24-8580. Jul 2026. redbooks.ibm.com/redbooks/pdfs/sg248580.pdf',
+  'Hollister, Engadget. Intel wants to charge $50 to unlock stuff your CPU can already do. 18 Sep 2010. engadget.com/2010/09/18/intel-wants-to-charge-50-to-unlock-stuff-your-cpu-can-already-d/',
+  'Engadget. The Intel Upgrade Service, once again charging you $50 to do stuff. 15 Aug 2011. engadget.com/2011/08/15/the-intel-upgrade-service-once-again-charging-you-50-to-do-stu/',
+  'Udinmwen, TechRadar Pro. Widely panned is an understatement: Intel zaps pay-as-you-go hardware upgrades, 15 years after the Intel Upgrade Service. 12 Feb 2026. techradar.com',
+  'Tesla Motors. Form 10-Q for the quarter ended 31 Mar 2013. sec.gov; and Lambert, Electrek. Tesla releases a new less expensive Model S 60. 9 Jun 2016. electrek.co/2016/06/09/tesla-less-expensive-model-s-60-for-66000/',
+  'Valdes-Dapena, CNN Business. Why BMW is offering heated seats on a monthly subscription. 14 Jul 2022. cnn.com/2022/07/14/business/bmw-subscription',
+  'Jolly, The Guardian. Will connected cars persuade drivers to pay for a high-spec ride? 30 Jul 2022. theguardian.com/business/2022/jul/30/will-connected-cars-persuade-drivers-to-pay-for-a-high-spec-ride',
+  '17 U.S.C. § 1201; 37 CFR 201.40, as amended by 86 FR 59627 (28 Oct 2021) and 89 FR 85437 (28 Oct 2024). law.cornell.edu/uscode/text/17/1201',
+  'Copyright Act, R.S.C. 1985, c. C-42, ss. 41 to 41.121, as amended by S.C. 2012, c. 20 (the Copyright Modernization Act) and S.C. 2024, c. 26 (Bill C-244). laws-lois.justice.gc.ca/eng/acts/c-42/',
+  'NVIDIA. Linux x86_64 driver 580.82.07 README, appendix A: supported NVIDIA GPU products. download.nvidia.com/XFree86/Linux-x86_64/580.82.07/README/supportedchips.html',
+  'eeNews Europe. SMIC process is 7nm, says TechInsights. 30 Aug 2022. eenewseurope.com/en/smic-process-is-7nm-says-tech-insights',
+  'SK hynix. SK hynix starts mass-production of high-speed DRAM, HBM2E. 2 Jul 2020. news.skhynix.com/sk-hynix-starts-mass-production-of-high-speed-dram-hbm2e/',
+  'CompVis. Stable Diffusion v1-4 model card. Hugging Face. huggingface.co/CompVis/stable-diffusion-v1-4',
+  'Touvron et al., Meta. LLaMA: open and efficient foundation language models. arXiv:2302.13971, 2023.',
+  'jetcat8848 and others. 170hx (any cmp hx card) can run higher fp32 flops than before. NVIDIA-patcher issue 73, GitHub, from 6 Dec 2023. github.com/dartraiden/NVIDIA-patcher/issues/73',
+  'James, PC Gamer. Can’t wait for Nvidia Ampere GPUs? You can buy one today for $12,500. 6 Jul 2020. pcgamer.com/nvidia-ampere-a100-price/',
+];
+const c = (...n: number[]) => n.map((x) => `[${String(x).padStart(2, '0')}]`).join(' ');
 ---
-<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} noindex={DRAFT}>
+<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} noindex={DRAFT} schema={[article]} published={ed.date}>
   <main id="main">
     <section class="surface cover" aria-label="Cover">
       <RoseField layers={cover} seed={0} class="rose cover-rose" />
       <Masthead right={DRAFT ? 'Edition 02 · Draft' : 'Edition 02'} />
       <div class="grid cover-grid">
         <h1 class="c-full display" data-flex="cursor">The<br><span class="wide">Subtraction</span></h1>
-        <p class="c-a lede">A processor was built, then deliberately reduced, then sold at a quarter of its worth to people solving a puzzle that no longer exists. The reduction is the product.</p>
+        <p class="c-a lede">A processor was built, then deliberately reduced, then sold at a fraction of its worth to people solving a puzzle that no longer exists. The reduction is the product.</p>
       </div>
       <div class="foot mono cover-foot">
-        <span>Edition 02 · Jesse James</span>
+        <span>{ed.dateLabel} · Jesse James</span>
         <span>r = cos(kθ) · seed k 5/7/3 · NVIDIA CMP 170HX / GA100</span>
       </div>
     </section>
@@ -68,7 +123,7 @@ const rows: [string, string, string, string, string, string][] = [
     <section class="surface flash" aria-label="Thesis">
       <div class="grid">
         <p class="c-full mono-b">Thesis</p>
-        <p class="c-full display thin slap">The most expensive engineering in a modern processor is the engineering that takes things away.</p>
+        <p class="c-full display thin slap">The most expensive engineering is the engineering that takes things away.</p>
       </div>
     </section>
 
@@ -77,9 +132,9 @@ const rows: [string, string, string, string, string, string][] = [
         <p class="c-full mono mal">00 · The argument</p>
         <h2 class="c-wide display head" id="h00">The margin moved out of <span class="acid">the making</span>.</h2>
         <div class="c-a prose">
-          <p>Fabrication is the part everyone photographs. Cleanrooms, lithography, a wafer held up to a light. It is also the part that has stopped differentiating anyone, because four companies can do it and three of them buy their machines from the same Dutch supplier.</p>
-          <p>The margin no longer sits in the making. It sits in the permissions. A modern accelerator ships with capability physically present and administratively withheld, and the price of the product is set by how much of itself the buyer is allowed to use.</p>
-          <p>This is not a claim that requires trust. The evidence is purchasable. When the cryptocurrency market collapsed it stranded a very large number of processors whose only purpose had been to be deliberately worse than their own silicon, and those processors are now cheap enough to buy and examine.</p>
+          <p>Fabrication is the part everyone photographs. Cleanrooms, lithography, a wafer held up to a light. It is also the part that differentiates fewer and fewer companies, because only a handful can make the smallest transistors, and the machines that print the finest layers come from a single Dutch supplier. <span class="cite">{c(27)}</span></p>
+          <p>The margin no longer sits in the making. It sits in the permissions. A modern accelerator ships with capability physically present and administratively withheld, and the price of the product is set by how much of itself the buyer is allowed to use. <span class="cite">{c(9)}</span></p>
+          <p>This is not a claim that requires trust. The evidence is purchasable. When the cryptocurrency market collapsed it stranded a very large number of processors whose only purpose had been to be deliberately worse than their own silicon, and until the summer of 2026 those processors sold used for a few hundred dollars, cheap enough to buy and examine. <span class="cite">{c(10)}</span></p>
         </div>
         <div class="c-b prose side">
           <p>What follows is a reading of one such processor. It was chosen because it is the least subtle example available, and because anyone who doubts the reading can buy the evidence and check.</p>
@@ -93,12 +148,12 @@ const rows: [string, string, string, string, string, string][] = [
         <p class="c-full mono mal">01 · The price of a dead idea</p>
         <h2 class="c-wide display head" id="h01">September fifteenth, <span class="num acid">2022</span></h2>
         <div class="c-a prose">
-          <p>Ethereum stopped using proof of work. The network no longer needed anyone to solve anything, and the entire global apparatus assembled to solve it became, within a single day, an inventory problem.</p>
-          <p>Gaming cards had somewhere to go. They went back to the shelves they had been scalped from, and prices fell, and the world moved on. The purpose-built mining hardware had nowhere. It had no display outputs, no market outside the one that had just closed, and a manufacturer with no incentive to help it find another.</p>
-          <p>It had launched at roughly $4,299. It now moves on the secondary market between $400 and $800, and the only reason it recovered that far is that a different industry worked out what was underneath it. NVIDIA has never published a production figure, so the size of the stranded inventory is inferred from liquidation volume rather than known.</p>
+          <p>Ethereum stopped using proof of work. The network no longer needed anyone to solve anything, and the entire global apparatus assembled to solve it became, within a single day, an inventory problem. <span class="cite">{c(14, 15)}</span></p>
+          <p>Gaming cards had somewhere to go. Their prices had been falling since January, they fell again in the week after the Merge, and the used ones went to eBay. The world moved on. <span class="cite">{c(16)}</span> The purpose-built mining hardware had nowhere. It had no display outputs, no market outside the one that had just closed, and a manufacturer with no incentive to help it find another. <span class="cite">{c(6)}</span></p>
+          <p>It had gone on sale at roughly $4,300, a retailer’s price; NVIDIA never published one. <span class="cite">{c(7)}</span> Until the summer of 2026 it sold used for a few hundred dollars. Then a tool unlocked the memory it had carried all along, and by September it sold on eBay for $1,300 to $1,700. A different industry had worked out what was underneath it. <span class="cite">{c(10)}</span> NVIDIA has never published a production figure. It reported $550 million of CMP revenue for fiscal 2022, every model together, so the size of the stranded inventory is estimated rather than known. <span class="cite">{c(13)}</span></p>
         </div>
         <div class="c-b prose side">
-          <p>The card had been sold at a premium on the explicit promise that it could do one thing well and nothing else at all. When the one thing ended, the promise held.</p>
+          <p>The card had been sold at a premium on the explicit promise that it could do one thing well and nothing else at all. When the one thing ended, the promise held for four years.</p>
         </div>
       </div>
     </section>
@@ -108,10 +163,10 @@ const rows: [string, string, string, string, string, string][] = [
         <p class="c-full mono">02 · The die</p>
         <h2 class="c-wide display wide head" id="h02">It is the same piece of silicon.</h2>
         <div class="c-a prose">
-          <p>The processor inside the mining card is GA100. It is the processor inside the A100, which is the accelerator that trained most of what the public now calls artificial intelligence.</p>
-          <p>GA100 is 826 square millimetres of seven nanometre silicon carrying 54.2 billion transistors. Eight graphics processing clusters. Up to 128 streaming multiprocessors, 8,192 single precision cores and 512 third generation tensor cores, feeding a 40 megabyte level two cache.</p>
-          <p>It cannot draw anything. There are no ray tracing units and no display engine, because nothing it was designed for involves a screen. It multiplies matrices, which is the only operation deep learning performs in quantity, and it does so against stacked high bandwidth memory sitting on the same interposer rather than scattered across a board.</p>
-          <p>The mining card carries the GA100-105F-A1 bin. Seventy of the 128 streaming multiprocessors are active, giving 4,480 single precision cores and 280 tensor cores, clocked at 1140 base and 1410 boost against a 4,096-bit memory interface. That is a harvested die. Nothing about it is remarkable yet.</p>
+          <p>The processor inside the mining card is GA100. It is the processor inside the A100, the accelerator that trained Stable Diffusion and Meta’s first LLaMA models. <span class="cite">{c(1, 5, 29, 30)}</span></p>
+          <p>GA100 is 826 square millimetres of seven nanometre silicon carrying 54.2 billion transistors. Eight GPU processing clusters. Up to 128 streaming multiprocessors, 8,192 single precision cores and 512 third generation tensor cores. On the A100 they feed a 40 megabyte level two cache. <span class="cite">{c(1)}</span></p>
+          <p>It cannot show anything. There are no ray tracing cores, no video encoder and no display connectors, because nothing it was designed for involves a screen. It multiplies matrices, the operation at the core of deep learning, and it does so against stacked high bandwidth memory sitting on the same package rather than scattered across a board. <span class="cite">{c(1)}</span></p>
+          <p>The mining card carries the GA100-105F-A1 bin. Seventy of the 128 streaming multiprocessors are active, giving 4,480 single precision cores and 280 tensor cores, clocked at 1140 base and 1410 boost against a 4,096-bit memory interface. That is a harvested die. Nothing about it is remarkable yet. <span class="cite">{c(5, 8)}</span></p>
         </div>
         <div class="c-b prose side">
           <p class="mono-b acid">Same die, different permissions</p>
@@ -127,16 +182,16 @@ const rows: [string, string, string, string, string, string][] = [
         <h2 class="c-wide display head" id="h03">Three cuts, none of them <span class="acid">accidents</span>.</h2>
         <div class="c-l prose">
           <p>The restrictions fall into three categories, and the categories matter more than the numbers, because each one is enforced by a different mechanism with a different degree of permanence.</p>
-          <p><strong>Memory geometry.</strong> The firmware reports a smaller pool than the package physically carries. The system believes the card, because the system has no independent way to count.</p>
-          <p><strong>Compute throughput.</strong> Tensor and floating point paths are throttled to a level that would have been unremarkable on a desktop processor a decade earlier. The units are present. They are not permitted to run.</p>
-          <p><strong>Host bandwidth.</strong> The connection to the motherboard is held at an early generation and a quarter of the standard lane width. This one is elegant, because a training workload that cannot be fed is useless regardless of what the cores are allowed to do.</p>
+          <p><strong>Memory geometry.</strong> The firmware reports a smaller pool than the package physically carries. The system believes the card, because the system has no independent way to count. <span class="cite">{c(9, 11)}</span></p>
+          <p><strong>Compute throughput.</strong> Floating point multiply-add is throttled below a graphics card from 2008. The units are present. They run at a thirty-second of their rate. <span class="cite">{c(5, 9)}</span></p>
+          <p><strong>Host bandwidth.</strong> The connection to the motherboard is held at an early generation and a quarter of the standard lane width. This one is elegant, because a training workload that cannot be fed is useless regardless of what the cores are allowed to do. <span class="cite">{c(5)}</span></p>
         </div>
         <div class="c-r prose">
-          <p>The figures. Memory reports 8 gigabytes across a 4,096-bit bus sustaining 1.49 terabytes per second. Four active stacks of HBM2e, and HBM2e does not come in two gigabyte stacks. The arithmetic is available to anyone who wants to do it.</p>
-          <p>Compute is the clearer cut. The hardware specifies 12.63 teraflops of single precision. The card delivers a reported 0.39. The cores are present, clocked and counted. They are simply not permitted to run.</p>
-          <p>Host bandwidth sits at PCIe 1.0 by four lanes, against a slot rated for 4.0 by sixteen.</p>
-          <p>Three mechanisms hold the cuts in place. The VBIOS is signed. The enterprise driver refuses the card outright. The third is reported to be one time programmable fuses burned at manufacture, and if that report is correct then the limits are not reversible in software at all, only worked around. This edition names that third mechanism as reported rather than established, because the difference between a fuse and a firmware rule is the difference between a permanent decision and a revocable one.</p>
-          <p class="beat mal">A lock burned into the die at manufacture and a lock written in firmware are the same lock to a customer and entirely different locks to an engineer.</p>
+          <p>The figures. Memory reports 8 gigabytes across a 4,096-bit bus rated at 1.49 terabytes per second; measured, it sustains 1.36. <span class="cite">{c(5)}</span> Four active stacks of HBM2e, and HBM2e does not come in two gigabyte stacks. <span class="cite">{c(28)}</span> The arithmetic is available to anyone who wants to do it. In 2026 someone did it in software, and the card reported sixty four. <span class="cite">{c(10)}</span></p>
+          <p>Compute is the clearer cut. On paper the enabled cores give 12.63 teraflops of single precision. <span class="cite">{c(8)}</span> Measured with fused multiply-add, the instruction nearly all software uses, the card delivers 0.39. Without it, 6.25. <span class="cite">{c(5)}</span> The cores are present, clocked and counted. They are simply not permitted to multiply and add in one step.</p>
+          <p>Host bandwidth sits at PCIe 1.0 by four lanes, against the 4.0 by sixteen the same die runs on an A100. <span class="cite">{c(1, 5)}</span></p>
+          <p>Several mechanisms hold the cuts in place. The VBIOS is signed. <span class="cite">{c(5)}</span> NVIDIA’s own driver runs the card but leaves it off its list of supported products. <span class="cite">{c(26)}</span> One time programmable fuses carry the limits, and firmware reads them at boot. The lane width is cut on the circuit board itself, where the capacitors for twelve of the sixteen lanes were never fitted. <span class="cite">{c(9)}</span> The difference that matters is between a fuse that firmware reads and a fuse that cuts a circuit. In June 2026 a paper showed these were the first kind: compute, memory and one step of the PCIe generation were lifted in software. Only the lanes needed a soldering iron. <span class="cite">{c(9, 10)}</span></p>
+          <p class="beat mal">A fuse that firmware reads and a fuse that cuts a circuit are the same lock to a customer and entirely different locks to an engineer.</p>
         </div>
       </div>
     </section>
@@ -147,12 +202,12 @@ const rows: [string, string, string, string, string, string][] = [
         <h2 class="c-full display thin head" id="h04">Salvage asks what still works. Segmentation asks what they will pay.</h2>
         <div class="c-a prose">
           <p>An 826 square millimetre die is enormous, and at that size perfect yield is not a target anyone holds. A speck of dust lands on a wafer, a few cores die, and the industry response is sensible: disable the broken region and sell the chip as a lesser part. This is binning. It is honest, it is efficient, and it is the reason large processors are economically possible at all.</p>
-          <p>Binning explains seventy active multiprocessors out of one hundred and twenty eight. It does not explain a working memory controller reporting a quarter of what it addresses. It does not explain a functional interconnect held three generations back at a quarter of its lanes. Nothing about a lithography defect selects a PCIe generation.</p>
-          <p>The distinction is the whole argument. One set of limits describes damage. The other describes a decision, and the decision cost money to implement, which means someone calculated that it would earn more than it cost.</p>
+          <p>Binning can explain seventy active multiprocessors out of one hundred and twenty eight. It does not explain a card that reports an eighth of the memory on its package. <span class="cite">{c(10)}</span> It does not explain an interconnect held three generations back, with the capacitors for twelve of its sixteen lanes left off the board. <span class="cite">{c(9)}</span> Nothing about a lithography defect removes a capacitor from a circuit board.</p>
+          <p>The distinction is the whole argument. One set of limits describes damage. The other describes a decision, implemented in fuses, firmware and the board, which means someone calculated that it would earn more than it cost.</p>
         </div>
         <div class="c-b prose side">
           <p class="mono-b acid">The test</p>
-          <p>Ask whether the silicon under the limit still works. If it does, the limit was never damage. It was a price, and burning it into a fuse makes it a permanent one rather than an honest one.</p>
+          <p>Ask whether the silicon under the limit still works. If it does, the limit was never damage. It was a price, and burning it into a fuse made it look permanent rather than honest. On this card it was not permanent either.</p>
         </div>
       </div>
     </section>
@@ -163,10 +218,10 @@ const rows: [string, string, string, string, string, string][] = [
         <p class="c-full mono mal">05 · Older than silicon</p>
         <h2 class="c-wide display head acid" id="h05">Nothing here is new.</h2>
         <div class="c-a prose">
-          <p>IBM shipped mainframes with processors already installed and dormant, activated by a licence key when the customer's workload grew. The metal arrived on day one. The permission arrived when the invoice cleared. The industry called it Capacity on Demand and the customers accepted it, because the alternative was a second delivery truck and a planned outage.</p>
-          <p>Intel sold a consumer processor in 2011 with cache and threading disabled, and a card in the retail box that unlocked them for roughly fifty dollars. The programme lasted about a year. It was withdrawn not because it failed technically but because buying a scratch card to finish a product you already owned turned out to be intolerable when stated that plainly.</p>
-          <p>Tesla shipped battery packs that were physically larger than the capacity the car would use, unlockable later for a fee. Some manufacturers have tried the same arrangement with seat heaters, which is the version that made newspapers, because a heating element is easy to picture and a memory controller is not.</p>
-          <p>The mining card belongs to this lineage. What distinguishes it is the absence of the upgrade path. IBM would sell you the key. Intel would sell you the key. Here there was never a key, because the entire point was that this customer must never become that customer.</p>
+          <p>IBM shipped mainframes with processors already installed and dormant, switched on by an encrypted configuration record when the customer’s workload grew. The metal arrived on day one. The permission arrived with the order. IBM called it Capacity on Demand and the customers accepted it, because the upgrade needed no new hardware and no outage. <span class="cite">{c(17)}</span></p>
+          <p>Intel sold a consumer processor in 2010 with cache and threading disabled, and a card on the shop shelf that unlocked them for fifty dollars. The press turned on it within days. It was extended once, in 2011, and then dropped. <span class="cite">{c(18, 19, 20)}</span></p>
+          <p>Tesla shipped battery packs that were physically larger than the capacity the car would use, unlockable later for a fee. <span class="cite">{c(21)}</span> Some manufacturers have tried the same arrangement with seat heaters, which is the version that made newspapers, because a heating element is easy to picture and a memory controller is not. <span class="cite">{c(22, 23)}</span></p>
+          <p>The mining card belongs to this lineage. What distinguishes it is the absence of the upgrade path. IBM would sell you the key. Intel would sell you the key. Here NVIDIA never sold one, because the entire point was that this customer must never become that customer. In 2026 someone else wrote it. <span class="cite">{c(12)}</span></p>
         </div>
         <div class="c-b prose side">
           <p>Every precedent above offered a way to pay for the rest of the machine. This one offered nothing, which is what makes it the purest specimen of the practice rather than the worst.</p>
@@ -179,14 +234,14 @@ const rows: [string, string, string, string, string, string][] = [
         <p class="c-full mono">06 · What was undone</p>
         <h2 class="c-wide display wide head" id="h06">People went looking for the rest of it.</h2>
         <div class="c-a prose">
-          <p>Cards this cheap attract a particular kind of attention. Once the price fell below the cost of caring whether it survived, a community formed around the question of how much of the original processor was still reachable.</p>
-          <p>What that community has recovered is contested. Claims range from restored host bandwidth to substantially enlarged memory pools, and they arrive mostly as forum reports rather than reproducible method, with an unknown number of dead cards behind them going unposted. This edition does not adjudicate those claims, and anyone who tells you the result is settled is selling something.</p>
-          <p>The attempt is the finding. People do not spend months attacking firmware to reach hardware that is not there. The effort is evidence about what the package contains, independent of whether any given attempt succeeded.</p>
+          <p>Cards this cheap attract a particular kind of attention. Once the price fell below the cost of caring whether it survived, a community formed around the question of how much of the original processor was still reachable. It is on record from the end of 2023. <span class="cite">{c(31)}</span></p>
+          <p>What that community recovered is now partly on record. The method is public, in a paper and an open tool. <span class="cite">{c(9, 12)}</span> One named test reached 64 gigabytes on an 8 gigabyte card, and sixteen lanes of PCIe 2.0 once the missing capacitors were soldered back on. The 10 gigabyte card runs stable only to 40. <span class="cite">{c(10)}</span> The faster PCIe generations have not been reached. <span class="cite">{c(9)}</span> Anyone who tells you the rest is settled is selling something.</p>
+          <p>The attempt was the finding. People do not spend years attacking firmware to reach hardware that is not there. The effort was evidence before any attempt succeeded. Then one did.</p>
           <p>This edition does not publish a procedure. The interesting finding is not how to perform the modification. It is what the modification proves about where the value in the original product was located.</p>
         </div>
         <div class="c-b prose side">
           <p class="mono-b acid">A note on legality</p>
-          <p>In the United States the governing provision is section 1201 of the Digital Millennium Copyright Act. In Canada it is the technological protection measure provisions added to the Copyright Act by the Copyright Modernization Act. Both carry repair related exemptions, both have widened, and neither settles whether an accelerator you already own sits inside them.</p>
+          <p>In the United States the governing provision is section 1201 of the Digital Millennium Copyright Act. In Canada it is the technological protection measure provisions added to the Copyright Act by the Copyright Modernization Act. Both carry repair related exceptions, both have widened, and neither settles whether an accelerator you already own sits inside them. The American rule defines repair as a return to the original specification. An unlock goes past it. <span class="cite">{c(24, 25)}</span></p>
           <p>This edition describes the locks. It does not open them.</p>
         </div>
       </div>
@@ -195,17 +250,20 @@ const rows: [string, string, string, string, string, string][] = [
     <section class="surface" aria-labelledby="htable">
       <div class="grid">
         <p class="c-full mono mal">Table 01 · The delta</p>
-        <h2 class="c-wide display head acid" id="htable">One die, five prices.</h2>
-        <div class="c-full scroll" tabindex="0" role="region" aria-label="One die, five prices: the specification delta">
+        <h2 class="c-wide display head acid" id="htable">One die, five permissions.</h2>
+        <div class="c-full scroll" tabindex="0" role="region" aria-label="One die, five permissions: the specification delta">
           <table class="delta">
-            <caption class="sr">The same GA100 die across five products.</caption>
-            <thead><tr><th scope="col"><span class="sr">Attribute</span></th><th scope="col">GA100 full die</th><th scope="col">A100 40GB PCIe</th><th scope="col">A100 80GB PCIe</th><th scope="col">CMP 170HX stock</th><th scope="col">CMP 170HX modified</th></tr></thead>
+            <caption class="sr">The same GA100 die in five configurations.</caption>
+            <thead><tr><th scope="col"><span class="sr">Attribute</span></th><th scope="col">GA100 full die</th><th scope="col">A100 40GB PCIe</th><th scope="col">A100 80GB PCIe</th><th scope="col">CMP 170HX 8 GB, locked</th><th scope="col">CMP 170HX 8 GB, unlocked</th></tr></thead>
             <tbody>
-              {rows.map(([k, ...v]) => (<tr><th scope="row">{k}</th>{v.map((c) => <td class="n" set:html={c} />)}</tr>))}
+              {rows.map(([k, ...v]) => (<tr><th scope="row">{k}</th>{v.map((cell) => <td class="n">{cell}</td>)}</tr>))}
             </tbody>
           </table>
         </div>
-        <p class="c-wide mono mal">FP32 theoretical is cores × 2 × boost clock. FP32 delivered is what the card actually returns. The distance between those two rows is the subject of this edition. Cells marked not yet sourced are not yet sourced.</p>
+        <div class="c-wide notes mono mal">
+          <p>FP32 theoretical is cores × 2 × boost clock. FP32 delivered is what the card actually returns: on the locked card with fused multiply-add (6.25 TF without it), on the unlocked card a matrix multiply. The distance between those two rows is the subject of this edition. n/a means no source gives the figure.</p>
+          <p>GA100 and A100: {c(1, 2, 3)}; the full die’s 48 MB L2 is NVIDIA’s slice count, twelve memory controllers of eight 512 KB slices, and ComputerBase prints it {c(4)}; NVIDIA itself names no full-die clock, so no full-die FP32. A100 delivered: NVIDIA says the card runs unconstrained up to its power limit {c(2)}. CMP locked: {c(5, 6, 7, 8, 10)}; its L2 is the driver’s reading {c(5)}, its launch price a Dubai retailer’s, October 2021 {c(7)}, its board power the card’s rating as Tom’s Hardware reported it, not NVIDIA’s {c(7)}, which the unlock does not change. CMP unlocked: {c(9, 10, 11, 12)}; 12.2 TF was measured on the 10 GB card {c(9)}; x16 needs the missing capacitors soldered on {c(10)}. A100 40GB launch price: a UK retail listing, July 2020 {c(32)}; NVIDIA published none. The used price is a market observation of September 2026 {c(10)}.</p>
+        </div>
       </div>
     </section>
 
@@ -216,7 +274,7 @@ const rows: [string, string, string, string, string, string][] = [
         <div class="c-a prose">
           <p>The mining card is not a scandal. It is a specimen, and it is valuable precisely because the company that made it had no reason to be subtle. There was no consumer to reassure and no reviewer to satisfy. The segmentation could be implemented openly, which means it can now be read openly.</p>
           <p>What it records is a transition that has already happened everywhere else and is simply easier to see here. The physical object arrives complete. The commercial object is assembled afterwards, in firmware, out of decisions about what the buyer has paid to be allowed to do.</p>
-          <p>Every generation since has extended the practice rather than retreated from it. The locks have moved further down, from driver into firmware into fuses burned at manufacture, which is the direction you move a lock when you have decided that the previous one was too easy to reach.</p>
+          <p>The practice is spreading: the difference between a flagship and a cut-down part of the same die is increasingly enforced by fuses and by the firmware that reads them. <span class="cite">{c(9)}</span> That is the direction you move a lock when you have decided that the previous one was too easy to reach. On this card the move did not hold.</p>
         </div>
         <div class="c-b prose side">
           <p class="mono-b acid">What the specimen proves</p>
@@ -225,9 +283,24 @@ const rows: [string, string, string, string, string, string][] = [
       </div>
     </section>
 
+    <section class="surface" aria-labelledby="hsrc">
+      <div class="grid">
+        <p class="c-full mono mal">08 · Sources</p>
+        <h2 class="c-wide display head" id="hsrc">Sources</h2>
+        <p class="c-full mono">Read on 17 and 18 October 2026</p>
+        <ol class="c-full sources">
+          {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
+        </ol>
+        <div class="c-a prose">
+          <p class="mono mal">Not used</p>
+          <p>The draft said a community’s results arrived as forum reports with an unknown number of dead cards behind them. No source counts dead cards, and since June 2026 the method has been public, so the clause is gone. The draft also said the A100 trained most of what the public calls artificial intelligence; no source shows most, so the page names two models that were.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="surface flash" aria-label="The last word">
       <div class="grid">
-        <p class="c-full display slap">You do not buy a processor. You buy a list of permitted operations.</p>
+        <p class="c-full display slap">You do not buy a processor. You buy a list of permissions.</p>
         <div class="c-full foot mono"><span>Aedificare · Edition 02</span><span>The Subtraction</span></div>
       </div>
     </section>
@@ -254,4 +327,8 @@ const rows: [string, string, string, string, string, string][] = [
   .bottle .side .mono-b.acid { color: var(--acid); }
   .flash .foot { padding-inline: 0; border-top: 0; }
   .delta td, .delta th { white-space: nowrap; }
+  .notes p { max-width: 90ch; margin-top: 12px; }
+  /* Inline citations, as Edition 06 sets them: mono, small, Malachite; Flash on Bottle, where small Malachite fails AA. */
+  .cite { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 500; font-size: 12px; letter-spacing: .04em; color: var(--malachite); white-space: nowrap; }
+  .bottle .cite { color: var(--flash); }
 </style>
