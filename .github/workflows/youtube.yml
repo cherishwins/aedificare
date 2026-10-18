@@ -73,7 +73,7 @@ on:
         type: choice
         options: [none, old-voice, corrected]
       set:
-        description: 'schedule: <release>:<film|short>=<ISO time|none>; withdraw: <release>:<film|short> or a video id; comma-separated'
+        description: 'schedule: <release>:<film|short>=<ISO time|none>; withdraw: <release>:<film|short> or a video id; comma-separated; sync: force, to resend videos that already match'
         required: false
         default: ''
       dry:
@@ -145,6 +145,7 @@ jobs:
             fi
           fi
           if [ "$ACTION" = "schedule" ] || [ "$ACTION" = "withdraw" ]; then args+=(--set "$SET"); fi
+          if [ "$ACTION" = "sync" ] && [ "$SET" = "force" ]; then args+=(--force); fi
           # The summary is written whatever the exit, so a failed run's page still says what was and was not done.
           rc=0
           node tools/youtube-channel.mjs "${args[@]}" 2>&1 | tee youtube.log || rc=$?

@@ -26,7 +26,10 @@
  * and sources, category, language, licence, the English caption track, the
  * thumbnail; privacy is never touched). A video whose title and description
  * already match is skipped unless --force, because each update spends about
- * 500 of the project's 10,000 daily quota units. --dry prints the plan.
+ * 500 of the project's 10,000 daily quota units, or unless its ledger says
+ * the upload still owes it something (captions or a thumbnail that failed,
+ * usually on quota), which sync sends and then clears by filing the ledger
+ * again. --dry prints the plan.
  *
  * PROBE answers one question before any film goes up: does this Google
  * Cloud project's upload come out locked private? Since 28 July 2020 YouTube
@@ -140,6 +143,31 @@ const asset = (rel, name) => rel.assets.find((a) => a.name === name);
 const fetchAsset = (rel, name) => curl(asset(rel, name).url, 'application/octet-stream');
 // A film is a gigabyte: straight to disk, never through memory.
 const saveAsset = (rel, name, to) => execFileSync('curl', ['-sSLf', '-H', 'accept: application/octet-stream', ...ghAuth, '-o', to, asset(rel, name).url]);
+// File a render's ledger on its release; false when there is no token to do it. The filed ledger is the only link from an
+// API upload (which keeps no file name) to its render, and the only thing that marks an earlier cut superseded, so it is
+// never deleted before its replacement is up: the old one is renamed aside, the new one posted, and only then is the old
+// one deleted; a failed post renames it back. A leftover .prev from a run that died in between is cleared first when the
+// ledger itself is there, and taken as the ledger when it is not.
+const fileLedger = (r, dir) => {
+  const ledgerFile = path.join(dir, r.ledgerName);
+  if (!ghToken) { console.log(`  (no GH_TOKEN: ${r.ledgerName} written to ${ledgerFile} but not filed on the release)`); return false; }
+  const prevName = `${r.ledgerName}.prev`;
+  const api = (method, url, body) => execFileSync('curl', ['-sSLf', '-X', method, ...ghAuth, '-H', 'accept: application/vnd.github+json', ...(body ? ['-H', 'content-type: application/json', '--data-binary', JSON.stringify(body)] : []), url], { stdio: ['ignore', 'ignore', 'inherit'] });
+  const cur = asset(r.rel, r.ledgerName), prev = asset(r.rel, prevName);
+  if (cur && prev) api('DELETE', prev.url);
+  const old = cur || prev;
+  if (cur) api('PATCH', cur.url, { name: prevName });
+  try {
+    execFileSync('curl', ['-sSLf', '-X', 'POST', ...ghAuth, '-H', 'content-type: application/json', '--data-binary', `@${ledgerFile}`, `https://uploads.github.com/repos/${REPO}/releases/${r.rel.id}/assets?name=${r.ledgerName}`], { stdio: ['ignore', 'ignore', 'inherit'] });
+  } catch (e) {
+    try { if (old) api('PATCH', old.url, { name: r.ledgerName }); }
+    catch { console.log(`::error::${r.tag}: ${r.ledgerName} could not be filed, and the earlier one is left as ${prevName}; rename it back by hand. The new ledger was:\n${fs.readFileSync(ledgerFile, 'utf8')}`); }
+    throw e;
+  }
+  if (old) api('DELETE', old.url);
+  console.log(`  filed ${r.ledgerName} on ${r.tag}`);
+  return true;
+};
 // One entry per rendered video: the wide film from meta.json, the Short from meta-short.json.
 const renders = [];
 for (const rel of releases) {
@@ -148,10 +176,12 @@ for (const rel of releases) {
     const meta = JSON.parse(fetchAsset(rel, metaName));
     if (!asset(rel, meta.file)) continue;
     const ledgerName = metaName === 'meta.json' ? 'youtube.json' : 'youtube-short.json';
-    const ledger = asset(rel, ledgerName) ? JSON.parse(fetchAsset(rel, ledgerName)) : null;
+    // A ledger left as .prev by a run that died while filing (fileLedger) still names the render's video.
+    const ledgerAsset = asset(rel, ledgerName) ? ledgerName : asset(rel, `${ledgerName}.prev`) ? `${ledgerName}.prev` : null;
+    const ledger = ledgerAsset ? JSON.parse(fetchAsset(rel, ledgerAsset)) : null;
     // An episode lists its missing shots in shots.md; each one plays as a slate, so the render is a draft.
     const slates = asset(rel, 'shots.md') ? (String(fetchAsset(rel, 'shots.md')).match(/^- \[ \]/gm) || []).length : 0;
-    renders.push({ tag: rel.tag_name, metaName, meta, rel, ledgerName, ledgerId: ledger?.id || null, slates });
+    renders.push({ tag: rel.tag_name, metaName, meta, rel, ledgerName, ledgerId: ledger?.id || null, owed: ledger?.owed || [], slates });
   }
 }
 const key = (name) => (name || '').toLowerCase();
@@ -242,7 +272,7 @@ const LONG = channel.status?.longUploadsStatus || 'not reported';
 console.log(`${channel.snippet.title} · ${channel.snippet.customUrl || channel.id} · ${channel.statistics.subscriberCount} subscribers · ${videos.length} uploads · long uploads ${LONG}\n`);
 for (const { v, r, file, older, superseded } of rows) {
   const s = v.statistics || {};
-  console.log(`${v.id}  ${v.status.privacyStatus.padEnd(8)} ${v.snippet.publishedAt.slice(0, 10)}  ${dur(v.contentDetails.duration).padStart(6)}  ${String(s.viewCount ?? '-').padStart(6)} views  ${r ? `${r.tag}/${r.metaName}` : 'no render'}${v.status.publishAt ? `  publishes ${v.status.publishAt}` : ''}${v.status.uploadStatus === 'rejected' ? `  REJECTED (${v.status.rejectionReason})` : ''}${older ? (superseded ? `  (SUPERSEDED: ${r.tag} files ${r.ledgerId} as this render's video; retire makes this one private once that one is public)` : '  (OLDER VOICE: the render is new, the video is not; replacing it is the owner\'s call)') : ''}`);
+  console.log(`${v.id}  ${v.status.privacyStatus.padEnd(8)} ${v.snippet.publishedAt.slice(0, 10)}  ${dur(v.contentDetails.duration).padStart(6)}  ${String(s.viewCount ?? '-').padStart(6)} views  ${r ? `${r.tag}/${r.metaName}` : 'no render'}${v.status.publishAt ? `  publishes ${v.status.publishAt}` : ''}${v.status.uploadStatus === 'rejected' ? `  REJECTED (${v.status.rejectionReason})` : ''}${r && r.ledgerId === v.id && r.owed.length ? `  (OWED: its ${r.owed.join(' and ')} did not go up; sync sends ${r.owed.length > 1 ? 'them' : 'it'})` : ''}${older ? (superseded ? `  (SUPERSEDED: ${r.tag} files ${r.ledgerId} as this render's video; retire makes this one private once that one is public)` : '  (OLDER VOICE: the render is new, the video is not; replacing it is the owner\'s call)') : ''}`);
   console.log(`             ${v.snippet.title}${file ? `  [${file}]` : ''}`);
 }
 const missing = renders.filter((r) => !matched.has(r));
@@ -305,13 +335,7 @@ if (CMD === 'upload') {
     if (at) console.log(`    publishes ${at}`);
     execFileSync(process.execPath, ['tools/upload-youtube.mjs', path.join(dir, r.metaName), '--privacy', PRIVACY, ...(at ? ['--publish-at', at] : [])], { stdio: 'inherit' });
     fs.rmSync(path.join(dir, r.meta.file));
-    // File the id on the release, replacing any earlier ledger of the same name.
-    const ledgerFile = path.join(dir, r.ledgerName);
-    if (!ghToken) { console.log(`  (no GH_TOKEN: ${r.ledgerName} written to ${ledgerFile} but not filed on the release)`); continue; }
-    const old = asset(r.rel, r.ledgerName);
-    if (old) execFileSync('curl', ['-sSLf', '-X', 'DELETE', ...ghAuth, old.url]);
-    execFileSync('curl', ['-sSLf', '-X', 'POST', ...ghAuth, '-H', 'content-type: application/json', '--data-binary', `@${ledgerFile}`, `https://uploads.github.com/repos/${REPO}/releases/${r.rel.id}/assets?name=${r.ledgerName}`], { stdio: ['ignore', 'ignore', 'inherit'] });
-    console.log(`  filed ${r.ledgerName} on ${r.tag}`);
+    if (!fileLedger(r, dir)) continue;
     // The video a corrected render replaced must not publish too: a scheduled one is held (private, no time), read
     // back. One already out stays until withdraw or retire takes it down, which is said here, not done.
     if (current && current.v.status.privacyStatus === 'private' && current.v.status.publishAt) {
@@ -528,16 +552,27 @@ for (const { v, r, older, superseded } of rows) {
   if (older) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: refused, the video is in an older voice and the render in ${VOICE}; its captions and chapters would not fit the video's audio. Replace it (upload --replace-old-voice, then retire once the new one is public) or leave it`); continue; }
   // Compared with the description as the uploader will send it, chapters fitted (tools/lib/chapters.mjs).
   const same = v.snippet.title === r.meta.title && v.snippet.description === fitDescription(r.meta.description, r.meta.duration);
-  if (same && !FORCE) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: already matches, skipped`); continue; }
-  console.log(`  ${v.id} ${r.tag}/${r.metaName}: ${same ? 'forced' : 'title or description differs'}, updating`);
+  // A video the release's ledger names, with something its upload could not send (captions, a thumbnail), is not done.
+  const owed = r.ledgerId === v.id ? r.owed : [];
+  if (same && !FORCE && !owed.length) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: already matches, skipped`); continue; }
+  console.log(`  ${v.id} ${r.tag}/${r.metaName}: ${!same ? 'title or description differs' : owed.length ? `owed its ${owed.join(' and ')}` : 'forced'}, updating`);
   changed++;
   if (DRY) continue;
   const dir = path.join(OUT, r.tag);
   fs.mkdirSync(dir, { recursive: true });
-  for (const name of [r.metaName, r.meta.captions, r.meta.thumbnail].filter(Boolean)) {
+  // The ledger comes down too when it names this video, so the update keeps the upload's record and only settles what is owed.
+  const mine = r.ledgerId === v.id;
+  for (const name of [r.metaName, r.meta.captions, r.meta.thumbnail, mine && r.ledgerName].filter(Boolean)) {
     if (asset(r.rel, name)) fs.writeFileSync(path.join(dir, name), fetchAsset(r.rel, name));
   }
   // upload-youtube writes youtube.json or youtube-short.json beside the meta, so the record of what went where stays with the render.
-  execFileSync(process.execPath, ['tools/upload-youtube.mjs', path.join(dir, r.metaName), '--update', v.id], { stdio: 'inherit' });
+  execFileSync(process.execPath, ['tools/upload-youtube.mjs', path.join(dir, r.metaName), '--update', v.id, ...(mine ? [] : ['--untracked'])], { stdio: 'inherit' });
+  // Filed back only over a ledger that already named this video: a debt paid is cleared, and a match by file name alone does not
+  // claim the render. Such a video (a hand upload) has nowhere to record a debt, so one is said here, with the way to pay it.
+  if (mine) fileLedger(r, dir);
+  else {
+    const left = JSON.parse(fs.readFileSync(path.join(dir, r.ledgerName), 'utf8')).owed || [];
+    if (left.length) console.log(`${process.env.GITHUB_ACTIONS ? '::warning::' : '  '}${v.id} (${r.tag}/${r.metaName}) is up without its ${left.join(' and ')}, and no ledger on the release names it, so nothing records the debt; once the quota is back run youtube.yml action=sync only=${r.tag} set=force`);
+  }
 }
 console.log(`  ${changed} ${DRY ? 'to update' : 'updated'}, ${rows.filter((x) => x.r).length - changed} matched and left, ${rows.filter((x) => !x.r).length} uploads with no render`);
