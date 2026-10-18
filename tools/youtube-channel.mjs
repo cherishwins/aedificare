@@ -11,9 +11,10 @@
  *   node tools/youtube-channel.mjs sync   [--dry] [--force] [--only <tag>]
  *   node tools/youtube-channel.mjs upload [--dry] [--only <tag>] [--kinds film,short] [--max 10]
  *                                         [--privacy private|unlisted] [--publish-at <ISO time>] [--every <hours>]
- *                                         [--replace-old-voice]
+ *                                         [--replace-old-voice] [--replace <release>[,...]]
  *   node tools/youtube-channel.mjs retire [--dry]
  *   node tools/youtube-channel.mjs schedule --set <release>:<film|short>=<ISO time|none>[,...] [--dry]
+ *   node tools/youtube-channel.mjs withdraw --set <release>:<film|short>[,...] [--dry]
  *
  * LIST prints every upload (id, privacy, date, length, views, file name,
  * title) and the release it came from, then the renders on Releases that
@@ -62,6 +63,20 @@
  * can restore it). A replacement still private or scheduled leaves the old
  * one up. About 50 units a video.
  *
+ * A CORRECTED RENDER replaces its own video the same way. When an edition's
+ * page is corrected after its film went up, the film is rendered again into
+ * the same release (same file name, same voice), and upload --replace
+ * <release> uploads it beside the video already there, refusing a render
+ * older than that video. The new id is filed on the release, so the old
+ * video now reads SUPERSEDED: the release files another video as its own.
+ * Schedule and sync leave a superseded video alone, and retire treats it as
+ * it treats an older voice.
+ *
+ * WITHDRAW takes a public or unlisted video private at once, named by
+ * release and kind, for a film found wrong after it went out. Never
+ * deleted, so its views and comments stay and the owner can restore it in
+ * Studio. Each write is read back.
+ *
  * A video is matched by the id filed on its release first, then by file
  * name, then by a title equal to the render's and of the same kind (a hand
  * upload whose title was pasted from sheet.txt).
@@ -98,8 +113,11 @@ const VOICE = arg('--voice', (process.env.NARRATOR || NARRATOR).replace(/^(gemin
 // it, and uploaded beside it only with --replace-old-voice, because replacing a live video is the owner's call;
 // `retire` then makes the old one private once the new one is public.
 const REPLACE = process.argv.includes('--replace-old-voice');
+// A corrected render of a video already up in the channel's voice: these releases' renders are uploaded although a
+// video matches them, and nothing else is uploaded in that run.
+const REPLACE_TAGS = arg('--replace', '').split(',').map((x) => x.trim()).filter(Boolean);
 const inVoice = (text) => String(text || '').toLowerCase().includes(VOICE.toLowerCase());
-if (!['list', 'sync', 'upload', 'retire', 'schedule', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>] [--every <hours>] [--replace-old-voice] | retire [--dry] | schedule --set <release>:<film|short>=<ISO|none>[,...] [--dry]'); process.exit(1); }
+if (!['list', 'sync', 'upload', 'retire', 'schedule', 'withdraw', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>] [--every <hours>] [--replace-old-voice] [--replace <tag>[,...]] | retire [--dry] | schedule --set <release>:<film|short>=<ISO|none>[,...] [--dry] | withdraw --set <release>:<film|short>[,...] [--dry]'); process.exit(1); }
 // Nothing goes public from a machine (CLAUDE.md, the bed, the Short, the upload): public is refused here, and a scheduled publish is the owner's call, made by passing a time.
 if (!['private', 'unlisted'].includes(PRIVACY)) { console.error('youtube-channel: --privacy is private or unlisted; publishing is the owner\'s, in Studio or with --publish-at'); process.exit(1); }
 if (PUBLISH_AT && !(Date.parse(PUBLISH_AT) > Date.now())) { console.error(`youtube-channel: --publish-at ${PUBLISH_AT} is not a future ISO time`); process.exit(1); }
@@ -207,28 +225,33 @@ const rows = videos.map((v) => {
     || renders.find((x) => key(x.meta.file) === key(file))
     || renders.find((x) => x.meta.title === v.snippet.title && x.meta.kind === kind && (!matched.has(x) || (inVoice(x.meta.description) && !inVoice(v.snippet.description))));
   const older = !!r && inVoice(r.meta.description) && !inVoice(v.snippet.description);
-  if (r && !(older && REPLACE)) matched.add(r);
-  return { v, r, file, older };
+  if (r && !(older && REPLACE) && !REPLACE_TAGS.includes(r.tag)) matched.add(r);
+  return { v, r, file, older, superseded: false };
 });
+// A render whose release files a different video, one that is on the channel, has been uploaded again: this video is
+// the earlier cut. It is handled as an older voice is (never scheduled or synced, retired once the new one is public).
+for (const x of rows) {
+  if (x.r && x.r.ledgerId && x.r.ledgerId !== x.v.id && ids.includes(x.r.ledgerId)) x.superseded = x.older = true;
+}
 
 /* ---- list --------------------------------------------------------------------- */
 // Over fifteen minutes needs a verified channel; unverified, YouTube takes the upload and then rejects it for length.
 const LONG = channel.status?.longUploadsStatus || 'not reported';
 console.log(`${channel.snippet.title} · ${channel.snippet.customUrl || channel.id} · ${channel.statistics.subscriberCount} subscribers · ${videos.length} uploads · long uploads ${LONG}\n`);
-for (const { v, r, file, older } of rows) {
+for (const { v, r, file, older, superseded } of rows) {
   const s = v.statistics || {};
-  console.log(`${v.id}  ${v.status.privacyStatus.padEnd(8)} ${v.snippet.publishedAt.slice(0, 10)}  ${dur(v.contentDetails.duration).padStart(6)}  ${String(s.viewCount ?? '-').padStart(6)} views  ${r ? `${r.tag}/${r.metaName}` : 'no render'}${v.status.publishAt ? `  publishes ${v.status.publishAt}` : ''}${v.status.uploadStatus === 'rejected' ? `  REJECTED (${v.status.rejectionReason})` : ''}${older ? '  (OLDER VOICE: the render is new, the video is not; replacing it is the owner\'s call)' : ''}`);
+  console.log(`${v.id}  ${v.status.privacyStatus.padEnd(8)} ${v.snippet.publishedAt.slice(0, 10)}  ${dur(v.contentDetails.duration).padStart(6)}  ${String(s.viewCount ?? '-').padStart(6)} views  ${r ? `${r.tag}/${r.metaName}` : 'no render'}${v.status.publishAt ? `  publishes ${v.status.publishAt}` : ''}${v.status.uploadStatus === 'rejected' ? `  REJECTED (${v.status.rejectionReason})` : ''}${older ? (superseded ? `  (SUPERSEDED: ${r.tag} files ${r.ledgerId} as this render's video; retire makes this one private once that one is public)` : '  (OLDER VOICE: the render is new, the video is not; replacing it is the owner\'s call)') : ''}`);
   console.log(`             ${v.snippet.title}${file ? `  [${file}]` : ''}`);
 }
 const missing = renders.filter((r) => !matched.has(r));
 if (missing.length) {
   console.log('\nRendered, not on the channel:');
-  for (const r of missing) console.log(`  ${r.tag}/${r.meta.file}  ${r.meta.kind}  ${Math.round(r.meta.duration / 60)} min  "${r.meta.title}"${r.slates ? `  (draft: ${r.slates} shots missing)` : ''}${r.ledgerId ? `  (filed as ${r.ledgerId}, not on the channel: deleted?)` : ''}`);
+  for (const r of missing) console.log(`  ${r.tag}/${r.meta.file}  ${r.meta.kind}  ${Math.round(r.meta.duration / 60)} min  "${r.meta.title}"${r.slates ? `  (draft: ${r.slates} shots missing)` : ''}${REPLACE_TAGS.includes(r.tag) ? '  (a corrected render, to go up with --replace)' : r.ledgerId ? `  (filed as ${r.ledgerId}, not on the channel: deleted?)` : ''}`);
 }
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'channel.json'), JSON.stringify({
   at: new Date().toISOString(), channel: { id: channel.id, title: channel.snippet.title, handle: channel.snippet.customUrl, subscribers: +channel.statistics.subscriberCount, longUploads: LONG },
-  videos: rows.map(({ v, r, file, older }) => ({ id: v.id, title: v.snippet.title, privacy: v.status.privacyStatus, publishAt: v.status.publishAt || null, upload: v.status.uploadStatus, published: v.snippet.publishedAt, duration: v.contentDetails.duration, views: +(v.statistics?.viewCount ?? 0), file, release: r ? `${r.tag}/${r.metaName}` : null, olderVoice: older })),
+  videos: rows.map(({ v, r, file, older, superseded }) => ({ id: v.id, title: v.snippet.title, privacy: v.status.privacyStatus, publishAt: v.status.publishAt || null, upload: v.status.uploadStatus, published: v.snippet.publishedAt, duration: v.contentDetails.duration, views: +(v.statistics?.viewCount ?? 0), file, release: r ? `${r.tag}/${r.metaName}` : null, olderVoice: older && !superseded, superseded })),
   notOnChannel: missing.map((r) => ({ release: r.tag, file: r.meta.file, kind: r.meta.kind, title: r.meta.title, slates: r.slates, filedAs: r.ledgerId })),
 }, null, 1) + '\n');
 if (CMD === 'list') process.exit(0);
@@ -246,8 +269,9 @@ if (CMD === 'upload') {
   const LONG_FIX = LONG === 'eligible' ? 'The owner verifies the channel by phone at youtube.com/verify; the next run takes it'
     : LONG === 'disallowed' ? 'The channel is not in good standing (Studio shows the strike or block); verifying does not lift it'
     : 'YouTube did not report the channel\'s status; youtube.com/verify shows it';
+  for (const t of REPLACE_TAGS) if (!releases.some((r) => r.tag_name === t)) { console.error(`youtube-channel: --replace ${t} is not a film release on this repository`); process.exit(1); }
   const queue = missing
-    .filter((r) => KINDS.includes(r.meta.kind))
+    .filter((r) => KINDS.includes(r.meta.kind) && (!REPLACE_TAGS.length || REPLACE_TAGS.includes(r.tag)))
     .sort((a, b) => issued(a).localeCompare(issued(b)) || place(a) - place(b) || a.tag.localeCompare(b.tag) || (a.meta.kind === b.meta.kind ? 0 : a.meta.kind === 'film' ? -1 : 1));
   console.log(`\nupload${DRY ? ' (dry run)' : ''}: ${queue.length} rendered and not on the channel; at most ${MAX} this run, ${PUBLISH_AT ? `private until ${PUBLISH_AT}` : PRIVACY}`);
   let done = 0;
@@ -256,14 +280,18 @@ if (CMD === 'upload') {
     if (r.meta.kind === 'film' && r.meta.duration <= 180 && renders.some((x) => x.tag === r.tag && x.meta.kind === 'short')) { console.log(`  ${r.tag}/${r.meta.file}: skipped, ${r.meta.duration} s wide cut of a Short-only episode; the Short goes up instead`); continue; }
     if (r.slates) { console.log(`  ${r.tag}/${r.meta.file}: refused, ${r.slates} shots still play as slates (shots.md)`); continue; }
     if (!String(r.meta.description || '').toLowerCase().includes(VOICE.toLowerCase())) { console.log(`  ${r.tag}/${r.meta.file}: refused, not in the channel's voice ${VOICE} (${(String(r.meta.description).match(/Voice: [^\n]*/) || ['no voice line'])[0]}); render it again first`); continue; }
-    if (r.ledgerId) { console.log(`  ${r.tag}/${r.meta.file}: refused, filed as ${r.ledgerId}, which is not on the channel; delete ${r.ledgerName} from the release to upload it again`); continue; }
+    // The video a corrected render replaces is the one its release files (or, unfiled, the one it matched). A render no
+    // newer than that video is the same cut, and YouTube would hold it as a duplicate.
+    const current = REPLACE_TAGS.includes(r.tag) && rows.find((x) => x.r === r && !x.older);
+    if (current && Date.parse(asset(r.rel, r.meta.file).updated_at) <= Date.parse(current.v.snippet.publishedAt)) { console.log(`  ${r.tag}/${r.meta.file}: refused, this render is not newer than ${current.v.id}, the video it would replace; render it again first`); continue; }
+    if (r.ledgerId && !current) { console.log(`  ${r.tag}/${r.meta.file}: refused, filed as ${r.ledgerId}, which is not on the channel; delete ${r.ledgerName} from the release to upload it again`); continue; }
     if (tooLong(r)) { console.log(`  ${r.tag}/${r.meta.file}: refused, ${Math.round(r.meta.duration / 60)} min and the channel's long uploads are ${LONG}; YouTube would reject it for length. ${LONG_FIX}`); continue; }
     // A Short's description sends the viewer to the film, so it waits while its film is held for length.
     const film = r.meta.kind === 'short' && missing.find((x) => x.tag === r.tag && x.meta.kind === 'film');
     if (film && tooLong(film)) { console.log(`  ${r.tag}/${r.meta.file}: held, its film is held for length and this Short points at it; it goes up with the film`); continue; }
     if (done >= MAX) { console.log(`  ${r.tag}/${r.meta.file}: next run (the cap of ${MAX} keeps a run inside one day's quota)`); continue; }
     done++;
-    console.log(`  ${r.tag}/${r.meta.file}: ${DRY ? 'would upload' : 'uploading'} "${r.meta.title}"${PUBLISH_AT ? `, publishing ${new Date(Date.parse(PUBLISH_AT) + (done - 1) * EVERY_H * 3600e3).toISOString()}` : ''}`);
+    console.log(`  ${r.tag}/${r.meta.file}: ${DRY ? 'would upload' : 'uploading'} "${r.meta.title}"${current ? `, replacing ${current.v.id} (${current.v.status.privacyStatus})` : ''}${PUBLISH_AT ? `, publishing ${new Date(Date.parse(PUBLISH_AT) + (done - 1) * EVERY_H * 3600e3).toISOString()}` : ''}`);
     if (DRY) continue;
     const dir = path.join(OUT, r.tag);
     fs.mkdirSync(dir, { recursive: true });
@@ -389,19 +417,68 @@ if (CMD === 'schedule') {
   process.exit(failed.size ? 1 : 0);
 }
 
+/* ---- withdraw ----------------------------------------------------------------- */
+// A video found wrong after it went out (its edition's check changed the page) comes down at once: private, never
+// deleted, so its views and comments stay and the owner can bring it back in Studio. Named one by one, all checked
+// before the first write; a corrected render then goes up with upload --replace.
+if (CMD === 'withdraw') {
+  const fail = (msg) => { console.error(`youtube-channel: ${msg}`); process.exit(1); };
+  const plan = [...new Set(arg('--set', '').split(',').map((x) => x.trim()).filter(Boolean))].map((x) => {
+    const m = /^([\w.-]+):(film|short)$/.exec(x);
+    if (!m) fail(`--set wants <release>:<film|short>, got "${x}"`);
+    const [, tag, kind] = m;
+    if (!releases.some((r) => r.tag_name === tag)) fail(`${tag} is not a film release on this repository`);
+    const c = rows.filter((y) => y.r && y.r.tag === tag && y.r.meta.kind === kind && !y.older);
+    if (c.length !== 1) fail(`${tag}:${kind} matches ${c.length ? c.map((y) => y.v.id).join(', ') : 'no video'}; withdraw names exactly one`);
+    return { tag, kind, v: c[0].v };
+  });
+  if (!plan.length) fail('withdraw needs --set <release>:<film|short>');
+  console.log(`\nwithdraw${DRY ? ' (dry run)' : ''}: each named video goes private now, never deleted`);
+  let done = 0, failed = 0;
+  for (const { tag, kind, v } of plan) {
+    const name = `${v.id} ${tag}:${kind}`;
+    if (v.status.privacyStatus === 'private' && !v.status.publishAt) { console.log(`  ${name}: already private`); continue; }
+    console.log(`  ${name}: ${v.status.privacyStatus}${v.status.publishAt ? `, publishes ${v.status.publishAt}` : ''} -> private (its ${v.statistics?.viewCount ?? 0} views stay with it)`);
+    if (DRY) { done++; continue; }
+    const keep = ['license', 'embeddable', 'publicStatsViewable', 'selfDeclaredMadeForKids', 'containsSyntheticMedia'].filter((k) => k in v.status);
+    const status = { ...Object.fromEntries(keep.map((k) => [k, v.status[k]])), privacyStatus: 'private' };
+    try {
+      const put = await fetch(`${API}/videos?part=status`, { method: 'PUT', headers: { ...auth, 'content-type': 'application/json' }, body: JSON.stringify({ id: v.id, status }) });
+      if (!put.ok) throw new Error(`${put.status} ${await put.text()}`);
+      // Judged on a fresh read, as in schedule: the PUT's reply can lag what YouTube kept.
+      let now = {};
+      for (let i = 0; i < 3; i++) {
+        if (i) await new Promise((ok) => setTimeout(ok, 3000));
+        const r = await fetch(`${API}/videos?part=status&id=${v.id}`, { headers: auth });
+        if (!r.ok) throw new Error(`the write went through but the read back failed: ${r.status} ${await r.text()}`);
+        now = (await r.json()).items?.[0]?.status || {};
+        if (now.privacyStatus === 'private' && !now.publishAt) break;
+      }
+      console.log(`    now ${now.privacyStatus}${now.publishAt ? `, publishes ${now.publishAt}` : ''}`);
+      if (now.privacyStatus !== 'private' || now.publishAt) throw new Error(`not as asked: YouTube kept ${now.privacyStatus}${now.publishAt ? `, ${now.publishAt}` : ''}`);
+      done++;
+    } catch (e) {
+      console.log(`    FAILED: ${e.message}`);
+      failed++;
+    }
+  }
+  console.log(`  ${done} ${DRY ? 'to withdraw' : 'withdrawn'}${failed ? `, ${failed} failed` : ''}`);
+  process.exit(failed ? 1 : 0);
+}
+
 /* ---- retire ------------------------------------------------------------------- */
 // The second half of a replacement: once the new render is PUBLIC, the video in the older voice goes private (never
 // deleted: its views and comments stay with it, and the owner can bring it back in Studio). Never before, so the
 // channel is not left without the piece if the new upload is held, rejected or still scheduled.
 if (CMD === 'retire') {
-  console.log(`\nretire${DRY ? ' (dry run)' : ''}: a video in an older voice goes private once its replacement in ${VOICE} is public`);
+  console.log(`\nretire${DRY ? ' (dry run)' : ''}: a video in an older voice, or superseded by a corrected render, goes private once its replacement is public`);
   let done = 0;
   for (const { v, r, older } of rows) {
     if (!older) continue;
     const next = rows.find((x) => x.r === r && !x.older && x.v.id !== v.id);
     const name = `${v.id} ${r.tag}/${r.metaName}`;
     if (v.status.privacyStatus === 'private') { console.log(`  ${name}: already private`); continue; }
-    if (!next) { console.log(`  ${name}: left, no replacement on the channel (upload --replace-old-voice first)`); continue; }
+    if (!next) { console.log(`  ${name}: left, no replacement on the channel (upload --replace-old-voice, or --replace for a corrected render, first)`); continue; }
     if (next.v.status.privacyStatus !== 'public') { console.log(`  ${name}: left until its replacement ${next.v.id} is public${next.v.status.publishAt ? ` (scheduled ${next.v.status.publishAt})` : ''}`); continue; }
     console.log(`  ${name}: ${DRY ? 'would go' : 'going'} private, replaced by ${next.v.id} (its ${v.statistics?.viewCount ?? 0} views stay with it)`);
     done++;
@@ -420,8 +497,9 @@ if (CMD === 'retire') {
 /* ---- sync --------------------------------------------------------------------- */
 console.log(`\nsync${DRY ? ' (dry run)' : ''}:`);
 let changed = 0;
-for (const { v, r, older } of rows) {
+for (const { v, r, older, superseded } of rows) {
   if (!r) continue;
+  if (superseded) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: left, superseded by ${r.ledgerId}; the render's captions and chapters belong to that video`); continue; }
   if (older) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: refused, the video is in an older voice and the render in ${VOICE}; its captions and chapters would not fit the video's audio. Replace it (upload --replace-old-voice, then retire once the new one is public) or leave it`); continue; }
   const same = v.snippet.title === r.meta.title && v.snippet.description === r.meta.description;
   if (same && !FORCE) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: already matches, skipped`); continue; }

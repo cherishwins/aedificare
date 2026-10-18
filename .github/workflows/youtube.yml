@@ -14,11 +14,16 @@
 #   action=sync    the generated title, description, chapters, captions and
 #                  thumbnail onto every matched video (including hand uploads)
 #   action=retire  a video in an older voice goes private once its
-#                  replacement (upload with replace_old_voice) is public
+#                  replacement (upload with replace=old-voice) is public,
+#                  or a cut superseded by a corrected render (replace=corrected)
 #   action=schedule  moves a private video's publish time, or holds it with
-#                  none (schedule="film-edition-01:film=2026-10-22T15:00:00Z,
+#                  none (set="film-edition-01:film=2026-10-22T15:00:00Z,
 #                  film-edition-01:short=none"); never touches a video that
 #                  is out, never makes one public
+#   action=withdraw  a video found wrong after it went out goes private now
+#                  (set="film-edition-01:film"); never deletes; the
+#                  corrected render then goes up with upload, replace=corrected
+#                  and only=<release>
 #
 # tools/youtube-channel.mjs does the work; .claude/skills/youtube/SKILL.md is
 # how a session decides which action to run. The job summary carries the
@@ -29,11 +34,11 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'probe, list, upload, sync, retire or schedule'
+        description: 'probe, list, upload, sync, retire, schedule or withdraw'
         required: true
         default: list
         type: choice
-        options: [probe, list, upload, sync, retire, schedule]
+        options: [probe, list, upload, sync, retire, schedule, withdraw]
       only:
         description: 'One release (film-ns-01, film-ep-softbank-975), or empty for all'
         required: false
@@ -60,17 +65,19 @@ on:
         description: 'upload with publish_at: hours between one scheduled video and the next (0 = all at the same time)'
         required: false
         default: '0'
-      replace_old_voice:
-        description: 'upload: also upload a render whose video is up in an older voice (the owner said replace it); retire takes the old one down after'
+      # GitHub allows 25 inputs, but the pinned actionlint enforces the old 10, so related options share an input.
+      replace:
+        description: 'upload: old-voice also uploads a render whose video is up in an older voice (the owner said replace it); corrected uploads the only release''s corrected render beside the video it replaces, and nothing else'
         required: false
-        default: false
-        type: boolean
-      schedule:
-        description: 'schedule: <release>:<film|short>=<ISO time|none>, comma-separated'
+        default: none
+        type: choice
+        options: [none, old-voice, corrected]
+      set:
+        description: 'schedule: <release>:<film|short>=<ISO time|none>; withdraw: <release>:<film|short>; comma-separated'
         required: false
         default: ''
       dry:
-        description: 'upload, sync, retire or schedule: print the plan only'
+        description: 'upload, sync, retire, schedule or withdraw: print the plan only'
         required: false
         default: false
         type: boolean
@@ -119,21 +126,25 @@ jobs:
           PUBLISH_AT: ${{ inputs.publish_at }}
           EVERY_HOURS: ${{ inputs.every_hours }}
           DRY: ${{ inputs.dry }}
-          REPLACE: ${{ inputs.replace_old_voice }}
-          SCHEDULE: ${{ inputs.schedule }}
+          REPLACE: ${{ inputs.replace }}
+          SET: ${{ inputs.set }}
           NARRATOR: ${{ vars.NARRATOR }}  # empty: the channel's voice from src/config.mjs
         run: |
           set -o pipefail
           args=("$ACTION")
-          # schedule names its own releases and needs them all loaded, so only does not narrow it.
-          [ -n "$ONLY" ] && [ "$ACTION" != "schedule" ] && args+=(--only "$ONLY")
+          # schedule and withdraw name their own releases and need them all loaded, so only does not narrow them.
+          [ -n "$ONLY" ] && [ "$ACTION" != "schedule" ] && [ "$ACTION" != "withdraw" ] && args+=(--only "$ONLY")
           [ "$DRY" = "true" ] && [ "$ACTION" != "list" ] && [ "$ACTION" != "probe" ] && args+=(--dry)
           if [ "$ACTION" = "upload" ]; then
             args+=(--kinds "$KINDS" --max "$MAX" --privacy "$PRIVACY")
             [ -n "$PUBLISH_AT" ] && args+=(--publish-at "$PUBLISH_AT" --every "${EVERY_HOURS:-0}")
-            [ "$REPLACE" = "true" ] && args+=(--replace-old-voice)
+            [ "$REPLACE" = "old-voice" ] && args+=(--replace-old-voice)
+            if [ "$REPLACE" = "corrected" ]; then
+              [ -n "$ONLY" ] || { echo 'replace=corrected needs only=<release>, the one whose render was corrected' >&2; exit 1; }
+              args+=(--replace "$ONLY")
+            fi
           fi
-          [ "$ACTION" = "schedule" ] && args+=(--set "$SCHEDULE")
+          if [ "$ACTION" = "schedule" ] || [ "$ACTION" = "withdraw" ]; then args+=(--set "$SET"); fi
           # The summary is written whatever the exit, so a failed run's page still says what was and was not done.
           rc=0
           node tools/youtube-channel.mjs "${args[@]}" 2>&1 | tee youtube.log || rc=$?
