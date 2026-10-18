@@ -33,7 +33,7 @@ Shipped (2026-09-15):
 | `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty-one sources, F/I/Q marks | live |
 | `/the-floor` | 18 Oct 2026 · *The Floor*, amends The Markup with the builder's own field numbers, ten sections, sixteen sources | live (2026-10-18, every source opened, the video checked against its captions) |
 | `/edition-03` | 15 Sep 2026 · *The Markup* (printed as Edition 03), eight sections, twelve sources | live |
-| `/edition-01` | 11 Sep 2026 · *The Snapshot Problem* (printed as Edition 01), twelve sections, thirty-three sources, three registers | live |
+| `/edition-01` | 11 Sep 2026 · *The Snapshot Problem* (printed as Edition 01), twelve sections, thirty-four sources, three registers | live (2026-10-18, every source opened, 56 of 63 flags upheld and corrected) |
 | `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01) | live |
 | `/ns-02` | 13 Sep 2026 · *The Closest Humans* (printed as NS-02), amends The Hand in the Water | live |
 | `/edition-02` | 18 Oct 2026 · *The Subtraction* (printed as Edition 02), nine sections, thirty-six sources | live (2026-10-18, sourced from scratch; no PDF, none was issued) |
@@ -1063,6 +1063,37 @@ for a shortlist for bios and cards, which is a separate deliverable.
    Evolution Research, a 127 kB machine-written survey of residual networks
    with an embedded image: research, not an edition; not added to the
    repo.
+   **Checked, 2026-10-18, after its film had gone public** (Decisions
+   log, "A film waits for its edition's check"). Five checkers by section
+   opened every source, a skeptic per group re-opened every flag: 144
+   claims, 81 held, 63 flagged, 56 upheld. The one that mattered most was
+   the thesis: "every lesson those agents paid for died with the sandbox,
+   unless a human carried it out by hand", which the page's own case study
+   contradicts (the agents carried lessons out themselves, through the
+   board), so it now says a lesson outlived its sandbox only as a note the
+   next agent could read and not learn. Also: most of DeepMind's 71 were
+   not open conjectures; the interview agents' figure is 83 percent in the
+   paper's current version, not 85; Anthropic told its model about the
+   hacks before training, it did not find them unaided; only ROME is
+   rank-one; OpenAI's monitored model hacked less, not the same; the
+   newest Claude models hide their thinking by default, and the link from
+   summarized thinking to distillation is now Anthropic's own (12 Oct
+   2026, added as source 34) rather than the page's inference; the
+   accumulation paper keeps the original real data and piles up the
+   synthetic; ACE needed labels on finance; sparse memory learned as much
+   as full fine-tuning and forgot far less, on facts, so its point on the
+   plasticity chart moved (the chart is taller on a phone so the crowded
+   top keeps its labels apart); SEAL's 72.5 percent is the share of
+   self-edits that worked on eight puzzles chosen to be solvable; the eyes
+   grew before the move to land, not at it; the Lucas sentence keeps its
+   Measured label and the two sentences Lucas does not support are now
+   Position. Ten bibliography entries carried invented, misquoted or
+   stale titles and were corrected. "Four hours" was METR's thread, not
+   the report the page cites, so it is "within hours". The film was
+   withdrawn (private, 0 views) with `youtube-channel.mjs withdraw`, and
+   its Short was already held; both are rendered again from the corrected
+   page and replace the old pair through `upload --replace`. The print
+   PDF is left as issued. Reports are in the session's scratchpad.
 1. **Edition 02's PDF shipped in Liberation Sans and DejaVu Sans Mono.**
    `fonts/local-fonts.css` declared `src: url(fonts/bricolage-1.woff2)`, but
    CSS resolves `url()` relative to the stylesheet, which already lives in
