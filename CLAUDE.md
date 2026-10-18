@@ -1070,7 +1070,17 @@ for a shortlist for bios and cards, which is a separate deliverable.
    a dated note under its sources. The film and both Shorts (the new one,
    held before its 21:00 UTC slot, and the old Kokoro one, withdrawn by
    video id) went private with 0, 0 and 3 views, and the page renders
-   again into a replacement.
+   again into a replacement. An adversarial review of the new wording (a
+   facts lens and a house lens, a skeptic each) then upheld 13 more: the
+   opening still said the full parts list was free (the component lists
+   are in the paid guide); the closing beat's "capability" now meant the
+   reverse of the section around it, so it reads "radio"; the dated note
+   claimed every source was reopened when one could not be found; the
+   ISM module runs 4 W; January is when the award was announced; the
+   "as built" column no longer lists optional Reticulum's cryptography as
+   built in; a 150 Mbps figure that broke the page's own two-to-one was
+   cut; two source entries name the documents they now stand for; and
+   "Edition 02" became The Subtraction, its name on the site.
 
 0b. **Edition 01 · The Snapshot Problem arrived as a finished, sourced
    PDF** (seventeen pages, thirty-three sources, rendered 11 Sep 10:53 UTC)

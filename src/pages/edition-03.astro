@@ -45,10 +45,10 @@ const stack = [
   ['MM8108 · 802.11ah', 'Sub-GHz PHY and MAC, AES and SHA-2 in hardware', 'Silicon · 2025'],
 ];
 const ledger = [
-  ['Spectrum', 'Interchangeable modules, 1,350 to 6,000 MHz: NATO, federal and public-safety bands, lower C-band 4,400 to 5,000 among them, and ISM too. Six to ten watts.', '902 to 928 MHz, licence-exempt. One watt conducted. Shared with everyone.'],
+  ['Spectrum', 'Interchangeable modules, 1,350 to 6,000 MHz: NATO, federal and public-safety bands, lower C-band 4,400 to 5,000 among them, and ISM too. Four to ten watts.', '902 to 928 MHz, licence-exempt. One watt conducted. Shared with everyone.'],
   ['Waveform', 'Proprietary Wave Relay, 3-by-3 MIMO, RF signature management, LPI and LPD, DoD-assessed electronic-attack countermeasure library.', 'Standard 802.11ah, single stream. No anti-jam. No signature management.'],
-  ['Throughput', '100+ Mbps on Persistent\'s own spec sheet; 150 Mbps peak TCP at 20 MHz for its radio modules.', '43.3 Mbps at the physical layer on an 8 MHz channel.'],
-  ['Encryption', 'Up to two layers, FIPS-compliant, NIAP-approved, CSfC-approved.', 'WPA3, with AES and SHA-2 in chip hardware. Reticulum X25519, Ed25519, AES-256-CBC, forward secrecy. Nobody has signed a form.'],
+  ['Throughput', '100+ Mbps on Persistent\'s own spec sheet.', '43.3 Mbps at the physical layer on an 8 MHz channel.'],
+  ['Encryption', 'Up to two layers, FIPS-compliant, NIAP-approved, CSfC-approved.', 'WPA3, with AES and SHA-2 in chip hardware. Optional Reticulum: X25519, Ed25519, AES-256-CBC, forward secrecy. Nobody has signed a form.'],
   ['Environment', 'IP68 to 20 metres for 30 minutes. MIL-STD-810G. MIL-STD-461F. Minus 40 to plus 85 Celsius.', 'A 3D-printed enclosure. Whatever the Pi tolerates.'],
   ['Power', 'AN/PRC-148 and AN/PRC-152 batteries. The same cells as the rest of the kit.', 'A four-cell Waveshare hat.'],
   ['Supply chain', 'Made in USA, ISO 9001. A chain of custody a program office can audit.', 'Sydney-designed silicon on a Welsh-built Cambridge board, in a box you printed yourself.'],
@@ -58,9 +58,9 @@ const ledger = [
 const sources = [
   'Persistent Systems, press release, $8.9M award, 950+ MPU5 radios, Army National Guard WMD-CSTs, 2017. Also National Defense Magazine, 11 Dec 2017; C4ISRNET, 14 Sep 2017.',
   'Persistent Systems, press release, 30 Jan 2024: $5.1M award, 280+ MPU5 radios and 10 integrated sector antennas, USAF Air Mobility Command. Also Soldier Systems Daily, 8 Feb 2024.',
-  'Persistent Systems, MPU5 overview and technical specifications pages: encryption, LPI/LPD, IRD, IP68, MIL-STD-810G, MIL-STD-461F, temperature, battery compatibility.',
+  'Persistent Systems, MPU5 overview, technical specifications, support and contact pages; MPU5 spec sheet 03EN070 Rev. R (2024); radio modules page: encryption, LPI/LPD, IRD, IP68, MIL-STD-810G, MIL-STD-461F, temperature, battery compatibility, throughput, bands and power, origin, warranty, support.',
   'Secondary-market MPU5 listings, eBay and Tacswap, $8,025 to $10,500, listings read Sep 2026. No listing was archived and none could be found again on 18 Oct 2026, so the range cannot be reproduced. Used only to bound the vendor\'s twenty-thousand claim; not load-bearing.',
-  'Parallel (Salient Ventures LLC), Haven 2 product page: $97 guide, $208 to $450 per node, minimum two nodes. buildwithparallel/openwrt-morse-rpi5 on GitHub for the firmware and hardware table.',
+  'Parallel (Salient Ventures LLC), Haven product page: the $97 guide to Haven 1 and Haven 2, $208 to $450 per node, minimum two nodes. buildwithparallel on GitHub: haven-manet-ip-mesh-radio for the two builds, Reticulum as optional and direct support; openwrt-morse-rpi5 for the firmware and hardware table.',
   'Morse Micro, MM8108 launch release, 8 Jan 2025; MM8108 datasheet; Morse Micro chips page (MM6108 32.5 Mbps); CNX Software, 14 Jan 2025 (package sizes); MM8108-M20 module release, 1 Jun 2026.',
   'Free-space path loss: Friis, 20·log10(f). 2,437 MHz is Wi-Fi channel 6; 5,800 MHz is in the 5.8 GHz band (U-NII-3, 5,725 to 5,850 MHz), near the top of 5 GHz Wi-Fi. Morse Micro\'s ten-times range claim is the company\'s.',
   'ISED, RSS-247 Issue 4, published 24 Jul 2025, mandatory 24 Jan 2026; Issue 3 text for the 1 W, 4 W e.i.r.p., 500 kHz and 8 dBm/3 kHz figures. Europe: ETSI EN 300 220, 863 to 868 MHz SRD sub-bands.',
@@ -91,9 +91,9 @@ const sources = [
         <p class="mono">Per radio · United States Air Force · January 2024 · $5.1M ÷ 280</p>
       </div>
       <div class="c-a prose">
-        <p>Two public awards fix the price of a military mesh radio. In 2017 Persistent Systems won an $8.9 million contract for more than 950 MPU5 radios for the Army National Guard's WMD Civil Support Teams. That is under $9,400 each. In January 2024 the Air Force awarded Persistent Systems $5.1 million for more than 280 MPU5 radios and ten integrated sector antennas. That is at most $18,214 each, and the antennas are inside the number.</p>
+        <p>Two public awards fix the price of a military mesh radio. In 2017 Persistent Systems won an $8.9 million contract for more than 950 MPU5 radios for the Army National Guard's WMD Civil Support Teams. That is under $9,400 each. In January 2024 Persistent Systems announced a $5.1 million Air Force award for more than 280 MPU5 radios and ten integrated sector antennas. That is at most $18,214 each, and the antennas are inside the number.</p>
         <p>The vendor of the Haven build guide says the class of capability costs twenty thousand a unit. The public record does not say twenty. It says between nine and eighteen, and the newer award is the higher one.</p>
-        <p>The newer Haven node, which the vendor still calls experimental, is a Raspberry Pi 5, a Morse Micro MM8108 HaLow radio on USB, a USB Wi-Fi adapter, an antenna, a battery hat and a printed enclosure; the recommended build is a Pi 4 on the older Morse chip. The guide prices the build at $208 to $450 per node. A network needs two. The guide itself is $97, and the parts list, firmware and configuration are on GitHub without it.</p>
+        <p>The newer Haven node, Haven 2, which the vendor still calls experimental, is a Raspberry Pi 5, a Morse Micro MM8108 HaLow radio on USB, a USB Wi-Fi adapter, an antenna, a battery hat and a printed enclosure; the recommended build is a Pi 4 on the older Morse chip. The guide prices a node at $208 to $450. A network needs two. The guide itself is $97, and the core parts, the firmware and the configuration are on GitHub without it.</p>
         <p>Two nodes, four hundred and sixteen dollars at the floor. One government radio, eighteen thousand two hundred at the ceiling. The ratio is forty-four to one, one government radio against a two-node network, and the comparison is not fair. What follows is where the unfairness lives.</p>
       </div>
       <figure class="c-b field bars" aria-label="USD per node, log scale">
@@ -187,7 +187,7 @@ const sources = [
         </table>
       </div>
       <div class="c-a prose">
-        <p>Two rows are capability. Spectrum and waveform. Those are the reasons the expensive radio survives a battlefield and the cheap one does not, and no amount of money spent at 902 MHz closes them. A third, throughput, is a gap of roughly two to one, and it narrowed by a quarter between the first Morse chip and the second.</p>
+        <p>Two rows are capability. Spectrum and waveform. Those are the reasons the expensive radio survives a battlefield and the cheap one does not, and no four-hundred-dollar build closes them. A third, throughput, is a gap of roughly two to one, and it narrowed by a quarter between the first Morse chip and the second.</p>
       </div>
       <div class="c-b prose">
         <p class="beat">The other six are paperwork, a box, a battery and a phone number. Each is worth something. None is worth seventeen thousand dollars, and together they are what the price is actually protecting.</p>
@@ -199,15 +199,15 @@ const sources = [
         <p class="lede">Is the price protecting a capability, or a customer?</p>
       </div>
       <div class="c-a prose">
-        <p>Edition 02 asked of a graphics card whether the silicon underneath still worked. The test for a radio is different because the silicon was never withheld. Morse Micro will sell the chip to anyone. The test is what the buyer is paying to be.</p>
+        <p>The Subtraction asks of a graphics card whether the silicon underneath still works. The test for a radio is different because the silicon was never withheld. Morse Micro will sell the chip to anyone. The test is what the buyer is paying to be.</p>
         <p>A capability price pays for something the cheaper product cannot do at any cost. The licensed band is one. The anti-jam waveform is another. If your adversary has an electronic-warfare unit, the eighteen thousand is not a markup. It is the product.</p>
         <p>A customer price pays for the buyer's own constraints. FIPS validation exists because federal purchasers may not buy unvalidated cryptography, not because AES needs a certificate to work. MIL-STD-810G exists because a program office must prove it tested for salt fog. NDAA compliance exists because Congress said so. The radio did not need any of these to route a packet. The buyer needed them to write the cheque.</p>
         <p>Most of the world is not a federal purchaser and is not being jammed by a state. A rural property in British Columbia. A film crew. A mine. A farm. A municipality that lost its fibre. A protest. A wildfire perimeter after the towers burn. For all of them the capability rows of the ledger read the same and the paperwork rows read zero.</p>
         <p>That is the markup. Not fraud, not even a bad product. Persistent Systems and Silvus build serious radios for a customer who genuinely needs the top two rows. The markup is what everyone else pays if they buy the same product. There was no 256-QAM sub-gigahertz chip on the open market. There was no 43-megabit HaLow module with the filter already on it. Now the chip is on sale, the module is sampling, and the core parts are public.</p>
-        <p class="beat">The question is no longer whether the capability can be had for four hundred dollars. It can. The question is which customers still need the other seventeen thousand, and the answer is a shorter list every year.</p>
+        <p class="beat">The question is no longer whether the radio can be had for four hundred dollars. It can. The question is which customers still need the other seventeen thousand, and the answer is a shorter list every year.</p>
       </div>
       <Rail items={[
-        ['Capability · 2', 'Spectrum. Waveform. <b>Cannot be bought at 902 MHz.</b>'],
+        ['Capability · 2', 'Spectrum. Waveform. <b>Not in any four-hundred-dollar build.</b>'],
         ['Closing · 1', 'Throughput, 100 against 43 Mbps. <b>A quarter narrower in one generation.</b>'],
         ['Customer · 6', 'Encryption certificates. Environment. Power. Supply chain. Support. Source.'],
       ]} />
@@ -222,7 +222,7 @@ const sources = [
         <p>In 2025 Motorola Solutions paid $4.4 billion, nearly all of it in cash, for Silvus Technologies, with up to $600 million more if the business performs through 2028. Motorola said Silvus had proven itself in Ukraine, where the key factor was jamming and interference, above all for drones. The purchase is a bet that the proprietary waveform stays worth owning: that the top two rows of the ledger remain the only rows that matter, and that nobody else can build them.</p>
         <p>In the same year a Sydney company put 256-QAM sub-gigahertz in a five-millimetre package and started selling it to anybody with a reel. That is a bet in the opposite direction: that for most of the buyers on earth, the bottom seven rows were the product all along, and the bottom seven rows are now a parts list.</p>
         <p>Both bets can win. The defence market and the everyone-else market were never the same market. What changes is that the second one no longer has to shop in the first.</p>
-        <p>Haven is not the important object here. It is a $97 guide, a GitHub repository and seventeen five-star reviews. It matters as a specimen, the way a mining card mattered in Edition 02: a thing that exists in public, with a bill of materials, that makes a price visible which used to be hidden inside a contract.</p>
+        <p>Haven is not the important object here. It is a $97 guide, a GitHub repository and seventeen five-star reviews. It matters as a specimen, the way a mining card matters in The Subtraction: a thing that exists in public, with a bill of materials, that makes a price visible which used to be hidden inside a contract.</p>
         <p class="beat">Eighteen thousand dollars bought a radio, a certificate, a battery and permission. Four hundred and fifty buys the radio. The rest is now a line item, and a line item can be argued with.</p>
       </div>
       <Stats class="c-b" items={[
@@ -233,7 +233,7 @@ const sources = [
 
     <Section n="07" title="Sources" id="sources">
       <div class="c-full">
-        <p class="mono">Read in September 2026; every source opened again and the page corrected on 18 Oct 2026. The throughput figure and the line on Canada's point-to-point allowance stay as printed, because The Floor answers them; the print is left as issued.</p>
+        <p class="mono">Read in September 2026; every source that could still be found opened again and the page corrected on 18 Oct 2026. The 43.3 Mbps figure and the line on Canada's point-to-point allowance stay as printed, because The Floor answers them; the print is left as issued.</p>
       </div>
       <ol class="c-full sources">
         {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
