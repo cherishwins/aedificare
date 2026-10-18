@@ -1080,7 +1080,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
    summarized thinking to distillation is now Anthropic's own (12 Oct
    2026, added as source 34) rather than the page's inference; the
    accumulation paper keeps the original real data and piles up the
-   synthetic; ACE needed labels on finance; sparse memory learned as much
+   synthetic; ACE without labels gained little or fell below the base model on the finance tagging task; sparse memory learned as much
    as full fine-tuning and forgot far less, on facts, so its point on the
    plasticity chart moved (the chart is taller on a phone so the crowded
    top keeps its labels apart); SEAL's 72.5 percent is the share of

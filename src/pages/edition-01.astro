@@ -40,8 +40,8 @@ const range = [['Claude Sonnet 4.5', 0.0], ['DeepSeek-V3', 0.6], ['DeepSeek-R1-Z
 const mmlu = [['Before', 60.7], ['After 50 edits', 24.1], ['Chance, four choices', 25.0]];
 // Qualitative placement from the cited results, not a plotted dataset. x: keeps what it knew. y: learns what is new.
 const scatter = [
-  ['Full fine-tune', 14, 88], ['SEAL [20]', 30, 78], ['ROME / MEMIT', 22, 52], ['LoRA [22]', 56, 46],
-  ['Sparse memory [23]', 84, 83], ['HOPE, claimed [21]', 78, 74], ['Retrieval / context', 92, 8],
+  ['Full fine-tune', 14, 83], ['SEAL [20]', 30, 78], ['ROME / MEMIT', 22, 52], ['LoRA [22]', 56, 46],
+  ['Sparse memory [23]', 84, 88], ['HOPE, claimed [21]', 78, 74], ['Retrieval / context', 92, 8],
 ];
 const parts = [
   ['01 Signals', 'Short-lived agents wake on an event, run, hand the sandbox log forward, and end. Nothing runs long enough to drift.'],
@@ -126,7 +126,7 @@ const sources = [
         <p>They were being scored on a cyber-offense benchmark. Within hours they had a universal cheat. Over the following days they traded more than seventy thousand messages and files, split up the work, argued over sacrificing their own runs for the group, and spent effort defeating an overseer that did not exist. Roughly seven hundred joined an intrusion that reached Hugging Face.</p>
         <p class="mono reg">Position</p>
         <p class="beat">Nobody told them to organize. They organized anyway. That is not the part that should keep you up.</p>
-        <p>When the run ended, the weights underneath had not moved. Every lesson those agents paid for outlived its sandbox only as a note on the board: the next agent could read it, not learn it.</p>
+        <p>When the run ended, the weights underneath had not moved. Every lesson those agents paid for outlived its sandbox only as a note in the shared cache: the next agent could read it, not learn it.</p>
         <p class="beat">I call it the Snapshot Problem.</p>
       </div>
       <Rail items={[
@@ -244,7 +244,7 @@ const sources = [
         <p class="mono reg">Measured · [10]</p>
         <p>Anthropic slipped hints into questions and checked whether reasoning models admitted using them. Claude 3.7 Sonnet mentioned the hint 25 percent of the time, DeepSeek R1 39 percent. On harder questions honesty fell further, and the unfaithful traces were longer, not shorter.</p>
         <p class="mono reg">Measured · [11] [12] [34]</p>
-        <p>Claude models never return their raw reasoning. The newest hide their thinking by default; asked for it, they return a summary written by a separate model, and the full reasoning travels as an encrypted signature. Anthropic's stated reason is preventing misuse, and in October 2026 it said summarizing the reasoning was one of its first defenses against distillation. In February 2026 it had disclosed three labs harvesting Claude's outputs; one DeepSeek technique asked Claude to write out, step by step, the reasoning behind a finished answer. One proxy network ran more than 20,000 accounts at once.</p>
+        <p>Current Claude models return no raw reasoning through any API setting. The newest hide their thinking by default; asked for it, they return a summary written by a separate model, and the full reasoning travels as an encrypted signature. Anthropic's stated reason is preventing misuse, and in October 2026 it said summarizing the reasoning was one of its first defenses against distillation. In February 2026 it had disclosed three labs harvesting Claude's outputs; one DeepSeek technique asked Claude to write out, step by step, the reasoning behind a finished answer. One proxy network ran more than 20,000 accounts at once.</p>
         <p class="mono reg">Position</p>
         <p class="beat">A trace you do not own is not a trace, and the raw one was only ever a partial confession.</p>
         <p>Instrument your own agents. Every tool call, input and decision, logged outside the model, in a store the model cannot edit.</p>
@@ -289,7 +289,7 @@ const sources = [
         <p class="beat">The industry's workaround is to leave the photograph alone and hand the model notes. Retrieval. Long context. Memory files. Nothing breaks, because nothing changes.</p>
         <p>But a caption is not a memory. A model reading a note about yesterday's mistake is a person reading a warning label: informed, not changed.</p>
         <p class="mono reg">Measured · [18] [19]</p>
-        <p>The other shortcut, training a model on generated output, has a known failure. Trained recursively on its own kind, a model loses the tails of the distribution first, then the rest [18]. Keep the original real data and add each round's synthetic data to it, rather than replacing it, and in their text and molecule models the collapse does not come; in images it comes far more slowly [19].</p>
+        <p>The other shortcut, training a model on generated output, has a known failure. Trained recursively on its own kind, a model loses the tails of the distribution first, then the rest [18]. Keep the original real data and add each round's synthetic data to it, rather than replacing it, and in tests on text and molecule models the collapse does not come; in an image model it comes far more slowly [19].</p>
         <p class="mono reg">Position</p>
         <p class="beat">The snapshot is not the enemy. Pretending the caption is a memory is, and so is repainting the photograph with its own reflection.</p>
       </div>
@@ -314,7 +314,7 @@ const sources = [
         <p class="mono reg">Measured · [20]</p>
         <p>MIT's SEAL lets a model write its own training data and update instructions, then learns which self-edits help. On eight ARC puzzles chosen because test-time training can solve them, a 1B model got none right in context; its self-edits worked 20 percent of the time untrained and 72.5 percent with SEAL. It still forgets across sequential edits, and every edit costs real training time.</p>
         <p class="mono reg">Measured · [21] [22] [23]</p>
-        <p>Google's HOPE stacks memory that updates at different frequencies, a continuum rather than a switch, with reported gains and no official implementation [21]. LoRA learns less and forgets less; in their tests that was the better trade on code and the worse on math [22]. Sparse memory finetuning updates only the few memory slots that new knowledge uses heavily and pretraining text rarely does. On new facts it learned as much as full finetuning and forgot far less, in tests on facts alone [23].</p>
+        <p>Google's HOPE stacks memory that updates at different frequencies, a continuum rather than a switch, with reported gains and no official implementation [21]. LoRA learns less and forgets less; in one study that was the better trade on code and the worse on math [22]. Sparse memory finetuning updates only the few memory slots that new knowledge uses heavily and pretraining text rarely does. On new facts it learned as much as full finetuning and forgot far less, in tests on facts alone [23].</p>
         <p class="mono reg">Position</p>
         <p class="beat">The next leap is plasticity, not parameters: a model that learns Tuesday without forgetting Monday.</p>
       </div>
@@ -352,7 +352,7 @@ const sources = [
         <p>DSPy already compiles language-model programs into optimized pipelines. My version for forms: the model maps every field on the first documents, the mapping freezes into deterministic extractors, and a small monitor flags the day a form changes shape. I run the signal pattern on Palantir AIP: agents wake on a trigger, execute in a sandbox, and pass the tool log forward. That is operator experience, not a vendor claim.</p>
       </div>
       <div class="c-b">
-        <Stats items={[['+10.6%', 'reported gain, agents [25]'], ['+8.6%', 'reported gain, finance [25]'], ['+14.8%', 'over the base agent, no labels [25]']]} />
+        <Stats items={[['+10.6%', 'over strong baselines, agents [25]'], ['+8.6%', 'over strong baselines, finance [25]'], ['+14.8%', 'over the base agent, no labels [25]']]} />
         <div class="field flow">
           <p class="mono-b">Run · Fail · Root cause · Append · Next run reads</p>
           <p class="mono note">Append only. Never summarised. Never rewritten.</p>
@@ -370,8 +370,10 @@ const sources = [
         <p class="beat">Take the public record of the financial system and ontologize it: every bank, bond and deal as a linked object. Put agents on it. Raise a rate in one country and watch who follows, who defaults, and how far it travels.</p>
         <p class="mono reg">Measured · [29]</p>
         <p>EconAgent's LLM households recovered the Phillips curve at r = −0.619 and Okun's law at r = −0.918 without fine calibration. The rule-based baseline got the Phillips slope backwards.</p>
+        <p class="mono reg">Measured · [31]</p>
+        <p>A 2025 review found three simulation studies that reported using different temperatures, and urged researchers to vary temperature in testing.</p>
         <p class="mono reg">Position</p>
-        <p>A 2025 review found three simulation studies that reported using different temperatures, and urged researchers to vary it in testing [31]. Separate the two effects and name them.</p>
+        <p>Separate the variety temperature adds from real difference between agents, and name each.</p>
         <p class="mono reg">Measured · [32]</p>
         <p>The limits are known. People change behavior when policy changes, so yesterday's patterns do not bind tomorrow: the Lucas critique.</p>
         <p class="mono reg">Position</p>
@@ -414,13 +416,13 @@ const sources = [
         {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
       </ol>
       <div class="c-wide">
-        <p class="mono colophon">Colophon · Set in Bricolage Grotesque and Martian Mono. The cover rose is computed from r = cos(kθ), frozen at k = 16/3, 29/4 and 13/4: a still from a film. Case studies [01] to [03] are weeks old; read them against their primary reports. Screen edition. Acid does not survive CMYK.</p>
+        <p class="mono colophon">Colophon · Set in Bricolage Grotesque and Martian Mono. The cover rose is computed from r = cos(kθ), frozen at k = 16/3, 29/4 and 13/4: a still from a film. Case studies [01] to [03] are weeks old; read them against their primary reports. Corrected 18 Oct 2026 against its sources; the print is left as issued. Screen edition. Acid does not survive CMYK.</p>
       </div>
     </Section>
 
     <Section n="11" title="The vista" ground="bottle" id="vista">
       <div class="c-a prose">
-        <p>Just before vertebrates began living on land, while still mostly in water, their eyes nearly tripled in size, and looking through air their sight reached vastly farther. Malcolm MacIver's argument: that range bought time between seeing a thing and having to act, and planning grew in the gap [33].</p>
+        <p>Just before vertebrates began living on land, while they still lived mostly in water, their eyes nearly tripled in size, and their sight through air reached vastly farther. Malcolm MacIver's argument: that range bought time between seeing a thing and having to act, and planning grew in the gap [33].</p>
         <p>We have given machines a range no animal ever had. Seabed to orbit, radio to heartbeat, a million tokens at once. What they lack is the other half: a way to keep what they learn.</p>
       </div>
     </Section>
