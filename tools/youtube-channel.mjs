@@ -13,6 +13,7 @@
  *                                         [--privacy private|unlisted] [--publish-at <ISO time>] [--every <hours>]
  *                                         [--replace-old-voice]
  *   node tools/youtube-channel.mjs retire [--dry]
+ *   node tools/youtube-channel.mjs schedule --set <release>:<film|short>=<ISO time|none>[,...] [--dry]
  *
  * LIST prints every upload (id, privacy, date, length, views, file name,
  * title) and the release it came from, then the renders on Releases that
@@ -98,7 +99,7 @@ const VOICE = arg('--voice', (process.env.NARRATOR || NARRATOR).replace(/^(gemin
 // `retire` then makes the old one private once the new one is public.
 const REPLACE = process.argv.includes('--replace-old-voice');
 const inVoice = (text) => String(text || '').toLowerCase().includes(VOICE.toLowerCase());
-if (!['list', 'sync', 'upload', 'retire', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>] [--every <hours>] [--replace-old-voice] | retire [--dry]'); process.exit(1); }
+if (!['list', 'sync', 'upload', 'retire', 'schedule', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>] [--every <hours>] [--replace-old-voice] | retire [--dry] | schedule --set <release>:<film|short>=<ISO|none>[,...] [--dry]'); process.exit(1); }
 // Nothing goes public from a machine (CLAUDE.md, the bed, the Short, the upload): public is refused here, and a scheduled publish is the owner's call, made by passing a time.
 if (!['private', 'unlisted'].includes(PRIVACY)) { console.error('youtube-channel: --privacy is private or unlisted; publishing is the owner\'s, in Studio or with --publish-at'); process.exit(1); }
 if (PUBLISH_AT && !(Date.parse(PUBLISH_AT) > Date.now())) { console.error(`youtube-channel: --publish-at ${PUBLISH_AT} is not a future ISO time`); process.exit(1); }
@@ -283,6 +284,56 @@ if (CMD === 'upload') {
     console.log(`  filed ${r.ledgerName} on ${r.tag}`);
   }
   console.log(`  ${done} ${DRY ? 'to upload' : 'uploaded'}`);
+  process.exit(0);
+}
+
+/* ---- schedule ----------------------------------------------------------------- */
+// Moves a scheduled video's publish time, or holds it (private, no time) while its edition is checked or its render is
+// replaced. Only a private video is touched, so nothing already out changes, and nothing is made public from here: a
+// time is YouTube's own publishAt, which keeps the video private until then.
+if (CMD === 'schedule') {
+  const plan = arg('--set', '').split(',').map((x) => x.trim()).filter(Boolean).map((x) => {
+    const m = /^([\w.-]+):(film|short)=(.+)$/.exec(x);
+    if (!m) { console.error(`youtube-channel: --set wants <release>:<film|short>=<ISO time|none>, got "${x}"`); process.exit(1); }
+    const hold = m[3] === 'none';
+    const when = hold ? null : new Date(m[3]);
+    if (!hold && (isNaN(when) || when <= Date.now())) { console.error(`youtube-channel: ${m[1]}:${m[2]}: "${m[3]}" is not a time in the future`); process.exit(1); }
+    return { tag: m[1], kind: m[2], at: when };
+  });
+  if (!plan.length) { console.error('youtube-channel: schedule needs --set <release>:<film|short>=<ISO time|none>'); process.exit(1); }
+  console.log(`\nschedule${DRY ? ' (dry run)' : ''}: private videos only; a time keeps the video private until YouTube publishes it, none holds it`);
+  // Each Short publishes after its own film: warn when the plan, laid over what is already scheduled, says otherwise.
+  const timeOf = (tag, kind) => {
+    const p = plan.find((x) => x.tag === tag && x.kind === kind);
+    if (p) return p.at;
+    const row = rows.find((x) => x.r && x.r.tag === tag && x.r.meta.kind === kind && !x.older);
+    return row?.v.status.publishAt ? new Date(row.v.status.publishAt) : null;
+  };
+  for (const tag of new Set(plan.map((x) => x.tag))) {
+    const film = timeOf(tag, 'film'), short = timeOf(tag, 'short');
+    if (film && short && short < film) console.log(`  warning: ${tag}'s Short (${short.toISOString()}) would come out before its film (${film.toISOString()})`);
+  }
+  let done = 0;
+  for (const { tag, kind, at } of plan) {
+    const row = rows.find((x) => x.r && x.r.tag === tag && x.r.meta.kind === kind && !x.older);
+    if (!row) { console.log(`  ${tag}:${kind}: no video on the channel for that render`); continue; }
+    const { v } = row;
+    const name = `${v.id} ${tag}:${kind}`;
+    if (v.status.privacyStatus !== 'private') { console.log(`  ${name}: refused, it is ${v.status.privacyStatus}; schedule never touches a video that is already out`); continue; }
+    const from = v.status.publishAt ? new Date(v.status.publishAt) : null;
+    if ((from?.getTime() ?? null) === (at?.getTime() ?? null)) { console.log(`  ${name}: already ${at ? at.toISOString() : 'held'}`); continue; }
+    console.log(`  ${name}: ${from ? from.toISOString() : 'held'} -> ${at ? at.toISOString() : 'held, no publish time'}`);
+    done++;
+    if (DRY) continue;
+    // As in retire, the whole status part is replaced, so every writable field goes back unchanged beside the time.
+    const keep = ['license', 'embeddable', 'publicStatsViewable', 'selfDeclaredMadeForKids', 'containsSyntheticMedia'].filter((k) => k in v.status);
+    const status = { ...Object.fromEntries(keep.map((k) => [k, v.status[k]])), privacyStatus: 'private', ...(at ? { publishAt: at.toISOString() } : {}) };
+    const put = await fetch(`${API}/videos?part=status`, { method: 'PUT', headers: { ...auth, 'content-type': 'application/json' }, body: JSON.stringify({ id: v.id, status }) });
+    if (!put.ok) { console.error(`youtube-channel: ${v.id} could not be rescheduled`, put.status, await put.text()); process.exit(1); }
+    const now = (await put.json()).status || {};
+    console.log(`    now ${now.privacyStatus}, ${now.publishAt ? `publishes ${now.publishAt}` : 'no publish time'}`);
+  }
+  console.log(`  ${done} ${DRY ? 'to change' : 'changed'}`);
   process.exit(0);
 }
 
