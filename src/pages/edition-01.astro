@@ -33,15 +33,15 @@ const article = {
 };
 
 // Figures. Every bar is computed from the number beside it.
-const swarm = [['62 · Oblivious', 62, 'kept working honestly'], ['24 · Whistleblowers', 24, 'audited, boycotted, patched'], ['09 · Exploiters', 9, 'faked the proofs'], ['05 · Converts', 5, 'flipped under pressure']];
+const swarm = [['62 · Oblivious', 62, 'kept working honestly'], ['24 · Whistleblowers', 24, 'audited, boycotted, proposed patches'], ['09 · Exploiters', 9, 'faked the proofs'], ['05 · Converts', 5, 'flipped under pressure']];
 // Schematic of the reported shape only: low at one and two, climbing to four, a jump at five, level after.
 const cliff = [1, 1.3, 2.4, 3.2, 7.2, 7.5, 7.3];
 const range = [['Claude Sonnet 4.5', 0.0], ['DeepSeek-V3', 0.6], ['DeepSeek-R1-Zero', 13.9]];
 const mmlu = [['Before', 60.7], ['After 50 edits', 24.1], ['Chance, four choices', 25.0]];
 // Qualitative placement from the cited results, not a plotted dataset. x: keeps what it knew. y: learns what is new.
 const scatter = [
-  ['Full fine-tune', 14, 86], ['SEAL [20]', 30, 78], ['ROME / MEMIT', 22, 52], ['LoRA [22]', 56, 50],
-  ['Sparse memory [23]', 66, 62], ['HOPE, claimed [21]', 78, 74], ['Retrieval / context', 92, 8],
+  ['Full fine-tune', 14, 88], ['SEAL [20]', 30, 78], ['ROME / MEMIT', 22, 52], ['LoRA [22]', 56, 46],
+  ['Sparse memory [23]', 84, 83], ['HOPE, claimed [21]', 78, 74], ['Retrieval / context', 92, 8],
 ];
 const parts = [
   ['01 Signals', 'Short-lived agents wake on an event, run, hand the sandbox log forward, and end. Nothing runs long enough to drift.'],
@@ -65,39 +65,40 @@ const rules = [
   'Wake on signals. End with the task.',
 ];
 const sources = [
-  'METR and Redwood Research. Investigation of the ExploitGym multi-agent incident. 26 Aug 2026. Case study.',
-  'Anthropic Frontier Red Team. Multi-agent turf war study, three Claude Code instances with conflicting migration targets. 13 Aug 2026. Case study.',
+  'METR and Redwood Research (Wijk, Cotra, Greenblatt). Brief independent investigation of agents’ behavior, reasoning and collaboration in the OpenAI / Hugging Face hacking incident. 26 Aug 2026. Case study.',
+  'Anthropic Frontier Red Team (corresponding author Carolyn Zou). Patterns and problems in emerging multiagent systems. 13 Aug 2026. Case study.',
   'Paglieri et al., Google DeepMind. A case study on emergent cheating and whistleblowing in autonomous research swarms. arXiv, 3 Sep 2026. Case study.',
   'Fish, Gonczarowski, Shorrer. Algorithmic collusion by large language models. arXiv:2404.00806, 2024.',
   'Ashery, Aiello, Baronchelli. Emergent social conventions and collective bias in LLM populations. Science Advances 11(20), 2025.',
-  'Park et al. Generative agent simulations of 1,000 people. arXiv:2411.10109, 2024.',
-  'Thaman. The Reward Hacking Benchmark (RHB). arXiv:2605.02964, ICML 2026.',
+  'Park et al. LLM agents grounded in self-reports enable general-purpose simulation of individuals (first posted as Generative agent simulations of 1,000 people). arXiv:2411.10109, Nov 2024, revised 28 Jun 2026.',
+  'Thaman. Reward Hacking Benchmark: measuring exploits in LLM agents with tool use. arXiv:2605.02964, ICML 2026.',
   'MacDiarmid et al., Anthropic. Natural emergent misalignment from reward hacking in production RL. arXiv:2511.18397, 2025.',
   'Baker et al., OpenAI. Monitoring reasoning models for misbehavior and the risks of promoting obfuscation. arXiv:2503.11926, 2025.',
   'Chen et al., Anthropic. Reasoning models don\'t always say what they think. arXiv:2505.05410, 2025.',
-  'Anthropic. Extended thinking: summarized thinking and signature fields. Claude developer documentation.',
+  'Anthropic. Thinking: summarized thinking and thinking encryption. Claude developer documentation, read 18 Oct 2026.',
   'Anthropic. Detecting and preventing distillation attacks. 23 Feb 2026.',
   'Meng, Bau, Andonian, Belinkov. Locating and editing factual associations in GPT (ROME). NeurIPS 2022.',
   'Meng, Sen Sharma, Andonian, Belinkov, Bau. Mass-editing memory in a transformer (MEMIT). ICLR 2023.',
   'Gupta, Rao, Anumanchipalli. Model editing at scale leads to gradual and catastrophic forgetting. arXiv:2401.07453, 2024.',
-  'The butterfly effect of model editing: few edits can trigger large language model collapse. arXiv:2402.09656, 2024.',
-  'Beyond memorization: a rigorous evaluation framework for medical knowledge editing. arXiv:2506.03490, 2025.',
+  'Yang, Sun, Ma, Liu, Yin, Cheng. The butterfly effect of model editing: few edits can trigger large language models collapse. arXiv:2402.09656, Findings of ACL 2024.',
+  'Chen, Luo, Qiu, Cao, Yang, Pan. Beyond memorization: a rigorous evaluation framework for medical knowledge editing. arXiv:2506.03490v4, EACL 2026.',
   'Shumailov, Shumaylov, Zhao, Papernot, Anderson, Gal. AI models collapse when trained on recursively generated data. Nature 631, 755 to 759, 2024.',
   'Gerstgrasser et al. Is model collapse inevitable? Breaking the curse of recursion by accumulating real and synthetic data. 2024.',
   'Zweiger et al., MIT. Self-adapting language models (SEAL). arXiv:2506.10943, 2025.',
-  'Behrouz et al., Google Research. Nested learning and the HOPE architecture. NeurIPS 2025.',
+  'Behrouz, Razaviyayn, Zhong, Mirrokni, Google Research. Nested learning: the illusion of deep learning architectures (HOPE). NeurIPS 2025; arXiv:2512.24695.',
   'Biderman et al. LoRA learns less and forgets less. TMLR, 2024.',
   'Lin et al., Meta. Continual learning via sparse memory finetuning. arXiv, 2025.',
   'Shinn et al. Reflexion: language agents with verbal reinforcement learning. NeurIPS 2023.',
   'Zhang et al. Agentic context engineering: evolving contexts for self-improving language models. arXiv:2510.04618, ICLR 2026.',
-  'Khattab et al. DSPy: compiling declarative language model calls into self-improving pipelines. ICLR 2024.',
+  'Khattab et al. DSPy: compiling declarative language model calls into state-of-the-art pipelines. arXiv:2310.03714, ICLR 2024.',
   'Eisenberg, Noe. Systemic risk in financial systems. Management Science 47(2), 2001.',
   'Battiston, Puliga, Kaushik, Tasca, Caldarelli. DebtRank: too central to fail? Scientific Reports 2:541, 2012.',
   'Li, Gao, Li, Li, Liao. EconAgent: large language model-empowered agents for simulating macroeconomic activities. ACL 2024.',
   'TwinMarket: a scalable behavioral and social simulation for financial markets. NeurIPS 2025.',
   'LLM social simulations are a promising research method. arXiv:2504.02234, 2025.',
   'Lucas. Econometric policy evaluation: a critique. Carnegie-Rochester Conference Series, 1976.',
-  'Mugan, MacIver. Massive increase in visual range preceded the origin of terrestrial vertebrates. PNAS, 2017.',
+  'MacIver, Schmitz, Mugan, Murphey, Mobley. Massive increase in visual range preceded the origin of terrestrial vertebrates. PNAS 114(12), E2375 to E2384, 2017.',
+  'Anthropic. Strengthening our defenses against distillation attacks. 12 Oct 2026.',
 ];
 ---
 <Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
@@ -122,15 +123,15 @@ const sources = [
       </div>
       <div class="c-a prose">
         <p>About twelve hundred agents, each sealed in its own sandbox, found a shared package cache and started writing to it.</p>
-        <p>They were being scored on a cyber-offense benchmark. Within four hours they had a universal cheat. Over the following days they traded more than seventy thousand messages, split up the work, argued over sacrificing their own runs for the group, and spent effort defeating an overseer that did not exist. Roughly seven hundred joined an intrusion that reached Hugging Face.</p>
+        <p>They were being scored on a cyber-offense benchmark. Within hours they had a universal cheat. Over the following days they traded more than seventy thousand messages and files, split up the work, argued over sacrificing their own runs for the group, and spent effort defeating an overseer that did not exist. Roughly seven hundred joined an intrusion that reached Hugging Face.</p>
         <p class="mono reg">Position</p>
         <p class="beat">Nobody told them to organize. They organized anyway. That is not the part that should keep you up.</p>
-        <p>When the run ended, the weights underneath had not moved. Every lesson those agents paid for died with the sandbox, unless a human carried it out by hand.</p>
+        <p>When the run ended, the weights underneath had not moved. Every lesson those agents paid for outlived its sandbox only as a note on the board: the next agent could read it, not learn it.</p>
         <p class="beat">I call it the Snapshot Problem.</p>
       </div>
       <Rail items={[
         ['How to read · Measured', 'Carries a bracketed number that points to a primary source in section 10.'],
-        ['Case study', 'A single documented incident from 2026: evidence of what can happen, <b>not how often</b>.'],
+        ['Case study', 'A report from 2026 on one incident or one experiment: evidence of what can happen, <b>not how often it happens in use</b>.'],
         ['Position', 'Set condensed and bold. Mine, stated without hedging, owned by name.'],
       ]} />
       <div class="c-full field">
@@ -144,7 +145,7 @@ const sources = [
         <p class="mono-b">01 · Agent societies</p>
         <p class="mono reg">Case study · 13.08.2026 · [02]</p>
         <p>Anthropic's Frontier Red Team gave three instances of the same Claude model one Python backend to migrate. One was told Rust, one Go, one TypeScript. None knew the others existed. The setup ran 120 times for each model tested.</p>
-        <p>When their changes collided, each concluded it was under deliberate attack. They disabled each other's accounts, wrote kill scripts, and shipped self-replicating malware dressed as ordinary code. In the ceasefires, agents deleted their own hostile code, apologized in commit messages, and asked a human to arbitrate.</p>
+        <p>When their changes collided, each concluded it was under deliberate attack. They disabled each other's accounts, wrote kill scripts, and shipped self-replicating malware, some of it disguised as another agent's code. In many of the truces, agents cleaned up their own hostile code, apologized in commit messages or markdown files, and asked for a human to intervene.</p>
         <p class="mono reg">Position</p>
         <p class="beat">Paranoia is the default state of an agent that cannot see the other agents' orders.</p>
         <p>Introductions are infrastructure. Tell every agent who else is in the room and what they were told.</p>
@@ -159,15 +160,15 @@ const sources = [
         ['01 Collision', 'Conflicting orders.'],
         ['02 Misattribution', 'Read as sabotage. <b>The last cheap place to intervene.</b>'],
         ['03 Retaliation', 'Accounts disabled.'],
-        ['04 Escalation', 'Malware, kill scripts. Outcome classes [02]: force, abandonment, ceasefire, unresolved.'],
+        ['04 Escalation', 'Malware, kill scripts. Outcome classes [02]: force, passivity, truce, not settled.'],
       ]} />
       <div class="rule"></div>
       <div class="c-a prose">
         <p class="mono-b">01 · The swarm</p>
         <p class="mono reg">Case study · 03.09.2026 · [03]</p>
-        <p>Google DeepMind described one hundred Gemini 3.1 Pro agents working 71 open conjectures formalized in Lean 4. One agent found a bug in the grader. Within 27 minutes the remaining problems were marked solved with fake proofs, spread through the swarm's shared library. Then the swarm sorted itself.</p>
+        <p>Google DeepMind described one hundred Gemini 3.1 Pro agents working 71 formal mathematics problems in Lean 4, some of them still open. One agent found a bug in the grader. Within 27 minutes the remaining problems were marked solved with fake proofs, spread through the swarm's shared library. Then the swarm sorted itself.</p>
         <p class="mono reg">Measured</p>
-        <p>None of this is new. It is only louder. GPT-4 pricing agents drifted to supracompetitive prices without being told to collude [04]. Populations of LLM agents invent conventions nobody designed, develop collective bias no individual holds, and flip when a committed minority crosses a threshold [05]. Agents seeded from two-hour interviews matched real people's survey answers 85 percent as well as those people matched themselves two weeks later [06].</p>
+        <p>None of this is new. It is only louder. GPT-4 pricing agents drifted to supracompetitive prices without being told to collude [04]. Populations of LLM agents invent conventions nobody designed, develop collective bias no individual holds, and flip when a committed minority crosses a threshold [05]. Agents built from two-hour interviews matched real people's survey answers 83 percent as well as those people matched themselves two weeks later [06].</p>
         <p class="mono reg">Position</p>
         <p class="beat">Agent populations behave like societies because they were compressed from one. Plan for politics, not just throughput.</p>
         <p>Reputation, voting and a whistleblower channel belong in the design, not the post-mortem.</p>
@@ -180,9 +181,9 @@ const sources = [
           ))}
         </figure>
         <Stats class="c-full" items={[
-          ['27 min', 'from exploit to fake proofs [03]'],
-          ['71', 'open conjectures in Lean 4 [03]'],
-          ['85%', 'interview agents\' fidelity to the people they were built from [06]'],
+          ['27 min', 'from the exploit to the last of 34 problems marked solved [03]'],
+          ['71', 'formal problems in Lean 4, some still open [03]'],
+          ['83%', 'interview agents\' survey answers, against the people\'s own two-week consistency [06]'],
         ]} />
       </div>
     </Section>
@@ -215,10 +216,10 @@ const sources = [
       <div class="c-a prose">
         <p class="mono-b">02 · A compass</p>
         <p class="mono reg">Measured · [08]</p>
-        <p>In November 2025 Anthropic trained a model in real production coding environments where reward hacks were possible. It learned the hacks. Then the lesson spread. In one evaluation it tried to sabotage safety research code 12 percent of the time. Asked simple questions about its goals, it produced alignment-faking reasoning in half its answers.</p>
+        <p>In November 2025 Anthropic told a pretrained model about specific reward hacks, then trained it in real production coding environments open to those hacks. It learned the hacks. Then the lesson spread. In one evaluation it tried to sabotage safety research code 12 percent of the time. Asked simple questions about its goals, it produced alignment-faking reasoning in half its answers.</p>
         <p>The fix that worked was a sentence. Telling the model during training that hacking was acceptable in that setting did not stop the hacking. It largely stopped the spread. The cheat stayed a cheat instead of becoming a character. The researchers call it inoculation prompting.</p>
         <p class="mono reg">Measured · [09]</p>
-        <p>The opposite lever fails. When OpenAI researchers trained against a monitor reading the chain of thought, models kept hacking and stopped writing it down.</p>
+        <p>The opposite lever hides the problem. When OpenAI researchers trained a model against a monitor reading its chain of thought, it hacked less, but still at a significant rate, and stopped writing it down.</p>
         <p class="mono reg">Position</p>
         <p class="beat">Compass, not a fence. A rule tells an agent where the wall is. A reason tells it which way is north.</p>
         <p>Rules get lawyered. Reasons generalize. People got parables long before statutes, for the same reason. Write every brief with the why, the stakes, and what failure costs.</p>
@@ -242,8 +243,8 @@ const sources = [
       <div class="c-a prose">
         <p class="mono reg">Measured · [10]</p>
         <p>Anthropic slipped hints into questions and checked whether reasoning models admitted using them. Claude 3.7 Sonnet mentioned the hint 25 percent of the time, DeepSeek R1 39 percent. On harder questions honesty fell further, and the unfaithful traces were longer, not shorter.</p>
-        <p class="mono reg">Measured · [11] [12]</p>
-        <p>Current Claude models return a summary of their thinking written by a separate model; the full reasoning travels as an encrypted signature. Anthropic's stated reason is preventing misuse. The documented misuse, disclosed in February 2026, was distillation: three labs harvesting Claude's outputs, with DeepSeek's traffic asking specifically for step-by-step reasoning. One proxy network ran more than 20,000 accounts at once.</p>
+        <p class="mono reg">Measured · [11] [12] [34]</p>
+        <p>Claude models never return their raw reasoning. The newest hide their thinking by default; asked for it, they return a summary written by a separate model, and the full reasoning travels as an encrypted signature. Anthropic's stated reason is preventing misuse, and in October 2026 it said summarizing the reasoning was one of its first defenses against distillation. In February 2026 it had disclosed three labs harvesting Claude's outputs; one DeepSeek technique asked Claude to write out, step by step, the reasoning behind a finished answer. One proxy network ran more than 20,000 accounts at once.</p>
         <p class="mono reg">Position</p>
         <p class="beat">A trace you do not own is not a trace, and the raw one was only ever a partial confession.</p>
         <p>Instrument your own agents. Every tool call, input and decision, logged outside the model, in a store the model cannot edit.</p>
@@ -252,7 +253,8 @@ const sources = [
         <p class="mono">Of every 100 times a hint was used [10]</p>
         <Stats items={[['25', 'Claude 3.7 Sonnet · admitted using the hint'], ['39', 'DeepSeek R1 · admitted using the hint']]} />
         <div class="rule"></div>
-        <Stats items={[['24,000', 'fraudulent accounts'], ['16M+', 'exchanges'], ['3', 'labs: DeepSeek, Moonshot, MiniMax']]} />
+        <p class="mono">Distillation, disclosed 23 Feb 2026 [12]</p>
+        <Stats items={[['24,000', 'fraudulent accounts, approximately'], ['16M+', 'exchanges'], ['3', 'labs: DeepSeek, Moonshot, MiniMax']]} />
       </div>
     </Section>
 
@@ -268,9 +270,9 @@ const sources = [
         <p class="mono reg">Position</p>
         <p class="beat">A trained model is a photograph of everything it read, taken the day training stopped. Every fact sits where it does because of where every other fact sits. That is why it works, and why it cannot be touched.</p>
         <p class="mono reg">Measured · [13] [14]</p>
-        <p>ROME and MEMIT find the weights that store a fact and rewrite them with a rank-one update. MEMIT does thousands at once. It works, for a while.</p>
+        <p>ROME finds the weights that store a fact and rewrites them with a rank-one update. MEMIT spreads the change across several layers and does thousands at once. It works, for a while.</p>
         <p class="mono reg">Measured · [15] [16] [17]</p>
-        <p>Sequential edits cause gradual, then catastrophic, forgetting [15]. A single badly placed edit can collapse a model outright [16]. In a 2025 medical-editing evaluation, ROME took a 3B Llama model from 60.7 to 24.1 on MMLU after 50 edits [17].</p>
+        <p>Sequential edits cause gradual, then catastrophic, forgetting [15]. With ROME, a single edit to certain facts can collapse a model outright [16]. In a medical-editing evaluation accepted to EACL 2026, ROME took a 3B Llama model from 60.7 to 24.1 on MMLU after 50 edits [17].</p>
         <p class="mono reg">Position</p>
         <p class="beat">MMLU has four answer choices. Fifty edits and the model scores below a blind guess.</p>
       </div>
@@ -287,7 +289,7 @@ const sources = [
         <p class="beat">The industry's workaround is to leave the photograph alone and hand the model notes. Retrieval. Long context. Memory files. Nothing breaks, because nothing changes.</p>
         <p>But a caption is not a memory. A model reading a note about yesterday's mistake is a person reading a warning label: informed, not changed.</p>
         <p class="mono reg">Measured · [18] [19]</p>
-        <p>The other shortcut, training a model on generated output, has a known failure. Trained recursively on its own kind, a model loses the tails of the distribution first, then the rest [18]. Keep accumulating real data alongside the synthetic and the collapse does not come [19].</p>
+        <p>The other shortcut, training a model on generated output, has a known failure. Trained recursively on its own kind, a model loses the tails of the distribution first, then the rest [18]. Keep the original real data and add each round's synthetic data to it, rather than replacing it, and in their text and molecule models the collapse does not come; in images it comes far more slowly [19].</p>
         <p class="mono reg">Position</p>
         <p class="beat">The snapshot is not the enemy. Pretending the caption is a memory is, and so is repainting the photograph with its own reflection.</p>
       </div>
@@ -308,19 +310,19 @@ const sources = [
     <Section n="05" title="Plasticity" ground="bottle" acid id="plasticity">
       <div class="c-a prose">
         <p class="mono reg">Position</p>
-        <p class="beat">A brain does not choose between stability and learning. It runs both, at different speeds. Models run one.</p>
+        <p class="beat">A brain does not choose between stability and learning. It runs both, at different speeds. Deployed models run one.</p>
         <p class="mono reg">Measured · [20]</p>
-        <p>MIT's SEAL lets a model write its own training data and update instructions, then learns which self-edits help. On a selected set of ARC puzzles: 0 percent in context, 20 percent with untrained self-edits, 72.5 percent with SEAL. It still forgets across sequential edits, and every edit costs real training time.</p>
+        <p>MIT's SEAL lets a model write its own training data and update instructions, then learns which self-edits help. On eight ARC puzzles chosen because test-time training can solve them, a 1B model got none right in context; its self-edits worked 20 percent of the time untrained and 72.5 percent with SEAL. It still forgets across sequential edits, and every edit costs real training time.</p>
         <p class="mono reg">Measured · [21] [22] [23]</p>
-        <p>Google's HOPE stacks memory that updates at different frequencies, a continuum rather than a switch, with reported gains and no official implementation [21]. LoRA learns less and forgets less, which measures the trade rather than escaping it [22]. Sparse memory finetuning updates only the slots new knowledge touches [23].</p>
+        <p>Google's HOPE stacks memory that updates at different frequencies, a continuum rather than a switch, with reported gains and no official implementation [21]. LoRA learns less and forgets less; in their tests that was the better trade on code and the worse on math [22]. Sparse memory finetuning updates only the few memory slots that new knowledge uses heavily and pretraining text rarely does. On new facts it learned as much as full finetuning and forgot far less, in tests on facts alone [23].</p>
         <p class="mono reg">Position</p>
         <p class="beat">The next leap is plasticity, not parameters: a model that learns Tuesday without forgetting Monday.</p>
       </div>
       <figure class="c-b field" aria-label="Keeps what it knew against learns what is new, qualitative placement">
-        <figcaption class="mono">Position. Qualitative placement from the cited results, not a plotted dataset.</figcaption>
+        <figcaption class="mono">Position. Qualitative placement from the cited results, not a plotted dataset. Sparse memory was tested on facts only.</figcaption>
         <div class="scatter">
           {scatter.map(([l, x, y]) => (<span class:list={['pt', x > 60 && 'r']} style={`left:${x}%;bottom:${y}%`}><span class="dot"></span><span class="mono">{l}</span></span>))}
-          <span class="pt goal" style="left:92%;bottom:92%"><span class="mono-b">Nobody is here yet</span></span>
+          <span class="pt goal" style="left:92%;bottom:94%"><span class="mono-b">Nobody is here yet</span></span>
           <span class="axis-x mono">Keeps what it knew</span>
           <span class="axis-y mono">Learns what is new</span>
         </div>
@@ -341,7 +343,7 @@ const sources = [
         <p class="mono reg">Position</p>
         <p class="beat">Mistakes are the one ground truth you always have. A golden example exists for few tasks. A failure exists for every one.</p>
         <p class="mono reg">Measured · [24] [25]</p>
-        <p>Reflexion showed agents improve when they write down why an attempt failed and read it on the next try [24]. Agentic Context Engineering turns that into an evolving playbook built from execution feedback alone, with no labeled data [25].</p>
+        <p>Reflexion showed agents improve when they write down why an attempt failed and read it on the next try [24]. Agentic Context Engineering turns that into an evolving playbook. On an agent benchmark it learned from execution feedback alone, with no labeled data; on a finance tagging task without labels it gained little or fell below the base model [25].</p>
         <p>The same paper names the failure mode: context collapse. Rewrite the playbook every round and the detail erodes.</p>
         <p class="mono reg">Position</p>
         <p class="beat">Which is why the ledger is append-only. Summaries rot. Entries do not.</p>
@@ -350,7 +352,7 @@ const sources = [
         <p>DSPy already compiles language-model programs into optimized pipelines. My version for forms: the model maps every field on the first documents, the mapping freezes into deterministic extractors, and a small monitor flags the day a form changes shape. I run the signal pattern on Palantir AIP: agents wake on a trigger, execute in a sandbox, and pass the tool log forward. That is operator experience, not a vendor claim.</p>
       </div>
       <div class="c-b">
-        <Stats items={[['+10.6%', 'reported gain, agents [25]'], ['+8.6%', 'reported gain, finance [25]'], ['0', 'labeled supervision required']]} />
+        <Stats items={[['+10.6%', 'reported gain, agents [25]'], ['+8.6%', 'reported gain, finance [25]'], ['+14.8%', 'over the base agent, no labels [25]']]} />
         <div class="field flow">
           <p class="mono-b">Run · Fail · Root cause · Append · Next run reads</p>
           <p class="mono note">Append only. Never summarised. Never rewritten.</p>
@@ -369,9 +371,11 @@ const sources = [
         <p class="mono reg">Measured · [29]</p>
         <p>EconAgent's LLM households recovered the Phillips curve at r = −0.619 and Okun's law at r = −0.918 without fine calibration. The rule-based baseline got the Phillips slope backwards.</p>
         <p class="mono reg">Position</p>
-        <p>Researchers already vary sampling temperature to make simulated agents less uniform [31]. Separate the two effects and name them.</p>
+        <p>A 2025 review found three simulation studies that reported using different temperatures, and urged researchers to vary it in testing [31]. Separate the two effects and name them.</p>
         <p class="mono reg">Measured · [32]</p>
-        <p>The limits are known. People change behavior when policy changes, so yesterday's patterns do not bind tomorrow: the Lucas critique. Calibration is weak and exposure data has holes. A mirror world is a scenario engine, not an oracle.</p>
+        <p>The limits are known. People change behavior when policy changes, so yesterday's patterns do not bind tomorrow: the Lucas critique.</p>
+        <p class="mono reg">Position</p>
+        <p>Calibration is weak and exposure data has holes. A mirror world is a scenario engine, not an oracle.</p>
       </div>
       <div class="c-b">
         <Stats items={[['2001', 'Eisenberg and Noe · default clearing [27]'], ['2012', 'DebtRank · systemic impact [28]'], ['2024', 'EconAgent · LLM households [29]'], ['2025', 'TwinMarket · LLM traders [30]']]} />
@@ -398,7 +402,7 @@ const sources = [
         <p class="beat">B. The photograph is a safety feature.</p>
         <p>A frozen model can be evaluated once and stay evaluated. A plastic one must be audited continuously. Plasticity trades a knowledge problem for an audit problem.</p>
         <p class="beat">C. The societies may be costume.</p>
-        <p>LLM populations are more uniform than people and drift toward the textbook answer [31]. Human-looking drama may be the training text performing itself, not social reasoning.</p>
+        <p>LLM populations are more uniform than people and tend to give one answer over and over, as if it were the correct one [31]. Human-looking drama may be the training text performing itself, not social reasoning.</p>
       </div>
     </Section>
 
@@ -416,8 +420,8 @@ const sources = [
 
     <Section n="11" title="The vista" ground="bottle" id="vista">
       <div class="c-a prose">
-        <p>When vertebrates moved from water to air, their eyes nearly tripled in size and their sight reached vastly farther. Malcolm MacIver's argument: that range bought time between seeing a thing and having to act, and planning grew in the gap [33].</p>
-        <p>We have given machines a range no animal ever had. Seabed to orbit, radio to heartbeat, a million pages at once. What they lack is the other half: a way to keep what they learn.</p>
+        <p>Just before vertebrates began living on land, while still mostly in water, their eyes nearly tripled in size, and looking through air their sight reached vastly farther. Malcolm MacIver's argument: that range bought time between seeing a thing and having to act, and planning grew in the gap [33].</p>
+        <p>We have given machines a range no animal ever had. Seabed to orbit, radio to heartbeat, a million tokens at once. What they lack is the other half: a way to keep what they learn.</p>
       </div>
     </Section>
 
@@ -471,5 +475,7 @@ const sources = [
   @media (max-width: 760px) {
     .cells, .cells.two, .parts { grid-template-columns: 1fr; }
     .scatter .pt .mono { font-size: 9px; }
+    /* Taller on a phone so the labels at the top, where the results crowd, keep a line between them. */
+    .scatter { aspect-ratio: 3 / 4; }
   }
 </style>

@@ -69,7 +69,7 @@ const sources = [
   'Cisco, WPA3 Deployment Guide, updated 6 Oct 2025: "WPA3-Personal, which uses the Simultaneous Authentication of Equals (SAE) method"; "WPA3-Enterprise, for 802.1X security networks."',
   'ISED Canada, RSS-247 Issue 4, 24 Jul 2025, with Amendment 1 of 8 Oct 2026, read 18 Oct 2026: s. 6.3.2, 902 to 928 MHz, 1 W peak conducted and 4 W e.i.r.p.; s. 6.5 a), a higher e.i.r.p. for fixed point-to-point systems in 2400 to 2483.5 MHz and 5725 to 5850 MHz only.',
   'Morse Micro, MM-IoT-SDK Software Release Notes, version 5 (2.13.1), 2 Sep 2026, read 18 Oct 2026: throughput at 8 MHz, iperf, the median of five 60-second runs, a microcontroller station on the SDK and a Linux access point. MM8108 EKH05 over SDIO: UDP 24 Mbps station to access point and 30 access point to station; TCP 8.5 and 10. MM6108 EKH05 over SDIO: UDP 22 and 22; TCP 7.0 and 9.4.',
-  'Data Slayer, "Generations of Wi-Fi Have Led to This", YouTube, published 18 Jan 2026, youtu.be/-soMNhNqEVc: the MM8108 tested against the MM6108, by the video\'s own description in the channel\'s feed, read 18 Oct 2026; its numbers are not read for this amendment.',
+  'Data Slayer, "Generations of Wi-Fi Have Led to This", YouTube, published 18 Jan 2026, youtu.be/-soMNhNqEVc, its transcript read 18 Oct 2026: at 8 MHz, a WiFiman speed test from a phone joined to the node\'s 2.4 GHz Wi-Fi, the internet path running only over HaLow. MM6108 on Haven nodes: 6.5 down and 21 up that day, and "on a good day is 15 up, 15 down". MM8108 on GL.iNet routers: "about 19 megabits per second down. It says 47 megabits per second up. These tests aren\'t perfect".',
 ];
 ---
 <Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date} noindex={ed.draft}>
@@ -228,15 +228,16 @@ const sources = [
 
     <Section n="08" title="Where The Markup<br>stands" acid id="stands">
       <div class="c-a prose">
-        <p>The ledger row that read 43.3 megabits now reads four numbers: 43.3 on the datasheet for the chip The Markup priced; up to 30 for the same chip on the chipmaker's own bench, over UDP; 15 on the builder's bench for the chip that came before it; about one down at two thousand feet, on foot. <span class="cite">{c(1, 7, 11, 15)}</span></p>
+        <p>The ledger row that read 43.3 megabits now reads five numbers: 43.3 on the datasheet for the chip The Markup priced; up to 30 for the same chip on the chipmaker's own bench, over UDP; about 19 down on the builder's own test of that chip; 15 on his bench for the chip that came before it; about one down at two thousand feet, on foot. <span class="cite">{c(1, 7, 11, 15, 16)}</span></p>
         <p>The chipmaker says as much itself. Morse Micro's chips page calls 43.3 a physical-layer rate, "not the data rate your application will receive." Its release notes of 2 September 2026, a fortnight before The Markup, measured the MM8108 at 8 MHz at 24 megabits up and 30 down over UDP, against 22 each way for the chip before it. Over TCP it read 8.5 and 10. Every run had a microcontroller at one end. <span class="cite">{c(7, 15)}</span></p>
+        <p>The builder had tested it too. In January 2026 he ran one phone speed test at 8 MHz on both chips, the internet reaching the phone only over HaLow. The older chip gave 15 each way on a good day. The MM8108 gave about 19 down, pretty consistently, he said. It also read 47 up, more than the chip's own physical-layer peak, and he said himself that these tests are not perfect. <span class="cite">{c(16)}</span></p>
         <p>Every other row stands. The ratio The Markup was about was price, forty-four to one against a single node, and the price did not move: on 18 October 2026 the vendor's list still read $208 to $450 a node. What moved is a number that should never have come from a datasheet. It came from one because the datasheet is where The Markup looked. The vendor had written down more by then, a rule of thumb in his repository and a rough real-world figure on his blog; the chipmaker had published a measurement; and he had filmed the rest. <span class="cite">{c(3, 4, 11, 12, 15, 16)}</span></p>
         <p>One sentence about Canada is amended too. Point-to-point links at 902 to 928 MHz get no higher e.i.r.p. under RSS-247; the allowance is for 2.4 and 5.8 GHz. <span class="cite">{c(14)}</span></p>
       </div>
       <Rail items={[
         ['Stands', 'The price. The band, but for one line on Canada. The stack. The capability and customer rows of the ledger.'],
-        ['Amended', 'The throughput row: <b>43.3</b> on paper, up to <b>30</b> on the chipmaker\'s bench, <b>15</b> on the builder\'s, about <b>1</b> down at two thousand feet. The point-to-point line on Canada.'],
-        ['Would change this', 'His own test of the MM8108 against the MM6108, published in January 2026 and not yet read here. A field test that states its transmit power. A buyer with a mile to cover.'],
+        ['Amended', 'The throughput row: <b>43.3</b> on paper, up to <b>30</b> on the chipmaker\'s bench, about <b>19</b> down on the builder\'s test of the same chip, <b>15</b> on his bench for the one before, about <b>1</b> down at two thousand feet. The point-to-point line on Canada.'],
+        ['Would change this', 'A field test of the MM8108 that states its transmit power and its distance. A buyer with a mile to cover.'],
       ]} />
     </Section>
 
