@@ -31,7 +31,7 @@ Shipped (2026-09-15):
 | `/the-supply-cabinet` | 8 Oct 2026 · *The Supply Cabinet* (printed as Edition 06), eleven sections, twelve sources (ten cited) | live (2026-10-17, every source opened, 98 claims corrected) |
 | `/the-fourth-axis` | 6 Oct 2026 · *The Fourth Axis* (printed as Edition 05), twelve sections, thirty-eight sources, three registers | live |
 | `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty-one sources, F/I/Q marks | live |
-| `/the-floor` | 16 Sep 2026 · *The Floor*, amends The Markup with the builder's own field numbers | **draft**: set the date, flip `draft`, it goes live |
+| `/the-floor` | 18 Oct 2026 · *The Floor*, amends The Markup with the builder's own field numbers, ten sections, sixteen sources | live (2026-10-18, every source opened, the video checked against its captions) |
 | `/edition-03` | 15 Sep 2026 · *The Markup* (printed as Edition 03), eight sections, twelve sources | live |
 | `/edition-01` | 11 Sep 2026 · *The Snapshot Problem* (printed as Edition 01), twelve sections, thirty-three sources, three registers | live |
 | `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01) | live |
@@ -270,7 +270,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   scale."
 - **Client JS budget: 5 kB gzipped for the whole site**, enforced by
   `tools/check-budget.cjs` in the build. **Measured: 2,672 B** (the one
-  bundled script, 1,119 B, plus Astro's inline hydration shim on the-floor,
+  bundled script, 1,119 B, plus Astro's inline hydration shim on the-tilt-gap,
   1,553 B; the nine bytes over the earlier 2,663 are `drift()` moving into
   `src/lib/rose.mjs`, below). The rose must be computed live and the axis must move with the
   reader; that is the only JavaScript the brand earns.
@@ -1080,9 +1080,62 @@ for a shortlist for bios and cards, which is a separate deliverable.
    (Xu, Mankai and Alouini, arXiv 2605.17349, May 2026), the FCC rule as
    printed, Meshtastic's own preset table and Seeed's price today, and
    never added together. The amendment leaves Edition 03's text and PDF
-   as printed and links both ways through `amends`. The owner must still
-   confirm the video URL against their transcript and set the date on the
-   day it goes live.
+   as printed and links both ways through `amends`.
+   **Checked and published, 2026-10-18.** The video is confirmed from
+   YouTube's own record (title, channel, published 3 Sep 2025, 26:13).
+   Five checkers by area (the video and the vendor, the parts and
+   software, the paper, the rules and LoRa, the page against itself and
+   The Markup) opened every source, and a skeptic per area re-opened every
+   flag: 90 flags, 76 upheld (several found by more than one checker), 14
+   overturned. YouTube's automatic captions, read once through its public
+   player interface, stood in for the owner's transcript; soon after,
+   YouTube began asking the sandbox to sign in to prove it is not a bot,
+   and the builder stops there rather than route around it. What the
+   captions settled: the mile and the 2,000 feet are one spot, guessed on
+   foot and then stated in the voice-over, so the page carries 2,000 feet;
+   "enterprise" and "end to end" for WPA3-SAE are the builder's words, now
+   attributed to him and corrected (SAE is WPA3's personal mode, and it
+   covers each hop; Cisco's WPA3 guide and the vendor's own security
+   table); the Pi 4 was chosen because, he said, some OpenWrt firmware did
+   not quite work on the 5, and OpenWrt does run there now, so the page
+   names OpenMANET as what still lists no Pi 5; his dual-band dongle is his
+   claim beside the vendor's current 2.4 GHz part. Also corrected: the
+   slap applied The Markup's two-node forty-four to one radio; the two
+   benches were eight months apart, not a year, and KAUST's was a field
+   test, nowhere "indoors"; 1 MHz is the steepest step down, not an
+   exception; the paper predicts nothing about his radio, and his readings
+   sit above it; Meshtastic's rates are rated maxima, not throughput, and
+   no Meshtastic node runs on a coin cell; the closing line put fifteen in
+   the field; and the vendor had already written down a rule of thumb (40
+   to 60 percent of the physical rate, in his repository since 26 Feb
+   2026) and a rough real-world figure, so the datasheet is where The
+   Markup looked, not all there was. The builder benched the MM8108 itself
+   in January 2026, and those numbers are in no text (the vendor's site
+   and repositories, the press and the community were searched); they sit
+   behind YouTube's wall. The chipmaker's are not: Morse Micro's SDK
+   release notes of 2 Sep 2026 measured the MM8108 at 8 MHz at up to 30
+   down over UDP, and its chips page calls 43.3 a PHY rate, "not the data
+   rate your application will receive", so the amended row carries four
+   numbers and the chipmaker's is one of them. An adversarial review of
+   the result (facts, house rules, a reader's consistency; a skeptic per
+   lens) upheld 26 of 38 findings, two blocking: The Markup's own page
+   never showed its "Amended" note (its masthead dropped the registry's
+   note; it now renders it, as The Hand in the Water's does), and the Pi 5
+   sentence overreached its source (the vendor's store sells a Pi 5 on the
+   first chip; the repository says only that the SPI card does not bind).
+   The rest were precision: the chart's 32.5 is an 8 MHz peak, the
+   amended row's "about one" is the downlink, the $208 to $450 now carries
+   its read date in the prose, the January video has its own source entry,
+   and "the ceiling of a room nobody stands in" became "a ceiling, and
+   links run under it", because floor, ceiling and room under a title that
+   is The Floor came too close to the building pun. One sentence of
+   The Markup was wrong too: RSS-247's higher e.i.r.p. for point-to-point
+   links is for 2.4 and 5.8 GHz only (s. 6.5 a). The Floor amends it and
+   The Markup stays as printed, as it does for the throughput row.
+   Notebookcheck's summary of the builder's later network contradicted
+   his own post, so the post replaced it. The page carries the house
+   citation marks. Prices re-read the day it went live: Seeed $14.99,
+   Parallel $97 and $208 to $450.
 5. **A research file, "The Algorithmic Aedificare" (2026-09-16), was not
    added.** A machine-written survey of organoid computing, acoustic
    metamaterials, 4D mesh generation and robotic timber, framed as the
