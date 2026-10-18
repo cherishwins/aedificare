@@ -1128,7 +1128,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
    its read date in the prose, the January video has its own source entry,
    and "the ceiling of a room nobody stands in" became "a ceiling, and
    links run under it", because floor, ceiling and room under a title that
-   is The Floor came too close to the building pun. One sentence of
+   is The Floor came too close to the building pun. Its film (13.1
+   minutes, 1,420 credits, leaving about 16,000 of the month's 40,000)
+   and Short went up the same morning into the queues' next free slots:
+   the film at 15:00 UTC on 26 October, the Short at 03:00 UTC on 28
+   October. One sentence of
    The Markup was wrong too: RSS-247's higher e.i.r.p. for point-to-point
    links is for 2.4 and 5.8 GHz only (s. 6.5 a). The Floor amends it and
    The Markup stays as printed, as it does for the throughput row.
