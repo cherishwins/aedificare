@@ -1151,8 +1151,15 @@ for a shortlist for bios and cards, which is a separate deliverable.
    2026) and a rough real-world figure, so the datasheet is where The
    Markup looked, not all there was. The builder benched the MM8108 itself
    in January 2026, and those numbers are in no text (the vendor's site
-   and repositories, the press and the community were searched); they sit
-   behind YouTube's wall. The chipmaker's are not: Morse Micro's SDK
+   and repositories, the press and the community were searched); they sat
+   behind YouTube's wall until the vidIQ connector, added later the same
+   day, read that video's transcript through its own access (5 of its 150
+   monthly credits): about 19 down on the MM8108 "pretty consistently", a
+   47 up that is above the chip's physical-layer peak and that he calls
+   imperfect, and 15 each way on a good day for the MM6108, all from one
+   phone speed test at 8 MHz. They went into section 08 as a fifth number,
+   and the "would change this" rail lost the line asking for them. The
+   chipmaker's are not: Morse Micro's SDK
    release notes of 2 Sep 2026 measured the MM8108 at 8 MHz at up to 30
    down over UDP, and its chips page calls 43.3 a PHY rate, "not the data
    rate your application will receive", so the amended row carries four
