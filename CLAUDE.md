@@ -1297,6 +1297,25 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   API and would have vanished from matching once the new pair claimed the
   render, leaving both voices public; the title route now keeps an
   older-voice video matched.
+- **2026-10-18 · A film waits for its edition's check.** A film reads its
+  page aloud, so a page nobody checked becomes a film nobody checked, in a
+  voice, in front of more people than the page has. Four editions were
+  ported before the check-every-source duty (2026-10-11) and never had
+  every source opened: The Snapshot Problem, The Hand in the Water, The
+  Closest Humans and The Markup. The Markup's new film went public at 03:00
+  UTC on the 18th and The Snapshot Problem's at 15:00 UTC, while the
+  builder's session was paused, before anyone caught it. Everything else
+  from those four was held back with `youtube-channel.mjs schedule`: both
+  NS pairs and The Snapshot Problem's Short, still private, no publish
+  time. The four checked editions moved up so a film still goes out every
+  morning (The Tilt Gap on the 19th, The Fourth Axis on the 20th, The
+  Countersign on the 21st, The Supply Cabinet on the 22nd, then Edition 02
+  on the 25th and The Floor on the 26th), each Short after its own film. A
+  held video comes back only once its page is checked, and with a fresh
+  render if the check changed the page. **YouTube's PUT reply is not what
+  YouTube kept**: the first holds came back echoing the old publish time
+  while a fresh read showed the time cleared, so `schedule` now reads every
+  write back and judges that.
 
 ## Open
 

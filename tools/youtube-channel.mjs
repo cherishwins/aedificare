@@ -366,11 +366,19 @@ if (CMD === 'schedule') {
     try {
       const put = await fetch(`${API}/videos?part=status`, { method: 'PUT', headers: { ...auth, 'content-type': 'application/json' }, body: JSON.stringify({ id: p.v.id, status }) });
       if (!put.ok) throw new Error(`${put.status} ${await put.text()}`);
-      const now = (await put.json()).status || {};
-      const got = now.publishAt ? Date.parse(now.publishAt) : Infinity;
+      // What YouTube kept is read back, not taken from the PUT's reply: on 2026-10-18 three holds came back echoing the
+      // old publishAt while a fresh read showed it cleared. A few reads, because the read can lag the write.
+      const asked = (st) => st.privacyStatus === 'private' && (st.publishAt ? Math.abs(Date.parse(st.publishAt) - p.to) <= 60e3 : p.to === Infinity);
+      let now = {};
+      for (let i = 0; i < 3; i++) {
+        if (i) await new Promise((ok) => setTimeout(ok, 3000));
+        const r = await fetch(`${API}/videos?part=status&id=${p.v.id}`, { headers: auth });
+        if (!r.ok) throw new Error(`the write went through but the read back failed: ${r.status} ${await r.text()}`);
+        now = (await r.json()).items?.[0]?.status || {};
+        if (asked(now)) break;
+      }
       console.log(`    now ${now.privacyStatus}, ${now.publishAt ? `publishes ${now.publishAt}` : 'no publish time'}`);
-      // A hold rests on YouTube clearing the publishAt it was not sent; check what it kept rather than trust the 200.
-      if (now.privacyStatus !== 'private' || (got === Infinity) !== (p.to === Infinity) || (got !== Infinity && Math.abs(got - p.to) > 60e3)) throw new Error(`not as asked: YouTube kept ${now.privacyStatus}, ${now.publishAt || 'no time'}`);
+      if (!asked(now)) throw new Error(`not as asked: YouTube kept ${now.privacyStatus}, ${now.publishAt || 'no time'}`);
       done.push(name);
     } catch (e) {
       console.log(`    FAILED: ${e.message}`);
