@@ -106,10 +106,12 @@ plan is checked before the first write: a duplicate entry, an unknown
 release, a release with two matching videos, a video that is public,
 unlisted or already due, or a Short set before its film refuses the run
 and changes nothing. A Short left scheduled while its film is held is held
-with it. Each write is checked against what YouTube kept, and `dry=true`
-prints the plan. Use it to keep a film back while its edition
-is checked, and to unschedule an upload before its corrected render
-replaces it; the owner deletes the old file in Studio if they want it gone.
+with it. Each write is read back from YouTube and judged on that read, not
+on the PUT's reply, which can echo the old time. `dry=true` prints the
+plan. Use it to keep a film back while its edition is checked (a film
+waits for its edition's check; CLAUDE.md, Decisions log, 2026-10-18), and
+to unschedule an upload before its corrected render replaces it; the owner
+deletes the old file in Studio if they want it gone.
 
 **Hand uploads** still work: the owner uploads the file exactly as
 downloaded from the release, and `youtube.yml action=sync` sets the
