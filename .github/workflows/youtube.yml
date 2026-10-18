@@ -14,14 +14,16 @@
 #   action=sync    the generated title, description, chapters, captions and
 #                  thumbnail onto every matched video (including hand uploads)
 #   action=retire  a video in an older voice goes private once its
-#                  replacement (upload with replace_old_voice) is public
+#                  replacement (upload with replace=old-voice) is public,
+#                  or a cut superseded by a corrected render (replace=corrected)
 #   action=schedule  moves a private video's publish time, or holds it with
-#                  none (schedule="film-edition-01:film=2026-10-22T15:00:00Z,
+#                  none (set="film-edition-01:film=2026-10-22T15:00:00Z,
 #                  film-edition-01:short=none"); never touches a video that
 #                  is out, never makes one public
 #   action=withdraw  a video found wrong after it went out goes private now
-#                  (withdraw="film-edition-01:film"); never deletes; the
-#                  corrected render then goes up with upload and replace
+#                  (set="film-edition-01:film"); never deletes; the
+#                  corrected render then goes up with upload, replace=corrected
+#                  and only=<release>
 #
 # tools/youtube-channel.mjs does the work; .claude/skills/youtube/SKILL.md is
 # how a session decides which action to run. The job summary carries the
@@ -63,21 +65,15 @@ on:
         description: 'upload with publish_at: hours between one scheduled video and the next (0 = all at the same time)'
         required: false
         default: '0'
-      replace_old_voice:
-        description: 'upload: also upload a render whose video is up in an older voice (the owner said replace it); retire takes the old one down after'
-        required: false
-        default: false
-        type: boolean
+      # GitHub allows 25 inputs, but the pinned actionlint enforces the old 10, so related options share an input.
       replace:
-        description: 'upload: releases whose corrected render replaces the video already up in the same voice, comma-separated; only those are uploaded'
+        description: 'upload: old-voice also uploads a render whose video is up in an older voice (the owner said replace it); corrected uploads the only release''s corrected render beside the video it replaces, and nothing else'
         required: false
-        default: ''
-      schedule:
-        description: 'schedule: <release>:<film|short>=<ISO time|none>, comma-separated'
-        required: false
-        default: ''
-      withdraw:
-        description: 'withdraw: <release>:<film|short>, comma-separated'
+        default: none
+        type: choice
+        options: [none, old-voice, corrected]
+      set:
+        description: 'schedule: <release>:<film|short>=<ISO time|none>; withdraw: <release>:<film|short>; comma-separated'
         required: false
         default: ''
       dry:
@@ -130,10 +126,8 @@ jobs:
           PUBLISH_AT: ${{ inputs.publish_at }}
           EVERY_HOURS: ${{ inputs.every_hours }}
           DRY: ${{ inputs.dry }}
-          REPLACE: ${{ inputs.replace_old_voice }}
-          SCHEDULE: ${{ inputs.schedule }}
-          REPLACE_TAGS: ${{ inputs.replace }}
-          WITHDRAW: ${{ inputs.withdraw }}
+          REPLACE: ${{ inputs.replace }}
+          SET: ${{ inputs.set }}
           NARRATOR: ${{ vars.NARRATOR }}  # empty: the channel's voice from src/config.mjs
         run: |
           set -o pipefail
@@ -144,11 +138,13 @@ jobs:
           if [ "$ACTION" = "upload" ]; then
             args+=(--kinds "$KINDS" --max "$MAX" --privacy "$PRIVACY")
             [ -n "$PUBLISH_AT" ] && args+=(--publish-at "$PUBLISH_AT" --every "${EVERY_HOURS:-0}")
-            [ "$REPLACE" = "true" ] && args+=(--replace-old-voice)
-            [ -n "$REPLACE_TAGS" ] && args+=(--replace "$REPLACE_TAGS")
+            [ "$REPLACE" = "old-voice" ] && args+=(--replace-old-voice)
+            if [ "$REPLACE" = "corrected" ]; then
+              [ -n "$ONLY" ] || { echo 'replace=corrected needs only=<release>, the one whose render was corrected' >&2; exit 1; }
+              args+=(--replace "$ONLY")
+            fi
           fi
-          [ "$ACTION" = "schedule" ] && args+=(--set "$SCHEDULE")
-          [ "$ACTION" = "withdraw" ] && args+=(--set "$WITHDRAW")
+          if [ "$ACTION" = "schedule" ] || [ "$ACTION" = "withdraw" ]; then args+=(--set "$SET"); fi
           # The summary is written whatever the exit, so a failed run's page still says what was and was not done.
           rc=0
           node tools/youtube-channel.mjs "${args[@]}" 2>&1 | tee youtube.log || rc=$?
