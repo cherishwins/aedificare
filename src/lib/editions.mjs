@@ -28,6 +28,27 @@ import { HOUSE } from './rose.mjs';
 
 const RAW = [
   {
+    slug: 'the-floor', path: '/the-floor',
+    title: 'The Floor', acid: 'Floor',
+    lede: 'The Markup quoted the datasheet. The builder had measured the first Haven a year before.',
+    // Drafted 16 Sep 2026 from the owner's transcript; every source opened and the page corrected on 18 Oct 2026,
+    // the day it went live, so that is its date (the code is the date). CLAUDE.md, Findings 6.
+    date: '2026-10-18', dateLabel: '18 Oct 2026',
+    amends: 'edition-03', pdf: null,
+    contents: [
+      { n: '00', t: 'The number', id: 'number' },
+      { n: '01', t: 'What The Markup did not have', id: 'missing' },
+      { n: '02', t: 'The build', id: 'build' },
+      { n: '03', t: 'The bench', id: 'bench' },
+      { n: '04', t: 'The power', id: 'power' },
+      { n: '05', t: 'The field', id: 'field' },
+      { n: '06', t: 'The other radio', id: 'other' },
+      { n: '07', t: 'What it carried', id: 'carried' },
+      { n: '08', t: 'Where The Markup stands', id: 'stands' },
+      { n: '09', t: 'Sources', id: 'sources' },
+    ],
+  },
+  {
     slug: 'edition-02', path: '/edition-02', print: 'Edition 02',
     title: 'The Subtraction', acid: 'Subtraction',
     lede: 'A processor was built, then deliberately reduced, then sold at a fraction of its worth. The reduction is the product.',
@@ -137,26 +158,6 @@ const RAW = [
       { n: '12', t: 'The kill switch', id: 'kill' },
       { n: '13', t: 'Your tilt gap', id: 'yours' },
       { n: '14', t: 'Sources', id: 'sources' },
-    ],
-  },
-  {
-    slug: 'the-floor', path: '/the-floor',
-    title: 'The Floor', acid: 'Floor',
-    lede: 'The Markup quoted the datasheet. The builder had measured the radio a year before.',
-    date: '2026-09-16', dateLabel: '16 Sep 2026',
-    amends: 'edition-03', pdf: null,
-    draft: true,
-    contents: [
-      { n: '00', t: 'The number', id: 'number' },
-      { n: '01', t: 'What The Markup did not have', id: 'missing' },
-      { n: '02', t: 'The build', id: 'build' },
-      { n: '03', t: 'The bench', id: 'bench' },
-      { n: '04', t: 'The power', id: 'power' },
-      { n: '05', t: 'The field', id: 'field' },
-      { n: '06', t: 'The other radio', id: 'other' },
-      { n: '07', t: 'What it carried', id: 'carried' },
-      { n: '08', t: 'Where The Markup stands', id: 'stands' },
-      { n: '09', t: 'Sources', id: 'sources' },
     ],
   },
   {

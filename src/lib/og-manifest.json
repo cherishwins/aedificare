@@ -1,11 +1,15 @@
 {
   "/og/home.png": {
-    "src": "/og/home.774a274e.png",
-    "alt": "Aedificare share card: AEDIFICARE, in acid green and white type over a green rose curve. Nine editions. October 2026."
+    "src": "/og/home.c2aa4124.png",
+    "alt": "Aedificare share card: AEDIFICARE, in acid green and white type over a green rose curve. 10 editions. October 2026."
   },
   "/og/desk.png": {
     "src": "/og/desk.a5d5fa09.png",
     "alt": "Aedificare share card: DESK, in acid green and white type over a green rose curve. The desk of Aedificare. drafts before they are issued."
+  },
+  "/og/the-floor.png": {
+    "src": "/og/the-floor.412f66bc.png",
+    "alt": "Aedificare share card: THE FLOOR, in acid green and white type over a green rose curve. 18 Oct 2026. The Markup quoted the datasheet. The builder had measured the first Haven a year before."
   },
   "/og/edition-02.png": {
     "src": "/og/edition-02.0658a083.png",
@@ -26,10 +30,6 @@
   "/og/the-tilt-gap.png": {
     "src": "/og/the-tilt-gap.cb6b3af1.png",
     "alt": "Aedificare share card: THE TILT GAP, in acid green and white type over a green rose curve. 3 Oct 2026. Games, exhaust, and the thing no credential certifies."
-  },
-  "/og/the-floor.png": {
-    "src": "/og/the-floor.71555d07.png",
-    "alt": "Aedificare share card: THE FLOOR, in acid green and white type over a green rose curve. 16 Sep 2026. The Markup quoted the datasheet. The builder had measured the radio a year before."
   },
   "/og/edition-03.png": {
     "src": "/og/edition-03.73e4433c.png",
