@@ -31,7 +31,7 @@ Shipped (2026-09-15):
 | `/the-supply-cabinet` | 8 Oct 2026 · *The Supply Cabinet* (printed as Edition 06), eleven sections, twelve sources (ten cited) | live (2026-10-17, every source opened, 98 claims corrected) |
 | `/the-fourth-axis` | 6 Oct 2026 · *The Fourth Axis* (printed as Edition 05), twelve sections, thirty-eight sources, three registers | live |
 | `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty-one sources, F/I/Q marks | live |
-| `/the-floor` | 18 Oct 2026 · *The Floor*, amends The Markup with the builder's own field numbers, ten sections, fifteen sources | live (2026-10-18, every source opened, the video checked against its captions) |
+| `/the-floor` | 18 Oct 2026 · *The Floor*, amends The Markup with the builder's own field numbers, ten sections, sixteen sources | live (2026-10-18, every source opened, the video checked against its captions) |
 | `/edition-03` | 15 Sep 2026 · *The Markup* (printed as Edition 03), eight sections, twelve sources | live |
 | `/edition-01` | 11 Sep 2026 · *The Snapshot Problem* (printed as Edition 01), twelve sections, thirty-three sources, three registers | live |
 | `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01) | live |
@@ -1116,7 +1116,19 @@ for a shortlist for bios and cards, which is a separate deliverable.
    release notes of 2 Sep 2026 measured the MM8108 at 8 MHz at up to 30
    down over UDP, and its chips page calls 43.3 a PHY rate, "not the data
    rate your application will receive", so the amended row carries four
-   numbers and the chipmaker's is one of them. One sentence of
+   numbers and the chipmaker's is one of them. An adversarial review of
+   the result (facts, house rules, a reader's consistency; a skeptic per
+   lens) upheld 26 of 38 findings, two blocking: The Markup's own page
+   never showed its "Amended" note (its masthead dropped the registry's
+   note; it now renders it, as The Hand in the Water's does), and the Pi 5
+   sentence overreached its source (the vendor's store sells a Pi 5 on the
+   first chip; the repository says only that the SPI card does not bind).
+   The rest were precision: the chart's 32.5 is an 8 MHz peak, the
+   amended row's "about one" is the downlink, the $208 to $450 now carries
+   its read date in the prose, the January video has its own source entry,
+   and "the ceiling of a room nobody stands in" became "a ceiling, and
+   links run under it", because floor, ceiling and room under a title that
+   is The Floor came too close to the building pun. One sentence of
    The Markup was wrong too: RSS-247's higher e.i.r.p. for point-to-point
    links is for 2.4 and 5.8 GHz only (s. 6.5 a). The Floor amends it and
    The Markup stays as printed, as it does for the throughput row.
