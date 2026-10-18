@@ -1009,7 +1009,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
    were cut to twelve words. The page carries Edition 06's citation style
    and a sources list; no print is issued, so `pdf` stays null. The
    cmpunlocker forks carry a line addressed to AI agents; the researchers
-   ignored it and cited only the original repository.
+   ignored it and cited only the original repository. An adversarial
+   review of the rewrite (three lenses, every finding refuted or upheld)
+   then confirmed 33 more defects, three blocking (the print code still
+   on the page, section 03's opener contradicting its own mechanisms, and
+   the 10 GB card's 40 GB limit stated without Pry's stable 80 GB), all
+   fixed before merge, with four sources added for 36. Its film (18.3
+   minutes, 2,852 credits) and Short went up the same night: the film at
+   15:00 UTC on 25 October, the Short at 03:00 UTC on 27 October.
 
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text
