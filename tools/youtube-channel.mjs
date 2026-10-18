@@ -93,6 +93,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { fitDescription } from './lib/chapters.mjs';
 
 const REPO = 'cherishwins/aedificare';
 const OUT = 'brand/youtube';
@@ -311,6 +312,22 @@ if (CMD === 'upload') {
     if (old) execFileSync('curl', ['-sSLf', '-X', 'DELETE', ...ghAuth, old.url]);
     execFileSync('curl', ['-sSLf', '-X', 'POST', ...ghAuth, '-H', 'content-type: application/json', '--data-binary', `@${ledgerFile}`, `https://uploads.github.com/repos/${REPO}/releases/${r.rel.id}/assets?name=${r.ledgerName}`], { stdio: ['ignore', 'ignore', 'inherit'] });
     console.log(`  filed ${r.ledgerName} on ${r.tag}`);
+    // The video a corrected render replaced must not publish too: a scheduled one is held (private, no time), read
+    // back. One already out stays until withdraw or retire takes it down, which is said here, not done.
+    if (current && current.v.status.privacyStatus === 'private' && current.v.status.publishAt) {
+      const keep = ['license', 'embeddable', 'publicStatsViewable', 'selfDeclaredMadeForKids', 'containsSyntheticMedia'].filter((k) => k in current.v.status);
+      const status = { ...Object.fromEntries(keep.map((k) => [k, current.v.status[k]])), privacyStatus: 'private' };
+      const put = await fetch(`${API}/videos?part=status`, { method: 'PUT', headers: { ...auth, 'content-type': 'application/json' }, body: JSON.stringify({ id: current.v.id, status }) });
+      let now = {};
+      for (let i = 0; put.ok && i < 3; i++) {
+        if (i) await new Promise((ok) => setTimeout(ok, 3000));
+        const rr = await fetch(`${API}/videos?part=status&id=${current.v.id}`, { headers: auth });
+        now = rr.ok ? (await rr.json()).items?.[0]?.status || {} : {};
+        if (now.privacyStatus === 'private' && !now.publishAt) break;
+      }
+      if (now.privacyStatus === 'private' && !now.publishAt) console.log(`    held ${current.v.id}, the video it replaces (was scheduled ${current.v.status.publishAt})`);
+      else { console.error(`youtube-channel: ${current.v.id}, the video this render replaces, is still scheduled for ${current.v.status.publishAt}; hold it in Studio now`); process.exit(1); }
+    } else if (current && current.v.status.privacyStatus !== 'private') console.log(`    ${current.v.id}, the video it replaces, is ${current.v.status.privacyStatus}: withdraw it now, or retire it once this one is public`);
   }
   console.log(`  ${done} ${DRY ? 'to upload' : 'uploaded'}`);
   process.exit(0);
@@ -509,7 +526,8 @@ for (const { v, r, older, superseded } of rows) {
   if (!r) continue;
   if (superseded) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: left, superseded by ${r.ledgerId}; the render's captions and chapters belong to that video`); continue; }
   if (older) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: refused, the video is in an older voice and the render in ${VOICE}; its captions and chapters would not fit the video's audio. Replace it (upload --replace-old-voice, then retire once the new one is public) or leave it`); continue; }
-  const same = v.snippet.title === r.meta.title && v.snippet.description === r.meta.description;
+  // Compared with the description as the uploader will send it, chapters fitted (tools/lib/chapters.mjs).
+  const same = v.snippet.title === r.meta.title && v.snippet.description === fitDescription(r.meta.description, r.meta.duration);
   if (same && !FORCE) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: already matches, skipped`); continue; }
   console.log(`  ${v.id} ${r.tag}/${r.metaName}: ${same ? 'forced' : 'title or description differs'}, updating`);
   changed++;

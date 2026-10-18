@@ -404,7 +404,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   makes a named video that is out private at once, for a film found wrong
   after it went up, and `upload --replace <release>` puts a corrected
   render up beside the video it replaces, which then reads superseded and
-  is retired like an older voice),
+  is retired like an older voice, and holds the replaced video if it was
+  still scheduled, so the two never both publish),
   `generate-design-system.mjs` (the claude.ai/design bundle, below),
   `episode.mjs` (the news films, override 8: `check`, `sheet`, `narrate`,
   `render`; quote cards with a highlighter, maps from Natural Earth,
@@ -725,7 +726,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   already a frame generator; the Playwright pipeline was kept because it
   shares `src/lib/rose.mjs` and the client script with the site, and
   Remotion's Chrome and bundle would land in a static site's install path.
-  YouTube's inauthentic-content rule (rewritten 16 July 2026) disqualifies
+  YouTube's inauthentic-content rule (renamed and clarified 16 July 2026,
+  with, in YouTube's own words, no change in the underlying policy) disqualifies
   templated, interchangeable, mass-produced uploads and readings of other
   people's material; it allows an original script per episode with
   original visuals and one consistent synthetic voice, which is exactly
@@ -1367,6 +1369,26 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   API and would have vanished from matching once the new pair claimed the
   render, leaving both voices public; the title route now keeps an
   older-voice video matched.
+- **2026-10-18 · Packaging defects found by research, fixed at the source.**
+  A research pass (three lanes: what breaks out in the niche, an audit of
+  our own packaging, format and retention; a critic striking anything
+  unsupported) found four defects the films carried, all now fixed in
+  code: four thumbnails read THE, because the fallback took the title's
+  first word when an edition has no headline figure (it now takes the
+  acid word, the thumbnail's original design); four films had a chapter
+  under ten seconds, which switches YouTube's chapters off for the whole
+  video (`tools/lib/chapters.mjs` merges a short chapter into its
+  neighbour, and the uploader and the channel tool apply it to every
+  description they send or compare, so a sync repairs films already up);
+  every film opened on 3.6 s of silence before the title (now 0.9 s, one
+  beat of the rose, in `tools/narrate.py`; the narration cache ignores
+  gaps, so it costs no credits); and a corrected render could be uploaded
+  while the video it replaces was still scheduled (upload now holds it).
+  Titles were left alone: what a film is called is a brand call, so the
+  research's proposed titles went to the owner. The Supply Cabinet, on the
+  story still drawing millions of views in the niche three months on,
+  took The Tilt Gap's slot on 19 October; The Tilt Gap, whose thumbnail
+  read THE and whose first number comes at 2:32, moved to the 22nd.
 - **2026-10-18 · A film waits for its edition's check.** A film reads its
   page aloud, so a page nobody checked becomes a film nobody checked, in a
   voice, in front of more people than the page has. Four editions were
