@@ -73,7 +73,7 @@ on:
         type: choice
         options: [none, old-voice, corrected]
       set:
-        description: 'schedule: <release>:<film|short>=<ISO time|none>; withdraw: <release>:<film|short>; comma-separated'
+        description: 'schedule: <release>:<film|short>=<ISO time|none>; withdraw: <release>:<film|short> or a video id; comma-separated'
         required: false
         default: ''
       dry:

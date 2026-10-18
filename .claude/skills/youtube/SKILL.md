@@ -115,7 +115,9 @@ deletes the old file in Studio if they want it gone.
 
 **A film found wrong after it went up** (its edition's check corrected
 the page): `youtube.yml action=withdraw set="film-edition-01:film"`
-makes it private now, never deleted, each write read back. Correct the
+makes it private now, never deleted, each write read back; an earlier cut
+still out (an older voice, or superseded) is named by its video id
+instead, and only a video matched to one of our renders can be named. Correct the
 page and merge, then render again on `main` (`film.yml slug=<slug>`; the
 narration cache keeps the blocks that did not change, so only the
 corrected ones spend credits), then `youtube.yml action=upload

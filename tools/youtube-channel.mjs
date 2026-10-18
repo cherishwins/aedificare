@@ -14,7 +14,7 @@
  *                                         [--replace-old-voice] [--replace <release>[,...]]
  *   node tools/youtube-channel.mjs retire [--dry]
  *   node tools/youtube-channel.mjs schedule --set <release>:<film|short>=<ISO time|none>[,...] [--dry]
- *   node tools/youtube-channel.mjs withdraw --set <release>:<film|short>[,...] [--dry]
+ *   node tools/youtube-channel.mjs withdraw --set <release>:<film|short>|<videoId>[,...] [--dry]
  *
  * LIST prints every upload (id, privacy, date, length, views, file name,
  * title) and the release it came from, then the renders on Releases that
@@ -73,7 +73,8 @@
  * it treats an older voice.
  *
  * WITHDRAW takes a public or unlisted video private at once, named by
- * release and kind, for a film found wrong after it went out. Never
+ * release and kind (the release's current video) or by its id (an earlier
+ * cut still out), for a film found wrong after it went out. Never
  * deleted, so its views and comments stay and the owner can restore it in
  * Studio. Each write is read back.
  *
@@ -424,8 +425,15 @@ if (CMD === 'schedule') {
 if (CMD === 'withdraw') {
   const fail = (msg) => { console.error(`youtube-channel: ${msg}`); process.exit(1); };
   const plan = [...new Set(arg('--set', '').split(',').map((x) => x.trim()).filter(Boolean))].map((x) => {
+    // A video id names one directly, for an earlier cut (an older voice, or superseded) that is still out; only a
+    // video matched to one of this repository's renders, so nothing else on the channel can be touched from here.
+    if (/^[\w-]{11}$/.test(x)) {
+      const y = rows.find((z) => z.v.id === x);
+      if (!y || !y.r) fail(`${x} is not a video matched to one of this repository's renders`);
+      return { tag: y.r.tag, kind: y.r.meta.kind, v: y.v };
+    }
     const m = /^([\w.-]+):(film|short)$/.exec(x);
-    if (!m) fail(`--set wants <release>:<film|short>, got "${x}"`);
+    if (!m) fail(`--set wants <release>:<film|short> or a video id, got "${x}"`);
     const [, tag, kind] = m;
     if (!releases.some((r) => r.tag_name === tag)) fail(`${tag} is not a film release on this repository`);
     const c = rows.filter((y) => y.r && y.r.tag === tag && y.r.meta.kind === kind && !y.older);
