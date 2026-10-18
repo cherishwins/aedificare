@@ -28,6 +28,26 @@ import { HOUSE } from './rose.mjs';
 
 const RAW = [
   {
+    slug: 'edition-02', path: '/edition-02', print: 'Edition 02',
+    title: 'The Subtraction', acid: 'Subtraction',
+    lede: 'A processor was built, then deliberately reduced, then sold at a fraction of its worth. The reduction is the product.',
+    // The print was a FACTS PENDING chassis and was never issued, so the date is the day the sourced page went
+    // live (the code is the date). Sourced 17 and 18 Oct 2026; CLAUDE.md, Findings 0g. No PDF: none was issued.
+    date: '2026-10-18', dateLabel: '18 Oct 2026',
+    seed: '0573', k: [8, 5], pdf: null,
+    contents: [
+      { n: '00', t: 'The margin moved out of the making', id: 'h00' },
+      { n: '01', t: 'September fifteenth, 2022', id: 'h01' },
+      { n: '02', t: 'It is the same piece of silicon', id: 'h02' },
+      { n: '03', t: 'Three cuts, none of them accidents', id: 'h03' },
+      { n: '04', t: 'Salvage asks what still works', id: 'h04' },
+      { n: '05', t: 'Nothing here is new', id: 'h05' },
+      { n: '06', t: 'People went looking for the rest of it', id: 'h06' },
+      { n: '07', t: 'A specimen, not a scandal', id: 'h07' },
+      { n: '08', t: 'Sources', id: 'hsrc' },
+    ],
+  },
+  {
     slug: 'the-countersign', path: '/the-countersign', print: 'Edition 09',
     title: 'The Countersign', acid: 'Countersign',
     lede: 'The first AI millionaire, and the human who signed for every cent.',
@@ -217,14 +237,6 @@ const RAW = [
       { n: '10', t: 'Sources', id: 'sources' },
       { n: '11', t: 'The vista', id: 'vista' },
     ],
-  },
-  {
-    slug: 'edition-02', path: '/edition-02', print: 'Edition 02',
-    title: 'The Subtraction', acid: 'Subtraction',
-    lede: 'A processor was built, then deliberately reduced, then sold at a quarter of its worth. The reduction is the product.',
-    date: '2026-09-13', dateLabel: '2026',
-    seed: '0573', k: [8, 5], pdf: null,
-    draft: true,
   },
 ];
 

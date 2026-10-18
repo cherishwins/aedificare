@@ -36,7 +36,7 @@ Shipped (2026-09-15):
 | `/edition-01` | 11 Sep 2026 · *The Snapshot Problem* (printed as Edition 01), twelve sections, thirty-three sources, three registers | live |
 | `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01) | live |
 | `/ns-02` | 13 Sep 2026 · *The Closest Humans* (printed as NS-02), amends The Hand in the Water | live |
-| `/edition-02` | *The Subtraction* (printed as Edition 02) | **draft**: noindex, unlinked, out of sitemap/robots/feed |
+| `/edition-02` | 18 Oct 2026 · *The Subtraction* (printed as Edition 02), nine sections, thirty-six sources | live (2026-10-18, sourced from scratch; no PDF, none was issued) |
 | `/404` | | live |
 | `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/ai.txt` `/humans.txt` | discoverability | generated or static |
 | `/privacy.txt` | the YouTube uploader's privacy statement, which Google's consent screen needs before the app can leave Testing (2026-10-17); plain text like `humans.txt`, not a page | static |
@@ -977,6 +977,40 @@ for a shortlist for bios and cards, which is a separate deliverable.
    from the site: the code is the date, so the sequence the prints carry
    is not a sequence the site keeps. Recorded so nobody hunts for them.
 
+0g. **Edition 02 · The Subtraction, sourced from scratch (2026-10-17 to
+   18).** It had no sources at all: the print was a chassis marked FACTS
+   PENDING, the table held "not yet sourced" cells, and the draft predated
+   the CMP 170HX's public unlock. Five researchers by topic (the GA100 and
+   A100 columns, the locked card, the unlocked card and the law, the lock
+   mechanisms, the history) each sourced every claim in their area, and a
+   skeptic per area re-opened every source: 152 claims, 72 held as
+   written, the rest corrected, cut or marked n/a, with the skeptics
+   overturning 10 researcher calls. The 2026 events changed the argument
+   and the page says so: Jon Pry's paper (Zenodo, 26 June 2026) showed the
+   one time programmable fuses are only read by firmware, cmpunlocker
+   (GitHub, August) lifted compute, memory and one step of PCIe in
+   software, and LTT Labs (12 September) reached 64 GB on an 8 GB card, so
+   "if that report is correct then the limits are not reversible in
+   software at all" became its opposite, and section 06 now reports one
+   named test where it said "forum reports". The lane width is a board
+   cut: capacitors for twelve lanes were never fitted. Also corrected:
+   Intel's upgrade card was 2010, on the shop shelf, not 2011 in the box;
+   IBM's key is an encrypted configuration record; the A100 40GB base
+   clock is 765, not 1065; the 80GB PCIe bandwidth is 1.94 TB/s, not up
+   to 2.04 (that is the SXM board); the full die is HBM2 and has no
+   published clock, so no FP32 figure; "most of what the public calls
+   artificial intelligence" became two models the A100 is documented to
+   have trained; "a quarter of its worth" became "a fraction" (the one
+   like-for-like comparison puts it at a third to a half); the price
+   moved from "$400 to $800" today to a few hundred until mid 2026 and
+   $1,300 to $1,700 in September (LTT Labs), dated, because eBay could
+   not be read from the sandbox. The table is now the 8 GB card locked
+   and unlocked, with every column's sources under it. Two display lines
+   were cut to twelve words. The page carries Edition 06's citation style
+   and a sources list; no print is issued, so `pdf` stays null. The
+   cmpunlocker forks carry a line addressed to AI agents; the researchers
+   ignored it and cited only the original repository.
+
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text
    as the owner's Markdown. Ported to `src/pages/edition-03.astro` with
@@ -1222,10 +1256,11 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    not an option. curl works there because it reads the proxy's CA bundle.
    The live sweep is the `verify-live` runner's job; the sandbox can only
    curl.
-2. **Edition 02** stays a draft until its "not yet sourced" cells are
-   sourced. Then set `draft: false` in `src/lib/editions.mjs`, fill the dove
-   with `doveOfRoses()` in a re-render, re-render the PDF from
-   `source/edition-02/` with a font assertion, and add it to `public/pdf/`.
+2. **Resolved 2026-10-18: Edition 02 is sourced and live** (Findings 0g).
+   It ships without a PDF, because no print was ever issued: re-rendering
+   `source/edition-02/` would print the unsourced chassis, not the page. A
+   print of the sourced page, with the dove filled by `doveOfRoses()` and a
+   font assertion, is still possible and is the owner's call.
 3. **Edit the brand kit skill** to record the mark (override 1) so the kit
    and this file agree.
 4. **Taglines**: the owner wants a shortlist for external bios and cards.
