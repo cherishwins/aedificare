@@ -113,6 +113,21 @@ waits for its edition's check; CLAUDE.md, Decisions log, 2026-10-18), and
 to unschedule an upload before its corrected render replaces it; the owner
 deletes the old file in Studio if they want it gone.
 
+**A film found wrong after it went up** (its edition's check corrected
+the page): `youtube.yml action=withdraw withdraw="film-edition-01:film"`
+makes it private now, never deleted, each write read back. Correct the
+page and merge, then render again on `main` (`film.yml slug=<slug>`; the
+narration cache keeps the blocks that did not change, so only the
+corrected ones spend credits), then `youtube.yml action=upload
+replace=film-edition-01 publish_at=<a free slot>`. That uploads the
+release's renders although videos already match them (and only those),
+refuses a render no newer than the video it replaces, and files the new
+ids, so the old videos read SUPERSEDED: schedule and sync leave them alone,
+and `retire` makes a still-public one private once its replacement is
+public. A held video's replacement needs no withdraw; it is already
+private. The owner deletes superseded files in Studio if they want them
+gone.
+
 **Hand uploads** still work: the owner uploads the file exactly as
 downloaded from the release, and `youtube.yml action=sync` sets the
 generated title, description with chapters and sources, category,

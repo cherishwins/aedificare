@@ -400,7 +400,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   (2026-10-18) moves a private video's publish time or holds it with
   `none`, so a film whose edition is still being checked, or whose render
   is being replaced, waits without anything being deleted; it never
-  touches a video that is out and never makes one public),
+  touches a video that is out and never makes one public; `withdraw`
+  makes a named video that is out private at once, for a film found wrong
+  after it went up, and `upload --replace <release>` puts a corrected
+  render up beside the video it replaces, which then reads superseded and
+  is retired like an older voice),
   `generate-design-system.mjs` (the claude.ai/design bundle, below),
   `episode.mjs` (the news films, override 8: `check`, `sheet`, `narrate`,
   `render`; quote cards with a highlighter, maps from Natural Earth,

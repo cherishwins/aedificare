@@ -19,6 +19,9 @@
 #                  none (schedule="film-edition-01:film=2026-10-22T15:00:00Z,
 #                  film-edition-01:short=none"); never touches a video that
 #                  is out, never makes one public
+#   action=withdraw  a video found wrong after it went out goes private now
+#                  (withdraw="film-edition-01:film"); never deletes; the
+#                  corrected render then goes up with upload and replace
 #
 # tools/youtube-channel.mjs does the work; .claude/skills/youtube/SKILL.md is
 # how a session decides which action to run. The job summary carries the
@@ -29,11 +32,11 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'probe, list, upload, sync, retire or schedule'
+        description: 'probe, list, upload, sync, retire, schedule or withdraw'
         required: true
         default: list
         type: choice
-        options: [probe, list, upload, sync, retire, schedule]
+        options: [probe, list, upload, sync, retire, schedule, withdraw]
       only:
         description: 'One release (film-ns-01, film-ep-softbank-975), or empty for all'
         required: false
@@ -65,12 +68,20 @@ on:
         required: false
         default: false
         type: boolean
+      replace:
+        description: 'upload: releases whose corrected render replaces the video already up in the same voice, comma-separated; only those are uploaded'
+        required: false
+        default: ''
       schedule:
         description: 'schedule: <release>:<film|short>=<ISO time|none>, comma-separated'
         required: false
         default: ''
+      withdraw:
+        description: 'withdraw: <release>:<film|short>, comma-separated'
+        required: false
+        default: ''
       dry:
-        description: 'upload, sync, retire or schedule: print the plan only'
+        description: 'upload, sync, retire, schedule or withdraw: print the plan only'
         required: false
         default: false
         type: boolean
@@ -121,19 +132,23 @@ jobs:
           DRY: ${{ inputs.dry }}
           REPLACE: ${{ inputs.replace_old_voice }}
           SCHEDULE: ${{ inputs.schedule }}
+          REPLACE_TAGS: ${{ inputs.replace }}
+          WITHDRAW: ${{ inputs.withdraw }}
           NARRATOR: ${{ vars.NARRATOR }}  # empty: the channel's voice from src/config.mjs
         run: |
           set -o pipefail
           args=("$ACTION")
-          # schedule names its own releases and needs them all loaded, so only does not narrow it.
-          [ -n "$ONLY" ] && [ "$ACTION" != "schedule" ] && args+=(--only "$ONLY")
+          # schedule and withdraw name their own releases and need them all loaded, so only does not narrow them.
+          [ -n "$ONLY" ] && [ "$ACTION" != "schedule" ] && [ "$ACTION" != "withdraw" ] && args+=(--only "$ONLY")
           [ "$DRY" = "true" ] && [ "$ACTION" != "list" ] && [ "$ACTION" != "probe" ] && args+=(--dry)
           if [ "$ACTION" = "upload" ]; then
             args+=(--kinds "$KINDS" --max "$MAX" --privacy "$PRIVACY")
             [ -n "$PUBLISH_AT" ] && args+=(--publish-at "$PUBLISH_AT" --every "${EVERY_HOURS:-0}")
             [ "$REPLACE" = "true" ] && args+=(--replace-old-voice)
+            [ -n "$REPLACE_TAGS" ] && args+=(--replace "$REPLACE_TAGS")
           fi
           [ "$ACTION" = "schedule" ] && args+=(--set "$SCHEDULE")
+          [ "$ACTION" = "withdraw" ] && args+=(--set "$WITHDRAW")
           # The summary is written whatever the exit, so a failed run's page still says what was and was not done.
           rc=0
           node tools/youtube-channel.mjs "${args[@]}" 2>&1 | tee youtube.log || rc=$?
