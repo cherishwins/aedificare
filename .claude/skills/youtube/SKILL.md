@@ -220,7 +220,10 @@ plan's monthly credits (the run's log prints what it spent and what is left).
   and files the ledger again without it. A ledger filed before this
   existed (the three NS caption tracks of 18 October) says nothing is
   owed, so that sync is forced: `action=sync only=<release> set=force`,
-  which resends both of the release's videos, about 500 units each.
+  which resends both of the release's videos, about 500 units each. A
+  video no ledger on its release names (a hand upload matched by file
+  name or title) cannot record a debt either: the run's warning says so,
+  and it too needs `set=force`.
 - Thumbnail 403: the channel is not phone-verified. The video still
   updated, and the ledger owes the thumbnail until a sync after
   verification sends it.

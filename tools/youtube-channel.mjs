@@ -143,13 +143,28 @@ const asset = (rel, name) => rel.assets.find((a) => a.name === name);
 const fetchAsset = (rel, name) => curl(asset(rel, name).url, 'application/octet-stream');
 // A film is a gigabyte: straight to disk, never through memory.
 const saveAsset = (rel, name, to) => execFileSync('curl', ['-sSLf', '-H', 'accept: application/octet-stream', ...ghAuth, '-o', to, asset(rel, name).url]);
-// File a render's ledger on its release, replacing any earlier one of the same name; false when there is no token to do it.
+// File a render's ledger on its release; false when there is no token to do it. The filed ledger is the only link from an
+// API upload (which keeps no file name) to its render, and the only thing that marks an earlier cut superseded, so it is
+// never deleted before its replacement is up: the old one is renamed aside, the new one posted, and only then is the old
+// one deleted; a failed post renames it back. A leftover .prev from a run that died in between is cleared first when the
+// ledger itself is there, and taken as the ledger when it is not.
 const fileLedger = (r, dir) => {
   const ledgerFile = path.join(dir, r.ledgerName);
   if (!ghToken) { console.log(`  (no GH_TOKEN: ${r.ledgerName} written to ${ledgerFile} but not filed on the release)`); return false; }
-  const old = asset(r.rel, r.ledgerName);
-  if (old) execFileSync('curl', ['-sSLf', '-X', 'DELETE', ...ghAuth, old.url]);
-  execFileSync('curl', ['-sSLf', '-X', 'POST', ...ghAuth, '-H', 'content-type: application/json', '--data-binary', `@${ledgerFile}`, `https://uploads.github.com/repos/${REPO}/releases/${r.rel.id}/assets?name=${r.ledgerName}`], { stdio: ['ignore', 'ignore', 'inherit'] });
+  const prevName = `${r.ledgerName}.prev`;
+  const api = (method, url, body) => execFileSync('curl', ['-sSLf', '-X', method, ...ghAuth, '-H', 'accept: application/vnd.github+json', ...(body ? ['-H', 'content-type: application/json', '--data-binary', JSON.stringify(body)] : []), url], { stdio: ['ignore', 'ignore', 'inherit'] });
+  const cur = asset(r.rel, r.ledgerName), prev = asset(r.rel, prevName);
+  if (cur && prev) api('DELETE', prev.url);
+  const old = cur || prev;
+  if (cur) api('PATCH', cur.url, { name: prevName });
+  try {
+    execFileSync('curl', ['-sSLf', '-X', 'POST', ...ghAuth, '-H', 'content-type: application/json', '--data-binary', `@${ledgerFile}`, `https://uploads.github.com/repos/${REPO}/releases/${r.rel.id}/assets?name=${r.ledgerName}`], { stdio: ['ignore', 'ignore', 'inherit'] });
+  } catch (e) {
+    try { if (old) api('PATCH', old.url, { name: r.ledgerName }); }
+    catch { console.log(`::error::${r.tag}: ${r.ledgerName} could not be filed, and the earlier one is left as ${prevName}; rename it back by hand. The new ledger was:\n${fs.readFileSync(ledgerFile, 'utf8')}`); }
+    throw e;
+  }
+  if (old) api('DELETE', old.url);
   console.log(`  filed ${r.ledgerName} on ${r.tag}`);
   return true;
 };
@@ -161,7 +176,9 @@ for (const rel of releases) {
     const meta = JSON.parse(fetchAsset(rel, metaName));
     if (!asset(rel, meta.file)) continue;
     const ledgerName = metaName === 'meta.json' ? 'youtube.json' : 'youtube-short.json';
-    const ledger = asset(rel, ledgerName) ? JSON.parse(fetchAsset(rel, ledgerName)) : null;
+    // A ledger left as .prev by a run that died while filing (fileLedger) still names the render's video.
+    const ledgerAsset = asset(rel, ledgerName) ? ledgerName : asset(rel, `${ledgerName}.prev`) ? `${ledgerName}.prev` : null;
+    const ledger = ledgerAsset ? JSON.parse(fetchAsset(rel, ledgerAsset)) : null;
     // An episode lists its missing shots in shots.md; each one plays as a slate, so the render is a draft.
     const slates = asset(rel, 'shots.md') ? (String(fetchAsset(rel, 'shots.md')).match(/^- \[ \]/gm) || []).length : 0;
     renders.push({ tag: rel.tag_name, metaName, meta, rel, ledgerName, ledgerId: ledger?.id || null, owed: ledger?.owed || [], slates });
@@ -549,9 +566,13 @@ for (const { v, r, older, superseded } of rows) {
     if (asset(r.rel, name)) fs.writeFileSync(path.join(dir, name), fetchAsset(r.rel, name));
   }
   // upload-youtube writes youtube.json or youtube-short.json beside the meta, so the record of what went where stays with the render.
-  execFileSync(process.execPath, ['tools/upload-youtube.mjs', path.join(dir, r.metaName), '--update', v.id], { stdio: 'inherit' });
+  execFileSync(process.execPath, ['tools/upload-youtube.mjs', path.join(dir, r.metaName), '--update', v.id, ...(mine ? [] : ['--untracked'])], { stdio: 'inherit' });
   // Filed back only over a ledger that already named this video: a debt paid is cleared, and a match by file name alone does not
-  // claim the render.
+  // claim the render. Such a video (a hand upload) has nowhere to record a debt, so one is said here, with the way to pay it.
   if (mine) fileLedger(r, dir);
+  else {
+    const left = JSON.parse(fs.readFileSync(path.join(dir, r.ledgerName), 'utf8')).owed || [];
+    if (left.length) console.log(`${process.env.GITHUB_ACTIONS ? '::warning::' : '  '}${v.id} (${r.tag}/${r.metaName}) is up without its ${left.join(' and ')}, and no ledger on the release names it, so nothing records the debt; once the quota is back run youtube.yml action=sync only=${r.tag} set=force`);
+  }
 }
 console.log(`  ${changed} ${DRY ? 'to update' : 'updated'}, ${rows.filter((x) => x.r).length - changed} matched and left, ${rows.filter((x) => !x.r).length} uploads with no render`);

@@ -46,6 +46,8 @@ const PUBLISH_AT = arg('--publish-at', null);
 const PRIVACY = PUBLISH_AT ? 'private' : arg('--privacy', 'private');
 if (PUBLISH_AT && !(Date.parse(PUBLISH_AT) > Date.now())) { console.error(`upload-youtube: --publish-at ${PUBLISH_AT} is not a future ISO time`); process.exit(1); }
 const UPDATE = arg('--update', null);
+// Set by youtube-channel.mjs sync when no ledger on the release names this video: its ledger is not filed, so no sync will see a debt.
+const UNTRACKED = process.argv.includes('--untracked');
 // In update mode the playlist is touched only when asked for explicitly: the hand upload may already be in it.
 const PLAYLIST = arg('--playlist', UPDATE ? null : (process.env.YT_PLAYLIST_ID || null));
 if (!META || !fs.existsSync(META)) { console.error('upload-youtube: pass the path to a meta.json written by generate-film'); process.exit(1); }
@@ -148,7 +150,8 @@ const record = prior && prior.id === id
   : { id, url: `https://youtu.be/${id}`, privacy: UPDATE ? 'unchanged' : PRIVACY, publishAt: UPDATE ? undefined : PUBLISH_AT || undefined, mode: UPDATE ? 'update' : 'upload', at: new Date().toISOString(), title: meta.title };
 if (owed.length) record.owed = owed; else delete record.owed;
 fs.writeFileSync(ledgerPath, JSON.stringify(record, null, 1) + '\n');
-if (owed.length) {
+if (owed.length && UNTRACKED) console.log(`  owed: ${owed.join(' and ')} did not go up, and no ledger on the release names this video, so a plain sync will not send ${owed.length > 1 ? 'them' : 'it'}`);
+else if (owed.length) {
   console.log(`  owed: ${owed.join(' and ')} did not go up; the ledger says so, and youtube-channel.mjs sync sends ${owed.length > 1 ? 'them' : 'it'}`);
   if (process.env.GITHUB_ACTIONS) console.log(`::warning::${id} is up without its ${owed.join(' and ')} (the error is above; if it is the quota, that resets at midnight Pacific). Run youtube.yml action=sync once it has.`);
 }
