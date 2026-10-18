@@ -132,7 +132,8 @@ a { color: inherit; text-decoration: none; }
 /* Pull quote: a colour field, no box. */
 .pull { background: var(--field); color: var(--flash); padding: clamp(24px, 4vw, 44px) clamp(20px, 4vw, 48px); margin-block: 8px 24px; }
 .flash .pull { color: var(--flash); }
-.pull q { display: block; quotes: none; font-variation-settings: 'opsz' 48, 'wdth' 80, 'wght' 600; font-size: clamp(22px, 2.4vw, 30px); line-height: 1.22; letter-spacing: -.008em; }
+/* A quoted path or URL has no break opportunity; anywhere lets it wrap inside the quote instead of running off the screen. */
+.pull q { display: block; overflow-wrap: anywhere; quotes: none; font-variation-settings: 'opsz' 48, 'wdth' 80, 'wght' 600; font-size: clamp(22px, 2.4vw, 30px); line-height: 1.22; letter-spacing: -.008em; }
 .pull q::before, .pull q::after { content: ''; }
 .pull cite { display: block; font-style: normal; margin-top: 18px; color: var(--flash); }
 
@@ -198,6 +199,12 @@ td.n { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-sett
 .bar .mono.val { font-size: var(--fs-mono); white-space: normal; }
 .lbl { color: var(--flash); }
 @media (max-width: 760px) {
+  .bar { grid-template-columns: 1fr; gap: 6px; padding-block: 6px; }
+}
+/* A bars figure in a half column is narrow on a tablet too: at 768px The Tilt Gap's 285px figure pushed its
+   values past the screen. The rows stack by the figure's own width, not only the viewport's. */
+.bars { container-type: inline-size; }
+@container (max-width: 400px) {
   .bar { grid-template-columns: 1fr; gap: 6px; padding-block: 6px; }
 }
 .ledger th[scope="row"] { white-space: nowrap; }
