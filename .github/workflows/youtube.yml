@@ -125,7 +125,8 @@ jobs:
         run: |
           set -o pipefail
           args=("$ACTION")
-          [ -n "$ONLY" ] && args+=(--only "$ONLY")
+          # schedule names its own releases and needs them all loaded, so only does not narrow it.
+          [ -n "$ONLY" ] && [ "$ACTION" != "schedule" ] && args+=(--only "$ONLY")
           [ "$DRY" = "true" ] && [ "$ACTION" != "list" ] && [ "$ACTION" != "probe" ] && args+=(--dry)
           if [ "$ACTION" = "upload" ]; then
             args+=(--kinds "$KINDS" --max "$MAX" --privacy "$PRIVACY")
@@ -133,8 +134,11 @@ jobs:
             [ "$REPLACE" = "true" ] && args+=(--replace-old-voice)
           fi
           [ "$ACTION" = "schedule" ] && args+=(--set "$SCHEDULE")
-          node tools/youtube-channel.mjs "${args[@]}" 2>&1 | tee youtube.log
+          # The summary is written whatever the exit, so a failed run's page still says what was and was not done.
+          rc=0
+          node tools/youtube-channel.mjs "${args[@]}" 2>&1 | tee youtube.log || rc=$?
           { echo '## youtube: '"$ACTION"; echo; echo '```'; cat youtube.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
 
       - name: Keep the channel record
         if: always()

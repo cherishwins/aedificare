@@ -101,9 +101,13 @@ video's publish time. The owner said replace The Markup on 2026-10-17.
 **Moving or holding a scheduled video**: `youtube.yml action=schedule
 schedule="film-edition-01:film=2026-10-22T15:00:00Z,film-edition-01:short=none"`.
 A time moves YouTube's `publishAt` (the video stays private until then);
-`none` holds it private with no time. It refuses a video that is public or
-unlisted, warns when a Short would come out before its film, and with
-`dry=true` prints the plan. Use it to keep a film back while its edition
+`none` holds it private with no time. Times need a zone (`...Z`). The whole
+plan is checked before the first write: a duplicate entry, an unknown
+release, a release with two matching videos, a video that is public,
+unlisted or already due, or a Short set before its film refuses the run
+and changes nothing. A Short left scheduled while its film is held is held
+with it. Each write is checked against what YouTube kept, and `dry=true`
+prints the plan. Use it to keep a film back while its edition
 is checked, and to unschedule an upload before its corrected render
 replaces it; the owner deletes the old file in Studio if they want it gone.
 

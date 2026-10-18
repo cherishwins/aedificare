@@ -290,51 +290,95 @@ if (CMD === 'upload') {
 /* ---- schedule ----------------------------------------------------------------- */
 // Moves a scheduled video's publish time, or holds it (private, no time) while its edition is checked or its render is
 // replaced. Only a private video is touched, so nothing already out changes, and nothing is made public from here: a
-// time is YouTube's own publishAt, which keeps the video private until then.
+// time is YouTube's own publishAt, which keeps the video private until then. The whole plan is checked before the first
+// write, so a typo or an unsafe pairing changes nothing.
 if (CMD === 'schedule') {
+  const fail = (msg) => { console.error(`youtube-channel: ${msg}`); process.exit(1); };
+  // A time needs its zone: a zoneless one means 8am on the owner's Mac and 8am UTC on a runner.
+  const ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d(:\d\d(\.\d+)?)?(Z|[+-]\d\d:\d\d)$/;
+  const seen = new Set();
   const plan = arg('--set', '').split(',').map((x) => x.trim()).filter(Boolean).map((x) => {
     const m = /^([\w.-]+):(film|short)=(.+)$/.exec(x);
-    if (!m) { console.error(`youtube-channel: --set wants <release>:<film|short>=<ISO time|none>, got "${x}"`); process.exit(1); }
-    const hold = m[3] === 'none';
-    const when = hold ? null : new Date(m[3]);
-    if (!hold && (isNaN(when) || when <= Date.now())) { console.error(`youtube-channel: ${m[1]}:${m[2]}: "${m[3]}" is not a time in the future`); process.exit(1); }
-    return { tag: m[1], kind: m[2], at: when };
+    if (!m) fail(`--set wants <release>:<film|short>=<ISO time with zone|none>, got "${x}"`);
+    const [, tag, kind, val] = m;
+    if (seen.has(`${tag}:${kind}`)) fail(`${tag}:${kind} is in --set twice; give each video one entry`);
+    seen.add(`${tag}:${kind}`);
+    if (val !== 'none' && !ISO.test(val)) fail(`${tag}:${kind}: "${val}" needs a full time with a zone, e.g. 2026-10-22T15:00:00Z`);
+    const at = val === 'none' ? null : new Date(val);
+    if (at && at <= Date.now()) fail(`${tag}:${kind}: ${val} is not in the future`);
+    return { tag, kind, at };
   });
-  if (!plan.length) { console.error('youtube-channel: schedule needs --set <release>:<film|short>=<ISO time|none>'); process.exit(1); }
-  console.log(`\nschedule${DRY ? ' (dry run)' : ''}: private videos only; a time keeps the video private until YouTube publishes it, none holds it`);
-  // Each Short publishes after its own film: warn when the plan, laid over what is already scheduled, says otherwise.
+  if (!plan.length) fail('schedule needs --set <release>:<film|short>=<ISO time|none>');
+
+  // Each entry must resolve to exactly one private, never-published video whose slot has not already come.
+  const one = (tag, kind) => rows.filter((x) => x.r && x.r.tag === tag && x.r.meta.kind === kind && !x.older && !['rejected', 'failed', 'deleted'].includes(x.v.status.uploadStatus));
+  for (const p of plan) {
+    if (!releases.some((r) => r.tag_name === p.tag)) fail(`${p.tag} is not a film release on this repository`);
+    const c = one(p.tag, p.kind);
+    if (!c.length) fail(`${p.tag}:${p.kind}: no video on the channel for that render`);
+    if (c.length > 1) fail(`${p.tag}:${p.kind} matches ${c.map((x) => x.v.id).join(', ')}; leave one (delete the other or re-file the ledger) and run again`);
+    p.v = c[0].v;
+    if (p.v.status.privacyStatus !== 'private') fail(`${p.v.id} ${p.tag}:${p.kind} is ${p.v.status.privacyStatus}; schedule never touches a video that is already out`);
+    if (p.v.status.publishAt && Date.parse(p.v.status.publishAt) <= Date.now()) fail(`${p.v.id} ${p.tag}:${p.kind} was due at ${p.v.status.publishAt}; YouTube may already be publishing it`);
+    p.from = p.v.status.publishAt ? Date.parse(p.v.status.publishAt) : Infinity;
+    p.to = p.at ? p.at.getTime() : Infinity;
+  }
+
+  // Each Short publishes after its own film. Infinity is held; null is no video or already out. A Short left scheduled
+  // while its film is held is held with it (a hold never publishes anything); a Short set before its film is refused.
   const timeOf = (tag, kind) => {
     const p = plan.find((x) => x.tag === tag && x.kind === kind);
-    if (p) return p.at;
-    const row = rows.find((x) => x.r && x.r.tag === tag && x.r.meta.kind === kind && !x.older);
-    return row?.v.status.publishAt ? new Date(row.v.status.publishAt) : null;
+    if (p) return p.to;
+    const c = one(tag, kind);
+    if (c.length !== 1 || c[0].v.status.privacyStatus !== 'private') return null;
+    return c[0].v.status.publishAt ? Date.parse(c[0].v.status.publishAt) : Infinity;
   };
   for (const tag of new Set(plan.map((x) => x.tag))) {
     const film = timeOf(tag, 'film'), short = timeOf(tag, 'short');
-    if (film && short && short < film) console.log(`  warning: ${tag}'s Short (${short.toISOString()}) would come out before its film (${film.toISOString()})`);
+    if (film == null || short == null || short === Infinity || short > film) continue;
+    if (film === Infinity && !plan.some((x) => x.tag === tag && x.kind === 'short')) {
+      const c = one(tag, 'short')[0];
+      plan.push({ tag, kind: 'short', at: null, v: c.v, from: Date.parse(c.v.status.publishAt), to: Infinity, added: true });
+      continue;
+    }
+    fail(`${tag}'s Short would come out ${film === Infinity ? 'while its film is held' : `before its film (${new Date(film).toISOString()})`}; move it after the film or add ${tag}:short=none`);
   }
-  let done = 0;
-  for (const { tag, kind, at } of plan) {
-    const row = rows.find((x) => x.r && x.r.tag === tag && x.r.meta.kind === kind && !x.older);
-    if (!row) { console.log(`  ${tag}:${kind}: no video on the channel for that render`); continue; }
-    const { v } = row;
-    const name = `${v.id} ${tag}:${kind}`;
-    if (v.status.privacyStatus !== 'private') { console.log(`  ${name}: refused, it is ${v.status.privacyStatus}; schedule never touches a video that is already out`); continue; }
-    const from = v.status.publishAt ? new Date(v.status.publishAt) : null;
-    if ((from?.getTime() ?? null) === (at?.getTime() ?? null)) { console.log(`  ${name}: already ${at ? at.toISOString() : 'held'}`); continue; }
-    console.log(`  ${name}: ${from ? from.toISOString() : 'held'} -> ${at ? at.toISOString() : 'held, no publish time'}`);
-    done++;
-    if (DRY) continue;
+
+  // Per release, the first write is the one that keeps the Short after its film on its own: the Short goes first when it
+  // is held or moved later, the film first otherwise. If that first write fails, the second is not sent.
+  const order = [];
+  for (const tag of new Set(plan.map((x) => x.tag))) {
+    const f = plan.find((x) => x.tag === tag && x.kind === 'film'), sh = plan.find((x) => x.tag === tag && x.kind === 'short');
+    order.push(...(sh && f && sh.to < sh.from ? [f, sh] : [sh, f]).filter(Boolean));
+  }
+  const show = (t) => (t === Infinity ? 'held' : new Date(t).toISOString());
+  console.log(`\nschedule${DRY ? ' (dry run)' : ''}: private videos only; a time keeps the video private until YouTube publishes it, none holds it`);
+  const failed = new Set(), done = [];
+  for (const p of order) {
+    const name = `${p.v.id} ${p.tag}:${p.kind}`;
+    if (p.from === p.to) { console.log(`  ${name}: already ${show(p.to)}`); continue; }
+    if (failed.has(p.tag)) { console.log(`  ${name}: not sent, the other half of ${p.tag} failed`); continue; }
+    console.log(`  ${name}: ${show(p.from)} -> ${show(p.to)}${p.added ? ' (its film is held, so the Short is held with it)' : ''}`);
+    if (DRY) { done.push(name); continue; }
     // As in retire, the whole status part is replaced, so every writable field goes back unchanged beside the time.
-    const keep = ['license', 'embeddable', 'publicStatsViewable', 'selfDeclaredMadeForKids', 'containsSyntheticMedia'].filter((k) => k in v.status);
-    const status = { ...Object.fromEntries(keep.map((k) => [k, v.status[k]])), privacyStatus: 'private', ...(at ? { publishAt: at.toISOString() } : {}) };
-    const put = await fetch(`${API}/videos?part=status`, { method: 'PUT', headers: { ...auth, 'content-type': 'application/json' }, body: JSON.stringify({ id: v.id, status }) });
-    if (!put.ok) { console.error(`youtube-channel: ${v.id} could not be rescheduled`, put.status, await put.text()); process.exit(1); }
-    const now = (await put.json()).status || {};
-    console.log(`    now ${now.privacyStatus}, ${now.publishAt ? `publishes ${now.publishAt}` : 'no publish time'}`);
+    const keep = ['license', 'embeddable', 'publicStatsViewable', 'selfDeclaredMadeForKids', 'containsSyntheticMedia'].filter((k) => k in p.v.status);
+    const status = { ...Object.fromEntries(keep.map((k) => [k, p.v.status[k]])), privacyStatus: 'private', ...(p.at ? { publishAt: p.at.toISOString() } : {}) };
+    try {
+      const put = await fetch(`${API}/videos?part=status`, { method: 'PUT', headers: { ...auth, 'content-type': 'application/json' }, body: JSON.stringify({ id: p.v.id, status }) });
+      if (!put.ok) throw new Error(`${put.status} ${await put.text()}`);
+      const now = (await put.json()).status || {};
+      const got = now.publishAt ? Date.parse(now.publishAt) : Infinity;
+      console.log(`    now ${now.privacyStatus}, ${now.publishAt ? `publishes ${now.publishAt}` : 'no publish time'}`);
+      // A hold rests on YouTube clearing the publishAt it was not sent; check what it kept rather than trust the 200.
+      if (now.privacyStatus !== 'private' || (got === Infinity) !== (p.to === Infinity) || (got !== Infinity && Math.abs(got - p.to) > 60e3)) throw new Error(`not as asked: YouTube kept ${now.privacyStatus}, ${now.publishAt || 'no time'}`);
+      done.push(name);
+    } catch (e) {
+      console.log(`    FAILED: ${e.message}`);
+      failed.add(p.tag);
+    }
   }
-  console.log(`  ${done} ${DRY ? 'to change' : 'changed'}`);
-  process.exit(0);
+  console.log(`  ${done.length} ${DRY ? 'to change' : 'changed'}${failed.size ? `, failed for ${[...failed].join(', ')}` : ''}`);
+  process.exit(failed.size ? 1 : 0);
 }
 
 /* ---- retire ------------------------------------------------------------------- */
