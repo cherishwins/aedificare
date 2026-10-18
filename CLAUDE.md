@@ -32,7 +32,7 @@ Shipped (2026-09-15):
 | `/the-fourth-axis` | 6 Oct 2026 · *The Fourth Axis* (printed as Edition 05), twelve sections, thirty-eight sources, three registers | live |
 | `/the-tilt-gap` | 3 Oct 2026 · *The Tilt Gap* (printed as Edition 04), fifteen sections, fifty-one sources, F/I/Q marks | live |
 | `/the-floor` | 18 Oct 2026 · *The Floor*, amends The Markup with the builder's own field numbers, ten sections, sixteen sources | live (2026-10-18, every source opened, the video checked against its captions) |
-| `/edition-03` | 15 Sep 2026 · *The Markup* (printed as Edition 03), eight sections, twelve sources | live |
+| `/edition-03` | 15 Sep 2026 · *The Markup* (printed as Edition 03), eight sections, twelve sources | live (2026-10-18, every source opened, 29 claims corrected; the two lines The Floor answers stay as printed) |
 | `/edition-01` | 11 Sep 2026 · *The Snapshot Problem* (printed as Edition 01), twelve sections, thirty-four sources, three registers | live (2026-10-18, every source opened, 56 of 63 flags upheld and corrected) |
 | `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01) | live |
 | `/ns-02` | 13 Sep 2026 · *The Closest Humans* (printed as NS-02), amends The Hand in the Water | live |
@@ -1043,6 +1043,32 @@ for a shortlist for bios and cards, which is a separate deliverable.
    `source/edition-02/` (rendered 13 Sep, "FACTS PENDING", slot
    placeholders where the repo's copy has figures). Nothing was taken from
    either.
+   **Checked, 2026-10-18, after its new-voice film had gone public.** Two
+   checkers by half opened every source and a skeptic per half re-opened
+   every flag: 81 claims, 46 held, 35 flagged, 28 upheld, and one held
+   claim broken by its skeptic (a five-millimetre "die" is the package).
+   The contract figures are awards, not payments, and the Air Force's was
+   announced 30 January 2024, not in February; the forty-four to one is
+   one radio against a two-node network, not "against a single node" (The
+   Floor carried the same phrase and was corrected with it); the Pi 5 node
+   is the vendor's experimental build; the MM8108 supports WPA3 with only
+   AES and SHA-2 in hardware; its module was announced and sampling in
+   June, not shipped; "the widest public allocation of its kind on earth"
+   had no source and was cut, and the band is not "clean"; the MPU5's
+   throughput was published (100+ Mbps), and its supply-chain row's NDAA
+   and Blue UAS claims were not; Reticulum is optional in the Haven stack
+   and only some packets are signed; Silvus runs 2-by-2 and 4-by-4 radios
+   and the DoD-assessed library is Persistent's; Motorola's Ukraine line
+   is its own words, not a claim the radios kept drones flying; "closed by
+   a third" was a quarter; spectrum and waveform are capability rows, not
+   physics. **An amended edition keeps only the lines its amendment
+   answers**: the 43.3 throughput figure and the Canadian point-to-point
+   sentence stay as printed, because The Floor exists to answer them, and
+   everything else on the page was corrected like any other edition, with
+   a dated note under its sources. The film and both Shorts (the new one,
+   held before its 21:00 UTC slot, and the old Kokoro one, withdrawn by
+   video id) went private with 0, 0 and 3 views, and the page renders
+   again into a replacement.
 
 0b. **Edition 01 · The Snapshot Problem arrived as a finished, sourced
    PDF** (seventeen pages, thirty-three sources, rendered 11 Sep 10:53 UTC)
@@ -1182,7 +1208,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
    October. One sentence of
    The Markup was wrong too: RSS-247's higher e.i.r.p. for point-to-point
    links is for 2.4 and 5.8 GHz only (s. 6.5 a). The Floor amends it and
-   The Markup stays as printed, as it does for the throughput row.
+   The Markup stays as printed, as it does for the throughput row (and
+   only on those two lines: the rest of the page was corrected later the
+   same day, Findings 0).
    Notebookcheck's summary of the builder's later network contradicted
    his own post, so the post replaced it. The page carries the house
    citation marks. Prices re-read the day it went live: Seeed $14.99,
