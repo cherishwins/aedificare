@@ -4,8 +4,8 @@
  *
  * Serves dist/ through Playwright request interception, so it exercises the
  * bytes Vercel will publish and needs no network. Every page across ten
- * viewports (320 to 2560) for horizontal overflow, console errors, tap
- * targets and broken references; once at 1280 for WCAG AA contrast against
+ * viewports (320 to 2560) for horizontal overflow, text cut off the screen,
+ * console errors, tap targets and broken references; once at 1280 for WCAG AA contrast against
  * the nearest opaque ancestor, a full axe-core pass, og:image:alt, that the
  * brand faces actually loaded, that Acid appears at scale at most once per
  * surface, and that every rose field runs live; then once under
@@ -109,6 +109,45 @@ const CONTRAST_PROBE = () => {
   return out;
 };
 
+/**
+ * Text cut off the screen. The body clips horizontal overflow, which keeps
+ * scrollWidth at the viewport width, so the overflow count above cannot see a
+ * line that runs past the edge: it is simply hidden. Found 2026-10-17, when a
+ * source entry with an unbreakable URL was clipped on every phone on two
+ * pages and the sweep read clean. This measures every visible run of text
+ * against the viewport. Text inside a scroll region is reachable and is not
+ * counted; decoration is aria-hidden; a deliberate bleed says so with
+ * data-bleed (the home wordmark).
+ */
+const CLIP_PROBE = () => {
+  const W = document.documentElement.clientWidth;
+  const out = [];
+  const scrolls = (el) => {
+    for (let e = el; e && e !== document.body; e = e.parentElement) {
+      const ox = getComputedStyle(e).overflowX;
+      if (ox === 'auto' || ox === 'scroll') return true;
+    }
+    return false;
+  };
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: (n) => (n.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT),
+  });
+  const range = document.createRange();
+  for (let n; (n = walker.nextNode());) {
+    const el = n.parentElement;
+    if (!el || el.closest('.sr, [aria-hidden="true"], [data-bleed], script, style, noscript, template')) continue;
+    const cs = getComputedStyle(el);
+    if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+    range.selectNodeContents(n);
+    for (const r of range.getClientRects()) {
+      if (!r.width || (r.right <= W + 1 && r.left >= -1)) continue;
+      if (!scrolls(el)) out.push({ text: n.textContent.trim().slice(0, 40), left: Math.round(r.left), right: Math.round(r.right) });
+      break;
+    }
+  }
+  return out;
+};
+
 /** Anything interactive that is not inline in a run of text must reach 24px. */
 const TAP_PROBE = () => {
   const out = [];
@@ -172,7 +211,7 @@ const RENDER_PROBE = () => ({
   for (const m of swProblems) console.log(`  SW        ${m}`);
 
   const browser = await chromium.launch();
-  let overflow = 0, jsErrors = 0, taps = 0, contrast = 0, missing = 0, altMissing = 0, broken = 0, axeFails = 0, acid = 0, render = 0;
+  let overflow = 0, clipped = 0, jsErrors = 0, taps = 0, contrast = 0, missing = 0, altMissing = 0, broken = 0, axeFails = 0, acid = 0, render = 0;
   const report = [];
 
   for (const width of VIEWPORTS) {
@@ -199,6 +238,7 @@ const RENDER_PROBE = () => ({
 
       const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       if (over > 0) { overflow++; report.push(`  OVERFLOW  ${width}px  ${p}  +${over}px`); }
+      for (const c of await page.evaluate(CLIP_PROBE)) { clipped++; report.push(`  CLIPPED   ${width}px  ${p}  ${c.left}..${c.right}px  "${c.text}"`); }
       for (const t of await page.evaluate(TAP_PROBE)) { taps++; report.push(`  TAP       ${width}px  ${p}  ${t.w}x${t.h}  "${t.text}"`); }
 
       if (width === 1280) {
@@ -244,6 +284,7 @@ const RENDER_PROBE = () => ({
   if (report.length) console.log('\n' + report.join('\n'));
   console.log(`\n${PAGES.length} pages × ${VIEWPORTS.length} viewports (320→2560)`);
   console.log(`  horizontal overflow      ${overflow}`);
+  console.log(`  text cut off the screen  ${clipped}`);
   console.log(`  JS / console errors      ${jsErrors}`);
   console.log(`  undersized tap targets   ${taps}`);
   console.log(`  WCAG AA contrast fails   ${contrast}`);
@@ -254,7 +295,7 @@ const RENDER_PROBE = () => ({
   console.log(`  axe-core violations      ${axeFails}`);
   console.log(`  Acid twice on a surface  ${acid}`);
   console.log(`  render (fonts/rose/dove) ${render}`);
-  const bad = overflow + jsErrors + taps + contrast + missing + altMissing + broken + swProblems.length + axeFails + acid + render;
+  const bad = overflow + clipped + jsErrors + taps + contrast + missing + altMissing + broken + swProblems.length + axeFails + acid + render;
   console.log(bad ? `\nverify: ${bad} issue(s)` : '\nverify: clean');
   process.exit(bad ? 1 : 0);
 })();

@@ -319,7 +319,7 @@ const sources = [
       <figure class="c-b field" aria-label="Keeps what it knew against learns what is new, qualitative placement">
         <figcaption class="mono">Position. Qualitative placement from the cited results, not a plotted dataset.</figcaption>
         <div class="scatter">
-          {scatter.map(([l, x, y]) => (<span class:list={['pt', x > 70 && 'r']} style={`left:${x}%;bottom:${y}%`}><span class="dot"></span><span class="mono">{l}</span></span>))}
+          {scatter.map(([l, x, y]) => (<span class:list={['pt', x > 60 && 'r']} style={`left:${x}%;bottom:${y}%`}><span class="dot"></span><span class="mono">{l}</span></span>))}
           <span class="pt goal" style="left:92%;bottom:92%"><span class="mono-b">Nobody is here yet</span></span>
           <span class="axis-x mono">Keeps what it knew</span>
           <span class="axis-y mono">Learns what is new</span>

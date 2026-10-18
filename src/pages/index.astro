@@ -36,7 +36,7 @@ for (const e of PUBLISHED) {
     <section class="surface hero" aria-label="Aedificare">
       <RoseField layers={house} seed={0.5} readout="k" class="rose hero-rose" />
       <Masthead />
-      <h1 class="display wordmark" data-flex="scroll">Aedificare</h1>
+      <h1 class="display wordmark" data-flex="scroll" data-bleed>Aedificare</h1>
       <p class="mono hero-line"><span>{line}</span><span class="readout">r = cos(kθ) · k = <output id="k" aria-live="off">5.000</output></span></p>
     </section>
 
@@ -80,7 +80,7 @@ for (const e of PUBLISHED) {
      frame at the bottom where the wordmark crosses it. Global because the
      svg belongs to a child component and scoped selectors never reach it. */
   .hero .mast { position: relative; z-index: 2; }
-  /* The wordmark runs off the right edge on every viewport. That is the point. */
+  /* The wordmark runs off the right edge on every viewport. That is the point, and data-bleed tells tools/verify.cjs so. */
   .wordmark { position: relative; z-index: 2; font-size: var(--fs-wordmark); margin-top: auto; margin-left: calc(var(--gutter) - .04em); white-space: nowrap; }
   .hero-line { position: relative; z-index: 2; color: var(--malachite); padding: 24px var(--gutter) 28px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 32px; }
   .hero-line output { font: inherit; letter-spacing: inherit; }
