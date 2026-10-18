@@ -30,14 +30,74 @@ const article = {
   description: ed.lede,
 };
 
-// The telephone grid: which of four caveats each outlet carried.
+// Citation marks, [01] style, pointing into the sources list in section 11.
+const c = (...n) => n.map((x) => `[${String(x).padStart(2, '0')}]`).join(' ');
+
+// The telephone grid: which of four caveats each outlet carried, read from
+// each outlet's own text. CNBC's row is gone: its article could not be read.
 const outlets: [string, boolean[]][] = [
-  ['OpenAI', [true, true, true, true]],
-  ['Quanta', [true, true, true, true]],
-  ['Scientific American', [true, true, true, true]],
+  ['OpenAI', [true, false, false, true]],
+  ['Quanta', [true, true, false, true]],
+  ['Scientific American', [true, false, false, true]],
   ['BBC', [false, true, true, true]],
-  ['CNBC', [false, true, true, true]],
-  ['Trade and vertical press', [false, true, false, false]],
+  ['MarketScale (healthcare trade)', [false, true, false, false]],
+];
+
+const sources = [
+  'Konstantin Kakaes, "AI Has Solved One of Math\'s $1 Million Millennium Prize Problems", Quanta Magazine, 8 Sep 2026: Buckmaster\'s statement "just before midnight on Monday, September 7"; OpenAI\'s announcement on the morning of Tuesday 8 September; a proof after 88 hours and a formalisation "after an additional 17 hours"; "10,000 or so" agents on Navier-Stokes; Bubeck\'s "several million dollars"; Fefferman "wrote the Clay Institute\'s official description"; smooth forcing explained; the human check that the Lean statement "is logically equivalent to what mathematicians set out to prove"; OpenAI ceding Euler priority to Buckmaster and Alpöge; "If the result holds up to further scrutiny"; no "immediate practical consequences".',
+  'Tristan Buckmaster, statement, cims.nyu.edu/~tristanb/statement.pdf, compiled 8 Sep 2026: "For most of the past year progress was slow"; drafts in Codex "for the whole of this project", with Claude also used throughout; the smooth-force route, "options c and d in Fefferman\'s statement"; on Thursday 3 September, with Levent Alpöge tipped that their progress had been passed to OpenAI, he wrote to OpenAI; on Sunday 6 September he was told an internal model had a proof of "about 100 pages", and that a team had first set the model on easier problems; credit for the program to Diego Córdoba and Luis Martínez-Zoroa. The work was joint with Alpöge.',
+  'Joseph Howlett, "AI may have just solved a million-dollar math problem. The field will never be the same", Scientific American, 8 Sep 2026, modified 11 Sep: Buckmaster posted "At 11:58 P.M. EDT on Monday"; "The Clay problem, as written, is solved. But the Clay problem, as many experts imagine it, lacks the piece that the forcing method relies on." It hedges with "reportedly solved" and never says Clay has not accepted the result.',
+  'OpenAI, "On the Navier-Stokes Millennium Prize Problem", openai.com/index/navier-stokes-solution, 8 Sep 2026. The page serves a bot check and was not opened; its words are taken from Simon Willison\'s word-for-word quotation, Unite.AI, The Next Web, VentureBeat and search excerpts: rumours on Tuesday 1 September that two Millennium problems had been resolved; "on the order of 10,000 concurrent agents"; the resolution on Saturday 5 September, "about 88 hours after the first agents were launched", and 17 more hours for Lean; 2.7 million messages and about 130 billion output tokens for Navier-Stokes; "Nearly 100 agents worked together for approximately 50 hours" on Euler, "a related but easier question"; the smooth force; statement C "(and also D)"; priority for the Euler result ceded to Buckmaster and Alpöge; "We do not intend to claim the Millennium Prize for this result." No excerpt says the result is unverified or that Clay has not accepted it.',
+  'Unite.AI, 9 Sep 2026, unite.ai/openai-says-internal-ai-system-resolved-the-navier-stokes-problem, paraphrasing OpenAI: announced 8 September, a proof that the equations "can develop a singularity in finite time"; the resolution on 5 September; Lean verification complete on 6 September; "C" and also "D".',
+  'Charles L. Fefferman, the official problem description for the Navier-Stokes Millennium Problem, Clay Mathematics Institute, claymath.org/wp-content/uploads/2022/06/navierstokes.pdf: "we ask for a proof of one of the following four statements"; (A) on R3 and (B) on the periodic R3/Z3, with the force "identically zero"; (C) and (D), breakdown, with "a smooth f" meeting decay bounds; Leray\'s weak solutions; the two-dimensional analogues "known for a long time".',
+  'Plus Magazine, "Maths in a minute: Numerical weather prediction", plus.maths.org: forecasts run "a mathematical model that is built on the Navier-Stokes equations".',
+  'Clay Mathematics Institute, Navier-Stokes Equation problem page, claymath.org/millennium/navier-stokes-equation, read 18 Oct 2026: "Although these equations were written down in the 19th Century, our understanding of them remains minimal."',
+  'Clay Mathematics Institute, The Millennium Prize Problems, claymath.org/millennium-problems, read 18 Oct 2026: announced in Paris on 24 May 2000, $1 million for each of seven; the Poincaré Conjecture the only problem listed as solved; Navier-Stokes listed on its own, as active.',
+  'OpenAI, "Finite Time Blowup for Navier-Stokes", cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf, 166 pages, author line OpenAI alone, this version created 8 Sep 2026: zero initial velocity and "a smooth force compactly supported in space and time"; unbounded velocity in finite time with bounded kinetic energy; alternative (C), and (D) by Corollary 10.6; its references date Navier to 1822, Stokes to 1845 and Leray to 1934. It is not on arXiv and no journal has published it.',
+  'The Next Web, 9 Sep 2026, thenextweb.com/news/openai-navier-stokes-proof-published-millennium-prize: "The crux is forcing"; the force on "throughout, from rest to the formation of the singularity"; about 88 hours, from 1 to 5 September; OpenAI quoted on statement C "(and also D)" and "We do not intend to claim the Millennium Prize for this result."',
+  'Clay Mathematics Institute, "Navier-Stokes Announcement", claymath.org/news/navier-stokes-announcement, 11 Sep 2026: "the Navier-Stokes problem has apparently been settled"; "The rules governing the prizes describe the process for evaluating what has been achieved"; "The process is deliberately unhurried, but we will provide updates."',
+  'Business Standard, "What is Navier-Stokes, the 90-year-old maths problem OpenAI says it solved?", 9 Sep 2026: no mention of the force.',
+  'Joseph Howlett, Scientific American, 21 Sep 2026, scientificamerican.com/article/did-openai-solve-the-wrong-navier-stokes-problem: the statement "penned in 2000 by mathematician Charles Fefferman"; OpenAI did "unambiguously solve the problem according to the Clay Institute\'s original formulation"; "When most experts think about the Navier-Stokes problem, though, it\'s without this force."; Luis Silvestre, "The Clay problem is settled, but the main problem for the Navier-Stokes equations is not."',
+  'openai/NavierStokesAndEuler, GitHub, release commit 8937a8f of 8 Sep 2026 and commit f9e8bc5 of 10 Sep, read 18 Oct 2026 by anonymous clone: alternatives (C) and (D); the door C statement copied from Google DeepMind\'s Formal Conjectures; its own review marked "self-assessed"; 341,553 lines of Lean 4 in NavierStokes/ at release, not counting comments or blank lines (about 404,000 raw).',
+  'Clay Mathematics Institute, Rules for the Millennium Prize Problems, adopted 26 Sep 2018, claymath.org/millennium-problems/rules and the rules PDF: publication in a Qualifying Outlet, "a refereed mathematics publication of worldwide repute" or one meeting relaxed conditions the board approves; "at least two (2) years" since publication; "general acceptance in the global mathematics community".',
+  'Constantin, Ignatova and Vicol, arXiv 2609.20803, 17 Sep 2026: in OpenAI\'s construction "the force can neither vanish identically near the singular point, nor be real analytic in the space variables, locally uniformly in time".',
+  'Laurent Schoeffel, "Lecture notes in fluid mechanics", arXiv 1407.3162: "the vortex stretching of the vorticity, which disappears in 2D".',
+  'Terence Tao, "Finite time blowup for an averaged three-dimensional Navier-Stokes equation", arXiv 1402.0290, 3 Feb 2014, J. Amer. Math. Soc. 29 (2016), and his post on it, terrytao.wordpress.com, 4 Feb 2014: an averaged equation that "obeys the usual energy identity" blows up in finite time; the paper sets out "to formalise the \'supercriticality barrier\'", "the fundamental obstacle that has defeated all attempts".',
+  'DeepLearning.AI, The Batch, 18 Sep 2026, deeplearning.ai/the-batch/inside-the-dispute-over-a-landmark-agent-driven-mathematical-proof: the Euler work inside the same sprint that began on 1 September, after which "OpenAI then shifted agents from the other problems to Navier-Stokes"; "no independent review of OpenAI\'s proof has been completed".',
+  'Simon Willison, simonwillison.net/b/9628, 8 Sep 2026, quoting OpenAI\'s post word for word and pricing it: "300 billion output tokens at public API prices for GPT-6 Astra would cost $15,000,000", for every problem tried; Navier-Stokes alone used about 130 billion.',
+  'Alex Pigman, AFP, 9 Sep 2026, as carried by The Star: Mark Chen put the computing cost "emphatically in the millions of dollars."',
+  'Capital & Compute, 13 Sep 2026, capitalandcompute.net/blog/openai-navier-stokes-10000-agents-cost: $6.5 million as 130 billion tokens at $50 per million output tokens; $15 million for every problem tried at list price; the BBC\'s "roughly $10 million".',
+  'Latent Space, AINews, 9 Sep 2026: "130B tokens (>$40M)".',
+  'Rael Savitt, CrystalArchitect/navier-stokes-lean-check, GitHub, 8 Sep 2026: "The build kernel-checks with exit 0 and no sorryAx", and the proved statement is "Google DeepMind\'s pre-existing encoding of Clay alternative (C), unmodified".',
+  'Bastounis, Circelli and Hansen, King\'s College London and Cambridge, arXiv 2610.08144, 6 Oct 2026: "the formalised Lean proof does not correspond to the NL proof of blow-up", shown at two intermediate results, one an estimate with four derivatives that the Lean needs with five, and showing only two "does not mean that these are the only cases". It does not claim the paper is wrong.',
+  'Google DeepMind, Formal Conjectures, GitHub: pull request #1457, opened 3 Jan 2026 and merged 15 May 2026, the Navier-Stokes statement by Tomáš Skřivan with Paul Lezeau, reviewed in public ("it looks good to us", 8 Jan 2026, after a look with Tomáš Bárta of Charles University); pull request #5361, merged 11 Sep 2026, marking (C) and (D) solved and citing an unnamed "independent expert".',
+  'Anthropic, "Formalizing Fermat\'s Last Theorem", 4 Sep 2026: "the first end-to-end, computer-checked proof of FLT", 13 million lines of Lean and 29,500 intermediate theorems in 11 days; "a comparator confirmed that the theorem\'s statement matches Mathlib\'s own statement of FLT"; Kevin Buzzard: it "proves Fermat\'s Last Theorem with no assumptions other than the axioms of mathematics".',
+  'Joseph Howlett, "OpenAI claims blockbuster math breakthrough amid swirl of controversy", Scientific American, 8 Sep 2026, modified 11 Sep: Bubeck at a press briefing; "For the second time ever, someone has solved one of the seven Millennium Prize Problems"; Lean "all but guarantees its correctness".',
+  'BBC, 8 and 9 Sep 2026, as republished by Politis ("Source: BBC"), en.politis.com.cy, 9 Sep 2026; the BBC\'s own page could not be opened: the result "has not yet undergone formal verification by the wider mathematical community"; Clay "has not formally recognised the proof"; Buckmaster "has questioned OpenAI\'s account"; no mention of the force.',
+  'MarketScale Newsroom, "OpenAI put 10,000 AI agents on Navier-Stokes. Healthcare R&D should pay attention", 9 Sep 2026: it names "smooth external force" but not as a limit; "still entering independent scrutiny"; a section headed "Why healthcare and life sciences should care"; "not to rebuild research organizations around an unverified headline".',
+  'Math StackExchange, question 634890, "Has Prof. Otelbaev shown existence of strong solutions for Navier-Stokes equations?", 11 Jan 2014: the claim of "a full proof of the Clay Navier-Stokes Millennium Problem", in a paper dated 21 Dec 2013.',
+  'The Aperiodical, 25 Jun 2014: the Otelbaev paper taken seriously, and his message withdrawing it.',
+  'Stephen Montgomery-Smith, Math StackExchange, answer 649373, January and February 2014: a counterexample and Terence Tao\'s modified one, then, in Update 3, the message Otelbaev sent him on 14 Feb 2014, posted with his permission.',
+  'Penny Smith, "Immortal Smooth Solution of the Three Space Dimensional Navier-Stokes System", arXiv math/0609740, 26 Sep 2006, withdrawn 8 Oct 2006 "due a serious flaw".',
+  'Clay Mathematics Institute, press release on the Poincaré prize, 18 Mar 2010: Perelman\'s preprints of 11 Nov 2002, 10 Mar 2003 and 17 Jul 2003; the expositions by Kleiner and Lott, Morgan and Tian, and Cao and Zhu, posted in 2006; "the multi-year scrutiny of the mathematical community"; the award.',
+  'Clay Mathematics Institute, "Poincaré Chair", claymath.org/news/poincare-chair, 1 Mar 2018: "Dr. Perelman subsequently declined to accept the prize money".',
+  'Quartz, "OpenAI closes $122 billion funding round, biggest ever in Silicon Valley", 31 Mar 2026, republished by Yahoo Finance: $122 billion at a "post-money valuation of $852 billion", "the largest funding round in Silicon Valley history, the company said."',
+  'Amit Chowdhry, Pulse 2.0, 9 Jun 2026, quoting OpenAI on 8 June: "We recently submitted a confidential S-1." and "We have not decided on timing yet". OpenAI named no valuation.',
+  'Interesting Engineering, 8 Jun 2026, citing reports that OpenAI "is targeting a valuation of up to $1 trillion".',
+  'Anthropic, "Anthropic raises $65B in Series H funding at $965B post-money valuation", 28 May 2026.',
+  'Maxwell Zeff, "OpenAI and Google outdo the mathletes, but not each other", TechCrunch, 21 Jul 2025: OpenAI graded by "three former IMO medalists" it hired, and announced on Saturday 19 July.',
+  'Simon Willison, simonwillison.net/2025/Jul/21/gemini-imo, 21 Jul 2025: Noam Brown, "We announced at ~1am PT (6pm AEST), after the award ceremony concluded"; Gemini "achieved the exact same score as OpenAI, 35/42."',
+  'QbitAI, as carried by 36Kr, 21 Jul 2025: OpenAI "announced the results right after the closing ceremony", while IMO coordinators had expected labs to wait a week.',
+  'Google DeepMind, "Advanced version of Gemini with Deep Think officially achieves gold-medal standard at the International Mathematical Olympiad", 21 Jul 2025: 35 points, "officially graded and certified by IMO coordinators".',
+  'Jeremy Kahn, Fortune, 8 Sep 2026: Bubeck "said in a press conference"; Tao had not assessed OpenAI\'s proof.',
+  'Terence Tao, Mathstodon, 5 and 8 Sep 2026, and his blog, 7 Sep 2026, read through 8 Oct 2026: Alpöge and Buckmaster\'s work "A remarkable achievement", for Euler and others "with a smooth forcing term", and "these authors do not quite achieve these goals yet"; on 8 Sep at 20:32 UTC, the sentence quoted in section 09 and "centuries of traditions of open science". No post assesses OpenAI\'s paper.',
+  'Karina Tsui, CNN, as carried by KSL, 9 Sep 2026: the work "began on September 1", "after hearing what it called a rumor of another Millennium Prize problem being resolved".',
+  'Carl Franzen, VentureBeat, 8 Sep 2026: Bubeck, "We began working on the Millennium problems due to viral twitter rumors that Anthropic had resolved 2 Millenium problems"; "on the order of 10,000 concurrent agents"; about 88 hours, then 17 more for Lean; the headline\'s "can\'t rule out benefitting from a researcher\'s private Codex data".',
+  'Wikipedia, "Navier-Stokes priority controversy", read 18 Oct 2026, quoting OpenAI on X, 8 Sep 2026: "no specific user data was accessed in order to solve this problem. While unlikely, we cannot rule out that de-identified data derived from their usage of our products helped improve our models"; and OpenAI\'s later word, 10 and 13 Sep, from its own investigation, that no input after 3 July could have influenced the system.',
+  'Joseph Howlett, "OpenAI\'s blockbuster Navier-Stokes proof isn\'t what we thought it was", Scientific American, 13 Oct 2026: experts agree the proof "does not follow the Spanish program"; the resemblance to Buckmaster and Alpöge\'s method "now seems merely skin-deep"; Camillo De Lellis, "I honestly don\'t see a factual resolution of this."',
+  'The Royal Society, the history of Philosophical Transactions, royalsociety.org: "the world\'s first and longest-running scientific journal", first published in March 1665.',
+  'Stan Palasek, Mathstodon, reply to Terence Tao, 8 Sep 2026, 11:51 UTC, before OpenAI\'s announcement, and Princeton Mathematics\' people page: "a serious obstruction to removing the force from a Navier-Stokes blow-up (at least whenever it takes the form of a sequence of instabilities along a lacunary sequence of frequencies)".',
+  'Zhen Lei and Xiao Ren, Fudan University, arXiv 2609.35406, 28 Sep 2026: "a readable and accessible version of the profile-construction part of OpenAI\'s manuscript"; they "regard OpenAI\'s work as a major advance".',
 ];
 ---
 <Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
@@ -47,7 +107,7 @@ const outlets: [string, boolean[]][] = [
       <Masthead right={ed.note} />
       <div class="grid cover-grid">
         <h1 class="c-full display" data-flex="cursor">The <span class="acid">Hand</span><br><span class="wide">In the</span><br>Water</h1>
-        <p class="c-a lede">OpenAI opened door C.<br>The world reported door A.</p>
+        <p class="c-a lede">OpenAI opened doors C and D.<br>Most headlines did not say which.</p>
       </div>
       <div class="foot mono cover-foot">
         <span>{ed.dateLabel} · {SITE.author}</span>
@@ -57,69 +117,69 @@ const outlets: [string, boolean[]][] = [
 
     <Section n="01" title="The post" acid id="post">
       <div class="c-a prose">
-        <p>Just before midnight on Monday, a mathematician at New York University hit post.</p>
-        <p>Tristan Buckmaster had spent months on a problem worth a million dollars. He had used OpenAI's coding tool the whole time. On Saturday, OpenAI announced it had finished the job.</p>
+        <p>Just before midnight on Monday, a mathematician at New York University hit post. <span class="cite">{c(1, 2, 3)}</span></p>
+        <p>Tristan Buckmaster had spent months on a problem worth a million dollars. He had used OpenAI's coding tool the whole time. By OpenAI's own account, its machines reached a proof on Saturday. <span class="cite">{c(2, 3, 4, 5)}</span></p>
         <p>What he wrote that night is the second most interesting thing about this story.</p>
-        <p class="beat mal">The first is that almost nobody who reported it told you which problem was solved.</p>
-        <p>The Navier–Stokes equations describe how fluids move. They are the reason a weather model works at all, and the reason turbulence is still the last open wound in classical physics. In 2000 the Clay Mathematics Institute put a million dollars on one question about them and made it one of seven Millennium Prize Problems.</p>
-        <p>Ninety years ago, Jean Leray proved something unsettling. He showed that solutions to these equations always exist in a weak sense, and then admitted he could not rule out that they tear themselves apart. Nobody has closed that gap since.</p>
-        <p>On Tuesday the world was told a machine closed it in eighty-eight hours.</p>
+        <p class="beat mal">The first is that most headlines never said which problem was solved.</p>
+        <p>The Navier-Stokes equations describe how fluids move. They are the reason a weather model works at all, and the reason turbulence is still not understood. In 2000 the Clay Mathematics Institute put a million dollars on one question about them and made it one of seven Millennium Prize Problems. <span class="cite">{c(6, 7, 8, 9)}</span></p>
+        <p>Ninety years ago, Jean Leray proved something unsettling. He showed that solutions to these equations always exist in a weak sense, and then admitted he could not rule out that they tear themselves apart. Nobody has closed that gap since. <span class="cite">{c(6, 10)}</span></p>
+        <p>On Tuesday the world was told a machine closed it in eighty-eight hours. <span class="cite">{c(1)}</span></p>
         <p><strong>That is not what happened.</strong> What happened is more interesting, and it turns entirely on a single word that no headline had room for.</p>
       </div>
       <Rail items={[
-        ['The claim', 'OpenAI, 8 Sep 2026: an internal system produced a proof that Navier–Stokes dynamics <b>can develop a singularity in finite time</b>.'],
-        ['The paper', '<b>166 pages.</b> Title: Finite Time Blowup for Navier–Stokes. Author line reads only <b>OpenAI</b>. No academic co-authors.'],
-        ['The prize', 'OpenAI says it does <b>not intend to claim</b> the Millennium Prize. Clay has not commented and still lists the problem as unsolved.'],
-        ['The age', 'Headlines say a 90-year-old problem. The equations are roughly <b>200</b> years old. The 90 is Leray, 1934.'],
+        ['The claim', `OpenAI, 8 Sep 2026: an internal system produced a proof that Navier-Stokes dynamics <b>can develop a singularity in finite time</b>. <span class="cite">${c(4, 5, 10)}</span>`],
+        ['The paper', `<b>166 pages.</b> Title: Finite Time Blowup for Navier-Stokes. Author line reads only <b>OpenAI</b>. No academic co-authors. <span class="cite">${c(10)}</span>`],
+        ['The prize', `OpenAI says it does <b>not intend to claim</b> the Millennium Prize. On 11 September Clay noted the announcement that the problem "has apparently been settled", said its rules decide credit, and now lists it as active. <span class="cite">${c(9, 11, 12)}</span>`],
+        ['The age', `Headlines say a 90-year-old problem. The equations are roughly <b>200</b> years old. The 90 is Leray, 1934. <span class="cite">${c(10, 13)}</span>`],
       ]} />
     </Section>
 
     <Section n="02" title="Four doors" ground="bottle" id="doors">
       <div class="c-wide prose">
-        <p>Charles Fefferman wrote the official rules in 2000. Most people think the problem asks one question. It asks four, and you only have to answer one of them to be paid.</p>
+        <p>Charles Fefferman wrote the official problem statement in 2000. Most people think the problem asks one question. It asks four, and you only have to answer one of them. <span class="cite">{c(1, 6, 14)}</span></p>
       </div>
       <div class="c-full field doors" role="group" aria-label="The four admissible answers">
         <p class="mono-b bracket">f = 0 · Nobody touches the water</p>
-        <p class="mono-b bracket shock">f ≠ 0 · A hand is allowed</p>
+        <p class="mono-b bracket shock">f smooth · A hand is allowed</p>
         <div class="door"><span class="display letter" aria-hidden="true">A</span><p><span class="sr">Door A: </span>Open space stays smooth forever</p></div>
         <div class="door"><span class="display letter" aria-hidden="true">B</span><p><span class="sr">Door B: </span>A looped box stays smooth forever</p></div>
         <div class="door open"><span class="display letter shock" aria-hidden="true">C</span><p><span class="sr">Door C: </span>Open space can be torn apart</p></div>
-        <div class="door"><span class="display letter" aria-hidden="true">D</span><p><span class="sr">Door D: </span>A looped box can be torn apart</p></div>
-        <p class="mono-b shock went">OpenAI went through door C</p>
-        <p class="mono cap">Clay Millennium Prize · Navier–Stokes · the four admissible answers</p>
+        <div class="door open"><span class="display letter shock" aria-hidden="true">D</span><p><span class="sr">Door D: </span>A looped box can be torn apart</p></div>
+        <p class="mono-b shock went">OpenAI went through doors C and D</p>
+        <p class="mono cap">Clay Millennium Prize · Navier-Stokes · the four admissible answers <span class="cite">{c(6, 10, 15)}</span></p>
       </div>
       <div class="rule"></div>
       <div class="c-l prose">
-        <p>Doors A and B are the ones everybody pictures. They say water left completely alone stays smooth forever, and they ask you to prove it. Nothing pushes. Nothing stirs.</p>
+        <p>Doors A and B are the ones everybody pictures. They say water left completely alone stays smooth forever, and they ask you to prove it. Nothing pushes. Nothing stirs. <span class="cite">{c(6, 14)}</span></p>
       </div>
       <div class="c-r prose">
-        <p>Doors C and D are different. They let you apply an outside force to the fluid and ask only that you make something break. Build the push, break the water, collect the money.</p>
+        <p>Doors C and D are different. They let you apply an outside force to the fluid and ask only that you make something break. Build the push, break the water, and you have answered the question. <span class="cite">{c(6, 16)}</span></p>
       </div>
       <div class="c-wide prose">
-        <p class="beat">You never had to answer the question everyone is asking. You only had to answer one of the four.</p>
-        <p>OpenAI opened the third door, the one marked in rose above. That is a legitimate answer to a real Millennium question and it deserves the attention it is getting. It is also not the question anyone outside the field thinks was being asked, and nobody reading a headline could reasonably be expected to know the difference.</p>
+        <p class="beat">You never had to answer the question everyone is asking.<br>You only had to answer one of the four.</p>
+        <p>OpenAI opened the third and fourth doors, C and D. That is a legitimate answer to a real Millennium question and it deserves the attention it is getting. It is also not the question anyone outside the field thinks was being asked, and nobody reading a headline could reasonably be expected to know the difference. <span class="cite">{c(10, 14, 15)}</span></p>
       </div>
     </Section>
 
     <Section n="03" title="The hand<br>in the water" acid id="hand">
       <div class="c-a prose">
         <p>A forcing term is a hand.</p>
-        <p>It is an outside push applied to the fluid at every point, smooth, and in this case switched off outside a small patch of space and a short window of time. Stir a cup of coffee and your spoon is a forcing term.</p>
-        <p>OpenAI's theorem builds one very particular push. Under that push, in finite time, the speed of the fluid runs away to infinity while its total energy stays bounded. The water tears. The hand is what tore it.</p>
-        <p><strong>Door A asks whether water tears itself. Door C asks whether water can be torn.</strong></p>
+        <p>It is an outside push, smooth, and in this case switched off outside a bounded region of space and a bounded window of time. Stir a cup of coffee and your spoon is a forcing term. <span class="cite">{c(1, 10)}</span></p>
+        <p>OpenAI's theorem builds one very particular push. Under that push, in finite time, the speed of the fluid runs away to infinity while its total energy stays bounded. The water tears. The hand is what tore it. <span class="cite">{c(10, 17)}</span></p>
+        <p><strong>Door A asks whether water tears itself. Door C asks whether water can be torn.</strong> <span class="cite">{c(6)}</span></p>
         <p>That is the whole story, and it is the one thing a headline cannot fit.</p>
       </div>
       <Rail items={[
-        ['Does it count', 'Yes. Fefferman\'s statement explicitly permits a smooth force for C and D. OpenAI\'s force is <b>compactly supported</b>, which exceeds what the rules demand.'],
-        ['Does it settle the famous one', 'No. A and B require <b>no force at all</b>. They are untouched.'],
-        ['Said better', 'Scientific American: the Clay problem as written is solved, but the Clay problem as most experts imagine it lacks the very piece the method depends on.'],
+        ['Does it count', `If the proof holds, yes. Fefferman's statement explicitly permits a smooth force for C and D, and OpenAI's force is <b>compactly supported</b>, which exceeds what the statement demands. <span class="cite">${c(6, 10)}</span>`],
+        ['Does it settle the famous one', `No. A and B require <b>no force at all</b>. They are untouched. <span class="cite">${c(6, 14)}</span>`],
+        ['Said better', `Scientific American: the Clay problem as written is solved, but the Clay problem as most experts imagine it lacks the very piece the method depends on. <span class="cite">${c(3, 14)}</span>`],
       ]} />
       <div class="rule"></div>
       <h3 class="c-full display h3">Why ninety years of attempts broke here</h3>
       <div class="c-a prose">
-        <p>In two dimensions, water behaves. In three, it might not, and the difference has a name. A spinning tube of fluid in three dimensions can be pulled thin. Pull it thin and it spins faster, the way a skater pulls in her arms. Faster spin pulls harder. It feeds itself. Two dimensions forbid the move entirely.</p>
-        <p>In 2014 Terence Tao built a fake Navier–Stokes, close enough to the real one to share its energy budget, and proved the fake one blows up. The point was never the fake equation. The point was that any proof leaning on the energy budget alone is dead on arrival, because a doomed equation passes the identical test.</p>
-        <p>He called it the supercriticality barrier. It is the wall every serious attempt has hit.</p>
+        <p>In two dimensions, water behaves. In three, it might not, and the difference has a name. A spinning tube of fluid in three dimensions can be pulled thin. Pull it thin and it spins faster, the way a skater pulls in her arms. Faster spin pulls harder. It feeds itself. Two dimensions forbid the move entirely. <span class="cite">{c(6, 10, 18)}</span></p>
+        <p>In 2014 Terence Tao built a fake Navier-Stokes, close enough to the real one to share its energy budget, and proved the fake one blows up. The point was never the fake equation. The point was that any proof leaning on the energy budget alone is dead on arrival, because a doomed equation passes the identical test. <span class="cite">{c(19)}</span></p>
+        <p>He called it the supercriticality barrier. It is the wall every serious attempt has hit. <span class="cite">{c(19)}</span></p>
       </div>
       <div class="c-b dims">
         <p class="mono mal">Two dimensions</p>
@@ -137,7 +197,7 @@ const outlets: [string, boolean[]][] = [
         <div class="c-full">
           <p class="mono-b">04 · What it cost</p>
           <p class="num acid figure" aria-hidden="true">88</p>
-          <h2 class="lede" id="cost-h">Eighty-eight hours of wall clock, start to finish</h2>
+          <h2 class="lede" id="cost-h">Eighty-eight hours from the first agent launched to the answer</h2>
         </div>
         <Stats class="c-l" items={[
           ['10,000', 'concurrent agents on this one problem'],
@@ -147,38 +207,39 @@ const outlets: [string, boolean[]][] = [
         ]} />
         <Stats class="c-r" items={[
           ['341,000', 'lines of Lean 4 formalisation'],
-          ['17', 'further hours to machine-check it'],
-          ['~50', 'hours and 100 agents for the Euler warm-up'],
-          ['4', 'days between announcement and the rumour that started it'],
+          ['17', 'further hours to write it in Lean and check it'],
+          ['~50', 'hours and nearly 100 agents for the Euler disproof, inside the 88'],
+          ['7', 'days between the rumour that started it and the announcement'],
         ]} />
+        <p class="c-full mono">From OpenAI's announcement and paper; lines of code counted in the repository as released, comments and blank lines left out <span class="cite">{c(1, 4, 10, 15)}</span></p>
         <div class="rule acid"></div>
         <div class="c-wide prose">
-          <p>The loudest number is not the interesting one. Before this run, roughly a hundred agents spent about fifty hours and took down the regularity problem for the Euler equations, which strips out viscosity entirely. Inside the building that was treated as a warm-up.</p>
-          <p>On cost, OpenAI said only <strong>millions of dollars</strong>. Every dollar figure you have seen since, from six million to forty, is an outsider multiplying token counts by public API prices. Some of those estimates price the whole multi-problem sprint, not this proof. Treat them as arithmetic, not disclosure.</p>
+          <p>The loudest number is not the interesting one. Within the same eighty-eight hours, roughly a hundred agents spent about fifty hours disproving regularity for the unforced Euler equations, which strip out viscosity entirely. Only after that did OpenAI move agents from other open problems onto Navier-Stokes. <span class="cite">{c(1, 4, 20)}</span></p>
+          <p>On cost, OpenAI said only <strong>millions of dollars</strong>. Every dollar figure you have seen since, from six million to forty, is an outsider multiplying token counts by public API prices. Some of those estimates price the whole multi-problem sprint, not this proof. Treat them as arithmetic, not disclosure. <span class="cite">{c(1, 21, 22, 23, 24)}</span></p>
         </div>
       </div>
     </section>
 
     <Section n="05" title="What a proof<br>checker checks" id="lean">
       <div class="c-a prose">
-        <p>Three hundred and forty one thousand lines of Lean 4 sit on GitHub. They compile. The machine agrees the argument is valid.</p>
-        <p>Here is the part every engineer already knows in their bones. A proof assistant returns exactly one bit. It tells you the theorem follows from the assumptions you wrote down. It does not tell you that the theorem you wrote down is the theorem you meant.</p>
-        <p class="beat acid">The tests pass. Nobody has published a review of the spec.</p>
-        <p>Somebody credible has to read the formal statement, line by line, and confirm it encodes Fefferman's door C and not a cousin of it. As of this writing no named expert in partial differential equations or in Lean has put their name to that confirmation in public.</p>
+        <p>About 341,000 lines of Lean 4 went up on GitHub on 8 September. They compile. The machine agrees the Lean proof is valid, and a paper of 6 October shows that proof departs from the 166-page one in places. <span class="cite">{c(15, 25, 26)}</span></p>
+        <p>Here is the part every engineer already knows in their bones. A proof assistant returns exactly one bit. It tells you the theorem follows from the assumptions you wrote down. It does not tell you that the theorem you wrote down is the theorem you meant. <span class="cite">{c(1)}</span></p>
+        <p class="beat acid">The tests pass. The spec is not OpenAI's.</p>
+        <p>Somebody credible has to read the formal statement, line by line, and confirm it encodes Fefferman's door C and not a cousin of it. The statement it proves was written and reviewed in public before the proof, and a named outside check found no mathematical change in OpenAI's copy. No named specialist in partial differential equations has signed it since. <span class="cite">{c(1, 15, 25, 27)}</span></p>
         <p>This is not a reason to assume the proof is wrong. It is a reason to notice that the loudest evidence being waved around, the green compile, is evidence for a narrower claim than the one being celebrated.</p>
-        <p>Anthropic hit a version of the same wall four days earlier and handled it differently. Its model produced a machine-checked Fermat's Last Theorem, thirteen million lines of Lean, and Kevin Buzzard at Imperial College went on the record about what it did and did not establish. A named human vouched for the statement. That step is the whole ballgame and it has not happened here yet.</p>
+        <p>Anthropic hit the same wall four days earlier. It also matched its statement to one written beforehand, and it had a named outside expert review the proof. Its model produced a machine-checked Fermat's Last Theorem, thirteen million lines of Lean, and Kevin Buzzard at Imperial College went on the record that it proves the theorem from the axioms alone. A named human vouched for the statement. Here the statement was vouched for before the proof existed. What is missing is a named expert who has reviewed the proof and vouched for it, as Buzzard did for Fermat. <span class="cite">{c(27, 28)}</span></p>
       </div>
       <Rail items={[
-        ['One bit', 'Lean answers: <b>does this follow?</b> It never answers: <b>is this the right question?</b>'],
-        ['The gap', 'Formal verification moves trust from the proof to the <b>statement</b>. The statement is still read by people.'],
-        ['What is public', 'Repository <b>openai/NavierStokesAndEuler</b>. What is not public is a named expert\'s audit of what it asserts.'],
-        ['Not the same thing', 'A green build is a <b>fact</b>. A solved Millennium Problem is a <b>judgment</b>, and Clay reserves it for humans.'],
+        ['One bit', `Lean answers: <b>does this follow?</b> It never answers: <b>is this the right question?</b> <span class="cite">${c(1)}</span>`],
+        ['The gap', `Formal verification moves trust from the proof to the <b>statement</b>. The statement is still read by people. <span class="cite">${c(1)}</span>`],
+        ['What is public', `Repository <b>openai/NavierStokesAndEuler</b>. Its door C is Formal Conjectures' statement, reviewed in public before the proof; the repository marks its own review self-assessed. <span class="cite">${c(15, 27)}</span>`],
+        ['Not the same thing', `A green build is a <b>fact</b>. A solved Millennium Problem is a <b>judgment</b>, and Clay reserves it for humans. <span class="cite">${c(12, 16)}</span>`],
       ]} />
     </Section>
 
     <Section n="06" title="Telephone" ground="bottle" acid id="telephone">
       <div class="c-wide prose">
-        <p>Four caveats leave OpenAI's own page intact. The force is required. Nobody has verified it. Clay has not accepted it. There is a priority fight. Watch which ones survive the trip.</p>
+        <p>Four caveats travel with this story. OpenAI's own page carries two, the force and the fight, and says it will not claim the prize. The force is required. No referee has checked it. Clay has not accepted it. There is a priority fight. Watch which ones survive the trip. <span class="cite">{c(1, 4, 10, 12, 20)}</span></p>
       </div>
       <div class="c-full field scroll" tabindex="0" role="region" aria-label="Which caveats each outlet carried">
         <table>
@@ -190,111 +251,120 @@ const outlets: [string, boolean[]][] = [
             ))}
           </tbody>
         </table>
-        <p class="mono mal" style="margin-top:16px">Filled = carried · empty = not carried · a reading of the coverage, not a metric</p>
+        <p class="mono mal" style="margin-top:16px">Filled = carried · empty = not carried · a reading of the coverage, not a metric <span class="cite">{c(1, 3, 4, 29, 30, 31)}</span></p>
       </div>
       <div class="c-a prose">
-        <p>Nobody lied. The BBC says plainly that the work is unverified and that Clay has not accepted it. The trade piece that pivoted to healthcare warns its readers against rebuilding anything around an unverified headline.</p>
-        <p>Look at the column that empties first. It is the one that needs a sentence of mathematics to explain. Every other caveat fits inside a clause, so every other caveat survived. That is not editorial bias. That is a word budget behaving exactly as a word budget behaves.</p>
+        <p>Nobody lied. The BBC says plainly that the work is unverified and that Clay has not accepted it. The trade piece that pivoted to healthcare warns its readers against rebuilding anything around an unverified headline. <span class="cite">{c(30, 31)}</span></p>
+        <p>Look at what went missing. The short pieces dropped the force, the caveat that needs a sentence of mathematics. The long science pieces kept it and dropped Clay. <span class="cite">{c(1, 3, 29, 30)}</span></p>
       </div>
       <div class="c-b prose">
-        <p class="beat">Caveats do not die of malice. They die of word count.</p>
-        <p>Notice what grew to replace it. By the time the story reached the vertical press it had sprouted a section on healthcare research, which is speculation bolted to a result that changes nothing in any laboratory on earth.</p>
+        <p class="beat">The force died of word count.<br>The Clay caveat went missing from pieces that had room for it.</p>
+        <p>Notice what grew instead. By the time the story reached the vertical press it had sprouted a section on healthcare research, which is speculation bolted to a result that changes nothing in any laboratory on earth. <span class="cite">{c(1, 31)}</span></p>
       </div>
     </Section>
 
     <Section n="07" title="Page fifty six" id="page56">
       <div class="c-a prose">
-        <p>In 2014 the Kazakh mathematician Mukhtarbay Otelbaev announced he had solved Navier–Stokes. Serious people took it seriously. Then he emailed Stephen Montgomery-Smith.</p>
+        <p>In 2014 the Kazakh mathematician Mukhtarbay Otelbaev announced he had solved Navier-Stokes. Serious people took it seriously. Then he emailed Stephen Montgomery-Smith. <span class="cite">{c(32, 33, 34)}</span></p>
       </div>
       <Rail items={[
-        ['Also in the ground', '<b>Penny Smith, 2006.</b> Claim withdrawn for an error.'],
-        ['Survival rate', 'Announced Millennium solutions that went the distance: <b>one</b>. Poincaré. That is the entire list.'],
+        ['Also in the ground', `<b>Penny Smith, 2006.</b> Claim withdrawn for an error. <span class="cite">${c(35)}</span>`],
+        ['Survival rate', `Announced Millennium solutions that went the distance: <b>one</b>. Poincaré. That is the entire list. <span class="cite">${c(9)}</span>`],
       ]} />
       <div class="c-full">
-        <Pull src="Mukhtarbay Otelbaev, 2014">To my shame, on page 56 the inequality (6.34) is incorrect therefore the proposition 6.3 (p. 54) isn't proved. I am so sorry.</Pull>
+        <Pull src={`Mukhtarbay Otelbaev, 2014 ${c(34)}`}>To my shame, on the page 56 the inequality (6.34) is incorrect therefore the proposition 6.3 (p. 54) isn't proved. I am so sorry.</Pull>
       </div>
       <div class="c-a prose">
-        <p>Grigori Perelman posted his Poincaré proof in 2002. It was right. Three separate teams then spent years writing out the verification so the field could check it, and Clay paid in 2010.</p>
-        <p>Eight years, for a proof that was correct the day it appeared.</p>
-        <p>Clay's own rules require refereed publication, then a two year wait, then general acceptance by the mathematical community. Run that clock from a paper that has not been submitted anywhere.</p>
+        <p>Grigori Perelman posted his Poincaré proof in 2002 and 2003. It was right. Three separate teams then spent years writing out the verification so the field could check it, and Clay awarded him the prize in 2010. He turned it down. <span class="cite">{c(36, 37)}</span></p>
+        <p>More than seven years, for a proof that was correct the day it appeared. <span class="cite">{c(36)}</span></p>
+        <p>Clay's own rules require publication in a qualifying outlet, then a two year wait, then general acceptance by the mathematical community. Run that clock from a paper no journal has published. <span class="cite">{c(10, 16)}</span></p>
       </div>
       <div class="c-b">
-        <p class="beat mal">The earliest this can be an accepted Millennium result is 2028, and only if it is right.</p>
+        <p class="beat mal">The earliest this can be an accepted Millennium result is 2028,<br>and only if it is right.</p>
       </div>
       <div class="c-full timeline" role="group" aria-label="Verification timelines">
-        <p class="mono mal lane-label" style="--l:0%">Perelman · posted to paid · 8 years</p>
+        <p class="mono mal lane-label" style="--l:0%">Perelman · first preprint to prize · 7 years</p>
         <div class="lane perelman" style="--l:0%;--w:30.8%"><span class="sr">2002 to 2010</span></div>
         <div class="lane window" style="--l:92.3%;--w:7.7%"><span class="sr">2026 to 2028</span></div>
         <p class="mono acid lane-label right">Earliest possible window</p>
         <div class="axis">
           <span class="mono" style="--l:0%">2002</span><span class="mono" style="--l:15.4%">2006</span><span class="mono" style="--l:30.8%">2010</span><span class="mono" style="--l:92.3%">2026</span><span class="mono" style="--l:100%">2028</span>
         </div>
-        <p class="mono cap">Verification takes the time it takes</p>
+        <p class="mono cap">Verification takes the time it takes <span class="cite">{c(16, 36)}</span></p>
       </div>
     </Section>
 
     <Section n="08" title="Four days" ground="bottle" id="fourdays">
       <div class="c-a prose">
         <p>This is a sequence, not an accusation. Read it and decide for yourself what it means.</p>
-        <p>In March, OpenAI closed the largest private technology financing on record: a hundred and twenty two billion dollars at an eight hundred and fifty two billion valuation. In June it filed confidentially for an offering aimed at a trillion. In May, Anthropic passed it on paper at nine hundred and sixty five billion.</p>
-        <p>On the fourth of September, Anthropic announced a machine-checked proof of Fermat's Last Theorem. On the eighth, OpenAI announced Navier–Stokes.</p>
-        <p>There is a precedent for how this company handles a scoreboard. In July 2025 it announced a gold-medal score at the International Mathematical Olympiad, graded by a panel it assembled itself, published before the closing ceremony and reportedly against the organisers' wishes. Google DeepMind posted the same score and had it certified by the olympiad. Same number. Different epistemics.</p>
+        <p>In March, OpenAI closed what it called the largest funding round in Silicon Valley history: a hundred and twenty two billion dollars at an eight hundred and fifty two billion valuation. In June it said it had filed confidentially for an offering, reportedly at up to a trillion. In May, Anthropic passed it on paper at nine hundred and sixty five billion. <span class="cite">{c(38, 39, 40, 41)}</span></p>
+        <p>On the fourth of September, Anthropic announced a machine-checked proof of Fermat's Last Theorem. On the eighth, OpenAI announced Navier-Stokes. <span class="cite">{c(1, 28)}</span></p>
+        <p>There is a precedent for how this company handles a scoreboard. In July 2025 it announced a gold-medal score at the International Mathematical Olympiad, graded by a panel it assembled itself, published just after the closing ceremony and reportedly against the organisers' wishes. Google DeepMind posted the same score and had it certified by the olympiad. Same number. Different epistemics. <span class="cite">{c(42, 43, 44, 45)}</span></p>
         <p class="beat acid">Announce fast. Grade yourself. Let the correction arrive later, to fewer people.</p>
       </div>
       <Rail items={[
-        ['Mar 2026', '$122B raised at <b>$852B</b>. Largest private tech round ever closed.'],
-        ['May 2026', 'Anthropic valued at <b>$965B</b>, ahead of OpenAI.'],
-        ['Jun 2026', 'Confidential S-1 filed. Reported target: <b>$1T</b>.'],
-        ['4 Sep 2026', 'Anthropic ships Fermat\'s Last Theorem in Lean. <b>13M lines.</b>'],
-        ['8 Sep 2026', 'OpenAI announces Navier–Stokes.'],
+        ['Mar 2026', `$122B raised at <b>$852B</b>. The largest round in Silicon Valley history, OpenAI said. <span class="cite">${c(38)}</span>`],
+        ['May 2026', `Anthropic valued at <b>$965B</b>, ahead of OpenAI. <span class="cite">${c(41)}</span>`],
+        ['Jun 2026', `Confidential S-1 announced. Reported target: <b>up to $1T</b>. <span class="cite">${c(39, 40)}</span>`],
+        ['4 Sep 2026', `Anthropic ships Fermat's Last Theorem in Lean. <b>13M lines.</b> <span class="cite">${c(28)}</span>`],
+        ['8 Sep 2026', `OpenAI announces Navier-Stokes. <span class="cite">${c(1)}</span>`],
       ]} />
       <div class="rule"></div>
       <div class="c-wide prose">
-        <p>None of this makes the mathematics wrong. Incentives do not refute theorems. They do tell you how hard to squint at a claim that arrived with a press call attached and no referee in sight, and how much weight to put on a superlative that has not yet been checked by anybody outside the building.</p>
+        <p>None of this makes the mathematics wrong. Incentives do not refute theorems. They do tell you how hard to squint at a claim that arrived with a press call attached and no referee in sight, and how much weight to put on a superlative still waiting for its first referee. <span class="cite">{c(10, 29, 46)}</span></p>
       </div>
     </Section>
 
     <Section n="09" title="The input<br>was a rumour" acid id="rumour">
       <div class="c-a prose">
-        <p>Terence Tao has not assessed OpenAI's manuscript. He praised different work, by other people, and said clearly that it had not reached Navier–Stokes. If you saw his name attached to an endorsement this week, you saw a misreading.</p>
+        <p>Terence Tao has not assessed OpenAI's manuscript. He praised different work, by other people, and said clearly that it had not reached Navier-Stokes. If you saw his name attached to an endorsement this week, you saw a misreading. <span class="cite">{c(46, 47)}</span></p>
         <p>What he did say is the part that should keep the builders awake.</p>
       </div>
       <Rail items={[
-        ['Started when', 'OpenAI says the effort began <b>1 September</b>, after hearing a rumour that two Millennium problems had been resolved.'],
-        ['The disputed part', 'Buckmaster says he learned on 3 September that word of his progress reached OpenAI. OpenAI says it used no specific user data, while conceding it <b>cannot rule out</b> that de-identified usage data helped train the model.'],
-        ['Unresolved', 'Both accounts are public. Neither has been established. Treat it as <b>contested</b>, not settled.'],
+        ['Started when', `OpenAI says the effort began <b>1 September</b>, after hearing a rumour that two Millennium problems had been resolved. <span class="cite">${c(4, 48, 49)}</span>`],
+        ['The disputed part', `Buckmaster says he wrote to OpenAI on 3 September after tips that word of his progress had reached it. OpenAI says it used no specific user data, while conceding it <b>cannot rule out</b> that de-identified usage data helped train the model. <span class="cite">${c(2, 49, 50)}</span>`],
+        ['Unresolved', `Both accounts are public. Neither has been established. Treat it as <b>contested</b>, not settled. <span class="cite">${c(2, 50, 51)}</span>`],
       ]} />
       <div class="c-full">
-        <Pull src="Terence Tao, September 2026">Even the rumor of someone working on a problem can trigger a massive amount of AI-powered effort to flatten it before the original research project has time to reach its full potential.</Pull>
+        <Pull src={`Terence Tao, September 2026 ${c(47)}`}>We have now seen that even the rumor of someone working on a problem can trigger a massive amount of AI-powered effort to flatten it before the original research project has time to reach its full potential.</Pull>
       </div>
       <div class="c-a prose">
-        <p>Sit with what OpenAI volunteered about its own timeline. The trigger was not a paper. It was not a public preprint. It was a rumour that somebody was close.</p>
-        <p>Run that forward. If saying out loud what you are working on summons ten thousand agents to get there first, the rational move is to stop saying it. Open science runs on the exact opposite habit, and it has run on it for four hundred years.</p>
+        <p>Sit with what OpenAI volunteered about its own timeline. The trigger was not a paper. It was not a public preprint. It was a rumour that somebody had already solved two Millennium problems. <span class="cite">{c(48, 49)}</span></p>
+        <p>Run that forward. If saying out loud what you are working on summons ten thousand agents to get there first, the rational move is to stop saying it. Open science runs on the exact opposite habit, and it has for centuries. <span class="cite">{c(47, 49, 52)}</span></p>
       </div>
       <div class="c-b">
-        <p class="beat">The risk is not that machines do the mathematics. It is that people stop talking.</p>
+        <p class="beat">The risk is not that machines do the mathematics.<br>It is that people stop talking.</p>
       </div>
     </Section>
 
     <Section n="10" title="What would<br>change my mind" ground="bottle" id="mind">
       <div class="c-a prose">
         <p>Three things would move this from serious claim to settled result, in order of how much they should move you.</p>
-        <p><span class="mono-b">01</span> &nbsp;A named expert in partial differential equations or in Lean confirms in public that the formal statement encodes Fefferman's door C.</p>
+        <p><span class="mono-b">01</span> &nbsp;A named expert in partial differential equations confirms in public that the formal statement encodes Fefferman's door C.</p>
         <p><span class="mono-b">02</span> &nbsp;An outside group reproduces the check independently.</p>
         <p><span class="mono-b">03</span> &nbsp;A refereed journal accepts it.</p>
-        <p>Two things would move it the other way. A specific error surfacing in the construction, which is exactly how Otelbaev ended, on page fifty six. Or a demonstration that the method cannot survive losing the hand. Stan Palasek at Princeton has already flagged that viscosity may simply eat the growth mechanism once the force is removed.</p>
-        <p>Silence on all five, six weeks from now, is itself information.</p>
+        <p>Two things would move it the other way. A specific error surfacing in the construction, which is exactly how Otelbaev ended, on page fifty six. Or a demonstration that the method cannot survive losing the hand. That one has come. On 17 September Peter Constantin, Mihaela Ignatova and Vlad Vicol posted a proof that in OpenAI's construction the force cannot be switched off near the point where the water tears. It leaves door C standing, and it means this method cannot answer whether water tears itself. Stan Palasek at Princeton had already argued that viscosity blocks removing the force from blowups of the kind Buckmaster and Levent Alpöge were building, which, experts now say, OpenAI's resembles only on the surface. <span class="cite">{c(14, 17, 34, 51, 53)}</span></p>
+        <p>As of 18 October an outside build of the Lean code has passed, but no named specialist in partial differential equations has confirmed the formal statement and no journal has accepted it. Two Fudan mathematicians have written out part of the construction in readable form; a Cambridge and King's College London paper showed two places where the Lean code departs from the written proof, and said they may not be the only ones. <span class="cite">{c(25, 26, 27, 51, 54)}</span></p>
       </div>
       <Rail items={[
-        ['Does this change your flight', 'No. Real water is made of molecules. These singularities live inside the idealisation, not inside the ocean. Quanta put it plainly: <b>no immediate practical consequences</b>.'],
-        ['So what did happen', 'A machine wrote 166 pages of frontier mathematics in under four days, formalised it, and published the code. <b>That part is not in dispute</b> and it is enormous.'],
+        ['Does this change your flight', `No. Real water is made of molecules. These singularities live inside the idealisation, not inside the ocean. Quanta put it plainly: <b>no immediate practical consequences</b>. <span class="cite">${c(1)}</span>`],
+        ['So what did happen', `OpenAI's agents reached a proof in about 88 hours and wrote and checked it in Lean in 17 more, and OpenAI published 166 pages and the code. How much a team steered it, and how closely the code follows the paper, <b>are disputed</b>. <span class="cite">${c(2, 4, 26)}</span>`],
       ]} />
       <div class="rule acid"></div>
       <div class="c-wide prose">
-        <p>So hold both. The capability is real and it is the fastest thing that has ever happened in this field. The result is unverified, narrower than reported, and contested by the people whose method it was built on.</p>
+        <p>So hold both. The capability is real. The result is unverified, narrower than reported, and contested by the people whose method it was built on.</p>
         <p>Everything in the gap between those two sentences is a preposition.</p>
       </div>
       <p class="c-full display closing">Water that tears itself.<br><span class="acid">Water that can be torn.</span></p>
+    </Section>
+
+    <Section n="11" title="Sources" id="sources">
+      <div class="c-full">
+        <p class="mono">Bracketed figures in the sections above are from these sources. The page was issued on 11 September 2026 without them. Every source below was opened except OpenAI's own post and the BBC's page, each read through the outlets that quote or republish it, and the page corrected on 18 October 2026; the print is left as issued. Three things stay as printed because The Closest Humans answers them: naming Buckmaster without Alpöge where the print did, the rail's sentence quoting OpenAI's first word on de-identified usage data, and the closing line on who contests the result. CNBC's row left the coverage table because its article could not be read. Day counts and the age of the equations are worked from the dates in the sources.</p>
+      </div>
+      <ol class="c-full sources">
+        {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
+      </ol>
     </Section>
 
     <EditionEnd slug={ed.slug}>
@@ -313,6 +383,8 @@ const outlets: [string, boolean[]][] = [
   .figure { font-size: var(--fs-figure); color: var(--acid); margin-block: 12px 8px; }
   .h3 { font-size: clamp(26px, 3.4vw, 48px); }
   .closing { font-size: clamp(34px, 5vw, 80px); margin-top: 16px; }
+  .cite { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 500; font-size: 12px; letter-spacing: .04em; color: var(--malachite); white-space: nowrap; }
+  .bottle .cite, .field .cite { color: var(--flash); }
 
   /* Four doors. */
   .doors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px clamp(12px, 2vw, 32px); }

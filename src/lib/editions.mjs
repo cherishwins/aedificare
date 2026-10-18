@@ -180,14 +180,14 @@ const RAW = [
   {
     slug: 'ns-02', path: '/ns-02', print: 'NS-02',
     title: 'The Closest Humans', acid: 'Humans',
-    lede: 'Two men, one year, and a phone call on a Sunday.',
+    lede: 'Two men, one year, and two calls on a Sunday.',
     date: '2026-09-13', dateLabel: '13 Sep 2026',
     seed: '0902', k: [6, 11], pdf: '/pdf/ns-02.pdf',
     amends: 'ns-01',
     // The contents, as printed on the home. tools/check-contents.cjs fails
     // the build if any id or title here is missing from the built page.
     contents: [
-      { n: '01', t: 'What NS-01 got wrong', id: 'wrong' },
+      { n: '01', t: 'What The Hand in the Water got wrong', id: 'wrong' },
       { n: '02', t: 'The man who already won', id: 'won' },
       { n: '03', t: 'There is an asteroid', id: 'asteroid' },
       { n: '04', t: 'He paid for it himself', id: 'paid' },
@@ -197,12 +197,13 @@ const RAW = [
       { n: '08', t: 'The closest humans', id: 'closest' },
       { n: '09', t: 'Meanwhile, in Madrid', id: 'madrid' },
       { n: '10', t: 'Who has not spoken', id: 'silence' },
+      { n: '11', t: 'Sources', id: 'sources' },
     ],
   },
   {
     slug: 'ns-01', path: '/ns-01', print: 'NS-01',
     title: 'The Hand in the Water', acid: 'Hand',
-    lede: 'OpenAI opened door C. The world reported door A.',
+    lede: 'OpenAI opened doors C and D. Most headlines did not say which.',
     date: '2026-09-11', dateLabel: '11 Sep 2026',
     seed: '0413', k: [4, 9], pdf: '/pdf/ns-01.pdf',
     contents: [
@@ -216,6 +217,7 @@ const RAW = [
       { n: '08', t: 'Four days', id: 'fourdays' },
       { n: '09', t: 'The input was a rumour', id: 'rumour' },
       { n: '10', t: 'What would change my mind', id: 'mind' },
+      { n: '11', t: 'Sources', id: 'sources' },
     ],
   },
   {

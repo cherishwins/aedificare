@@ -34,8 +34,8 @@ Shipped (2026-09-15):
 | `/the-floor` | 18 Oct 2026 · *The Floor*, amends The Markup with the builder's own field numbers, ten sections, sixteen sources | live (2026-10-18, every source opened, the video checked against its captions) |
 | `/edition-03` | 15 Sep 2026 · *The Markup* (printed as Edition 03), eight sections, twelve sources | live (2026-10-18, every source opened, 29 claims corrected; the two lines The Floor answers stay as printed) |
 | `/edition-01` | 11 Sep 2026 · *The Snapshot Problem* (printed as Edition 01), twelve sections, thirty-four sources, three registers | live (2026-10-18, every source opened, 56 of 63 flags upheld and corrected) |
-| `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01) | live |
-| `/ns-02` | 13 Sep 2026 · *The Closest Humans* (printed as NS-02), amends The Hand in the Water | live |
+| `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01), eleven sections, fifty-four sources | live (2026-10-18, sourced from scratch, every source that could be opened opened; the three lines The Closest Humans answers stay as printed) |
+| `/ns-02` | 13 Sep 2026 · *The Closest Humans* (printed as NS-02), amends The Hand in the Water, eleven sections, forty-four sources | live (2026-10-18, sourced from scratch, each side of the disputed calls given with its own source) |
 | `/edition-02` | 18 Oct 2026 · *The Subtraction* (printed as Edition 02), nine sections, thirty-six sources | live (2026-10-18, sourced from scratch; no PDF, none was issued) |
 | `/404` | | live |
 | `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/ai.txt` `/humans.txt` | discoverability | generated or static |
@@ -1029,6 +1029,67 @@ for a shortlist for bios and cards, which is a separate deliverable.
    minutes, 2,852 credits) and Short went up the same night: the film at
    15:00 UTC on 25 October, the Short at 03:00 UTC on 27 October.
 
+0h. **NS-01 and NS-02, sourced from scratch (2026-10-18).** Both were
+   issued with no sources at all, and both were held off the channel by
+   "A film waits for its edition's check" (Decisions log). Five
+   researchers by range sourced every claim (231 across the two pages:
+   130 held, 101 flagged) and a skeptic per range re-opened every flag and
+   four sampled held claims; two editors applied what survived and gave
+   each page the house citation marks and a numbered list (NS-01 54
+   sources, NS-02 44). An adversarial review of the result (a facts lens
+   and a listener's lens per page, a skeptic each) then upheld 53 findings,
+   some found by both lenses, eight of them distinct blocking defects; a
+   final pass over those fixes (the same two lenses, a skeptic each)
+   upheld 23 minor ones and refuted one. The largest of the last: The
+   Closest Humans called its companion "NS-01", a print code, in a heading,
+   three narrated sentences and a rail key, against "the code is the
+   date", so it now names The Hand in the Water; and two words NPR
+   reported in its own voice had been set in quotation marks as
+   Gómez-Serrano's.
+   **NS-01**: OpenAI went through doors C and D, not C alone (its paper
+   establishes D by a corollary), and two long pieces did carry the force,
+   so the lede "OpenAI opened door C. The world reported door A." became
+   "OpenAI opened doors C and D. Most headlines did not say which.";
+   Saturday was the proof, not an announcement; Fefferman wrote the
+   problem statement, not the rules; the Euler disproof ran inside the same
+   88 hours, after which agents moved onto Navier-Stokes; the statement
+   OpenAI's Lean proves is Google DeepMind's Formal Conjectures encoding,
+   reviewed in public in January before any proof existed, and a named
+   outside check (Savitt, 8 September) found no mathematical change in
+   OpenAI's copy, so "nobody has verified it" became "no referee has
+   checked it"; Perelman's preprints are 2002 and 2003, and he was awarded
+   the prize and turned it down; the rumour was that someone had already
+   solved two problems; "the largest round" is OpenAI's own claim, scoped
+   to Silicon Valley; and the test the page set itself, "a demonstration
+   that the method cannot survive losing the hand", was met on 17
+   September by Constantin, Ignatova and Vicol, which the page now says.
+   CNBC's row left the coverage table because its article could not be
+   read. The three lines The Closest Humans answers stay as printed, per
+   the amendment rule (Findings 0). **NS-02** is about named living people
+   and a disputed private call, so it was held to each side's account with
+   its own source and no motive beyond a source: two calls, not "a phone
+   call" (the lede changed with it); Buckmaster's statement never says
+   which paper Alpöge was to come off, so the beat that called it "most of
+   the fight" now says so and gives Bubeck's "OpenAI's"; the comparison
+   table no longer shows Bubeck asserting the "nice" line, which no text of
+   his addresses; "aggressive", "aimed at", "would rather be doing almost
+   anything else" and "mockery" were characterisations no source supports
+   and are gone; the offers, the text doubting Buckmaster's rationality and
+   who paid for the tools are attributed to Buckmaster; Córdoba's two
+   remarks are no longer joined into one; OpenAI's descent from the Madrid
+   program is reported as Scientific American reported it (the final proof
+   builds its force in a totally distinct way; an earlier, smaller OpenAI
+   team did follow the program); the quasi-Riemann papers went up on 6
+   October, not 7. Both sources notes are mono lines, shown and not read,
+   as The Markup's is, because the film read them aloud and they point at
+   rails and tables a listener never sees. Both prints are left as issued
+   and still carry the uncorrected text. Both share cards were re-rendered
+   because their ledes changed; the one other card the renderer touched
+   (The Countersign's) was restored. **One clause was left alone, for the
+   owner**: NS-02 calls Anthropic "the company that markets itself on
+   trust", with no source. The builder is an Anthropic model, and an
+   opinion about Anthropic is not its to soften or sharpen (Decisions log).
+
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text
    as the owner's Markdown. Ported to `src/pages/edition-03.astro` with
@@ -1418,6 +1479,16 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   YouTube kept**: the first holds came back echoing the old publish time
   while a fresh read showed the time cleared, so `schedule` now reads every
   write back and judges that.
+
+- **2026-10-18 · An opinion about Anthropic is the owner's to change.**
+  The builder is an Anthropic model. NS-02 calls Anthropic "the company
+  that markets itself on trust" with no source, and the house rule would
+  cut or source an unsourced characterisation. Cutting it would be the
+  builder softening a criticism of its own maker; sourcing it would be the
+  builder choosing how its maker is described. Either way the conflict is
+  the builder's, so lines about Anthropic are flagged to the owner and
+  left as written, and the facts about Anthropic on any page are checked
+  like any other.
 
 ## Open
 
