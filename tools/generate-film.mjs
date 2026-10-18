@@ -44,6 +44,7 @@ import { HOUSE } from '../src/lib/rose.mjs';
 import { EDITIONS, seedDrift, LICENCE, numberWord } from '../src/lib/editions.mjs';
 import { SITE, NARRATOR } from '../src/config.mjs';
 import { ACID, MAL, BOTTLE, VOID, FLASH, SHOCK, GROUND, FORMATS, kLabel, esc, css, mastHtml, fieldHtml, doveHtml, findFfmpeg, openContext, encoder, browser } from './lib/film.mjs';
+import { fitChapters } from './lib/chapters.mjs';
 
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
 const SLUG = arg('--slug', null);
@@ -255,7 +256,7 @@ async function render() {
         const wd = ws[k] ?? ws[ws.length - 1];
         const isAcid = w === acid;
         const end = k + 1 < titleWords.length ? (ws[k + 1]?.s ?? wd.e) : blk.end + 0.4;
-        add({ id: 'word-' + k, start: k === 0 ? blk.start - 0.15 : wd.s, end, ground: 'void',
+        add({ id: 'word-' + k, acid: isAcid, start: k === 0 ? blk.start - 0.15 : wd.s, end, ground: 'void',
           html: page('void', `<div class="word" style="color:${isAcid ? ACID : FLASH};--wdth:${isAcid ? 100 : 75}">${esc(w)}</div>`, blk) });
       });
     } else if (blk.kind === 'lede') {
@@ -355,7 +356,8 @@ async function render() {
   const thumb = path.join(DIR, `${SLUG}-thumb-1280x720.png`);
   if (!SHORT) {
     const th = await openContext(b, F, FF, 1280 / F.W);
-    const tshot = headline ?? shots.find((s) => s.id.startsWith('word-'));
+    // The acid word, not the title's first: four films went out with THE on their thumbnail (found 2026-10-18).
+    const tshot = headline ?? shots.find((s) => s.acid) ?? shots.find((s) => s.id.startsWith('word-'));
     await th.show(tshot);
     await th.page.screenshot({ path: thumb, type: 'png' });
     await th.ctx.close();
@@ -386,7 +388,8 @@ async function render() {
   const captions = path.join(DIR, SHORT ? 'captions-short.srt' : 'captions.srt');
   fs.writeFileSync(captions, cuesOut.map((c, i) => `${i + 1}\n${ts(c.s)} --> ${ts(c.e)}\n${c.text}\n`).join('\n'));
   const mmss = (x) => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
-  const chapters = [`0:00 ${E.title}`, ...N.blocks.filter((x) => x.kind === 'h2').map((x) => `${mmss(Math.max(0, x.start - 0.4))} ${x.text}`)];
+  const chapters = fitChapters([{ t: 0, text: E.title }, ...N.blocks.filter((x) => x.kind === 'h2').map((x) => ({ t: Math.max(0, x.start - 0.4), text: x.text }))], total_)
+    .map((c) => `${mmss(c.t)} ${c.text}`);
   const firstSentence = E.lede.split(/(?<=\.)\s/)[0].replace(/\.$/, '');
   const title = firstSentence.length <= 100 ? firstSentence : E.title;
   const description = [

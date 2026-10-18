@@ -37,6 +37,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { Readable } from 'node:stream';
+import { fitDescription } from './lib/chapters.mjs';
 
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
 const META = process.argv[2];
@@ -53,6 +54,8 @@ if (!YT_CLIENT_ID || !YT_CLIENT_SECRET || !YT_REFRESH_TOKEN) { console.error('up
 if (!['private', 'unlisted', 'public'].includes(PRIVACY)) { console.error('upload-youtube: --privacy must be private, unlisted or public'); process.exit(1); }
 
 const meta = JSON.parse(fs.readFileSync(META, 'utf8'));
+// Chapters as YouTube shows them, so a render filed before tools/lib/chapters.mjs is repaired by sending it again.
+meta.description = fitDescription(meta.description, meta.duration);
 // What the videos API refuses, said before a token is minted or a gigabyte is sent: a title over 100 characters,
 // a description over 5,000 bytes, and < or > in either (developers.google.com/youtube/v3/docs/videos).
 if ((meta.title || '').length > 100 || /[<>]/.test(meta.title || '')) { console.error(`upload-youtube: the title runs ${meta.title.length} characters${/[<>]/.test(meta.title) ? ' and holds < or >' : ''}; YouTube takes 100 and no angle brackets`); process.exit(1); }
