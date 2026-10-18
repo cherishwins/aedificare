@@ -60,7 +60,7 @@ const sources = [
   'Joseph Howlett, Scientific American, 21 Sep 2026, scientificamerican.com/article/did-openai-solve-the-wrong-navier-stokes-problem: the statement "penned in 2000 by mathematician Charles Fefferman"; OpenAI did "unambiguously solve the problem according to the Clay Institute\'s original formulation"; "When most experts think about the Navier-Stokes problem, though, it\'s without this force."; Luis Silvestre, "The Clay problem is settled, but the main problem for the Navier-Stokes equations is not."',
   'openai/NavierStokesAndEuler, GitHub, release commit 8937a8f of 8 Sep 2026 and commit f9e8bc5 of 10 Sep, read 18 Oct 2026 by anonymous clone: alternatives (C) and (D); the door C statement copied from Google DeepMind\'s Formal Conjectures; its own review marked "self-assessed"; 341,553 lines of Lean 4 in NavierStokes/ at release, not counting comments or blank lines (about 404,000 raw).',
   'Clay Mathematics Institute, Rules for the Millennium Prize Problems, adopted 26 Sep 2018, claymath.org/millennium-problems/rules and the rules PDF: publication in a Qualifying Outlet, "a refereed mathematics publication of worldwide repute" or one meeting relaxed conditions the board approves; "at least two (2) years" since publication; "general acceptance in the global mathematics community".',
-  'Constantin, Ignatova and Vicol, arXiv 2609.20803, 17 Sep 2026: in OpenAI\'s construction "the force can neither vanish identically near the singular point, nor be real analytic in the space variables".',
+  'Constantin, Ignatova and Vicol, arXiv 2609.20803, 17 Sep 2026: in OpenAI\'s construction "the force can neither vanish identically near the singular point, nor be real analytic in the space variables, locally uniformly in time".',
   'Laurent Schoeffel, "Lecture notes in fluid mechanics", arXiv 1407.3162: "the vortex stretching of the vorticity, which disappears in 2D".',
   'Terence Tao, "Finite time blowup for an averaged three-dimensional Navier-Stokes equation", arXiv 1402.0290, 3 Feb 2014, J. Amer. Math. Soc. 29 (2016), and his post on it, terrytao.wordpress.com, 4 Feb 2014: an averaged equation that "obeys the usual energy identity" blows up in finite time; the paper sets out "to formalise the \'supercriticality barrier\'", "the fundamental obstacle that has defeated all attempts".',
   'DeepLearning.AI, The Batch, 18 Sep 2026, deeplearning.ai/the-batch/inside-the-dispute-over-a-landmark-agent-driven-mathematical-proof: the Euler work inside the same sprint that began on 1 September, after which "OpenAI then shifted agents from the other problems to Navier-Stokes"; "no independent review of OpenAI\'s proof has been completed".',
@@ -69,7 +69,7 @@ const sources = [
   'Capital & Compute, 13 Sep 2026, capitalandcompute.net/blog/openai-navier-stokes-10000-agents-cost: $6.5 million as 130 billion tokens at $50 per million output tokens; $15 million for every problem tried at list price; the BBC\'s "roughly $10 million".',
   'Latent Space, AINews, 9 Sep 2026: "130B tokens (>$40M)".',
   'Rael Savitt, CrystalArchitect/navier-stokes-lean-check, GitHub, 8 Sep 2026: "The build kernel-checks with exit 0 and no sorryAx", and the proved statement is "Google DeepMind\'s pre-existing encoding of Clay alternative (C), unmodified".',
-  'Bastounis, Circelli and Hansen, King\'s College London and Cambridge, arXiv 2610.08144, 6 Oct 2026: "the formalised Lean proof does not correspond to the NL proof of blow-up", at two intermediate results, one an estimate with four derivatives that the Lean needs with five. It does not claim the paper is wrong.',
+  'Bastounis, Circelli and Hansen, King\'s College London and Cambridge, arXiv 2610.08144, 6 Oct 2026: "the formalised Lean proof does not correspond to the NL proof of blow-up", shown at two intermediate results, one an estimate with four derivatives that the Lean needs with five, and showing only two "does not mean that these are the only cases". It does not claim the paper is wrong.',
   'Google DeepMind, Formal Conjectures, GitHub: pull request #1457, opened 3 Jan 2026 and merged 15 May 2026, the Navier-Stokes statement by Tomáš Skřivan with Paul Lezeau, reviewed in public ("it looks good to us", 8 Jan 2026, after a look with Tomáš Bárta of Charles University); pull request #5361, merged 11 Sep 2026, marking (C) and (D) solved and citing an unnamed "independent expert".',
   'Anthropic, "Formalizing Fermat\'s Last Theorem", 4 Sep 2026: "the first end-to-end, computer-checked proof of FLT", 13 million lines of Lean and 29,500 intermediate theorems in 11 days; "a comparator confirmed that the theorem\'s statement matches Mathlib\'s own statement of FLT"; Kevin Buzzard: it "proves Fermat\'s Last Theorem with no assumptions other than the axioms of mathematics".',
   'Joseph Howlett, "OpenAI claims blockbuster math breakthrough amid swirl of controversy", Scientific American, 8 Sep 2026, modified 11 Sep: Bubeck at a press briefing; "For the second time ever, someone has solved one of the seven Millennium Prize Problems"; Lean "all but guarantees its correctness".',
@@ -89,7 +89,7 @@ const sources = [
   'Simon Willison, simonwillison.net/2025/Jul/21/gemini-imo, 21 Jul 2025: Noam Brown, "We announced at ~1am PT (6pm AEST), after the award ceremony concluded"; Gemini "achieved the exact same score as OpenAI, 35/42."',
   'QbitAI, as carried by 36Kr, 21 Jul 2025: OpenAI "announced the results right after the closing ceremony", while IMO coordinators had expected labs to wait a week.',
   'Google DeepMind, "Advanced version of Gemini with Deep Think officially achieves gold-medal standard at the International Mathematical Olympiad", 21 Jul 2025: 35 points, "officially graded and certified by IMO coordinators".',
-  'Jeremy Kahn, Fortune, 8 Sep 2026: Bubeck "At a press conference"; Tao had not assessed OpenAI\'s proof.',
+  'Jeremy Kahn, Fortune, 8 Sep 2026: Bubeck "said in a press conference"; Tao had not assessed OpenAI\'s proof.',
   'Terence Tao, Mathstodon, 5 and 8 Sep 2026, and his blog, 7 Sep 2026, read through 8 Oct 2026: Alpöge and Buckmaster\'s work "A remarkable achievement", for Euler and others "with a smooth forcing term", and "these authors do not quite achieve these goals yet"; on 8 Sep at 20:32 UTC, the sentence quoted in section 09 and "centuries of traditions of open science". No post assesses OpenAI\'s paper.',
   'Karina Tsui, CNN, as carried by KSL, 9 Sep 2026: the work "began on September 1", "after hearing what it called a rumor of another Millennium Prize problem being resolved".',
   'Carl Franzen, VentureBeat, 8 Sep 2026: Bubeck, "We began working on the Millennium problems due to viral twitter rumors that Anthropic had resolved 2 Millenium problems"; "on the order of 10,000 concurrent agents"; about 88 hours, then 17 more for Lean; the headline\'s "can\'t rule out benefitting from a researcher\'s private Codex data".',
@@ -156,8 +156,8 @@ const sources = [
         <p>Doors C and D are different. They let you apply an outside force to the fluid and ask only that you make something break. Build the push, break the water, and you have answered the question. <span class="cite">{c(6, 16)}</span></p>
       </div>
       <div class="c-wide prose">
-        <p class="beat">You never had to answer the question everyone is asking. You only had to answer one of the four.</p>
-        <p>OpenAI opened the third and fourth doors, the ones marked in rose above. That is a legitimate answer to a real Millennium question and it deserves the attention it is getting. It is also not the question anyone outside the field thinks was being asked, and nobody reading a headline could reasonably be expected to know the difference. <span class="cite">{c(10, 14, 15)}</span></p>
+        <p class="beat">You never had to answer the question everyone is asking.<br>You only had to answer one of the four.</p>
+        <p>OpenAI opened the third and fourth doors, C and D. That is a legitimate answer to a real Millennium question and it deserves the attention it is getting. It is also not the question anyone outside the field thinks was being asked, and nobody reading a headline could reasonably be expected to know the difference. <span class="cite">{c(10, 14, 15)}</span></p>
       </div>
     </Section>
 
@@ -214,7 +214,7 @@ const sources = [
         <p class="c-full mono">From OpenAI's announcement and paper; lines of code counted in the repository as released, comments and blank lines left out <span class="cite">{c(1, 4, 10, 15)}</span></p>
         <div class="rule acid"></div>
         <div class="c-wide prose">
-          <p>The loudest number is not the interesting one. Within the same eighty-eight hours, roughly a hundred agents spent about fifty disproving regularity for the unforced Euler equations, which strip out viscosity entirely. OpenAI turned its agents on Navier-Stokes only after that. <span class="cite">{c(1, 4, 20)}</span></p>
+          <p>The loudest number is not the interesting one. Within the same eighty-eight hours, roughly a hundred agents spent about fifty hours disproving regularity for the unforced Euler equations, which strip out viscosity entirely. Only after that did OpenAI move agents from other open problems onto Navier-Stokes. <span class="cite">{c(1, 4, 20)}</span></p>
           <p>On cost, OpenAI said only <strong>millions of dollars</strong>. Every dollar figure you have seen since, from six million to forty, is an outsider multiplying token counts by public API prices. Some of those estimates price the whole multi-problem sprint, not this proof. Treat them as arithmetic, not disclosure. <span class="cite">{c(1, 21, 22, 23, 24)}</span></p>
         </div>
       </div>
@@ -225,9 +225,9 @@ const sources = [
         <p>About 341,000 lines of Lean 4 went up on GitHub on 8 September. They compile. The machine agrees the Lean proof is valid, and a paper of 6 October shows that proof departs from the 166-page one in places. <span class="cite">{c(15, 25, 26)}</span></p>
         <p>Here is the part every engineer already knows in their bones. A proof assistant returns exactly one bit. It tells you the theorem follows from the assumptions you wrote down. It does not tell you that the theorem you wrote down is the theorem you meant. <span class="cite">{c(1)}</span></p>
         <p class="beat acid">The tests pass. The spec is not OpenAI's.</p>
-        <p>Somebody credible has to read the formal statement, line by line, and confirm it encodes Fefferman's door C and not a cousin of it. The statement it proves was written and reviewed in public before the proof, and a named outside check found OpenAI's copy unchanged. No named specialist in partial differential equations has signed it since. <span class="cite">{c(1, 15, 25, 27)}</span></p>
+        <p>Somebody credible has to read the formal statement, line by line, and confirm it encodes Fefferman's door C and not a cousin of it. The statement it proves was written and reviewed in public before the proof, and a named outside check found no mathematical change in OpenAI's copy. No named specialist in partial differential equations has signed it since. <span class="cite">{c(1, 15, 25, 27)}</span></p>
         <p>This is not a reason to assume the proof is wrong. It is a reason to notice that the loudest evidence being waved around, the green compile, is evidence for a narrower claim than the one being celebrated.</p>
-        <p>Anthropic hit the same wall four days earlier. It also matched its statement to one written beforehand, and it had a named outside expert review the proof. Its model produced a machine-checked Fermat's Last Theorem, thirteen million lines of Lean, and Kevin Buzzard at Imperial College went on the record that it proves the theorem from the axioms alone. A named human vouched for the statement. Here the statement was vouched for before the proof existed. What is missing is a named expert on the record about the proof, as Buzzard was for Fermat. <span class="cite">{c(27, 28)}</span></p>
+        <p>Anthropic hit the same wall four days earlier. It also matched its statement to one written beforehand, and it had a named outside expert review the proof. Its model produced a machine-checked Fermat's Last Theorem, thirteen million lines of Lean, and Kevin Buzzard at Imperial College went on the record that it proves the theorem from the axioms alone. A named human vouched for the statement. Here the statement was vouched for before the proof existed. What is missing is a named expert who has reviewed the proof and vouched for it, as Buzzard did for Fermat. <span class="cite">{c(27, 28)}</span></p>
       </div>
       <Rail items={[
         ['One bit', `Lean answers: <b>does this follow?</b> It never answers: <b>is this the right question?</b> <span class="cite">${c(1)}</span>`],
@@ -258,7 +258,7 @@ const sources = [
         <p>Look at what went missing. The short pieces dropped the force, the caveat that needs a sentence of mathematics. The long science pieces kept it and dropped Clay. <span class="cite">{c(1, 3, 29, 30)}</span></p>
       </div>
       <div class="c-b prose">
-        <p class="beat">The force died of word count. Clay's verdict went missing from pieces that had room for it.</p>
+        <p class="beat">The force died of word count.<br>The Clay caveat went missing from pieces that had room for it.</p>
         <p>Notice what grew instead. By the time the story reached the vertical press it had sprouted a section on healthcare research, which is speculation bolted to a result that changes nothing in any laboratory on earth. <span class="cite">{c(1, 31)}</span></p>
       </div>
     </Section>
@@ -297,13 +297,13 @@ const sources = [
     <Section n="08" title="Four days" ground="bottle" id="fourdays">
       <div class="c-a prose">
         <p>This is a sequence, not an accusation. Read it and decide for yourself what it means.</p>
-        <p>In March, OpenAI closed the largest private technology financing on record: a hundred and twenty two billion dollars at an eight hundred and fifty two billion valuation. In June it said it had filed confidentially for an offering, reportedly at up to a trillion. In May, Anthropic passed it on paper at nine hundred and sixty five billion. <span class="cite">{c(38, 39, 40, 41)}</span></p>
+        <p>In March, OpenAI closed what it called the largest funding round in Silicon Valley history: a hundred and twenty two billion dollars at an eight hundred and fifty two billion valuation. In June it said it had filed confidentially for an offering, reportedly at up to a trillion. In May, Anthropic passed it on paper at nine hundred and sixty five billion. <span class="cite">{c(38, 39, 40, 41)}</span></p>
         <p>On the fourth of September, Anthropic announced a machine-checked proof of Fermat's Last Theorem. On the eighth, OpenAI announced Navier-Stokes. <span class="cite">{c(1, 28)}</span></p>
         <p>There is a precedent for how this company handles a scoreboard. In July 2025 it announced a gold-medal score at the International Mathematical Olympiad, graded by a panel it assembled itself, published just after the closing ceremony and reportedly against the organisers' wishes. Google DeepMind posted the same score and had it certified by the olympiad. Same number. Different epistemics. <span class="cite">{c(42, 43, 44, 45)}</span></p>
         <p class="beat acid">Announce fast. Grade yourself. Let the correction arrive later, to fewer people.</p>
       </div>
       <Rail items={[
-        ['Mar 2026', `$122B raised at <b>$852B</b>. Largest private tech round ever closed. <span class="cite">${c(38)}</span>`],
+        ['Mar 2026', `$122B raised at <b>$852B</b>. The largest round in Silicon Valley history, OpenAI said. <span class="cite">${c(38)}</span>`],
         ['May 2026', `Anthropic valued at <b>$965B</b>, ahead of OpenAI. <span class="cite">${c(41)}</span>`],
         ['Jun 2026', `Confidential S-1 announced. Reported target: <b>up to $1T</b>. <span class="cite">${c(39, 40)}</span>`],
         ['4 Sep 2026', `Anthropic ships Fermat's Last Theorem in Lean. <b>13M lines.</b> <span class="cite">${c(28)}</span>`],
@@ -311,7 +311,7 @@ const sources = [
       ]} />
       <div class="rule"></div>
       <div class="c-wide prose">
-        <p>None of this makes the mathematics wrong. Incentives do not refute theorems. They do tell you how hard to squint at a claim that arrived with a press call attached and no referee in sight, and how much weight to put on a superlative that has not yet been checked by anybody outside the building. <span class="cite">{c(29, 46)}</span></p>
+        <p>None of this makes the mathematics wrong. Incentives do not refute theorems. They do tell you how hard to squint at a claim that arrived with a press call attached and no referee in sight, and how much weight to put on a superlative still waiting for its first referee. <span class="cite">{c(10, 29, 46)}</span></p>
       </div>
     </Section>
 
@@ -322,7 +322,7 @@ const sources = [
       </div>
       <Rail items={[
         ['Started when', `OpenAI says the effort began <b>1 September</b>, after hearing a rumour that two Millennium problems had been resolved. <span class="cite">${c(4, 48, 49)}</span>`],
-        ['The disputed part', `Buckmaster says he learned on 3 September that word of his progress reached OpenAI. OpenAI says it used no specific user data, while conceding it <b>cannot rule out</b> that de-identified usage data helped train the model. <span class="cite">${c(2, 49, 50)}</span>`],
+        ['The disputed part', `Buckmaster says he wrote to OpenAI on 3 September after tips that word of his progress had reached it. OpenAI says it used no specific user data, while conceding it <b>cannot rule out</b> that de-identified usage data helped train the model. <span class="cite">${c(2, 49, 50)}</span>`],
         ['Unresolved', `Both accounts are public. Neither has been established. Treat it as <b>contested</b>, not settled. <span class="cite">${c(2, 50, 51)}</span>`],
       ]} />
       <div class="c-full">
@@ -333,7 +333,7 @@ const sources = [
         <p>Run that forward. If saying out loud what you are working on summons ten thousand agents to get there first, the rational move is to stop saying it. Open science runs on the exact opposite habit, and it has for centuries. <span class="cite">{c(47, 49, 52)}</span></p>
       </div>
       <div class="c-b">
-        <p class="beat">The risk is not that machines do the mathematics. It is that people stop talking.</p>
+        <p class="beat">The risk is not that machines do the mathematics.<br>It is that people stop talking.</p>
       </div>
     </Section>
 
@@ -343,9 +343,8 @@ const sources = [
         <p><span class="mono-b">01</span> &nbsp;A named expert in partial differential equations confirms in public that the formal statement encodes Fefferman's door C.</p>
         <p><span class="mono-b">02</span> &nbsp;An outside group reproduces the check independently.</p>
         <p><span class="mono-b">03</span> &nbsp;A refereed journal accepts it.</p>
-        <p>Two things would move it the other way. A specific error surfacing in the construction, which is exactly how Otelbaev ended, on page fifty six. Or a demonstration that the method cannot survive losing the hand. Stan Palasek at Princeton has argued that viscosity blocks removing the force from constructions of the Córdoba and Martínez-Zoroa kind, which experts now say OpenAI's is not. <span class="cite">{c(34, 51, 53)}</span></p>
-        <p>Silence on all five, six weeks from now, is itself information.</p>
-        <p>As of 18 October no named specialist in partial differential equations has confirmed the formal statement and no journal has accepted it. Two Fudan mathematicians have rewritten part of the construction by hand; a Cambridge and King's College London paper found the Lean code departs from the written proof at two steps. <span class="cite">{c(26, 27, 51, 54)}</span></p>
+        <p>Two things would move it the other way. A specific error surfacing in the construction, which is exactly how Otelbaev ended, on page fifty six. Or a demonstration that the method cannot survive losing the hand. That one has come. On 17 September Peter Constantin, Mihaela Ignatova and Vlad Vicol posted a proof that in OpenAI's construction the force cannot be switched off near the point where the water tears. It leaves door C standing, and it means this method cannot answer whether water tears itself. Stan Palasek at Princeton had already argued that viscosity blocks removing the force from blowups of the kind Buckmaster and Levent Alpöge were building, which, experts now say, OpenAI's resembles only on the surface. <span class="cite">{c(14, 17, 34, 51, 53)}</span></p>
+        <p>As of 18 October an outside build of the Lean code has passed, but no named specialist in partial differential equations has confirmed the formal statement and no journal has accepted it. Two Fudan mathematicians have written out part of the construction in readable form; a Cambridge and King's College London paper showed two places where the Lean code departs from the written proof, and said they may not be the only ones. <span class="cite">{c(25, 26, 27, 51, 54)}</span></p>
       </div>
       <Rail items={[
         ['Does this change your flight', `No. Real water is made of molecules. These singularities live inside the idealisation, not inside the ocean. Quanta put it plainly: <b>no immediate practical consequences</b>. <span class="cite">${c(1)}</span>`],
@@ -360,8 +359,8 @@ const sources = [
     </Section>
 
     <Section n="11" title="Sources" id="sources">
-      <div class="c-wide prose">
-        <p>Bracketed figures in the sections above are from these sources. The page was issued on 11 September 2026 without them. Every source below was opened, OpenAI's own post apart, and the page corrected on 18 October 2026; the print is left as issued. Three things stay as printed because The Closest Humans answers them: the lines that name Buckmaster without Alpöge, the rail quoting OpenAI's first word on de-identified usage data, and the closing line on who contests the result. CNBC's row left the coverage table because its article could not be read. Day counts and the age of the equations are worked from the dates in the sources.</p>
+      <div class="c-full">
+        <p class="mono">Bracketed figures in the sections above are from these sources. The page was issued on 11 September 2026 without them. Every source below was opened except OpenAI's own post and the BBC's page, each read through the outlets that quote or republish it, and the page corrected on 18 October 2026; the print is left as issued. Three things stay as printed because The Closest Humans answers them: naming Buckmaster without Alpöge where the print did, the rail's sentence quoting OpenAI's first word on de-identified usage data, and the closing line on who contests the result. CNBC's row left the coverage table because its article could not be read. Day counts and the age of the equations are worked from the dates in the sources.</p>
       </div>
       <ol class="c-full sources">
         {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
