@@ -395,7 +395,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   sets each matched video's generated metadata through
   `upload-youtube.mjs --update`, so a hand upload needs no video id
   pasted back; written 2026-10-06 and tested against a mocked channel,
-  not yet against the real one),
+  then run against the real one from 2026-10-17; `retire` makes an
+  older-voice video private once its replacement is public; `schedule`
+  (2026-10-18) moves a private video's publish time or holds it with
+  `none`, so a film whose edition is still being checked, or whose render
+  is being replaced, waits without anything being deleted; it never
+  touches a video that is out and never makes one public),
   `generate-design-system.mjs` (the claude.ai/design bundle, below),
   `episode.mjs` (the news films, override 8: `check`, `sheet`, `narrate`,
   `render`; quote cards with a highlighter, maps from Natural Earth,

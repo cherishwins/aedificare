@@ -15,6 +15,10 @@
 #                  thumbnail onto every matched video (including hand uploads)
 #   action=retire  a video in an older voice goes private once its
 #                  replacement (upload with replace_old_voice) is public
+#   action=schedule  moves a private video's publish time, or holds it with
+#                  none (schedule="film-edition-01:film=2026-10-22T15:00:00Z,
+#                  film-edition-01:short=none"); never touches a video that
+#                  is out, never makes one public
 #
 # tools/youtube-channel.mjs does the work; .claude/skills/youtube/SKILL.md is
 # how a session decides which action to run. The job summary carries the
@@ -25,11 +29,11 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'probe, list, upload, sync or retire'
+        description: 'probe, list, upload, sync, retire or schedule'
         required: true
         default: list
         type: choice
-        options: [probe, list, upload, sync, retire]
+        options: [probe, list, upload, sync, retire, schedule]
       only:
         description: 'One release (film-ns-01, film-ep-softbank-975), or empty for all'
         required: false
@@ -61,8 +65,12 @@ on:
         required: false
         default: false
         type: boolean
+      schedule:
+        description: 'schedule: <release>:<film|short>=<ISO time|none>, comma-separated'
+        required: false
+        default: ''
       dry:
-        description: 'upload, sync or retire: print the plan only'
+        description: 'upload, sync, retire or schedule: print the plan only'
         required: false
         default: false
         type: boolean
@@ -112,19 +120,25 @@ jobs:
           EVERY_HOURS: ${{ inputs.every_hours }}
           DRY: ${{ inputs.dry }}
           REPLACE: ${{ inputs.replace_old_voice }}
+          SCHEDULE: ${{ inputs.schedule }}
           NARRATOR: ${{ vars.NARRATOR }}  # empty: the channel's voice from src/config.mjs
         run: |
           set -o pipefail
           args=("$ACTION")
-          [ -n "$ONLY" ] && args+=(--only "$ONLY")
+          # schedule names its own releases and needs them all loaded, so only does not narrow it.
+          [ -n "$ONLY" ] && [ "$ACTION" != "schedule" ] && args+=(--only "$ONLY")
           [ "$DRY" = "true" ] && [ "$ACTION" != "list" ] && [ "$ACTION" != "probe" ] && args+=(--dry)
           if [ "$ACTION" = "upload" ]; then
             args+=(--kinds "$KINDS" --max "$MAX" --privacy "$PRIVACY")
             [ -n "$PUBLISH_AT" ] && args+=(--publish-at "$PUBLISH_AT" --every "${EVERY_HOURS:-0}")
             [ "$REPLACE" = "true" ] && args+=(--replace-old-voice)
           fi
-          node tools/youtube-channel.mjs "${args[@]}" 2>&1 | tee youtube.log
+          [ "$ACTION" = "schedule" ] && args+=(--set "$SCHEDULE")
+          # The summary is written whatever the exit, so a failed run's page still says what was and was not done.
+          rc=0
+          node tools/youtube-channel.mjs "${args[@]}" 2>&1 | tee youtube.log || rc=$?
           { echo '## youtube: '"$ACTION"; echo; echo '```'; cat youtube.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
 
       - name: Keep the channel record
         if: always()
