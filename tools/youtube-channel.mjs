@@ -473,8 +473,11 @@ if (CMD === 'withdraw') {
     // while matching no render, and withdraw refused them).
     if (/^[\w-]{11}$/.test(x)) {
       const y = rows.find((z) => z.v.id === x);
-      const ours = y && (y.r || String(y.v.snippet.description || '').includes(`${SITE.origin}/`));
-      if (!ours) fail(`${x} is not one of this repository's videos (matched to no render, and its description does not link ${SITE.origin})`);
+      // The origin as a whole link, with or without a path: edition descriptions carry <origin>/<slug>, episode ones end on
+      // the bare origin; a longer host (aedificare.art.example, aedificare.artist) is not it.
+      const links = new RegExp(`${SITE.origin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=$|[\\s/?#])`, 'm');
+      const ours = y && (y.r || links.test(String(y.v.snippet.description || '')));
+      if (!ours) fail(`${x} is not one of this repository's videos (matched to no render, and its description carries no link to ${SITE.origin})`);
       return { tag: y.r ? y.r.tag : 'an earlier cut', kind: y.r ? y.r.meta.kind : 'unmatched', v: y.v };
     }
     const m = /^([\w.-]+):(film|short)$/.exec(x);

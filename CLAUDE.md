@@ -402,8 +402,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   is being replaced, waits without anything being deleted; it never
   touches a video that is out and never makes one public; `withdraw`
   makes a named video that is out private at once, for a film found wrong
-  after it went up (by release, or by id for an earlier cut that matches
-  no render but whose description links the apex), and `upload --replace <release>` puts a corrected
+  after it went up (by release, which names that release's current video,
+  or by video id for any earlier cut of ours: one matched to a render, in
+  an older voice or superseded, or one that matches no render but whose
+  description links the apex), and `upload --replace <release>` puts a corrected
   render up beside the video it replaces, which then reads superseded and
   is retired like an older voice, and holds the replaced video if it was
   still scheduled, so the two never both publish; what an upload could not
