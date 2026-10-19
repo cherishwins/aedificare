@@ -117,7 +117,9 @@ deletes the old file in Studio if they want it gone.
 the page): `youtube.yml action=withdraw set="film-edition-01:film"`
 makes it private now, never deleted, each write read back; an earlier cut
 still out (an older voice, or superseded) is named by its video id
-instead, and only a video matched to one of our renders can be named. Correct the
+instead, and only one of ours can be named: matched to one of our renders,
+or an earlier cut whose corrected title no longer matches but whose
+generated description still links aedificare.art. Correct the
 page and merge, then render again on `main` (`film.yml slug=<slug>`; the
 narration cache keeps the blocks that did not change, so only the
 corrected ones spend credits), then `youtube.yml action=upload

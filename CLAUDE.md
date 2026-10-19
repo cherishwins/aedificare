@@ -402,7 +402,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   is being replaced, waits without anything being deleted; it never
   touches a video that is out and never makes one public; `withdraw`
   makes a named video that is out private at once, for a film found wrong
-  after it went up, and `upload --replace <release>` puts a corrected
+  after it went up (by release, which names that release's current video,
+  or by video id for any earlier cut of ours: one matched to a render, in
+  an older voice or superseded, or one that matches no render but whose
+  description links the apex), and `upload --replace <release>` puts a corrected
   render up beside the video it replaces, which then reads superseded and
   is retired like an older voice, and holds the replaced video if it was
   still scheduled, so the two never both publish; what an upload could not
@@ -1494,6 +1497,27 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   the builder's, so lines about Anthropic are flagged to the owner and
   left as written, and the facts about Anthropic on any page are checked
   like any other.
+
+- **2026-10-19 · Seven videos turned public that no workflow touched.**
+  Between the 07:26 UTC list (every one private, the held cuts with no
+  publish time) and the 15:23 UTC list, seven films read public: The
+  Supply Cabinet (scheduled for 15:00, as planned), Edition 02's
+  corrected film (scheduled for 25 October), the old Tilt Gap cut, and
+  the uncorrected old cuts of The Hand in the Water, The Closest Humans,
+  The Snapshot Problem and The Markup's Kokoro film. No workflow ran in
+  that window and nothing here ever sets a video public, so the change
+  came from outside this repository (Studio is the likely route); the
+  owner was asked. The four uncorrected cuts were withdrawn the same
+  afternoon, private and read back, views kept, because a film with claims
+  its edition's check removed does not stay out (Decisions log, "A film
+  waits for its edition's check"). Three of them matched no render (their
+  corrected titles changed, and API uploads keep no file name), so
+  `withdraw` gained a second guard: an id whose description links the
+  apex is ours. Edition 02's film and the old Tilt Gap cut carry no
+  removed claim and were left for the owner to decide. During the
+  afternoon GitHub's run-status API lagged by up to twenty minutes while
+  the jobs had already run, so a run's job log, read directly, is the
+  truth about whether it ran.
 
 ## Open
 
