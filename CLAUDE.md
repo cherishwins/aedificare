@@ -1498,6 +1498,27 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   left as written, and the facts about Anthropic on any page are checked
   like any other.
 
+- **2026-10-19 · Seven videos turned public that no workflow touched.**
+  Between the 07:26 UTC list (every one private, the held cuts with no
+  publish time) and the 15:23 UTC list, seven films read public: The
+  Supply Cabinet (scheduled for 15:00, as planned), Edition 02's
+  corrected film (scheduled for 25 October), the old Tilt Gap cut, and
+  the uncorrected old cuts of The Hand in the Water, The Closest Humans,
+  The Snapshot Problem and The Markup's Kokoro film. No workflow ran in
+  that window and nothing here ever sets a video public, so the change
+  came from outside this repository (Studio is the likely route); the
+  owner was asked. The four uncorrected cuts were withdrawn the same
+  afternoon, private and read back, views kept, because a film with claims
+  its edition's check removed does not stay out (Decisions log, "A film
+  waits for its edition's check"). Three of them matched no render (their
+  corrected titles changed, and API uploads keep no file name), so
+  `withdraw` gained a second guard: an id whose description links the
+  apex is ours. Edition 02's film and the old Tilt Gap cut carry no
+  removed claim and were left for the owner to decide. During the
+  afternoon GitHub's run-status API lagged by up to twenty minutes while
+  the jobs had already run, so a run's job log, read directly, is the
+  truth about whether it ran.
+
 ## Open
 
 1. **Resolved 2026-09-16 16:08 UTC: the apex is primary.** The owner set
