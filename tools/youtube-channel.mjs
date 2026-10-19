@@ -111,7 +111,7 @@ const PRIVACY = arg('--privacy', 'private');
 const PUBLISH_AT = arg('--publish-at', null);
 const EVERY_H = +arg('--every', 0);
 // The channel speaks in one voice (CLAUDE.md, override 6): a render whose description names another is never uploaded.
-const { NARRATOR } = await import(new URL('../src/config.mjs', import.meta.url).href);
+const { NARRATOR, SITE } = await import(new URL('../src/config.mjs', import.meta.url).href);
 const VOICE = arg('--voice', (process.env.NARRATOR || NARRATOR).replace(/^(gemini|eleven):/, ''));
 // A render in the channel's voice matched (by file name or title, which do not change with the voice) to a video
 // whose description names no such voice is a NEW render of a video already up in an OLDER voice: never synced onto
@@ -466,12 +466,16 @@ if (CMD === 'schedule') {
 if (CMD === 'withdraw') {
   const fail = (msg) => { console.error(`youtube-channel: ${msg}`); process.exit(1); };
   const plan = [...new Set(arg('--set', '').split(',').map((x) => x.trim()).filter(Boolean))].map((x) => {
-    // A video id names one directly, for an earlier cut (an older voice, or superseded) that is still out; only a
-    // video matched to one of this repository's renders, so nothing else on the channel can be touched from here.
+    // A video id names one directly, for an earlier cut (an older voice, or superseded) that is still out. Only one of
+    // ours: matched to one of this repository's renders, or an earlier cut that no longer matches because its correction
+    // changed the title, which its generated description still marks by the site's link. The owner's own videos carry
+    // neither, so nothing else on the channel can be touched from here (19 Oct 2026: three uncorrected cuts went public
+    // while matching no render, and withdraw refused them).
     if (/^[\w-]{11}$/.test(x)) {
       const y = rows.find((z) => z.v.id === x);
-      if (!y || !y.r) fail(`${x} is not a video matched to one of this repository's renders`);
-      return { tag: y.r.tag, kind: y.r.meta.kind, v: y.v };
+      const ours = y && (y.r || String(y.v.snippet.description || '').includes(`${SITE.origin}/`));
+      if (!ours) fail(`${x} is not one of this repository's videos (matched to no render, and its description does not link ${SITE.origin})`);
+      return { tag: y.r ? y.r.tag : 'an earlier cut', kind: y.r ? y.r.meta.kind : 'unmatched', v: y.v };
     }
     const m = /^([\w.-]+):(film|short)$/.exec(x);
     if (!m) fail(`--set wants <release>:<film|short> or a video id, got "${x}"`);
