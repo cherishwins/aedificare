@@ -600,6 +600,37 @@ for a shortlist for bios and cards, which is a separate deliverable.
   piece on its frame and every pop on its frames, proved frame by frame
   against the clean render and the joined picture, the sound identical,
   and the refile writing the same description the render wrote.
+  **`source/film/the-floor.cuts.md` is the pilot's list** (2026-10-20,
+  spec step 8): 148 inserts over The Floor's clean render, 84 page shots
+  (40 of our own pages, The Floor's and The Markup's, shot offline from
+  the build; 44 of twelve outside sources), 32 cards, 10 charts, 9
+  figures, 4 quote cards and 9 pops. Measured with R4's method on the
+  film: the rose with nothing over it falls from 65.6 to 5.1 percent of
+  the time and its longest run from 37.6 s to 3.1, new pictures rise from
+  7.9 a minute to 16.9 and cuts from 13.8 to 21.7, and the longest stretch
+  in the body with no new picture falls from 40.9 s to 10.6. The Short
+  falls from 49.3 percent rose to 3.1. Choices, so nobody undoes them by
+  accident: the list's hold is six beats, 5.4 s, the point at which a
+  picture reads as standing still; cards keep to four words (sync rule
+  2); sound effects and the cold open are left out, both the owner's
+  call; the two YouTube sources (01, 16) appear only as quote cards of the
+  words the edition quotes, never fetched, so a person confirms them
+  before upload; eCFR (09) answered with its wall and is not shown.
+  Captures that failed and were replaced, not forced: Morse Micro's AES
+  and SHA-2 line is hidden like its FAQ, Meshtastic's band line sat under
+  its sticky sidebar, and The Floor's own table caption is visually
+  hidden. ISED answered 502 once and shot clean in a new run. The whole
+  film was rendered here once (32 minutes) and every insert looked at;
+  that caught a first sweep that fell outside its crop (two Meshtastic
+  rows a table apart, now two shots), a wide table cut at its last
+  column, a stat block cut mid-column, type too small to read in The
+  Markup's sources note, and two pops laid over other type (a chart's
+  title, a page's label), each replaced. **The spec's targets disagree
+  on this film**: a rose at 10 percent or less needs about 130 inserts,
+  and the clean render already brings 7.9 new pictures a minute, so new
+  scenes land near 16 a minute against the spec's 6 to 10. The list keeps
+  the rose target, because the rose is what the owner asked to see less
+  of; the scene rate is the owner's to judge on the preview.
 - `.claude/skills/youtube/SKILL.md`: how a session runs the channel (the
   credentials check, list and sync, the private lock and the two upload
   routes, what must be true before a render goes up, analytics, quota,
