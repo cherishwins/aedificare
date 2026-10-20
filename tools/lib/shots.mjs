@@ -1290,28 +1290,44 @@ export function pageSource(C, rec) {
 const pageCredit = (ps) => `${ps.n ? `[${ps.n}] ` : ''}${ps.by ? `${ps.by}, ` : ''}${ps.pub}`;
 
 /**
- * The label's type, never under the frame's floor (pageFrame's `minType`, the floor the page's own type keeps). One
- * line at the frame's size where it fits; a long one (an author, an office and its department) smaller, down to the
- * floor; longer still, two lines growing up from the same place (more where two cannot hold it at the floor), so it
- * never runs past the panel into the Short's buttons. Martian Mono at the label's width and tracking advances 0.748
- * to 0.755 em a character (measured in Chromium, 2026-10-20), so a line's width is known before a frame; 0.76 errs
- * wide, and a line that wraps is given nine tenths of its width. `w` is the line's width: the panel's, or a card's.
+ * The label's type, never under the frame's floor (pageFrame's `minType`, the floor the page's own type keeps), and
+ * its lines. One line at the frame's size where it fits; a long one (an author, an office and its department)
+ * smaller, down to the floor; longer still, two lines growing up from the same place, at the frame's size where its
+ * parts fit two (smaller, down to the floor, where they do not; more lines where two cannot hold it at the floor),
+ * so it never runs past the panel into the Short's buttons. Martian Mono at the label's width and tracking advances
+ * 0.748 to 0.755 em a character (measured in Chromium, 2026-10-20), so a line's width is known before a frame; 0.76
+ * errs wide, so the browser never wraps a line it is given. `w` is the line's width: the panel's, or a card's.
  */
+const LABEL_EM = 0.76;
 function labelType(P, text, w = P.w) {
-  const em = 0.76, n = Math.max(1, text.length), fit = (lines) => Math.floor(((lines > 1 ? 0.9 * lines : 1) * w) / (n * em));
-  if (fit(1) >= P.size) return { size: P.size, lines: 1 };
-  if (fit(1) >= P.minType) return { size: fit(1), lines: 1 };
-  let lines = 2;
-  while (fit(lines) < P.minType) lines++;
-  return { size: Math.min(P.size, fit(lines)), lines };
+  const one = Math.floor(w / (Math.max(1, text.length) * LABEL_EM));
+  if (one >= P.size) return { size: P.size, lines: [text] };
+  if (one >= P.minType) return { size: one, lines: [text] };
+  for (let size = P.size; size > P.minType; size--) { const lines = labelLines(text, size, w); if (lines.length <= 2) return { size, lines }; }
+  return { size: P.minType, lines: labelLines(text, P.minType, w) };
 }
 /**
- * A label set on more than one line breaks between its parts (the credit, the publisher, the date) where each part
- * fits a line whole: the spaces inside such a part, and the one before each separator, do not break, so a date is
- * never split from its year ("15 SEP" over "2026", The Markup's card in the Short). A part longer than a line keeps
- * its spaces and wraps.
+ * A label's lines at `size` in `w`, broken between its parts (the credit, the publisher, the date), never inside
+ * one where it fits a line whole, so a date keeps its year ("15 SEP" over "2026", The Markup's card in the Short);
+ * the separator where two parts meet at a break is left out, because a line that ended on it ("THE MARKUP ·" over
+ * "15 SEP 2026") left the dot hanging (2026-10-20). A part longer than a line starts one of its own and breaks at
+ * its spaces. The lines are set as they are given (white-space: pre-line), so the break is this one.
  */
-const keepParts = (text, size, w) => text.split(' · ').map((p) => ((p.length + 2) * 0.76 * size <= w ? p.replace(/ /g, '\u00a0') : p)).join('\u00a0· ');
+function labelLines(text, size, w) {
+  const fits = (t) => t.length * LABEL_EM * size <= w, out = [];
+  for (const part of text.split(' · ')) {
+    const last = out.length - 1;
+    if (last >= 0 && fits(`${out[last]} · ${part}`)) { out[last] += ` · ${part}`; continue; }
+    if (fits(part) || !part.includes(' ')) { out.push(part); continue; }
+    let line = null;
+    for (const word of part.split(' ')) {
+      if (line !== null && fits(`${line} ${word}`)) line += ` ${word}`;
+      else { if (line !== null) out.push(line); line = word; }
+    }
+    out.push(line);
+  }
+  return out;
+}
 
 /**
  * The record tools/capture.mjs wrote for a page tag, found by the same name the capture gave it. The cut list's
@@ -1352,8 +1368,8 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
     // Its source line is the shot's label and is set as the label is, at the frame's floor or above, wrapping inside
     // the card (and clear of the Short's buttons); the card's empty byline takes the same size.
     const P0 = pageFrame(C), sw = Math.min(C.W - 2 * C.M - (C.SHORT ? 0 : 240), P0.w), st = labelType(P0, `${pageCredit(ps)} · ${ps.date}`.replace(/—/g, ' – '), sw);
-    if (st.lines > 1) qC.S.sources.page = { pub: keepParts(`${pageCredit(ps)} · ${ps.date}`, st.size, sw), date: '' };
-    const own = `.q .src{font-size:${st.size}px;line-height:${Math.round(1.3 * st.size)}px;max-width:${sw}px}.q .by{font-size:${st.size}px}`;
+    if (st.lines.length > 1) qC.S.sources.page = { pub: st.lines.join('\n'), date: '' };
+    const own = `.q .src{font-size:${st.size}px;line-height:${Math.round(1.3 * st.size)}px;max-width:${sw}px${st.lines.length > 1 ? ';white-space:pre-line' : ''}}.q .by{font-size:${st.size}px}`;
     const h = quoteHtml(qC, { src: 'page', text: shot.hl.join(' … '), hl: shot.hl[0], by: '' }, plans[0].at, shot.hl.length > 1 ? plans : null, ground, own);
     // Several phrases keep the voice's own pace (sweepPlan ends the last before the cut), as the page does (`whole`).
     const many = shot.hl.length > 1, last = plans[plans.length - 1];
@@ -1400,20 +1416,20 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
   const { ox, oy } = c;
   const plan = sweepPlan(phrases.map((h) => h.text), s, d, words);
   const label = `${pageCredit(ps)} · ${ps.date}`.replace(/—/g, ' – ');
-  const lt = labelType(P, label), lh = Math.round(1.3 * lt.size);
+  const lt = labelType(P, label), lh = Math.round(1.3 * lt.size), many = lt.lines.length > 1;
   const f = (v) => v.toFixed(1);
   const hl = boxes.map((bs, p) => bs.map((b) => `<div class="hl" data-p="${p}" style="left:${f(b.x)}px;top:${f(b.y)}px;height:${f(b.h)}px;width:0">${dark ? `<span style="left:${f(pic.x - b.x)}px;top:${f(pic.y - b.y)}px"></span>` : ''}</div>`).join('')).join('');
   const masks = c.masks.map((m) => `<div class="mask" style="left:${f(m.x)}px;top:${f(m.y)}px;width:${f(m.w)}px;height:${f(m.h)}px"></div>`).join('');
   const data = `url(data:image/png;base64,${fs.readFileSync(crop).toString('base64')})`;
-  // More than one line grows up from the foot of the first line's place, however the browser wraps it.
-  const extra = `.lab{position:absolute;left:${P.x}px;${lt.lines > 1 ? `bottom:${C.H - P.label - lh}px` : `top:${P.label}px`};font-size:${lt.size}px;color:${MAL};${lt.lines > 1 ? `width:${P.w}px;line-height:${lh}px` : 'white-space:nowrap'}}
+  // More than one line grows up from the foot of the first line's place, each line as labelLines broke it.
+  const extra = `.lab{position:absolute;left:${P.x}px;${many ? `bottom:${C.H - P.label - lh}px` : `top:${P.label}px`};font-size:${lt.size}px;color:${MAL};${many ? `width:${P.w}px;line-height:${lh}px;white-space:pre-line` : 'white-space:nowrap'}}
 .panel{position:absolute;left:${P.x}px;top:${P.y}px;width:${P.w}px;height:${P.h}px;overflow:hidden;background:${VOID}}
 .doc{position:absolute;left:0;top:0;width:${P.w}px;height:${P.h}px;transform-origin:${f(ox)}px ${f(oy)}px;--pg:${data}${barPng ? `;--bar:url(data:image/png;base64,${fs.readFileSync(barPng).toString('base64')})` : ''}}
 .pg{position:absolute;left:${f(pic.x)}px;top:${f(pic.y)}px;width:${f(pic.w)}px;height:${f(pic.h)}px;background:var(--pg) 0 0/100% 100% no-repeat}
 .mask{position:absolute;background:${VOID}}
 .hl{position:absolute;overflow:hidden;background:${bar}${dark ? '' : ';mix-blend-mode:multiply'}}${dark ? `
 .hl span{position:absolute;width:${f(pic.w)}px;height:${f(pic.h)}px;background:var(--bar) 0 0/100% 100% no-repeat}` : ''}`;
-  const html = page(C, `<div class="lab mono">${esc(lt.lines > 1 ? keepParts(label, lt.size, P.w) : label)}</div><div class="panel"><div class="doc" id="doc"><div class="pg"></div>${masks}${hl}</div></div>
+  const html = page(C, `<div class="lab mono">${esc(lt.lines.join('\n'))}</div><div class="panel"><div class="doc" id="doc"><div class="pg"></div>${masks}${hl}</div></div>
 <script>const W=${JSON.stringify(boxes.map((bs) => bs.map((b) => +f(b.w))))},T=${JSON.stringify(plan.map((x) => [x.at, x.dur]))},D=${Math.round(d * 1000)},doc=document.getElementById('doc'),els=W.map((_,p)=>[...document.querySelectorAll('.hl[data-p="'+p+'"]')]);
 window.__frame=(ms)=>{doc.style.transform='scale('+(1+0.05*Math.min(1,ms/D)).toFixed(5)+')';let cur=-1;T.forEach((t,p)=>{if(ms>=t[0])cur=p;});
 W.forEach((ws,p)=>{let left=p===cur?ws.reduce((a,b)=>a+b,0)*Math.min(1,(ms-T[p][0])/T[p][1]):0;els[p].forEach((e,j)=>{const w=Math.max(0,Math.min(ws[j],left));e.style.width=w.toFixed(2)+'px';left-=w;});});};

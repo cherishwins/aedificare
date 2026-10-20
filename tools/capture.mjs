@@ -58,7 +58,7 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { lookup as dnsLookup } from 'node:dns/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { browser } from './lib/film.mjs';
+import { browser, GREY_TEXT } from './lib/film.mjs';
 import { SITE, abs } from '../src/config.mjs';
 import { EDITIONS, edition } from '../src/lib/editions.mjs';
 
@@ -908,7 +908,9 @@ export async function capture(slug, shots, { out = path.join(ROOT, 'brand/youtub
   const gate = await openGate();
   const run = { out, clean, height, stopped: new Map(), robots: new Map(), last: new Map(), delay: new Map() };
   // <-loopback> takes away Chromium's own exception for 127.0.0.1, so a page's request for this machine meets the gate too.
-  const b = await browser({ proxy: { server: gate.url, bypass: '<-loopback>' } });
+  // Grey antialiased text (GREY_TEXT, tools/lib/film.mjs): the PNG is the picture the film shows, and Chromium's LCD
+  // text put a blue and an orange fringe on every glyph of our own pages, colours the kit does not have.
+  const b = await browser({ proxy: { server: gate.url, bypass: '<-loopback>' }, args: [GREY_TEXT] });
   const list = sourcesOf(ed);
   if (!list) log('capture: no build, so source numbers are not checked against the edition (npm run build)');
   const records = [];
@@ -917,7 +919,7 @@ export async function capture(slug, shots, { out = path.join(ROOT, 'brand/youtub
       const name = shotName(slug, shot, { clean, height });
       const rec = { slug, name, tag: shot.tag, src: shot.src, self: shot.self, page: shot.page, in: shot.in, url: shot.url, finalUrl: null, status: null,
         title: null, publisher: null, author: null, published: null, readAt: new Date().toISOString(), ua: shot.self ? null : UA,
-        viewport: { width: WIDTH, height, dpr: DPR }, scroll: null, hl: [], media: [], refused: false, refusal: null, reason: null, signals: [],
+        viewport: { width: WIDTH, height, dpr: DPR }, greyText: true, scroll: null, hl: [], media: [], refused: false, refusal: null, reason: null, signals: [],
         error: null, png: null };
       for (const ext of ['png', 'json']) fs.rmSync(path.join(out, `${name}.${ext}`), { force: true }); // nothing stale survives a re-shoot
       if (!shot.self && list) {

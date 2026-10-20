@@ -516,7 +516,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   the film and 30 in the Short, a long label smaller but never under
   the floor below, then on two lines growing up (more where two cannot
   hold it at the floor), broken between its parts so a date keeps its
-  year), an Acid box
+  year, the dot between two parts left out where they break, so no line
+  ends on it), an Acid box
   sweeping each phrase from the word in the narration that says it, one
   phrase lit at a time, and one linear 5 percent push-in from where the
   words start. A picture on a source's page is kept out (spec 2.3, row
@@ -728,7 +729,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
   **`tools/capture.mjs` shoots the pages a film shows** (2026-10-20), the
   capture half of the `page` shot: a cited source in Chromium, 1440 CSS px
   wide at twice the pixel density, under the honest agent
-  `AedificareFilmBot/1.0`, the quoted words (`hl:`) found across text
+  `AedificareFilmBot/1.0`, its text drawn grey (`GREY_TEXT` in
+  `tools/lib/film.mjs`: Chromium's own LCD antialiasing put a blue and
+  an orange fringe on every glyph, colours the kit does not have; on the
+  pilot's 34 captures of our own pages, 4,996,131 pixels stood more than
+  30 levels from any kit colour or mix of two, and shot grey none stands
+  more than 3, every record of their layout the same; the record says
+  `greyText`, and a capture of our own page without it fails `check` and
+  is listed by `pages` to shoot again), the quoted words (`hl:`) found across text
   nodes and boxed, one PNG and one JSON a shot in
   `brand/youtube/<slug>/pages/`; `self <n>` shoots our own built page from
   `dist/` with the network closed. It refuses, records why and asks that
@@ -787,7 +795,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   dove. `check` holds the spec's rules before any frame: every number on
   a computed surface on the built page's text (spelled numbers read as
   numbers, the page's SVG left out, so a path's 44.27 is not a fact), a
-  pop's words too; every page shot captured and its words boxed; twelve
+  pop's words too; every page shot captured (our own page with grey
+  text) and its words boxed; twelve
   words on a card, its label counted with it, three in a pop; the
   owner's footage named in `footage/credits.txt` or refused, its line in
   the description and the frame line saying the footage is not computed;
@@ -798,7 +807,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
   said); the grammar's warnings and failures (spec 2.2); and each
   description, credits included, in YouTube's limits and still naming the
   channel's voice. `render` cuts each insert to a segment of exactly its
-  frames, the clean render between them seeked half a frame early so the
+  frames, its type drawn grey (`GREY_TEXT`; measured on the pilot's 148
+  inserts and 13 pops, 435 frames (each insert's first and last, each
+  phrase's lit frame, each pop's four stills, someone else's page left
+  out), the pixels more than 3 levels from a kit colour or a mix of two
+  fell from 7,776,649 with LCD text to 93, each where a
+  highlighter's end crosses the next glyph of our page and three kit
+  colours meet in one pixel, 89 of them off before too; the edition
+  films and the episodes still render as they did), the clean render between them seeked half a frame early so the
   first frame is the one asked for, joins them without a re-encode,
   overlays the pops as one sparse layer, and encodes once with the clean
   render's own sound copied packet for packet (checked after, with the

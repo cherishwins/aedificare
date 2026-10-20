@@ -30,6 +30,15 @@ export async function browser(opts) {
   return pw.chromium.launch(opts);
 }
 
+/**
+ * Chromium's switch for grey antialiased text, for `browser({ args: [GREY_TEXT] })`. Left to itself Chromium on
+ * Linux draws text with LCD subpixel antialiasing, a blue fringe down one side of every stroke and an orange one down
+ * the other: colours the kit does not have, on our own type and on a capture of our own page alike. With the switch
+ * an edge pixel is the type's colour mixed with its ground. The re-cut (tools/cuts.mjs) renders its inserts with it
+ * and tools/capture.mjs shoots pages with it (2026-10-20); the edition films and the episodes render as they did.
+ */
+export const GREY_TEXT = '--disable-lcd-text';
+
 export const ACID = '#CCFF00', MAL = '#00B24F', BOTTLE = '#063B22', VOID = '#050A06', FLASH = '#FFFFFF', SHOCK = '#FF1F5A';
 export const GROUND = { void: VOID, bottle: BOTTLE, flash: FLASH };
 
