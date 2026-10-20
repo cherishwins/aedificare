@@ -1204,49 +1204,98 @@ function hasAcid(file) {
   return false;
 }
 
-/**
- * The highlighter on our own dark page, drawn into a PNG of the crop's size rather than blended in the frame. Each
- * of the bar's boxes (`rects`, in the crop's pixels) is read for its ground, its commonest colour (Void, Bottle, or a
- * field of either); a pixel's ink is how far it stands from that ground against the farthest pixel within three of
- * it, the stroke's own solid ink, so a glyph keeps its antialiasing and a Malachite word is as dark as a Flash one. A
- * pixel within 6 of either kit ground is no ink (the other ground's field), and so is one within 8 of its own ground
- * or with no ink near it (under 60 away: a faint tint). The bar is the bar's colour moved toward Void by that share:
- * exact Acid (or Flash) wherever the page shows no ink, the words Void with their own edges, and the bar's colour
- * outside every box. The old way multiplied a grey, inverted copy of the page into the bar, which left Bottle's ground
- * at (167,209,0) and Void's near (197,246,0), off the kit (2026-10-20).
- */
-const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-function inkBar(file, cw, ch, rects, bar, out) {
+/** A PNG's pixels as rgb24, `w` by `h`. */
+function rgbPixels(file, w, h) {
   const r = spawnSync('ffmpeg', ['-v', 'error', '-i', file, '-f', 'rawvideo', '-pix_fmt', 'rgb24', 'pipe:1'], { maxBuffer: 1 << 28 });
-  if (r.status !== 0 || !r.stdout || r.stdout.length !== cw * ch * 3) die(`shots: could not read ${file} for the bar`);
-  const src = r.stdout, B = rgb(bar), V = rgb(VOID), grounds = [rgb(VOID), rgb(BOTTLE)];
-  const dst = Buffer.alloc(cw * ch * 3);
-  for (let i = 0; i < cw * ch; i++) dst.set(B, 3 * i);
-  const dist = (i, c) => Math.hypot(src[i] - c[0], src[i + 1] - c[1], src[i + 2] - c[2]);
-  const R = 3;
-  for (const q of rects) {
-    const x0 = Math.max(0, Math.floor(q.x)), y0 = Math.max(0, Math.floor(q.y)), x1 = Math.min(cw, Math.ceil(q.x + q.w)), y1 = Math.min(ch, Math.ceil(q.y + q.h));
-    const w = x1 - x0, h = y1 - y0;
-    if (w <= 0 || h <= 0) continue;
-    const count = new Map();
-    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = 3 * (y * cw + x), k = (src[i] << 16) | (src[i + 1] << 8) | src[i + 2]; count.set(k, (count.get(k) || 0) + 1); }
-    const mode = [...count].reduce((a, b) => (b[1] > a[1] ? b : a))[0], g = [mode >> 16, (mode >> 8) & 255, mode & 255];
-    const d = new Float32Array(w * h);
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const i = 3 * ((y0 + y) * cw + x0 + x);
-      d[y * w + x] = grounds.some((c) => dist(i, c) <= 6) ? 0 : dist(i, g);
-    }
-    // The farthest within R: across, then down.
-    const across = new Float32Array(w * h), near = new Float32Array(w * h);
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { let m = 0; for (let j = Math.max(0, x - R); j <= Math.min(w - 1, x + R); j++) m = Math.max(m, d[y * w + j]); across[y * w + x] = m; }
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { let m = 0; for (let j = Math.max(0, y - R); j <= Math.min(h - 1, y + R); j++) m = Math.max(m, across[j * w + x]); near[y * w + x] = m; }
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const k = near[y * w + x], a = k < 60 ? 0 : Math.min(1, Math.max(0, (d[y * w + x] - 8) / (k - 8))), o = 3 * ((y0 + y) * cw + x0 + x);
-      for (let c = 0; c < 3; c++) dst[o + c] = Math.round(B[c] + (V[c] - B[c]) * a);
-    }
+  if (r.status !== 0 || !r.stdout || r.stdout.length !== w * h * 3) die(`shots: could not read ${file} for the bar`);
+  return r.stdout;
+}
+/** rgba pixels, `w` by `h`, as a PNG data URL. */
+function pngData(px, w, h) {
+  const r = spawnSync('ffmpeg', ['-v', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', `${w}x${h}`, '-i', 'pipe:0', '-frames:v', '1', '-f', 'image2', '-c:v', 'png', 'pipe:1'], { input: px, maxBuffer: 1 << 28 });
+  if (r.status !== 0 || !r.stdout || !r.stdout.length) die(`shots: could not write a bar: ${String(r.stderr).slice(-300)}`);
+  return `data:image/png;base64,${r.stdout.toString('base64')}`;
+}
+const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+const KIT_GROUNDS = [rgb(VOID), rgb(BOTTLE)];
+
+/**
+ * Where the bar on one line of a phrase ends, in the crop's own pixels. `b` is the line's box and `rows` the bar's
+ * rows ([top, bottom), both in crop px), `pad` how far the bar runs past the words (0.14 of the line's height). A
+ * column holds ink where a pixel of it in the bar's rows stands more than 6 from the box's ground, its commonest
+ * colour (on a dark page Void and Bottle are ground too, a field's). Each end runs the pad past the phrase's own ink,
+ * the ink in its box, but stops on a clean column before the first other ink, the next glyph, a punctuation mark,
+ * the next word or a rule, so that column stays outside the bar; where that ink is closer than the pad, the bar ends
+ * at the phrase's own ink. The pad had run on into the colon after The Floor's "numbers" and The Markup's "print",
+ * and into the quote marks round "I Built ... $106.23", lighting half of each (2026-10-20). A mark with no clean
+ * column between it and the phrase's ink, a comma kerned into the last letter until they share a column or touch
+ * (The Markup's "network,", The Floor's "Alouini,", Seeed's ",powered"), cannot be parted from it by a straight end,
+ * so the bar takes it whole where it ends within two pads, rather than cut it in two. Returns [first lit column,
+ * first column after it], whole pixels, so the bar's ends fall on the crop's own pixel grid (pageHtml).
+ */
+function barEnds(img, cw, ch, b, rows, pad, dark) {
+  const y0 = Math.max(0, Math.floor(rows[0])), y1 = Math.min(ch, Math.ceil(rows[1]));
+  const L = b.x, R = b.x + b.w, x0 = Math.max(0, Math.floor(L)), x1 = Math.min(cw, Math.ceil(R));
+  const count = new Map();
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = 3 * (y * cw + x), k = (img[i] << 16) | (img[i + 1] << 8) | img[i + 2]; count.set(k, (count.get(k) || 0) + 1); }
+  const mode = count.size ? [...count].reduce((a, q) => (q[1] > a[1] ? q : a))[0] : 0, g = [mode >> 16, (mode >> 8) & 255, mode & 255];
+  const far = (i, c) => Math.hypot(img[i] - c[0], img[i + 1] - c[1], img[i + 2] - c[2]) > 6;
+  const ink = (x) => {
+    if (x < 0 || x >= cw) return false;
+    for (let y = y0; y < y1; y++) { const i = 3 * (y * cw + x); if (far(i, g) && !(dark && KIT_GROUNDS.some((c) => !far(i, c)))) return true; }
+    return false;
+  };
+  const wantR = Math.min(cw, Math.round(R + pad)), wantL = Math.max(0, Math.round(L - pad));
+  let lo = -1, hi = -1;
+  for (let x = x0; x < x1; x++) if (ink(x)) { if (lo < 0) lo = x; hi = x; }
+  if (lo < 0) { lo = x0; hi = x1 - 1; }
+  // Ink running on from the phrase's with no clean column between: taken whole if a clean column ends it within two
+  // pads of the box (a comma is about a quarter of an em; a rule or an underline runs on and is not taken).
+  const limR = Math.min(cw, Math.round(R + 2 * pad)), limL = Math.max(0, Math.round(L - 2 * pad));
+  let x = hi + 1;
+  while (x <= limR && ink(x)) x++;
+  if (x <= limR) hi = x - 1;
+  x = lo - 1;
+  while (x >= limL && ink(x)) x--;
+  if (x >= limL) lo = x + 1;
+  let e1 = wantR, e0 = wantL;
+  for (x = hi + 1; x <= wantR; x++) if (ink(x)) { e1 = x - 1; break; }
+  for (x = lo - 1; x >= wantL - 1; x--) if (ink(x)) { e0 = x + 2; break; }
+  return [Math.min(e0, lo), Math.max(e1, hi + 1)];
+}
+
+/**
+ * The lit pixels of a bar over a region of the crop (`q`, whole pixels), as rgb24. On a light page the page
+ * multiplied by the bar's colour, a highlighter. On our own dark page the bar is drawn, not blended: a pixel's ink is
+ * how far it stands from the region's ground (its commonest colour, Void, Bottle, or a field of either) against the
+ * farthest pixel within three of it, the stroke's own solid ink, so a glyph keeps its antialiasing and a Malachite
+ * word is as dark as a Flash one. A pixel within 6 of either kit ground is no ink (the other ground's field), and so
+ * is one within 8 of its own ground or with no ink near it (under 60 away: a faint tint). The bar is the bar's colour
+ * moved toward Void by that share: exact Acid (or Flash) wherever the page shows no ink, the words Void with their own
+ * edges. The old way multiplied a grey, inverted copy of the page into the bar, which left Bottle's ground at
+ * (167,209,0) and Void's near (197,246,0), off the kit (2026-10-20).
+ */
+function litRect(img, cw, q, bar, dark) {
+  const B = rgb(bar), V = rgb(VOID), w = q.x1 - q.x0, h = q.y1 - q.y0, out = Buffer.alloc(w * h * 3);
+  const at = (x, y) => 3 * ((q.y0 + y) * cw + q.x0 + x);
+  if (!dark) {
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = at(x, y), o = 3 * (y * w + x); for (let c = 0; c < 3; c++) out[o + c] = Math.round((img[i + c] * B[c]) / 255); }
+    return out;
   }
-  const wr = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', `${cw}x${ch}`, '-i', 'pipe:0', '-frames:v', '1', out], { input: dst, maxBuffer: 1 << 26 });
-  if (wr.status !== 0) die(`shots: could not write the bar ${out}: ${String(wr.stderr).slice(-300)}`);
+  const count = new Map();
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = at(x, y), k = (img[i] << 16) | (img[i + 1] << 8) | img[i + 2]; count.set(k, (count.get(k) || 0) + 1); }
+  const mode = [...count].reduce((a, b) => (b[1] > a[1] ? b : a))[0], g = [mode >> 16, (mode >> 8) & 255, mode & 255];
+  const dist = (i, c) => Math.hypot(img[i] - c[0], img[i + 1] - c[1], img[i + 2] - c[2]);
+  const d = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = at(x, y); d[y * w + x] = KIT_GROUNDS.some((c) => dist(i, c) <= 6) ? 0 : dist(i, g); }
+  // The farthest within R: across, then down.
+  const R = 3, across = new Float32Array(w * h), near = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { let m = 0; for (let j = Math.max(0, x - R); j <= Math.min(w - 1, x + R); j++) m = Math.max(m, d[y * w + j]); across[y * w + x] = m; }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { let m = 0; for (let j = Math.max(0, y - R); j <= Math.min(h - 1, y + R); j++) m = Math.max(m, across[j * w + x]); near[y * w + x] = m; }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const k = near[y * w + x], a = k < 60 ? 0 : Math.min(1, Math.max(0, (d[y * w + x] - 8) / (k - 8))), o = 3 * (y * w + x);
+    for (let c = 0; c < 3; c++) out[o + c] = Math.round(B[c] + (V[c] - B[c]) * a);
+  }
   return out;
 }
 
@@ -1348,9 +1397,16 @@ export function pageRecord(C, tag) {
  * 1), cropped to the words' own block (pageCrop); a Malachite mono label naming the publisher and the date; an Acid
  * box sweeping each phrase on the word that says it, one phrase lit at a time, so the shot spends one Acid; and one
  * linear 5 percent push-in from the words for the whole shot, footage grammar on third-party pixels (reading 2). On a
- * light page the box multiplies, a highlighter; on a dark one (ours) it is a bar drawn from the crop (inkBar), exact
- * Acid with the words in Void, so both read as dark type on Acid, and Flash where our page's own Acid is in frame. The
- * label, and a card's source line, are set at the frame's floor or above (labelType). A capture that was refused (a
+ * light page the bar is the page multiplied by Acid, a highlighter; on a dark one (ours) it is drawn from the crop
+ * (litRect), exact Acid with the words in Void, so both read as dark type on Acid, and Flash where our page's own Acid
+ * is in frame. Each end of a bar stops short of any ink not the phrase's own (barEnds), on the crop's own pixel grid.
+ * The bar is drawn into the picture rather than over it: each line's box shows its own copy of the crop, set exactly
+ * where the page is, lit between the bar's ends and the page itself for three pixels past each, so the box's edge
+ * falls where its picture and the page's are the same pixels and is never seen, and the bar's end is a boundary
+ * between two of the crop's pixels, resampled as the page is; an end clipped over the page instead mixed the bar, the
+ * page's ground and a glyph's edge in one pixel wherever the frame's grid cut it. The label, and a card's source line
+ * and words, are set at the frame's floor or
+ * above (labelType), clear of the Short's buttons. A capture that was refused (a
  * wall, robots.txt, YouTube) becomes the quote card with the same words, so the cut always renders and nothing is
  * routed around; so does one whose crop would keep a picture on the words, or whose words' block cannot be read whole
  * at the frame's smallest type (pageView). The label names the author where the capture or the cut list gives one
@@ -1369,7 +1425,10 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
     // the card (and clear of the Short's buttons); the card's empty byline takes the same size.
     const P0 = pageFrame(C), sw = Math.min(C.W - 2 * C.M - (C.SHORT ? 0 : 240), P0.w), st = labelType(P0, `${pageCredit(ps)} · ${ps.date}`.replace(/—/g, ' – '), sw);
     if (st.lines.length > 1) qC.S.sources.page = { pub: st.lines.join('\n'), date: '' };
-    const own = `.q .src{font-size:${st.size}px;line-height:${Math.round(1.3 * st.size)}px;max-width:${sw}px${st.lines.length > 1 ? ';white-space:pre-line' : ''}}.q .by{font-size:${st.size}px}`;
+    // The card's words keep to the same width: in the Short the card is as wide as the frame's margins allow and its
+    // words ran into the right 120 px where the Shorts buttons stand ("an 8" to x 1014.5, The Markup's ledger, 2026-10-20).
+    const qw = C.W - 2 * C.M - (C.SHORT ? 0 : 240);
+    const own = `${sw < qw ? `.q{width:${sw}px}` : ''}.q .src{font-size:${st.size}px;line-height:${Math.round(1.3 * st.size)}px;max-width:${sw}px${st.lines.length > 1 ? ';white-space:pre-line' : ''}}.q .by{font-size:${st.size}px}`;
     const h = quoteHtml(qC, { src: 'page', text: shot.hl.join(' … '), hl: shot.hl[0], by: '' }, plans[0].at, shot.hl.length > 1 ? plans : null, ground, own);
     // Several phrases keep the voice's own pace (sweepPlan ends the last before the cut), as the page does (`whole`).
     const many = shot.hl.length > 1, last = plans[plans.length - 1];
@@ -1389,7 +1448,6 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
   const dark = luma(png, { x: px(phrases[0].union.x), y: px(phrases[0].union.y), w: px(phrases[0].union.w), h: px(phrases[0].union.h) }) < 110;
   // On our own page with its Acid in frame the bar is Flash, so the shot still spends one Acid, the page's own.
   const bar = rec.self && dark && hasAcid(crop) ? FLASH : ACID;
-  const pad = (b) => ({ x: b.x - 0.14 * b.h, y: b.y - 0.08 * b.h, w: b.w + 0.28 * b.h, h: b.h + 0.16 * b.h });
   // One box a line: a phrase that runs into bold or a link comes back as a box per element, and two padded boxes
   // overlapping multiply into a darker seam (Parallel's "$208–$450", 2026-10-20). Lines are found by the boxes'
   // middles first, then merged left to right: a table row's two cells sit 2 px apart in height, and sorting by
@@ -1403,13 +1461,39 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
       return out;
     }, []));
   };
-  const boxes = phrases.map((h) => lines(h.boxes).map((b) => {
-    const padX = 0.14 * b.h * c.k, padY = 0.08 * b.h * c.k;
-    return { x: (b.x - c.x0) * c.k - padX, y: (b.y - c.y0) * c.k - padY, w: b.w * c.k + 2 * padX, h: b.h * c.k + 2 * padY };
+  // The bar's ends in the crop's pixels (barEnds) and its rows, 0.08 of the line's height above and below it as
+  // before. Each line's box reaches EXT of the crop's pixels past each end, where it shows the page itself.
+  const f = (v) => v.toFixed(1);
+  const img = rgbPixels(crop, cw, ch);
+  const pg = { x: +f(pic.x), y: +f(pic.y), w: +f(pic.w), h: +f(pic.h) }, sx = pg.w / cw;
+  const EXT = 3;
+  const bars = phrases.map((h) => lines(h.boxes).map((b) => {
+    const top = (b.y - 0.08 * b.h) * dpr - cy, bot = (b.y + 1.08 * b.h) * dpr - cy;
+    const [e0, e1] = barEnds(img, cw, ch, { x: b.x * dpr - cx, y: b.y * dpr - cy, w: b.w * dpr, h: b.h * dpr }, [top, bot], 0.14 * b.h * dpr, dark);
+    const padY = 0.08 * b.h * c.k;
+    return { e0, e1, top, bot, box: { x: pg.x + (e0 - EXT) * sx, y: (b.y - c.y0) * c.k - padY, w: (e1 - e0 + 2 * EXT) * sx, h: b.h * c.k + 2 * padY } };
   }));
-  // On a dark page the bar is drawn from the crop (inkBar), under the same boxes in the crop's pixels and two more
-  // each way, so the browser's scaling of its edges reads drawn pixels.
-  const barPng = dark ? inkBar(crop, cw, ch, phrases.flatMap((h) => lines(h.boxes)).map(pad).map((b) => ({ x: b.x * dpr - cx - 2, y: b.y * dpr - cy - 2, w: b.w * dpr + 4, h: b.h * dpr + 4 })), bar, path.join(work, `${rec.name}-${C.SHORT ? 'tall' : 'wide'}-bar.png`)) : null;
+  // Each line's own picture: the crop's size, drawn exactly where the page is (a cut of it drawn at its own place
+  // lands up to a pixel off the page's, because Chromium snaps where an image starts), clear except under the line's
+  // box and two pixels round it, where it is the page, lit between the bar's ends in all of the bar's rows and two
+  // more each way (so the box's top and bottom edges resample lit pixels, as the whole-crop bar did), and lit where an
+  // earlier line of the same phrase is lit, so a box never shows an earlier line unlit where they meet.
+  const cut = (p, j) => {
+    const r = bars[p][j];
+    const q = { x0: Math.max(0, r.e0 - EXT - 2), x1: Math.min(cw, r.e1 + EXT + 2), y0: Math.max(0, Math.floor(r.top) - 2), y1: Math.min(ch, Math.ceil(r.bot) + 2) };
+    const px = Buffer.alloc(cw * ch * 4);
+    for (let y = q.y0; y < q.y1; y++) for (let x = q.x0; x < q.x1; x++) { const i = y * cw + x; img.copy(px, 4 * i, 3 * i, 3 * i + 3); px[4 * i + 3] = 255; }
+    const paint = (o, ya, yb) => {
+      const lit = { x0: Math.max(q.x0, o.e0), x1: Math.min(q.x1, o.e1), y0: Math.max(q.y0, ya), y1: Math.min(q.y1, yb) };
+      if (lit.x1 <= lit.x0 || lit.y1 <= lit.y0) return;
+      const v = litRect(img, cw, lit, bar, dark), lw = lit.x1 - lit.x0;
+      for (let y = lit.y0; y < lit.y1; y++) for (let x = lit.x0; x < lit.x1; x++) v.copy(px, 4 * (y * cw + x), 3 * ((y - lit.y0) * lw + x - lit.x0), 3 * ((y - lit.y0) * lw + x - lit.x0) + 3);
+    };
+    for (let k = 0; k < j; k++) paint(bars[p][k], Math.floor(bars[p][k].top), Math.ceil(bars[p][k].bot));
+    paint(r, q.y0, q.y1);
+    return pngData(px, cw, ch);
+  };
+  const boxes = bars.map((bs) => bs.map((r) => r.box));
   // The push-in grows from where the words start: the eye reads from there, and a move about their middle took the
   // first letters of every line off the left when the words sat far right (arXiv, 2026-10-20). pageCrop holds it
   // where every line shown stays whole to the last frame.
@@ -1417,19 +1501,19 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
   const plan = sweepPlan(phrases.map((h) => h.text), s, d, words);
   const label = `${pageCredit(ps)} · ${ps.date}`.replace(/—/g, ' – ');
   const lt = labelType(P, label), lh = Math.round(1.3 * lt.size), many = lt.lines.length > 1;
-  const f = (v) => v.toFixed(1);
-  const hl = boxes.map((bs, p) => bs.map((b) => `<div class="hl" data-p="${p}" style="left:${f(b.x)}px;top:${f(b.y)}px;height:${f(b.h)}px;width:0">${dark ? `<span style="left:${f(pic.x - b.x)}px;top:${f(pic.y - b.y)}px"></span>` : ''}</div>`).join('')).join('');
+  const hl = boxes.map((bs, p) => bs.map((b, j) => `<div class="hl" data-p="${p}" style="left:${f(b.x)}px;top:${f(b.y)}px;height:${f(b.h)}px;width:0"><span style="left:${f(pg.x - +f(b.x))}px;top:${f(pg.y - +f(b.y))}px;background:url(${cut(p, j)}) 0 0/100% 100% no-repeat"></span></div>`).join('')).join('');
   const masks = c.masks.map((m) => `<div class="mask" style="left:${f(m.x)}px;top:${f(m.y)}px;width:${f(m.w)}px;height:${f(m.h)}px"></div>`).join('');
   const data = `url(data:image/png;base64,${fs.readFileSync(crop).toString('base64')})`;
   // More than one line grows up from the foot of the first line's place, each line as labelLines broke it.
   const extra = `.lab{position:absolute;left:${P.x}px;${many ? `bottom:${C.H - P.label - lh}px` : `top:${P.label}px`};font-size:${lt.size}px;color:${MAL};${many ? `width:${P.w}px;line-height:${lh}px;white-space:pre-line` : 'white-space:nowrap'}}
 .panel{position:absolute;left:${P.x}px;top:${P.y}px;width:${P.w}px;height:${P.h}px;overflow:hidden;background:${VOID}}
-.doc{position:absolute;left:0;top:0;width:${P.w}px;height:${P.h}px;transform-origin:${f(ox)}px ${f(oy)}px;--pg:${data}${barPng ? `;--bar:url(data:image/png;base64,${fs.readFileSync(barPng).toString('base64')})` : ''}}
-.pg{position:absolute;left:${f(pic.x)}px;top:${f(pic.y)}px;width:${f(pic.w)}px;height:${f(pic.h)}px;background:var(--pg) 0 0/100% 100% no-repeat}
+.doc{position:absolute;left:0;top:0;width:${P.w}px;height:${P.h}px;transform-origin:${f(ox)}px ${f(oy)}px;--pg:${data}}
+.pg{position:absolute;left:${f(pg.x)}px;top:${f(pg.y)}px;width:${f(pg.w)}px;height:${f(pg.h)}px;background:var(--pg) 0 0/100% 100% no-repeat}
 .mask{position:absolute;background:${VOID}}
-.hl{position:absolute;overflow:hidden;background:${bar}${dark ? '' : ';mix-blend-mode:multiply'}}${dark ? `
-.hl span{position:absolute;width:${f(pic.w)}px;height:${f(pic.h)}px;background:var(--bar) 0 0/100% 100% no-repeat}` : ''}`;
-  const html = page(C, `<div class="lab mono">${esc(lt.lines.join('\n'))}</div><div class="panel"><div class="doc" id="doc"><div class="pg"></div>${masks}${hl}</div></div>
+.hl{position:absolute;overflow:hidden}
+.hl span{position:absolute;width:${f(pg.w)}px;height:${f(pg.h)}px}`;
+  // The picture's covers go over the bars, whose copies of the crop show the page's own pixels round them.
+  const html = page(C, `<div class="lab mono">${esc(lt.lines.join('\n'))}</div><div class="panel"><div class="doc" id="doc"><div class="pg"></div>${hl}${masks}</div></div>
 <script>const W=${JSON.stringify(boxes.map((bs) => bs.map((b) => +f(b.w))))},T=${JSON.stringify(plan.map((x) => [x.at, x.dur]))},D=${Math.round(d * 1000)},doc=document.getElementById('doc'),els=W.map((_,p)=>[...document.querySelectorAll('.hl[data-p="'+p+'"]')]);
 window.__frame=(ms)=>{doc.style.transform='scale('+(1+0.05*Math.min(1,ms/D)).toFixed(5)+')';let cur=-1;T.forEach((t,p)=>{if(ms>=t[0])cur=p;});
 W.forEach((ws,p)=>{let left=p===cur?ws.reduce((a,b)=>a+b,0)*Math.min(1,(ms-T[p][0])/T[p][1]):0;els[p].forEach((e,j)=>{const w=Math.max(0,Math.min(ws[j],left));e.style.width=w.toFixed(2)+'px';left-=w;});});};

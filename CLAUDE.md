@@ -528,7 +528,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   is left out of the Short; `pageView` decides it from the crop the
   render takes, and `check` asks the same function, so the guard is not
   a log line. On our own dark pages the bar is drawn, not blended
-  (`inkBar`): under each of its boxes a pixel's ink is its distance from
+  (`litRect`): under each of its boxes a pixel's ink is its distance from
   the box's ground against the solid ink within three pixels of it, a
   pixel of Void or Bottle is none, and the bar is its colour moved
   toward Void by that share, so it is exact Acid wherever the page shows
@@ -537,11 +537,54 @@ for a shortlist for bios and cards, which is a separate deliverable.
   It turns Flash, as exact, where the page's own Acid is in frame, so
   the shot still spends one Acid. Until 20 Oct it multiplied a grey,
   inverted copy of the page into the bar, which left it (167,209,0) over
-  Bottle and (197,246,0) over Void, off the kit; on the pilot's 35 page
-  shots of our own pages, read at the last frame and at each phrase's
-  fully lit frame, every pixel of the bar with no ink within three is
-  now exact Acid, and exact Flash on seven of them rendered with the
-  bar forced to Flash (no shot of the pilot keeps the page's own Acid). A refused capture becomes the quote card with the same
+  Bottle and (197,246,0) over Void, off the kit. **A bar's ends stop
+  short of other ink** (`barEnds`, 20 Oct). Each end still runs 0.14 of
+  the line's height past the phrase's own ink, the ink in its box, but
+  on the crop's own pixels it stops on a clean column before the first
+  ink that is not the phrase's (the next glyph, a punctuation mark, the
+  next word, a rule), and where that ink stands closer than the pad,
+  the bar ends at the phrase's own ink: the colon after "numbers" stands
+  one clean column from its "s", and the bar ends on that column. The
+  pad had lit part of that colon, of the colon after "print" and of the
+  quote marks round "I Built ... $106.23" on our pages, and part of a
+  comma or a full stop beside the words on six of others'. A mark with no
+  clean column between it and the phrase (a comma kerned into the last
+  letter until they share a column or touch: The Markup's "network,",
+  The Floor's "Alouini," and "page,", Seeed's ",powered") cannot be
+  parted from it by a straight end, so where a clean column ends it
+  within two pads the bar takes it whole, as the pad already did,
+  rather than cut it in two. Each line's bar is drawn into the picture,
+  not clipped over it: its box shows its own copy of the crop, the
+  crop's size and in the page's own place (a cut drawn at its own place
+  landed up to a pixel off the page, because Chromium snaps where an
+  image starts), clear but for the line's box, where it is the page,
+  lit between the bar's ends and left as the page for three pixels past
+  each, so the box's edge falls on pixels the two pictures share and
+  the bar's end is a boundary between two of the crop's pixels, which
+  the frame resamples as it does the page. Clipped over the page at a
+  fractional place, an end had mixed the bar, the ground and a glyph's
+  edge in one pixel. A light page's bar is the page multiplied by Acid
+  in the same copy, no longer a blended box, so a picture's covers go
+  over it. Measured on the pilot's 90 page inserts (84 in the film, 6 in
+  the Short, 17 of them quote cards), at each insert's first and last
+  frame and each phrase's fully lit frame, against b1aa369: glyphs
+  crossed by a bar's end (two of its pixels lit and two untouched,
+  read against the same frame with the bars hidden) fell from 13, the
+  quote mark after "$106.23" and twelve commas and full stops on others'
+  pages, to none at the 524 ends of the 160 lit frames of page shots;
+  pixels more than 3 levels from a kit colour or a mix of two on our own
+  pages, where the other marks were cut only at their edges, fell from
+  93 to none; and on our 35 page shots every pixel of the bar two
+  or more in from its edges with no ink within three is exact Acid
+  (1,075 had stood one level off where two lines' bars met), and exact
+  Flash on all 35 rendered with the bar forced to Flash (no shot of the
+  pilot keeps the page's own Acid). Outside the bars, others' pages
+  moved by at most 10 levels in one strip of one first frame, where the
+  old blended box, at no width at all, still made Chromium draw the
+  page in a group of its own (b1aa369 with the blend taken out
+  draws that frame as this does), and by 1 level along Chromium's
+  raster tile seams, every 254 pixels, in ten more frames, which shift
+  with whatever else a frame draws. A refused capture becomes the quote card with the same
   words, its highlighter held until the voice reaches them. Tried on The
   Floor's captures in both frames with every sample frame looked at, the
   first versions cut a wide table row at both ends, merged a row's two
@@ -673,9 +716,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   firmware line, 63, whose list and its lead-in then go too). Our own
   type on the shot keeps the floor as well: the label (above), and on a
   page shot's quote card the source line, set as the label is and
-  wrapping inside the card, clear of the Short's right 120 px; the
-  card's words are 84 and 62 px. An episode's quote card is not a page
-  shot and keeps its 22 px source line. A block that cannot be read whole at that size gives way to the
+  wrapping inside the card; the card's words are 84 and 62 px, and in
+  the Short they wrap as the source line does, inside the panel's
+  width, clear of the right 120 px where the Shorts buttons stand (The
+  Markup's ledger card set "an 8" out to x 1,014.5 until 20 Oct). An
+  episode's quote card is not a page shot and keeps its 22 px source
+  line and its width. A block that cannot be read whole at that size gives way to the
   cells that hold the words, with the row's label (its first cell) and
   everything between them, because a figure is not shown without the
   name of its row (The Markup's ledger showed its 43.3 cell with no
@@ -812,8 +858,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   phrase's lit frame, each pop's four stills, someone else's page left
   out), the pixels more than 3 levels from a kit colour or a mix of two
   fell from 7,776,649 with LCD text to 93, each where a
-  highlighter's end crosses the next glyph of our page and three kit
-  colours meet in one pixel, 89 of them off before too; the edition
+  highlighter's end, at its start or its end, cut a glyph beside the
+  phrase on our page and three kit colours met in one pixel, 89 of them
+  off before too, and from 93 to none once a bar's ends stopped short of
+  other ink (`barEnds`, above; all 93 were on the page inserts' frames,
+  measured again there); the edition
   films and the episodes still render as they did), the clean render between them seeked half a frame early so the
   first frame is the one asked for, joins them without a re-encode,
   overlays the pops as one sparse layer, and encodes once with the clean
