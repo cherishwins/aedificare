@@ -416,9 +416,12 @@ const meets = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h &&
  *   leaving the band if they must (The Floor's bench lost "Mbps" when the caption fell under the window's top; Morse
  *   Micro's release notes showed "24 30" with no head). Where the words carry a figure nothing in them names, or sit in
  *   a grid whose head names its columns (Meshtastic's spreading factors, The Floor's STATED), the zoom drops toward the
- *   floor to hold the head too, and failing that the shot is its card (`unnamed`). Another grid's rows
- *   come with their head (the window moves for it) or are left out. Text above the heading that opens the words'
- *   section, in the page's order, is another section's, and so is the next heading below them and what follows it; the
+ *   floor to hold the head too, to the largest that keeps the words in the band with it or, where none over the floor
+ *   does, the floor, which holds them highest (the parts table's Battery hat row), and failing that the shot is its
+ *   card (`unnamed`). Another grid's rows
+ *   come with their head (the window moves for it) or are left out. Text above the heading (an element h1 to h6; the
+ *   capture records no weight, so a bold paragraph is not one) that opens the words' section, in the page's order, is
+ *   another section's, and so is the next heading below them and what follows it; the
  *   tail of a list whose first item the picture leaves out is another block's end, the start of one whose last item it
  *   leaves out below the words another's start, and the block just before a list it leaves out is that list's lead-in:
  *   all are left out (RSS-247, GitHub's "Use one of these options:"). A list item is one block with the lists in it,
@@ -427,7 +430,9 @@ const meets = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h &&
  *   or end they leave out, any line they would halve, and any box another block draws that they would halve: a top or
  *   bottom edge halves a fill, a frame or a rule down a side (Meshtastic's note, one 5 px rule down its left, and
  *   Seeed's gradient button, a fill with no border), a left or right edge a fill, a frame or a rule across. A table's
- *   cells and rows are its grid and are read as rows, not boxes. Every line shown is whole for the whole shot, the
+ *   cells and rows are its grid and are read as rows, not boxes; a row that draws (its ground or rules, or its cells')
+ *   is one box with them, kept whole or left out (Meshtastic's framed cells ran off the picture's bottom), and the
+ *   window moves to keep it whole where it can. Every line shown is whole for the whole shot, the
  *   picture stays inside a box that holds the words and paints its own ground, and its top and bottom edges stand
  *   halfway between the last line it keeps and the first thing it leaves out, at most two ems past the line; where the
  *   window, the push-in or such a box sets the edge instead, a line closer to it than a quarter em is left out too, so
@@ -583,6 +588,14 @@ function pageCrop(rec, phrases, P) {
   const paint = (j) => !!(B[j].fill || B[j].shadow);
   const cutsY = (j) => !tbl(j) && (paint(j) || framed(j) || bdOf(j)[1] > 0 || bdOf(j)[3] > 0);
   const cutsX = (j) => !tbl(j) && (paint(j) || framed(j));
+  // A table's row that draws (its own ground or rules, or its cells' grounds, frames or rules) is one box up and down,
+  // its text, grounds and rules together: kept whole or left out, never halved by a top or bottom edge. Kept by its
+  // lines alone, Meshtastic's framed cells ran off the picture's bottom with no row rule under them, and The Floor's
+  // parts table ended on a row with its rule left out (2026-10-20). A row that draws nothing is its lines.
+  const rowsDrawn = B.map((b, j) => j).filter((j) => B[j].display === 'table-row').map((j) => {
+    const cells = kidsOf[j].filter((c) => paint(c) || bdOf(c).some((v) => v > 0));
+    return paint(j) || bdOf(j).some((v) => v > 0) || cells.length ? { g: j, ...hull([bbox(j), ...cells.map(bbox)]) } : null;
+  }).filter((r) => r && r.w > 0 && r.h > 0);
   // Where the words sit: a table cell's row; a block with others beside it under one parent (a figure's caption and
   // its number, a definition and its term), that row of them; else the block itself.
   const start = (i) => {
@@ -701,6 +714,13 @@ function pageCrop(rec, phrases, P) {
       const kFit = (P.h * (1 - 2 * PUSH)) / (hull([keep, cap]).h + 2 * room);
       if (kFit < Math.max(kRead, kCap) || k < kCap - 1e-9) return { unnamed: true };
       k = Math.min(k, kFit);
+      // Held with the words in the band where a zoom at or over the floor allows it (slot's four conditions, solved for
+      // the panel's height); where none does, the zoom drops to the floor, which keeps the words highest: at the largest
+      // zoom that fit, the parts table's head over its Battery hat row put that row's words in the panel's lowest
+      // tenth, under YouTube's captions (2026-10-20).
+      const b = hull([keep, cap]);
+      const need = Math.max((b.h + 2 * room) / (1 - 2 * PUSH), (b.y + b.h - U.y + room) / (0.94 - PUSH), (U.y + U.h - b.y + room) / (0.75 - PUSH), U.h / 0.69);
+      if (P.h / need < k) k = Math.max(P.h / need, kRead, kCap);
     }
     // The panel's width, and the widest picture that stays inside it to the end of the push-in.
     const ph = P.h / k, Wt = P.w / k, Wc = Wt / S, e = PUSH * ph;
@@ -877,6 +897,9 @@ function pageCrop(rec, phrases, P) {
     // and a box an edge would halve, with what it holds.
     const lines = L.lines.filter(span);
     const ybox = boxes.filter((b) => span(b));
+    // The drawn rows (rowsDrawn) the picture spans, but the words' own and the rows of the head that names them, which
+    // the window was placed to hold.
+    const yrows = rowsDrawn.filter((r) => span(r) && !wordGroups.has(r.g) && !lines.some((l) => capSet.has(l) && group(l) === r.g));
     // What a box draws, for placing the edges by: a fill, a frame or a rule down a side is the whole box; a rule across
     // its top or bottom is that rule alone, so the next row's box starting where this one ends does not put the edge on
     // this one's rule (Morse Micro's spec rows). A table's grid lines count, and so do the rules across any other block,
@@ -884,8 +907,9 @@ function pageCrop(rec, phrases, P) {
     // notes): the picture takes each in with room past it or stops short of it.
     const across = (j, b) => [...(bdOf(j)[0] ? [{ ...b, h: bdOf(j)[0] }] : []), ...(bdOf(j)[2] ? [{ ...b, y: b.y + b.h - bdOf(j)[2], h: bdOf(j)[2] }] : [])];
     const drawsOf = (b) => (b.j < 0 || paint(b.j) || framed(b.j) || bdOf(b.j)[1] > 0 || bdOf(b.j)[3] > 0 ? [b] : across(b.j, b));
+    // A table's block that paints its ground or rules a side draws its whole box, as a frame does (a striped row).
     const ink = [...ybox.flatMap(drawsOf),
-      ...B.map((b, j) => j).filter((j) => tbl(j)).flatMap((j) => (framed(j) ? [bbox(j)] : across(j, bbox(j)))),
+      ...B.map((b, j) => j).filter((j) => tbl(j)).flatMap((j) => (framed(j) || paint(j) || bdOf(j)[1] > 0 || bdOf(j)[3] > 0 ? [bbox(j)] : across(j, bbox(j)))),
       ...B.map((b, j) => j).filter((j) => !tbl(j) && B[j].tag !== 'body' && !cutsX(j) && !cutsY(j)).flatMap((j) => across(j, bbox(j)))]
       .filter((r) => span(r) && (r.y + r.h <= U.y + 0.5 || r.y >= U.y + U.h - 0.5));
     const outInk = out.flatMap((o) => (o.j !== undefined ? drawsOf(o) : [o]));
@@ -900,8 +924,7 @@ function pageCrop(rec, phrases, P) {
           if (l.y < top - 0.5 && l.y + l.h > top + 0.5) { const t = Math.min(l.y + l.h, U.y); if (t > top + 0.01) { top = t; moved = true; } }
           if (l.y < bot - 0.5 && l.y + l.h > bot + 0.5) { const t = Math.max(l.y, U.y + U.h); if (t < bot - 0.01) { bot = t; moved = true; } }
         }
-        for (const b of ybox) {
-          if (!cy(b)) continue;
+        for (const b of [...ybox.filter(cy), ...yrows]) {
           if (b.y < top - 0.5 && b.y + b.h > top + 0.5) { const t = Math.min(b.y + b.h, U.y); if (t > top + 0.01) { top = t; moved = true; } }
           if (b.y < bot - 0.5 && b.y + b.h > bot + 0.5) { const t = Math.max(b.y, U.y + U.h); if (t < bot - 0.01) { bot = t; moved = true; } }
         }
@@ -1073,8 +1096,9 @@ function pageCrop(rec, phrases, P) {
   const settle = (units, r) => {
     const ph = r.ch, oy = r.y0 + r.oy / r.k, x0 = r.crop.x - pad, x1 = r.crop.x + r.crop.w + pad, ys = new Set();
     const reached = (l) => l.y >= r.y0 - 0.5 && l.y + l.h <= r.y0 + ph + 0.5;
-    for (const l of L.lines) {
-      if (l.x >= x1 || l.x + l.w <= x0 || !reached(l)) continue;
+    // So can a drawn row whose box an edge left out with its lines (rowsDrawn): the candidates are its box's.
+    for (const l of [...L.lines, ...rowsDrawn.filter((q) => L.lines.some((l) => reached(l) && inside(l.b, q.g)))]) {
+      if (l.x >= x1 || l.x + l.w <= x0 || !(l.g !== undefined || reached(l))) continue;
       ys.add(Math.round(2 * (oy - (1 + PUSH) * (oy - (l.y - room - 1)))) / 2);
       ys.add(Math.round(2 * (oy + (1 + PUSH) * (l.y + l.h + room + 1 - oy) - ph)) / 2);
     }

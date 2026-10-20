@@ -568,9 +568,19 @@ for a shortlist for bios and cards, which is a separate deliverable.
   would cut is left out, and so is any box they would halve: a top or
   bottom edge halves a fill, a frame or a rule down a side, a side edge
   a fill or a frame; a rule across alone is a line, and a table's cells
-  are its grid, kept or left out as rows. Text above the heading that
+  are its grid, kept or left out as rows. A row that draws (its ground
+  or rules, or its cells') is one box with them, kept whole or left out,
+  never halved: kept by its lines alone, Meshtastic's framed cells ran
+  off the picture's bottom with no rule under them (line 131) and The
+  Floor's parts table ended on a row with its rule left out (55 and 61).
+  The window moves to keep such a row whole where it can, as it does for
+  a line, so line 131 now ends under "Medium Range / Turbo" and the parts
+  table keeps its last row's rule. Text above the heading that
   opens the words' section (the nearest heading above them in the page's
-  order) is another section's and is left out, and so are the next
+  order, a heading element: the capture records no weight, so a bold
+  paragraph set as a heading is not one, and Cisco's "Overall"
+  paragraph stays over its "Supported WPA3 Modes", line 154) is another
+  section's and is left out, and so are the next
   heading below them and what follows it (RSS-247's "6.4 Hybrid Systems"
   and its lead-in under 6.3.2's words, the list's items cut off; the
   "Haven 1" section under Parallel's price paragraph). So is the tail of a list
@@ -591,9 +601,15 @@ for a shortlist for bios and cards, which is a separate deliverable.
   head names its columns, bare figure or not, because the picture shows
   the other columns too (Meshtastic's "11 / 2048" and "4/5" with nothing
   to say they are a spreading factor and a coding rate; "not stated" in
-  The Floor's parts table with no STATED over it): the parts table's
-  Battery hat row (lines 70 and 139) drops from 2.8 to 2.64 to show its
-  head. Another grid's rows come with their head too, or are left
+  The Floor's parts table with no STATED over it). Held so, the zoom is
+  the largest that keeps the words in the band too, and where none over
+  the floor does, the floor itself, which holds them highest: the parts
+  table's antenna row (line 68) drops from 2.8 to 2.69, its words from
+  72 to 78 percent of the panel to 69 to 75, and its Battery hat row
+  (lines 70 and 139), 275 CSS px under its head, would need 2.08 against
+  the 2.27 its 11 px head reads at, so it drops to 2.27, its words at 70
+  to 82 percent where at 2.64, the largest zoom that fit, they sat at 81
+  to 94, under YouTube's captions. Another grid's rows come with their head too, or are left
   out: Parallel's table of PHY rates over its 40 to 60 percent line
   could not be shown whole, because the line's quote bar keeps the
   window inside the table's left rule, so the line shows alone. Text the
@@ -673,8 +689,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
   changing its words. In the Short that is the Geeky Gadgets card after
   the ledger's 43.3 cell (lines 33 and 34) and the ledger's rows after
   The Floor's paragraph (44 and 45); in the film, the quote card on line
-  174 after the one on 173 (`renderSegment` does it for any two cards in
-  a row; no episode script has two). Every tag and builder of the six
+  174 after the one on 173 (`renderSegment` does it for any two quote
+  cards in a row, a page shot's card among them; no episode script has
+  two). A statement card beside a quote card is not one of those, and
+  both stay on Void, as runs of statement cards do: in the film lines
+  74 and 75, 88 to 90, 129 and 130, 172 and 173, and 176 and 177, two of
+  them (74 and 75, 129 and 130) new since the parts table's Total row
+  and Meshtastic's Long Fast row became cards; whether those joins want
+  the other ground is the owner's call. Every tag and builder of the six
   episode scripts still parses and builds byte for byte as before, and
   short-onegov renders to the same 284 hashes. An episode script's
   `check` refuses both kinds: its timeline places no pop, and capture
@@ -847,7 +869,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
   Cisco's heading, and a bar chart left of an empty strip; each is fixed
   in the crop as written above, and all 90 inserts were rendered again at
   their first, middle and last frames beside the previous pass's (30
-  changed, 60 pixel-identical) and looked at. One thing seen there stays
+  changed, 60 pixel-identical) and looked at. A third pair found a row
+  of Meshtastic's framed table cut by the picture's bottom (line 131,
+  and in milder form the parts table's last row without its rule, 55
+  and 61) and the Battery hat row's words under the captions (70 and
+  139); each is fixed in the crop as written above, and all 90 inserts
+  were rendered again at their first, middle and last frames beside the
+  previous pass's (6 changed: 55, 61, 68, 70, 131 and 139; 84
+  pixel-identical) and looked at. One thing seen there stays
   the list's:
   the pop "THE CHANNEL" (line 39) stands over the top lines of the
   Parallel page shot under it in the Short. **The spec's targets disagree
