@@ -49,16 +49,17 @@
  * CHECK holds, before any frame, what the spec holds (2.2, 2.5, 3.4.4): the pins; every anchor said once; every
  * number on a computed surface present in the built page's text (spelled numbers read as numbers, the page's SVG left
  * out, so "forty-four" counts and a path's 44.27 does not), a pop's words too; every page shot captured, its words
- * found and its source number in the edition's list, a picture touching its words turning it into its quote card
- * (and leaving it out of the Short), an author the page gives and no credit names said; the owner's footage
- * credited in footage/credits.txt or refused; quotes found on their source with --online; twelve words at most on a
- * card, its label counted with it, three in a pop, no exclamation; one Acid at a time (a pop over a shot that spends
- * one is Flash, an overlay that would make a second fails, a chart stars one row), Shock rose left to the opening
- * field, the dove once and last; no footage in a Short (it is left out of the Short and said); the grammar's warnings
- * (a picture unchanged past 5.4 s, a rose run in the body past 3.6 s, the rose alone over 10 percent, a gag within
- * 60 s of the last) and failures (a body stretch past 10.8 s with no new scene, the rose alone over 20 percent); and
- * each description, credits included, in YouTube's limits and still naming the channel's voice. RENDER runs CHECK
- * for its format and refuses on a failure.
+ * found and its source number in the edition's list, a picture touching its words turning it into its quote card (and
+ * leaving it out of the Short), and so a block too wide to read whole at the frame's smallest type or a sliver of its
+ * page at its largest (pageCrop in tools/lib/shots.mjs, said as a note), an author the page gives and no credit names
+ * said; the owner's footage credited in footage/credits.txt or refused; quotes found on their source with --online;
+ * twelve words at most on a card, its label counted with it, three in a pop, no exclamation; one Acid at a time (a
+ * pop over a shot that spends one is Flash, an overlay that would make a second fails, a chart stars one row), Shock
+ * rose left to the opening field, the dove once and last; no footage in a Short (it is left out of the Short and
+ * said); the grammar's warnings (a picture unchanged past 5.4 s, a rose run in the body past 3.6 s, the rose alone
+ * over 10 percent, a gag within 60 s of the last) and failures (a body stretch past 10.8 s with no new scene, the
+ * rose alone over 20 percent); and each description, credits included, in YouTube's limits and still naming the
+ * channel's voice. RENDER runs CHECK for its format and refuses on a failure.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -275,10 +276,16 @@ function place(X, P, fmt, frames, C) {
     if (e.a >= lim) continue;
     if (fmt === 'short' && !IN_SHORT(e.kind)) { notes.push(`line ${e.line}: ${e.kind} is left out of the Short (no footage in a Short, spec 2.3)`); continue; }
     const r = e.kind === 'page' ? pageCapture(X, e) : null;
-    if (r?.rec && pageView(C, r.rec, r.shot).card === 'picture') {
+    const v = r?.rec && r.rec.ok ? pageView(C, r.rec, r.shot) : null;
+    if (v?.error) { issues.push(`line ${e.line}: page: ${v.error}`); continue; }
+    if (v?.card === 'picture') {
       if (fmt === 'short') { notes.push(`line ${e.line}: page is left out of the Short: a picture on the source touches its words (no third-party still in a Short, spec 2.3)`); continue; }
       warnings.push(`line ${e.line}: page: a picture on the source touches its words, so the film shows the shot's quote card (spec 2.3, row 5: text only); words away from the picture show the page`);
     }
+    // A block too wide to read whole at the frame's smallest type is its quote card, never a picture of cut lines.
+    if (v?.card === 'wide') notes.push(`line ${e.line}: page: the words' block cannot be read whole at the ${fmt}'s smallest type (${v.P.minType} px), so the ${fmt} shows the shot's quote card; words in a narrower block show the page`);
+    if (v?.card === 'small') notes.push(`line ${e.line}: page: the words' block, with the blocks around it, is a sliver of its page at the ${fmt}'s largest type (${v.P.maxType} px), so the ${fmt} shows the shot's quote card`);
+    if (v?.card === 'unnamed') notes.push(`line ${e.line}: page: the words sit in a table whose head names its columns, or carry a figure only a head or caption names, and the ${fmt} cannot show both at its smallest type (${v.P.minType} px), so it shows the shot's quote card`);
     let a = e.a, b = Math.min(e.b, lim);
     const bad = forbidden(a, b);
     if (bad) { issues.push(`line ${e.line}: ${e.kind} at ${secs(a)} s would cover ${bad.id}, which nothing covers`); continue; }
@@ -338,7 +345,7 @@ function innerChanges(X, C, p) {
     const r = X.pages?.get(p.e.raw);
     const v = r?.rec ? pageView(C, r.rec, r.shot) : null;
     if (v && !v.error) {
-      const texts = v.card ? [r.shot.hl[0]] : v.phrases.map((h) => h.text);
+      const texts = v.card ? r.shot.hl : v.phrases.map((h) => h.text);
       for (const x of sweepPlan(texts.filter(Boolean), s, d, X.words)) out.push(Math.round((x.at / 1000) * FPS));
     }
   } else if (k === 'chart') {
