@@ -166,11 +166,12 @@ ${extra}</style></head><body>${body}</body></html>`;
  * swept on the word that says it and lit alone, one Acid at a time, as the page itself would have swept them.
  * `ground` is Void, or Bottle for a card that follows another with no cut between (renderSegment), so the second reads
  * as a new picture and not the first one changing its words; on Bottle the source line is Flash, because small
- * Malachite type on Bottle is under AA (CLAUDE.md, "Calibrate contrast against Bottle").
+ * Malachite type on Bottle is under AA (CLAUDE.md, "Calibrate contrast against Bottle"). `extra` is CSS a page shot's
+ * card adds (its source line at the frame's floor, pageHtml); an episode's card adds none and is built as it always was.
  */
-const cardGround = (C, body, ground) => (ground === BOTTLE ? page(C, body, BOTTLE, `.q .src{color:${FLASH}}`) : page(C, body));
-export function quoteHtml(C, tag, at = 0, sweeps = null, ground = VOID) {
-  if (sweeps) return quoteSweeps(C, tag, sweeps, ground);
+const cardGround = (C, body, ground, extra = '') => (ground === BOTTLE ? page(C, body, BOTTLE, `.q .src{color:${FLASH}}${extra}`) : page(C, body, VOID, extra));
+export function quoteHtml(C, tag, at = 0, sweeps = null, ground = VOID, extra = '') {
+  if (sweeps) return quoteSweeps(C, tag, sweeps, ground, extra);
   const src = C.S.sources[tag.src];
   const text = tag.text.replace(/—/g, ' – ');
   const hl = (tag.hl || '').replace(/—/g, ' – ');
@@ -184,17 +185,17 @@ export function quoteHtml(C, tag, at = 0, sweeps = null, ground = VOID) {
     inner = esc(text.slice(0, i)) + words.map((w, k) => `<span class="h" data-k="${k}">${esc(w)}${k < n - 1 ? ' ' : ''}</span>`).join('') + esc(text.slice(i + hl.length));
   }
   const html = cardGround(C, `<div class="q"><div class="src mono">${esc(src ? [src.pub, src.date].filter(Boolean).join(' · ') : '')}</div><div class="t">“${inner}”</div><div class="by mono">${esc(tag.by)}</div></div>
-<script>window.__frame=(ms)=>{const n=${n};document.querySelectorAll('.h').forEach((e)=>{e.classList.toggle('on',ms>=${at ? `${Math.round(at)}+` : ''}(+e.dataset.k/Math.max(1,n))*900)})};window.__frame(0);window.__ready=true;</script>`, ground);
+<script>window.__frame=(ms)=>{const n=${n};document.querySelectorAll('.h').forEach((e)=>{e.classList.toggle('on',ms>=${at ? `${Math.round(at)}+` : ''}(+e.dataset.k/Math.max(1,n))*900)})};window.__frame(0);window.__ready=true;</script>`, ground, extra);
   return { html, anim: n > 0, live: true, ground };
 }
 
-function quoteSweeps(C, tag, sweeps, ground = VOID) {
+function quoteSweeps(C, tag, sweeps, ground = VOID, extra = '') {
   const src = C.S.sources[tag.src];
   const W = sweeps.map((x) => x.text.replace(/—/g, ' – ').split(' '));
   const inner = W.map((words, p) => words.map((w, k) => `<span class="h" data-p="${p}" data-k="${k}">${esc(w)}${k < words.length - 1 ? ' ' : ''}</span>`).join('')).join(' … ');
   const T = sweeps.map((x, p) => [x.at, x.dur, W[p].length]);
   const html = cardGround(C, `<div class="q"><div class="src mono">${esc(src ? [src.pub, src.date].filter(Boolean).join(' · ') : '')}</div><div class="t">“${inner}”</div><div class="by mono">${esc(tag.by || '')}</div></div>
-<script>const T=${JSON.stringify(T)};window.__frame=(ms)=>{let cur=-1;T.forEach((t,p)=>{if(ms>=t[0])cur=p;});document.querySelectorAll('.h').forEach((e)=>{const p=+e.dataset.p,t=T[p];e.classList.toggle('on',p===cur&&ms>=t[0]+(+e.dataset.k/Math.max(1,t[2]))*t[1])})};window.__frame(0);window.__ready=true;</script>`, ground);
+<script>const T=${JSON.stringify(T)};window.__frame=(ms)=>{let cur=-1;T.forEach((t,p)=>{if(ms>=t[0])cur=p;});document.querySelectorAll('.h').forEach((e)=>{const p=+e.dataset.p,t=T[p];e.classList.toggle('on',p===cur&&ms>=t[0]+(+e.dataset.k/Math.max(1,t[2]))*t[1])})};window.__frame(0);window.__ready=true;</script>`, ground, extra);
   return { html, anim: true, live: true, ground };
 }
 
@@ -357,10 +358,11 @@ export function sweepPlan(texts, s, d, words) {
  * held sideways, 844 pt (0.44 pt a px), so 25 px. Type that cannot reach the floor is not shown as a picture of
  * type (pageCrop falls back to a cell, then to the quote card). The ceiling keeps one short cell from ballooning:
  * 42 and 45 px, the old zoom limit on 16 px body type. `at` is where the words sit, as a share of the panel's
- * height, above YouTube's captions.
+ * height, above YouTube's captions. `size` is the label's type, which the floor binds as it binds the page's
+ * (labelType); `label` is where its one line starts, and a label of more lines grows up from that line's foot.
  */
 const pageFrame = (C) => (C.SHORT
-  ? { label: 228, x: C.M, y: 300, w: C.W - C.M - 120, h: Math.round(C.H * 0.75) - 300, minType: 30, maxType: 45, at: 0.36, size: 26 }
+  ? { label: 228, x: C.M, y: 300, w: C.W - C.M - 120, h: Math.round(C.H * 0.75) - 300, minType: 30, maxType: 45, at: 0.36, size: 30 }
   : { label: 72, x: C.M, y: 150, w: C.W - 2 * C.M, h: C.H - 250, minType: 25, maxType: 42, at: 0.42, size: 28 });
 const PUSH = 0.05; // the page shot's push-in over its whole length (pageHtml)
 
@@ -1202,6 +1204,52 @@ function hasAcid(file) {
   return false;
 }
 
+/**
+ * The highlighter on our own dark page, drawn into a PNG of the crop's size rather than blended in the frame. Each
+ * of the bar's boxes (`rects`, in the crop's pixels) is read for its ground, its commonest colour (Void, Bottle, or a
+ * field of either); a pixel's ink is how far it stands from that ground against the farthest pixel within three of
+ * it, the stroke's own solid ink, so a glyph keeps its antialiasing and a Malachite word is as dark as a Flash one. A
+ * pixel within 6 of either kit ground is no ink (the other ground's field), and so is one within 8 of its own ground
+ * or with no ink near it (under 60 away: a faint tint). The bar is the bar's colour moved toward Void by that share:
+ * exact Acid (or Flash) wherever the page shows no ink, the words Void with their own edges, and the bar's colour
+ * outside every box. The old way multiplied a grey, inverted copy of the page into the bar, which left Bottle's ground
+ * at (167,209,0) and Void's near (197,246,0), off the kit (2026-10-20).
+ */
+const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+function inkBar(file, cw, ch, rects, bar, out) {
+  const r = spawnSync('ffmpeg', ['-v', 'error', '-i', file, '-f', 'rawvideo', '-pix_fmt', 'rgb24', 'pipe:1'], { maxBuffer: 1 << 28 });
+  if (r.status !== 0 || !r.stdout || r.stdout.length !== cw * ch * 3) die(`shots: could not read ${file} for the bar`);
+  const src = r.stdout, B = rgb(bar), V = rgb(VOID), grounds = [rgb(VOID), rgb(BOTTLE)];
+  const dst = Buffer.alloc(cw * ch * 3);
+  for (let i = 0; i < cw * ch; i++) dst.set(B, 3 * i);
+  const dist = (i, c) => Math.hypot(src[i] - c[0], src[i + 1] - c[1], src[i + 2] - c[2]);
+  const R = 3;
+  for (const q of rects) {
+    const x0 = Math.max(0, Math.floor(q.x)), y0 = Math.max(0, Math.floor(q.y)), x1 = Math.min(cw, Math.ceil(q.x + q.w)), y1 = Math.min(ch, Math.ceil(q.y + q.h));
+    const w = x1 - x0, h = y1 - y0;
+    if (w <= 0 || h <= 0) continue;
+    const count = new Map();
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = 3 * (y * cw + x), k = (src[i] << 16) | (src[i + 1] << 8) | src[i + 2]; count.set(k, (count.get(k) || 0) + 1); }
+    const mode = [...count].reduce((a, b) => (b[1] > a[1] ? b : a))[0], g = [mode >> 16, (mode >> 8) & 255, mode & 255];
+    const d = new Float32Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = 3 * ((y0 + y) * cw + x0 + x);
+      d[y * w + x] = grounds.some((c) => dist(i, c) <= 6) ? 0 : dist(i, g);
+    }
+    // The farthest within R: across, then down.
+    const across = new Float32Array(w * h), near = new Float32Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { let m = 0; for (let j = Math.max(0, x - R); j <= Math.min(w - 1, x + R); j++) m = Math.max(m, d[y * w + j]); across[y * w + x] = m; }
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { let m = 0; for (let j = Math.max(0, y - R); j <= Math.min(h - 1, y + R); j++) m = Math.max(m, across[j * w + x]); near[y * w + x] = m; }
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const k = near[y * w + x], a = k < 60 ? 0 : Math.min(1, Math.max(0, (d[y * w + x] - 8) / (k - 8))), o = 3 * ((y0 + y) * cw + x0 + x);
+      for (let c = 0; c < 3; c++) dst[o + c] = Math.round(B[c] + (V[c] - B[c]) * a);
+    }
+  }
+  const wr = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', `${cw}x${ch}`, '-i', 'pipe:0', '-frames:v', '1', out], { input: dst, maxBuffer: 1 << 26 });
+  if (wr.status !== 0) die(`shots: could not write the bar ${out}: ${String(wr.stderr).slice(-300)}`);
+  return out;
+}
+
 /** A captured byline as a credit: one name, trimmed; a URL or a handle is not a name. Null when there is none. */
 export function cleanAuthor(v) {
   const a = String(Array.isArray(v) ? v[0] || '' : v || '').replace(/\s+/g, ' ').trim();
@@ -1242,18 +1290,28 @@ export function pageSource(C, rec) {
 const pageCredit = (ps) => `${ps.n ? `[${ps.n}] ` : ''}${ps.by ? `${ps.by}, ` : ''}${ps.pub}`;
 
 /**
- * The label's type. One line at the frame's size where it fits; a long one (an author, an office and its
- * department) a little smaller; longer still, two lines growing up from the same place, so it never runs past the
- * panel into the Short's buttons. Martian Mono at the label's width and tracking advances 0.748 to 0.755 em a
- * character (measured in Chromium, 2026-10-20), so a line's width is known before a frame; 0.76 errs wide.
+ * The label's type, never under the frame's floor (pageFrame's `minType`, the floor the page's own type keeps). One
+ * line at the frame's size where it fits; a long one (an author, an office and its department) smaller, down to the
+ * floor; longer still, two lines growing up from the same place (more where two cannot hold it at the floor), so it
+ * never runs past the panel into the Short's buttons. Martian Mono at the label's width and tracking advances 0.748
+ * to 0.755 em a character (measured in Chromium, 2026-10-20), so a line's width is known before a frame; 0.76 errs
+ * wide, and a line that wraps is given nine tenths of its width. `w` is the line's width: the panel's, or a card's.
  */
-function labelType(P, text) {
-  const em = 0.76, n = Math.max(1, text.length);
-  if (n * em * P.size <= P.w) return { size: P.size, lines: 1 };
-  const one = Math.floor(P.w / (n * em));
-  if (one >= Math.round(0.85 * P.size)) return { size: one, lines: 1 };
-  return { size: Math.min(P.size, Math.floor((1.8 * P.w) / (n * em))), lines: 2 };
+function labelType(P, text, w = P.w) {
+  const em = 0.76, n = Math.max(1, text.length), fit = (lines) => Math.floor(((lines > 1 ? 0.9 * lines : 1) * w) / (n * em));
+  if (fit(1) >= P.size) return { size: P.size, lines: 1 };
+  if (fit(1) >= P.minType) return { size: fit(1), lines: 1 };
+  let lines = 2;
+  while (fit(lines) < P.minType) lines++;
+  return { size: Math.min(P.size, fit(lines)), lines };
 }
+/**
+ * A label set on more than one line breaks between its parts (the credit, the publisher, the date) where each part
+ * fits a line whole: the spaces inside such a part, and the one before each separator, do not break, so a date is
+ * never split from its year ("15 SEP" over "2026", The Markup's card in the Short). A part longer than a line keeps
+ * its spaces and wraps.
+ */
+const keepParts = (text, size, w) => text.split(' · ').map((p) => ((p.length + 2) * 0.76 * size <= w ? p.replace(/ /g, '\u00a0') : p)).join('\u00a0· ');
 
 /**
  * The record tools/capture.mjs wrote for a page tag, found by the same name the capture gave it. The cut list's
@@ -1274,8 +1332,9 @@ export function pageRecord(C, tag) {
  * 1), cropped to the words' own block (pageCrop); a Malachite mono label naming the publisher and the date; an Acid
  * box sweeping each phrase on the word that says it, one phrase lit at a time, so the shot spends one Acid; and one
  * linear 5 percent push-in from the words for the whole shot, footage grammar on third-party pixels (reading 2). On a
- * light page the box multiplies, a highlighter; on a dark one (ours) it is a bar with the words inverted into it, so
- * both read as dark type on Acid, and Flash where our page's own Acid is in frame. A capture that was refused (a
+ * light page the box multiplies, a highlighter; on a dark one (ours) it is a bar drawn from the crop (inkBar), exact
+ * Acid with the words in Void, so both read as dark type on Acid, and Flash where our page's own Acid is in frame. The
+ * label, and a card's source line, are set at the frame's floor or above (labelType). A capture that was refused (a
  * wall, robots.txt, YouTube) becomes the quote card with the same words, so the cut always renders and nothing is
  * routed around; so does one whose crop would keep a picture on the words, or whose words' block cannot be read whole
  * at the frame's smallest type (pageView). The label names the author where the capture or the cut list gives one
@@ -1290,7 +1349,12 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
     // Every phrase is swept on its word, as the page would have swept it; a refused page's card never had more.
     const plans = sweepPlan(shot.hl, s, d, words);
     const qC = { ...C, S: { ...C.S, sources: { page: { pub: pageCredit(ps), date: ps.date } } } };
-    const h = quoteHtml(qC, { src: 'page', text: shot.hl.join(' … '), hl: shot.hl[0], by: '' }, plans[0].at, shot.hl.length > 1 ? plans : null, ground);
+    // Its source line is the shot's label and is set as the label is, at the frame's floor or above, wrapping inside
+    // the card (and clear of the Short's buttons); the card's empty byline takes the same size.
+    const P0 = pageFrame(C), sw = Math.min(C.W - 2 * C.M - (C.SHORT ? 0 : 240), P0.w), st = labelType(P0, `${pageCredit(ps)} · ${ps.date}`.replace(/—/g, ' – '), sw);
+    if (st.lines > 1) qC.S.sources.page = { pub: keepParts(`${pageCredit(ps)} · ${ps.date}`, st.size, sw), date: '' };
+    const own = `.q .src{font-size:${st.size}px;line-height:${Math.round(1.3 * st.size)}px;max-width:${sw}px}.q .by{font-size:${st.size}px}`;
+    const h = quoteHtml(qC, { src: 'page', text: shot.hl.join(' … '), hl: shot.hl[0], by: '' }, plans[0].at, shot.hl.length > 1 ? plans : null, ground, own);
     // Several phrases keep the voice's own pace (sweepPlan ends the last before the cut), as the page does (`whole`).
     const many = shot.hl.length > 1, last = plans[plans.length - 1];
     return { ...h, animMs: many ? last.at + last.dur : plans[0].at + 900, whole: many || undefined, brand: h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>'), card: v.card, refused: v.card === 'refused' ? `${rec.refusal}: ${rec.reason}` : null, sweeps: plans };
@@ -1309,6 +1373,7 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
   const dark = luma(png, { x: px(phrases[0].union.x), y: px(phrases[0].union.y), w: px(phrases[0].union.w), h: px(phrases[0].union.h) }) < 110;
   // On our own page with its Acid in frame the bar is Flash, so the shot still spends one Acid, the page's own.
   const bar = rec.self && dark && hasAcid(crop) ? FLASH : ACID;
+  const pad = (b) => ({ x: b.x - 0.14 * b.h, y: b.y - 0.08 * b.h, w: b.w + 0.28 * b.h, h: b.h + 0.16 * b.h });
   // One box a line: a phrase that runs into bold or a link comes back as a box per element, and two padded boxes
   // overlapping multiply into a darker seam (Parallel's "$208–$450", 2026-10-20). Lines are found by the boxes'
   // middles first, then merged left to right: a table row's two cells sit 2 px apart in height, and sorting by
@@ -1326,6 +1391,9 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
     const padX = 0.14 * b.h * c.k, padY = 0.08 * b.h * c.k;
     return { x: (b.x - c.x0) * c.k - padX, y: (b.y - c.y0) * c.k - padY, w: b.w * c.k + 2 * padX, h: b.h * c.k + 2 * padY };
   }));
+  // On a dark page the bar is drawn from the crop (inkBar), under the same boxes in the crop's pixels and two more
+  // each way, so the browser's scaling of its edges reads drawn pixels.
+  const barPng = dark ? inkBar(crop, cw, ch, phrases.flatMap((h) => lines(h.boxes)).map(pad).map((b) => ({ x: b.x * dpr - cx - 2, y: b.y * dpr - cy - 2, w: b.w * dpr + 4, h: b.h * dpr + 4 })), bar, path.join(work, `${rec.name}-${C.SHORT ? 'tall' : 'wide'}-bar.png`)) : null;
   // The push-in grows from where the words start: the eye reads from there, and a move about their middle took the
   // first letters of every line off the left when the words sat far right (arXiv, 2026-10-20). pageCrop holds it
   // where every line shown stays whole to the last frame.
@@ -1337,14 +1405,15 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
   const hl = boxes.map((bs, p) => bs.map((b) => `<div class="hl" data-p="${p}" style="left:${f(b.x)}px;top:${f(b.y)}px;height:${f(b.h)}px;width:0">${dark ? `<span style="left:${f(pic.x - b.x)}px;top:${f(pic.y - b.y)}px"></span>` : ''}</div>`).join('')).join('');
   const masks = c.masks.map((m) => `<div class="mask" style="left:${f(m.x)}px;top:${f(m.y)}px;width:${f(m.w)}px;height:${f(m.h)}px"></div>`).join('');
   const data = `url(data:image/png;base64,${fs.readFileSync(crop).toString('base64')})`;
-  const extra = `.lab{position:absolute;left:${P.x}px;top:${P.label - (lt.lines - 1) * lh}px;font-size:${lt.size}px;color:${MAL};${lt.lines > 1 ? `width:${P.w}px;line-height:${lh}px` : 'white-space:nowrap'}}
+  // More than one line grows up from the foot of the first line's place, however the browser wraps it.
+  const extra = `.lab{position:absolute;left:${P.x}px;${lt.lines > 1 ? `bottom:${C.H - P.label - lh}px` : `top:${P.label}px`};font-size:${lt.size}px;color:${MAL};${lt.lines > 1 ? `width:${P.w}px;line-height:${lh}px` : 'white-space:nowrap'}}
 .panel{position:absolute;left:${P.x}px;top:${P.y}px;width:${P.w}px;height:${P.h}px;overflow:hidden;background:${VOID}}
-.doc{position:absolute;left:0;top:0;width:${P.w}px;height:${P.h}px;transform-origin:${f(ox)}px ${f(oy)}px;--pg:${data}}
+.doc{position:absolute;left:0;top:0;width:${P.w}px;height:${P.h}px;transform-origin:${f(ox)}px ${f(oy)}px;--pg:${data}${barPng ? `;--bar:url(data:image/png;base64,${fs.readFileSync(barPng).toString('base64')})` : ''}}
 .pg{position:absolute;left:${f(pic.x)}px;top:${f(pic.y)}px;width:${f(pic.w)}px;height:${f(pic.h)}px;background:var(--pg) 0 0/100% 100% no-repeat}
 .mask{position:absolute;background:${VOID}}
-.hl{position:absolute;overflow:hidden;background:${bar}${dark ? '' : ';mix-blend-mode:multiply'}}
-.hl span{position:absolute;width:${f(pic.w)}px;height:${f(pic.h)}px;background:var(--pg) 0 0/100% 100% no-repeat;filter:grayscale(1) invert(1);mix-blend-mode:multiply}`;
-  const html = page(C, `<div class="lab mono">${esc(label)}</div><div class="panel"><div class="doc" id="doc"><div class="pg"></div>${masks}${hl}</div></div>
+.hl{position:absolute;overflow:hidden;background:${bar}${dark ? '' : ';mix-blend-mode:multiply'}}${dark ? `
+.hl span{position:absolute;width:${f(pic.w)}px;height:${f(pic.h)}px;background:var(--bar) 0 0/100% 100% no-repeat}` : ''}`;
+  const html = page(C, `<div class="lab mono">${esc(lt.lines > 1 ? keepParts(label, lt.size, P.w) : label)}</div><div class="panel"><div class="doc" id="doc"><div class="pg"></div>${masks}${hl}</div></div>
 <script>const W=${JSON.stringify(boxes.map((bs) => bs.map((b) => +f(b.w))))},T=${JSON.stringify(plan.map((x) => [x.at, x.dur]))},D=${Math.round(d * 1000)},doc=document.getElementById('doc'),els=W.map((_,p)=>[...document.querySelectorAll('.hl[data-p="'+p+'"]')]);
 window.__frame=(ms)=>{doc.style.transform='scale('+(1+0.05*Math.min(1,ms/D)).toFixed(5)+')';let cur=-1;T.forEach((t,p)=>{if(ms>=t[0])cur=p;});
 W.forEach((ws,p)=>{let left=p===cur?ws.reduce((a,b)=>a+b,0)*Math.min(1,(ms-T[p][0])/T[p][1]):0;els[p].forEach((e,j)=>{const w=Math.max(0,Math.min(ws[j],left));e.style.width=w.toFixed(2)+'px';left-=w;});});};

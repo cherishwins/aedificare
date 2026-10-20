@@ -512,8 +512,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   on Void under a Malachite mono label
   (the author where the page or the cut list's `by:` gives one, because
   fair dealing names the author the source gives (ss. 29.1 and 29.2),
-  then the publisher and the date, or the day it was read; a long label
-  is set smaller, then on two lines growing up), an Acid box
+  then the publisher and the date, or the day it was read; 28 px in
+  the film and 30 in the Short, a long label smaller but never under
+  the floor below, then on two lines growing up (more where two cannot
+  hold it at the floor), broken between its parts so a date keeps its
+  year), an Acid box
   sweeping each phrase from the word in the narration that says it, one
   phrase lit at a time, and one linear 5 percent push-in from where the
   words start. A picture on a source's page is kept out (spec 2.3, row
@@ -523,10 +526,21 @@ for a shortlist for bios and cards, which is a separate deliverable.
   covered without them, so that shot is its quote card in the film and
   is left out of the Short; `pageView` decides it from the crop the
   render takes, and `check` asks the same function, so the guard is not
-  a log line. On our own dark pages the bar inverts
-  the words into it, so it reads as it does on a light page, and turns
-  Flash where the page's own Acid is in frame, so the shot still spends
-  one Acid. A refused capture becomes the quote card with the same
+  a log line. On our own dark pages the bar is drawn, not blended
+  (`inkBar`): under each of its boxes a pixel's ink is its distance from
+  the box's ground against the solid ink within three pixels of it, a
+  pixel of Void or Bottle is none, and the bar is its colour moved
+  toward Void by that share, so it is exact Acid wherever the page shows
+  no ink, on Void, Bottle or a field of either, with the words Void and
+  their own edges, as dark type reads under a light page's highlighter.
+  It turns Flash, as exact, where the page's own Acid is in frame, so
+  the shot still spends one Acid. Until 20 Oct it multiplied a grey,
+  inverted copy of the page into the bar, which left it (167,209,0) over
+  Bottle and (197,246,0) over Void, off the kit; on the pilot's 35 page
+  shots of our own pages, read at the last frame and at each phrase's
+  fully lit frame, every pixel of the bar with no ink within three is
+  now exact Acid, and exact Flash on seven of them rendered with the
+  bar forced to Flash (no shot of the pilot keeps the page's own Acid). A refused capture becomes the quote card with the same
   words, its highlighter held until the voice reaches them. Tried on The
   Floor's captures in both frames with every sample frame looked at, the
   first versions cut a wide table row at both ends, merged a row's two
@@ -655,7 +669,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   is left out with what stands beyond it (The Markup's 11 px byline,
   line 125; Morse Micro's 12 px Previous and Next under its version
   table, 168; a 13.6 px code link in GitHub's list under Parallel's
-  firmware line, 63, whose list and its lead-in then go too). A block that cannot be read whole at that size gives way to the
+  firmware line, 63, whose list and its lead-in then go too). Our own
+  type on the shot keeps the floor as well: the label (above), and on a
+  page shot's quote card the source line, set as the label is and
+  wrapping inside the card, clear of the Short's right 120 px; the
+  card's words are 84 and 62 px. An episode's quote card is not a page
+  shot and keeps its 22 px source line. A block that cannot be read whole at that size gives way to the
   cells that hold the words, with the row's label (its first cell) and
   everything between them, because a figure is not shown without the
   name of its row (The Markup's ledger showed its 43.3 cell with no
