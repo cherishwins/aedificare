@@ -648,9 +648,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   "ENTERPRISE. END TO END." alone would put the claim the edition
   corrects in the brand's voice (review, 20 Oct); sound effects and the
   cold open are left out, both the owner's call; the two YouTube
-  sources are never fetched: 16 appears only as
-  quote cards of the words the edition quotes, which a person confirms
-  before upload, and 01 only as a chart's source line; eCFR (09)
+  sources are never fetched: 16 appears as quote cards of the words the
+  edition quotes, which a person confirms before upload, and on one
+  chart's source line (his phone test, line 175 of the cut list), and 01
+  only as a chart's source line; eCFR (09)
   answered with its wall and is not shown.
   Captures that failed and were replaced, not forced: Morse Micro's AES
   and SHA-2 line is hidden like its FAQ, Meshtastic's band line sat under
