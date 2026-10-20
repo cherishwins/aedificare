@@ -50,6 +50,13 @@ if (process.argv.includes('--test')) {
     if (!c && !/^Voice: synthetic, \S+ \S+\. Every frame is computed from r = cos\(kθ\), seed \S+, k \S+\.$/.test(line || '')) problems.push(`${where}: the plain line changed, so every refile would rewrite every film ("${line}")`);
     if (c?.credits.film.length && !short && /Every frame is computed/.test(fm.description)) problems.push(`${where}: a re-cut that shows its sources' pages still says every frame is computed`);
   }
+  // The owner's footage is someone's pixels too: a re-cut that shows footage and no source page never says every frame
+  // is computed, says the footage is not, and carries its credits.txt line.
+  const foot = { n: null, id: 'bench', line: 'bench: the creator, his own file, licensed by email', own: false, pixels: true, footage: true };
+  for (const E of PUBLISHED) {
+    const d = filmMeta(E, S, N(E), { musicLine, cuts: { credits: { film: [foot], short: [] } } }).description;
+    if (/Every frame is computed/.test(d) || !/^Computed from .*, except the footage credited below\.$/m.test(d) || !d.split('\n').includes(foot.line)) problems.push(`${E.slug} film, footage only: the frame line does not name the footage, or its credit is missing`);
+  }
   // The limit bites: a re-cut whose credits cannot fit is caught here, at filing, and not by the upload.
   const E = PUBLISHED[0], big = filmMeta(E, S, N(E), { musicLine, cuts: cuts(120) });
   if (!(big.bytes > DESCRIPTION_MAX && metaIssues(big, N(E)).some((x) => /bytes/.test(x)))) problems.push(`a description of ${big.bytes} bytes was not caught`);

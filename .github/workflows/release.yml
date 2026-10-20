@@ -18,8 +18,13 @@
 # sha256 in its cut list: because each upload here clobbers, a re-cut filed
 # under the usual names and then cut again would have composed over itself,
 # its pops and sound doubled. With recut: true this files a re-cut: the usual
-# names and cuts.json, and never a base file or the stem. A fresh render
-# removes a cuts.json left by an earlier re-cut, whose credits it does not carry.
+# names and cuts.json, and never a base file or the stem, and only while the
+# release's narration.json and clean renders are still the ones its cut list
+# pins by sha256. Without it, an artifact that is a re-cut is refused, so a
+# composite is never filed as the clean render. A fresh render removes a
+# cuts.json left by an earlier re-cut, whose credits it does not carry. The
+# filing job holds film-<slug>, the group of film.yml's render and recut.yml's
+# re-cut, so no two of them write one edition's release at once.
 #
 # GitHub refuses a release asset of 2 GiB or more (HTTP 422, "size must be
 # less than 2147483648"). Found 2026-09-25 when The Snapshot Problem's film
@@ -57,11 +62,11 @@ on:
         description: 'A finished film workflow run id whose artifact to file'
         required: true
       artifact:
-        description: 'The artifact to file; empty for film-<slug>-wide'
+        description: 'The artifact to file; empty for film-<slug>-wide (a recut-<slug> artifact needs recut: true)'
         required: false
         default: ''
       recut:
-        description: 'The artifact is a re-cut (recut.yml)'
+        description: 'The artifact is a re-cut (recut.yml); a re-cut artifact is refused without it'
         type: boolean
         default: false
 
@@ -73,6 +78,12 @@ jobs:
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # The group film.yml's render and recut.yml's re-cut hold: whoever calls this, by hand or after a render or a
+    # re-cut, files to film-<slug> only while nothing else is rendering or filing that edition. Here on the job, not
+    # on the callers or the workflow, because a called workflow's group equal to its caller's deadlocks.
+    concurrency:
+      group: film-${{ inputs.slug }}
+      cancel-in-progress: false
     env:
       SLUG: ${{ inputs.slug }}
       GH_TOKEN: ${{ github.token }}
@@ -115,7 +126,35 @@ jobs:
             # A re-cut names its cut list in meta.json and files its manifest beside it, and never a clean file.
             jq -e '.recut' out/meta.json >/dev/null && [ -f out/cuts.json ] || { echo "::error::a re-cut's meta.json names its cut list (recut) and cuts.json stands beside it"; exit 1; }
             for f in out/*-base-*.mp4 out/*.flac; do echo "::error::a re-cut never files $f"; exit 1; done
+            # The pins, again, at the door: the re-cut is filed only over the narration and clean renders its cut list
+            # was checked against. A render filed while it was cutting (a hand dispatch, a failed release re-run) has
+            # moved them, and its words would sit under the old picture. GitHub keeps a sha256 of every asset; one
+            # filed before it did is hashed here.
+            gh api "repos/$GITHUB_REPOSITORY/releases/tags/film-$SLUG" > "$RUNNER_TEMP/release.json"
+            pins=("narration.json=.narration")
+            if [ -f "out/$SLUG-film-1920x1080.mp4" ]; then pins+=("$SLUG-film-base-1920x1080.mp4=.base.film"); fi
+            if [ -f "out/$SLUG-short-1080x1920.mp4" ]; then pins+=("$SLUG-short-base-1080x1920.mp4=.base.short"); fi
+            for p in "${pins[@]}"; do
+              name="${p%%=*}"
+              want="$(jq -r "${p#*=} // empty" out/cuts.json)"
+              [ -n "$want" ] || { echo "::error::cuts.json pins no $name"; exit 1; }
+              jq -e --arg n "$name" '.assets[] | select(.name == $n)' "$RUNNER_TEMP/release.json" >/dev/null || { echo "::error::film-$SLUG has no $name, which the cut list pins"; exit 1; }
+              got="$(jq -r --arg n "$name" '.assets[] | select(.name == $n) | .digest // empty' "$RUNNER_TEMP/release.json")"
+              if [ -z "$got" ]; then
+                gh release download "film-$SLUG" -p "$name" -D "$RUNNER_TEMP/pins" --clobber
+                got="sha256:$(sha256sum "$RUNNER_TEMP/pins/$name" | cut -d' ' -f1)"
+              fi
+              [ "$got" = "$want" ] || { echo "::error::film-$SLUG's $name is $got, not the $want the cut list pins: it was rendered again while this was cut; check the list against it and cut again"; exit 1; }
+            done
           else
+            # Only a fresh render is filed this way. A re-cut's composite hard-linked under the base names would be
+            # composed over by every later re-cut, and its cuts.json deleted under its own meta.json.
+            mark=""
+            if [ -f out/cuts.json ]; then mark="it carries cuts.json"; fi
+            for m in out/meta.json out/meta-short.json; do
+              if [ -f "$m" ] && jq -e '.recut // empty' "$m" >/dev/null; then mark="$(basename "$m") names a cut list"; fi
+            done
+            if [ -n "$mark" ]; then echo "::error::this artifact is a re-cut ($mark): dispatch with recut: true"; exit 1; fi
             # A fresh render is the clean film: filed under the base names too, hard links so nothing is copied.
             for k in film:1920x1080 short:1080x1920; do
               f="out/$SLUG-${k%%:*}-${k#*:}.mp4"

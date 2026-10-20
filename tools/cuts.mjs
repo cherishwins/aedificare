@@ -20,7 +20,8 @@
  * the sheets and cuts.json, into --out (default <dir>/recut/), which .github/workflows/recut.yml files.
  *
  * THE LIST. Front matter pins what it was written against; a source line gives an outside source the URL its page
- * does not carry (the pages cite as text: CLAUDE.md, "Block links only"), and `pub:` and `date:` where a card names it;
+ * does not carry (the pages cite as text: CLAUDE.md, "Block links only"), `pub:` and `date:` where a card names it,
+ * and `by:` where the author a credit names is not the one the capture read (a page shot names its author either way);
  * an anchor line is a phrase the narration says, then the shot, in episode.mjs's tag grammar:
  *
  *   ---
@@ -48,20 +49,23 @@
  * CHECK holds, before any frame, what the spec holds (2.2, 2.5, 3.4.4): the pins; every anchor said once; every
  * number on a computed surface present in the built page's text (spelled numbers read as numbers, the page's SVG left
  * out, so "forty-four" counts and a path's 44.27 does not), a pop's words too; every page shot captured, its words
- * found and its source number in the edition's list; quotes found on their source with --online; twelve words at most
- * on a card, three in a pop, no exclamation; one Acid at a time (a pop over a shot that spends one is Flash, an
- * overlay that would make a second fails), Shock rose left to the opening field, the dove once and last; no footage
- * in a Short (it is left out of the Short and said); the grammar's warnings (a picture unchanged past 5.4 s, a rose
- * run in the body past 3.6 s, the rose alone over 10 percent, a gag within 60 s of the last) and failures (a body
- * stretch past 10.8 s with no new scene, the rose alone over 20 percent); and each description, credits included, in
- * YouTube's limits and still naming the channel's voice. RENDER runs CHECK for its format and refuses on a failure.
+ * found and its source number in the edition's list, a picture touching its words turning it into its quote card
+ * (and leaving it out of the Short), an author the page gives and no credit names said; the owner's footage
+ * credited in footage/credits.txt or refused; quotes found on their source with --online; twelve words at most on a
+ * card, its label counted with it, three in a pop, no exclamation; one Acid at a time (a pop over a shot that spends
+ * one is Flash, an overlay that would make a second fails), Shock rose left to the opening field, the dove once and
+ * last; no footage in a Short (it is left out of the Short and said); the grammar's warnings (a picture unchanged
+ * past 5.4 s, a rose run in the body past 3.6 s, the rose alone over 10 percent, a gag within 60 s of the last) and
+ * failures (a body stretch past 10.8 s with no new scene, the rose alone over 20 percent); and each description,
+ * credits included, in YouTube's limits and still naming the channel's voice. RENDER runs CHECK for its format and
+ * refuses on a failure.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { browser, openContext, findFfmpeg } from './lib/film.mjs';
-import { FPS, KINDS, OVERLAYS, OWNER, shotContext, parseTag, chartHtml, chartLand, sweepPlan, pageSource, popEnd, overEnd, footageFile, renderSegment, renderPop, renderOverlay, ff } from './lib/shots.mjs';
+import { FPS, KINDS, OVERLAYS, OWNER, shotContext, parseTag, chartHtml, chartLand, sweepPlan, pageSource, pageView, namesAuthor, popEnd, overEnd, footageFile, renderSegment, renderPop, renderOverlay, ff } from './lib/shots.mjs';
 import { CHART_TYPES } from './lib/chart.mjs';
 import { parsePage, shotName, sourcesOf, neverFetched, UA } from './capture.mjs';
 import { edition } from '../src/lib/editions.mjs';
@@ -135,7 +139,7 @@ function parseList(file) {
       if (!m) { issues.push(`line ${line}: a source line is "- NN | <url> | read <date>"`); return; }
       const [url, ...rest] = m[2].split('|').map((x) => x.trim());
       const n = m[1].padStart(2, '0'), s = { id: n, url };
-      for (const r of rest) { const kv = /^(pub|date)\s*:\s*(.+)$/.exec(r); if (kv) s[kv[1]] = kv[2]; else if (/^read\s/.test(r)) s.read = r.replace(/^read\s+/, ''); }
+      for (const r of rest) { const kv = /^(pub|date|by)\s*:\s*(.+)$/.exec(r); if (kv) s[kv[1]] = kv[2]; else if (/^read\s/.test(r)) s.read = r.replace(/^read\s+/, ''); }
       sources[n] = s;
       return;
     }
@@ -254,8 +258,12 @@ function resolve(X) {
   return { cuts: cuts.filter((e) => !e.dead), overlays, issues, warnings };
 }
 
-/** One format's re-cut: which frames each insert takes, what is beneath each overlay, and the grammar's numbers. */
-function place(X, P, fmt, frames) {
+/**
+ * One format's re-cut: which frames each insert takes, what is beneath each overlay, and the grammar's numbers. `C`
+ * is the format's shot context, because a page shot's crop, and so whether a picture touches its words, is the
+ * frame's (pageView): the film then shows the shot's quote card, and the Short leaves the shot out.
+ */
+function place(X, P, fmt, frames, C) {
   const G = formatOf(X, fmt, frames);
   const issues = [], warnings = [], notes = [];
   const lim = fmt === 'short' ? G.edge : G.total;
@@ -266,6 +274,11 @@ function place(X, P, fmt, frames) {
   for (const e of P.cuts) {
     if (e.a >= lim) continue;
     if (fmt === 'short' && !IN_SHORT(e.kind)) { notes.push(`line ${e.line}: ${e.kind} is left out of the Short (no footage in a Short, spec 2.3)`); continue; }
+    const r = e.kind === 'page' ? pageCapture(X, e) : null;
+    if (r?.rec && pageView(C, r.rec, r.shot).card === 'picture') {
+      if (fmt === 'short') { notes.push(`line ${e.line}: page is left out of the Short: a picture on the source touches its words (no third-party still in a Short, spec 2.3)`); continue; }
+      warnings.push(`line ${e.line}: page: a picture on the source touches its words, so the film shows the shot's quote card (spec 2.3, row 5: text only); words away from the picture show the page`);
+    }
     let a = e.a, b = Math.min(e.b, lim);
     const bad = forbidden(a, b);
     if (bad) { issues.push(`line ${e.line}: ${e.kind} at ${secs(a)} s would cover ${bad.id}, which nothing covers`); continue; }
@@ -323,8 +336,9 @@ function innerChanges(X, C, p) {
   const beat = Math.round(0.9 * FPS);
   if (k === 'page') {
     const r = X.pages?.get(p.e.raw);
-    if (r?.rec) {
-      const texts = r.rec.refused ? [r.shot.hl[0]] : (r.rec.hl || []).filter((h) => h.found).map((h) => h.text);
+    const v = r?.rec ? pageView(C, r.rec, r.shot) : null;
+    if (v && !v.error) {
+      const texts = v.card ? [r.shot.hl[0]] : v.phrases.map((h) => h.text);
       for (const x of sweepPlan(texts.filter(Boolean), s, d, X.words)) out.push(Math.round((x.at / 1000) * FPS));
     }
   } else if (k === 'chart') {
@@ -447,14 +461,19 @@ function pageFacts(E) {
   return { text, lower: text.toLowerCase(), nums: [...n.primary, ...n.scaled], words };
 }
 const has = (facts, v) => facts.nums.some((x) => Math.abs(x - v) <= 1e-9 * Math.max(1, Math.abs(v)));
+const ONE_SURFACE = new Set(['card', 'fig', 'over', 'title', 'pop']); // the kinds whose fields are one surface of type
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-/** What a computed insert puts on screen as type: [text, the words it must have on the page (true) or should (false)]. */
-function displayed(tag) {
+/**
+ * What a computed insert puts on screen as type: [text, the words it must have on the page (true) or should (false)].
+ * A title card shows the edition's own title and date, whatever its tag says (titleHtml), so those are what it shows.
+ */
+function displayed(tag, E) {
   const k = tag.kind;
   if (k === 'pop') return [[tag.text, true]];
   if (k === 'fig' || k === 'over') return [[tag.value, false], [tag.label, false]];
   if (k === 'card') return [[tag.text, false], [tag.label, false]];
+  if (k === 'title') return E ? [[E.title, false], [E.dateLabel, false]] : [];
   if (k === 'map') return [[tag.label, false], ...(tag.stops || []).filter(Boolean).map((s) => [s.name, false])];
   if (k === 'chart') {
     const out = [[tag.title, false], [tag.sub, false], [tag.note, false], [tag.ref, false]];
@@ -471,11 +490,19 @@ function facts(X, e, out) {
   const page = X.facts;
   if (!page) { out.issues.push(`dist/${X.E.slug}/index.html is not built: run npm run build`); return; }
   const where = `line ${e.line}: ${e.kind}`;
-  for (const [text, must] of displayed(e.tag)) {
+  const count = (text) => String(text || '').split(/\s+/).filter((w) => /[a-z0-9$]/i.test(w)).length;
+  const shown = displayed(e.tag, X.E);
+  // Twelve words on a card means the card: its words and its label are read as one surface, so they are counted
+  // together. A chart's or a map's labels are data, each read on its own, and keep the count per label.
+  if (ONE_SURFACE.has(e.kind)) {
+    const n = shown.reduce((a, [text]) => a + count(text), 0);
+    if (n > 12) out.issues.push(`${where}: ${n} words of display copy on one card ("${shown.map(([t]) => t).filter(Boolean).join(' | ').slice(0, 60)}..."); twelve at most, label included`);
+  }
+  for (const [text, must] of shown) {
     if (!text) continue;
     if (e.kind !== 'pop' && /!/.test(text)) out.issues.push(`${where}: no exclamation on a card ("${text}")`);
-    const n = text.split(/\s+/).filter((w) => /[a-z0-9$]/i.test(w)).length;
-    if (n > 12) out.issues.push(`${where}: ${n} words of display copy ("${text.slice(0, 50)}..."); twelve at most`);
+    const n = count(text);
+    if (n > 12 && !ONE_SURFACE.has(e.kind)) out.issues.push(`${where}: ${n} words of display copy ("${text.slice(0, 50)}..."); twelve at most`);
     for (const v of numbersIn(text).primary) if (!has(page, v)) out.issues.push(`${where}: ${v} is not on the built page ("${text}"); facts are not free`);
     const missing = contentWords(text).filter((w) => !page.words.has(w) && !page.words.has(w.replace(/s$/, '')) && !page.words.has(`${w}s`));
     if (missing.length) (must ? out.issues : out.warnings).push(`${where}: "${missing.join('", "')}" ${missing.length > 1 ? 'are' : 'is'} not on the built page ("${text}")${must ? '; a pop is a word the page says' : ''}`);
@@ -536,6 +563,10 @@ function checkPage(X, e, out) {
   const lost = r.shot.hl.filter((h, i) => !(rec.hl?.[i]?.found && rec.hl[i].union && rec.hl[i].boxes?.length));
   if (lost.length) out.issues.push(`${where}: "${lost.join('", "')}" not boxed in the capture`);
   if (rec.source && rec.source.namesHost === false) out.warnings.push(`${where}: source ${rec.src}'s entry does not name ${new URL(rec.url).hostname}; a person confirms the URL is the cited document`);
+  // Fair dealing names the author where the source gives one (ss. 29.1 and 29.2): a by: that leaves the page's own
+  // byline out is said, so a person decides.
+  const ps = pageSource({ S: shotS(X) }, rec);
+  if (ps.author && !namesAuthor(`${ps.by || ''} ${ps.pub}`, ps.author)) out.warnings.push(`${where}: source ${rec.src}'s page gives its author as "${ps.author}", and its credit ("${ps.by ? `${ps.by}, ` : ''}${ps.pub}") does not name them; fair dealing names the author the source gives`);
   if (rec.self && rec.built?.sha256) {
     const f = path.join('dist', edition(rec.page).path.replace(/^\//, ''), 'index.html');
     if (fs.existsSync(f) && 'sha256:' + rec.built.sha256 !== sha256(fs.readFileSync(f))) out.warnings.push(`${where}: our page ${rec.page} changed since its capture (${rec.readAt.slice(0, 10)}); capture it again so the shot shows the page as built`);
@@ -567,15 +598,18 @@ function creditOf(X, C, e) {
   if (e.kind === 'page') {
     const r = pageCapture(X, e);
     if (!r.rec || !r.rec.src) return [];
-    const ps = pageSource(C, r.rec), n = r.rec.src;
-    return [{ n, line: ps.own ? `[${n}] ${ps.own}, ${ps.date}, this site` : `[${n}] ${ps.pub}, ${ps.date}`.replace(/, $/, ''), own: !!ps.own, pixels: !r.rec.refused }];
+    const ps = pageSource(C, r.rec), n = r.rec.src, v = pageView(C, r.rec, r.shot);
+    // The author before the publisher, as the label sets them; a shot shown as its quote card shows no pixels of the page.
+    return [{ n, line: ps.own ? `[${n}] ${ps.own}, ${ps.date}, this site` : `[${n}] ${ps.by ? `${ps.by}, ` : ''}${ps.pub}, ${ps.date}`.replace(/, $/, ''), by: ps.by, own: !!ps.own, pixels: !v.card && !v.error }];
   }
-  const named = (raw) => { const n = String(raw).padStart(2, '0'); return src(n)?.pub ? [{ n, line: `[${n}] ${src(n).pub}, ${src(n).date}`, own: false, pixels: false }] : []; };
+  const named = (raw) => { const n = String(raw).padStart(2, '0'), s = src(n); return s?.pub ? [{ n, line: `[${n}] ${s.by ? `${s.by}, ` : ''}${s.pub}, ${s.date}`, by: s.by || null, own: false, pixels: false }] : []; };
   if (e.kind === 'quote') return named(e.tag.src);
   if (e.kind === 'chart') return e.tag.srcs.flatMap(named);
   if (OWNER.includes(e.kind)) {
-    const line = X.credits.find((l) => l.toLowerCase().startsWith(`${e.tag.id.toLowerCase()}:`));
-    return line ? [{ n: null, id: e.tag.id, line, own: false, pixels: true }] : [];
+    // Footage is always pixels, credited or not, so the description never calls such a film computed throughout; a
+    // clip with no credits line fails the check, so a line of null never reaches a description.
+    const line = X.credits.find((l) => l.toLowerCase().startsWith(`${e.tag.id.toLowerCase()}:`)) || null;
+    return [{ n: null, id: e.tag.id, line, own: false, pixels: true, footage: true }];
   }
   return [];
 }
@@ -584,9 +618,12 @@ function creditOf(X, C, e) {
 function creditsOf(X, Q, C) {
   const byN = new Map(), extra = [];
   for (const p of Q.placed) for (const c of creditOf(X, C, p.e)) {
-    if (!c.n) { if (!extra.some((x) => x.line === c.line)) extra.push(c); continue; }
+    if (!c.n) { if (!extra.some((x) => x.id === c.id && x.line === c.line)) extra.push(c); continue; }
     const was = byN.get(c.n);
-    if (!was) byN.set(c.n, { ...c }); else was.pixels ||= c.pixels;
+    // One line a source; the line that names its author wins, whichever shot came first (a chart's source line
+    // names no author, and the page shot of the same source does).
+    if (!was) byN.set(c.n, { ...c });
+    else { was.pixels ||= c.pixels; if (!was.by && c.by) Object.assign(was, { line: c.line, by: c.by }); }
   }
   return [...[...byN.values()].sort((a, b) => +a.n - +b.n), ...extra];
 }
@@ -621,7 +658,9 @@ async function check(L, { only = null, untilS = 0, quiet = false } = {}) {
     if (e.kind === 'quote') { if (argv.includes('--online')) await checkQuoteOnline(X, e, out); else out.warnings.push(`line ${e.line}: quote not checked against its source (check --online)`); }
     if (OWNER.includes(e.kind)) {
       if (!fs.existsSync(C0.FOOT) || !footageFile(C0, e.tag.id)) out.issues.push(`line ${e.line}: ${e.kind} ${e.tag.id} has no file in ${C0.FOOT}; a re-cut never ships a slate`);
-      else if (!X.credits.some((l) => l.toLowerCase().startsWith(`${e.tag.id.toLowerCase()}:`))) out.warnings.push(`line ${e.line}: ${e.tag.id} has no line in footage/credits.txt ("id: source, licence"); the description cannot credit it`);
+      // Someone else's pictures go out credited or not at all: fair dealing names the source (Copyright Act ss. 29.1
+      // and 29.2), a CC licence its creator, and the description is where both are read.
+      else if (!X.credits.some((l) => l.toLowerCase().startsWith(`${e.tag.id.toLowerCase()}:`))) out.issues.push(`line ${e.line}: ${e.tag.id} has no line in footage/credits.txt ("id: source, licence"); the owner's footage is never shown uncredited`);
     }
   }
   const fmts = only ? [only] : ['film', 'short'];
@@ -633,9 +672,9 @@ async function check(L, { only = null, untilS = 0, quiet = false } = {}) {
     const held = fmts.includes(fmt);
     if (held) pin(fmt === 'film' ? 'base' : 'base-short', base, `clean ${fmt}`);
     const frames = fs.existsSync(base) ? frameCount(base) : null;
-    const Q = place(X, P, fmt, frames);
-    if (held && frames !== null) { const want = formatOf(X, fmt, null).total; if (Math.abs(want - frames) > 1) out.issues.push(`${path.basename(base)} has ${frames} frames, and this narration and timeline make ${want}: it is not this release's clean ${fmt}`); }
     const C = shotContext({ S: shotS(X), short: fmt === 'short', dir: X.dir, slug: X.E.slug, pages: path.join(X.dir, 'pages') });
+    const Q = place(X, P, fmt, frames, C);
+    if (held && frames !== null) { const want = formatOf(X, fmt, null).total; if (Math.abs(want - frames) > 1) out.issues.push(`${path.basename(base)} has ${frames} frames, and this narration and timeline make ${want}: it is not this release's clean ${fmt}`); }
     const g = grammar(X, Q, C, untilF);
     Q.grammar = g; Q.C = C; Q.base = base; Q.frames = frames;
     Q.credits = creditsOf(X, Q, C);
@@ -682,7 +721,7 @@ function manifestOf(X, P, plans) {
         line: e.line, at: e.phrase, kind: e.kind, tag: e.raw, over: e.over, film: win(f), short: win(s),
         ...(e.overlay ? { acid: { film: f ? f.acid : null, short: s ? s.acid : null } } : {}),
         ...(cap?.rec ? { capture: cap.name, refused: cap.rec.refused ? cap.rec.refusal : null } : {}),
-        sources: credit.map((c) => c.n).filter(Boolean), credit: credit.map((c) => c.line),
+        sources: credit.map((c) => c.n).filter(Boolean), credit: credit.map((c) => c.line).filter(Boolean),
       };
     }),
     credits: { film: plans.film.credits, short: plans.short.credits },

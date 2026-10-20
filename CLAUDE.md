@@ -510,13 +510,20 @@ for a shortlist for bios and cards, which is a separate deliverable.
   capture `tools/capture.mjs` wrote, found by the capture's own file
   name, cropped to the words' own column at a zoom that keeps body type
   readable on a phone, ungraded, on Void under a Malachite mono label
-  (the publisher and the date, or the day it was read), an Acid box
+  (the author where the page or the cut list's `by:` gives one, because
+  fair dealing names the author the source gives (ss. 29.1 and 29.2),
+  then the publisher and the date, or the day it was read; a long label
+  is set smaller, then on two lines growing up), an Acid box
   sweeping each phrase from the word in the narration that says it, one
   phrase lit at a time, and one linear 5 percent push-in from where the
   words start. A picture on a source's page is kept out (spec 2.3, row
   5, text only): one level with the words narrows the window, one above
   or below moves it while the words stay clear of the captions, and any
-  still inside is covered in Void. On our own dark pages the bar inverts
+  still inside is covered in Void. One on the words themselves cannot be
+  covered without them, so that shot is its quote card in the film and
+  is left out of the Short; `pageView` decides it from the crop the
+  render takes, and `check` asks the same function, so the guard is not
+  a log line. On our own dark pages the bar inverts
   the words into it, so it reads as it does on a light page, and turns
   Flash where the page's own Acid is in frame, so the shot still spends
   one Acid. A refused capture becomes the quote card with the same
@@ -546,7 +553,15 @@ for a shortlist for bios and cards, which is a separate deliverable.
   on 127.0.0.1 that refuses those hosts and this machine's own addresses,
   because a Playwright route never sees a redirect hop and Chromium skips
   any proxy for loopback unless told not to (both found while building
-  it). Clean mode hides cookie banners and ad slots by CSS and blocks
+  it). Its own addresses however they are spelled (review, 20 Oct): a
+  loopback, private, link-local or reserved literal, IPv4-mapped ones
+  included (`::ffff:7f00:1` passed the first version's pattern), and a
+  name that resolves to one (`localtest.me`, `127.1`), which the gate
+  resolves itself before every connection and then connects to the very
+  address it checked. Behind an upstream proxy (this sandbox, which has
+  no DNS of its own) a name this machine cannot resolve goes to the
+  upstream by name, and lands on the upstream's network, not this
+  machine's. Clean mode hides cookie banners and ad slots by CSS and blocks
   nothing: blocking ad servers put up Geeky Gadgets' ad-blocker modal over
   the very sentence the shot was for. Words a reader cannot see fail
   instead of passing: in a collapsed part of the page, or under an overlay
@@ -563,7 +578,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   32 px (Geeky Gadgets' sidebar thumbnails are 75 by 42 and were missed
   at 48), cut by every ancestor that clips them (a carousel's hidden
   thumbnails reported boxes over the text beside it), and counted again
-  once the PNG exists.
+  once the PNG exists. Then, on someone else's page, every one of them
+  but inline SVG is painted Void in the PNG itself (`masked` counts
+  them), because that PNG is what the film is cut from and what
+  `recut.yml` files on a public release: no copy of a third-party
+  photograph exists to publish (review, 20 Oct; spec 2.3, row 5).
   **`tools/cuts.mjs` re-cuts an edition film without a word spoken
   again** (2026-10-20, spec step 2). A cut list,
   `source/film/<slug>.cuts.md` (its format is the tool's header), names a
@@ -579,7 +598,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   a computed surface on the built page's text (spelled numbers read as
   numbers, the page's SVG left out, so a path's 44.27 is not a fact), a
   pop's words too; every page shot captured and its words boxed; twelve
-  words on a card, three in a pop; one Acid at a time (a pop over a shot
+  words on a card, its label counted with it, three in a pop; the
+  owner's footage named in `footage/credits.txt` or refused, its line in
+  the description and the frame line saying the footage is not computed;
+  a page shot's credit naming the page's author, and a `by:` on the
+  source line that leaves that author out said; one Acid at a time (a pop over a shot
   that spends one turns Flash); no footage in a Short (left out and
   said); the grammar's warnings and failures (spec 2.2); and each
   description, credits included, in YouTube's limits and still naming the
@@ -630,7 +653,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   and the clean render already brings 7.9 new pictures a minute, so new
   scenes land near 16 a minute against the spec's 6 to 10. The list keeps
   the rose target, because the rose is what the owner asked to see less
-  of; the scene rate is the owner's to judge on the preview.
+  of; the scene rate is the owner's to judge on the preview. Since the
+  review of 20 Oct one of its page shots, Seeed's $14.99 (line 67), is
+  its quote card in the film: the capture counted a carousel slide over
+  those words that the page had hidden, and a picture on the words now
+  turns a shot into its card rather than a warning in the log; words
+  away from the carousel would show the page.
 - `.claude/skills/youtube/SKILL.md`: how a session runs the channel (the
   credentials check, list and sync, the private lock and the two upload
   routes, what must be true before a render goes up, analytics, quota,
@@ -714,13 +742,34 @@ for a shortlist for bios and cards, which is a separate deliverable.
   the base names and the cut list's sha256 pins make that impossible, and
   a page corrected and rendered again refreshes the base, which the old
   list's pins then refuse. A fresh render removes a `cuts.json` left by
-  an earlier re-cut.
+  an earlier re-cut. Three guards from the review of 20 Oct: without
+  `recut: true` an artifact that is a re-cut (a meta naming a cut list,
+  or a `cuts.json`) is refused, because filing it the fresh way
+  hard-linked the composite under the base names and deleted its
+  `cuts.json`; with it, the job reads the release's `narration.json` and
+  base files again (GitHub's own sha256 of each asset, or the bytes
+  hashed where an older asset has none) and files nothing unless they are
+  still the ones the cut list pins, so a render filed while the re-cut
+  ran is never covered by a composite of the render before it; and the
+  filing job holds `film-<slug>`, the render's and the re-cut's group,
+  so no two of them write one edition's release at once. The group sits
+  on the job, not on the callers, because a called workflow's group
+  equal to its caller's deadlocks; a job waiting on the group can be
+  replaced by a newer one, and the pin check holds whatever order they
+  run in.
 - `.github/workflows/recut.yml`: manual dispatch, `slug`. Cuts the film
   and the Short again from `source/film/<slug>.cuts.md` with
   `tools/cuts.mjs` over the base files it downloads, captures any page
   shot not yet filed on the Release `pages-<slug>` (and files what it
   captured; a refusal is asked again next run), checks with `--online`,
-  and files through `release.yml` with `recut: true`. No secret reaches
+  and files through `release.yml` with `recut: true`. That release is
+  public, so what it files of someone else's page is the PNG the film is
+  cut from with every picture painted Void (`capture.mjs`, above), and a
+  record that does not say so is not filed: chosen over keeping the
+  captures only in an artifact or the cache, which expire and would make
+  a later re-cut shoot the pages again and show something nobody
+  checked, and over filing only the records, which would do the same;
+  our own pages are filed whole. No secret reaches
   it, it never runs `film.yml` or `tools/generate-film.mjs`, and nothing
   in it can speak, so it cannot spend a credit.
 - `.github/workflows/episode.yml`: manual dispatch, `slug` input. Checks

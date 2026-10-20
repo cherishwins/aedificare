@@ -416,6 +416,22 @@ function pageCrop(rec, phrases, P) {
   return { x0, y0, cw: x1 - x0, ch: ph, k, masks, touches: touches.length, runs };
 }
 
+/**
+ * How a page shot shows in this frame: its capture cropped to the words (pageCrop), or the quote card of its words
+ * (`card`). A refused capture has only its card. So does one whose crop would keep a picture touching the words
+ * (spec 2.3, row 5: text only, a news photograph is cropped out): a picture beside the words is covered in Void, and
+ * one under them cannot be covered without covering the words. The render and tools/cuts.mjs check both ask this, of
+ * the same crop, so what the check says is what the frame shows, and the Short can leave such a shot out.
+ */
+export function pageView(C, rec, shot) {
+  if (rec.refused) return { card: 'refused' };
+  if (!rec.ok || !rec.png) return { error: `the capture failed (${rec.error || 'no PNG'})` };
+  const phrases = (rec.hl || []).filter((h) => h.found && h.union && h.boxes && h.boxes.length);
+  if (phrases.length < shot.hl.length) return { error: `${shot.hl.length - phrases.length} phrase(s) not boxed in the capture` };
+  const P = pageFrame(C), crop = pageCrop(rec, phrases, P);
+  return { card: crop.touches ? 'picture' : null, P, crop, phrases };
+}
+
 /** The mean luminance (0 to 255) of a box of a PNG, in its own pixels: a light page takes a highlighter, a dark one an inverted bar. */
 function luma(file, b) {
   const r = spawnSync('ffmpeg', ['-v', 'error', '-i', file, '-vf', `crop=${Math.max(2, Math.round(b.w))}:${Math.max(2, Math.round(b.h))}:${Math.round(b.x)}:${Math.round(b.y)},scale=1:1:flags=area,format=rgb24`, '-frames:v', '1', '-f', 'rawvideo', 'pipe:1'], { maxBuffer: 1 << 20 });
@@ -435,23 +451,57 @@ function hasAcid(file) {
   return false;
 }
 
+/** A captured byline as a credit: one name, trimmed; a URL or a handle is not a name. Null when there is none. */
+export function cleanAuthor(v) {
+  const a = String(Array.isArray(v) ? v[0] || '' : v || '').replace(/\s+/g, ' ').trim();
+  return !a || a.length > 80 || /^(https?:|www\.|@)/i.test(a) ? null : a;
+}
+/** Whether `text` already names `author`: by surname ("Xu, Jiajie" and "Jiajie Xu" are both Xu), or whole. */
+export function namesAuthor(text, author) {
+  const t = ` ${String(text).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ')} `;
+  const a = author.toLowerCase();
+  const surname = (a.includes(',') ? a.split(',')[0] : a.split(/\s+/).pop()).replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  return t.includes(` ${a.replace(/[^\p{L}\p{N}]+/gu, ' ').trim()} `) || (!!surname && t.includes(` ${surname} `));
+}
+
 /**
- * Who published a captured page and when, as its shot's label names them and a description credits them
- * (tools/cuts.mjs): the cut list's own `pub:` and `date:` for the source first, then what the capture read. Our own
- * pages are named by edition. A refused capture is named by its host and the day the edition read it, because the
- * wall's title says nothing about the source.
+ * Who wrote a captured page, who published it and when, as its shot's label names them and a description credits
+ * them (tools/cuts.mjs): the cut list's own `by:`, `pub:` and `date:` for the source first, then what the capture read.
+ * The author is named because fair dealing for criticism and news reporting names the source and, where the source
+ * gives one, its author (Copyright Act ss. 29.1 and 29.2; spec 2.6); one the publisher's name already carries (the
+ * paper's authors in the cut list's pub:) is not named twice. `author` is the capture's own byline, whatever `by` says,
+ * so the check can say when a credit leaves it out. Our own pages are named by edition. A refused capture is named by
+ * its host and the day the edition read it, because the wall's title says nothing about the source.
  */
 export function pageSource(C, rec) {
   const src = rec.src ? C.S.sources?.[rec.src] : null;
   const given = src && typeof src === 'object' ? src : {};
   if (rec.refused) {
     const read = rec.source && /\bread (\d{1,2} [A-Z][a-z]{2} \d{4})/.exec(rec.source.text || '');
-    return { n: rec.src, pub: given.pub || new URL(rec.url).hostname.replace(/^www\./, ''), date: given.date || (read ? `read ${read[1]}` : ''), own: null };
+    return { n: rec.src, pub: given.pub || new URL(rec.url).hostname.replace(/^www\./, ''), date: given.date || (read ? `read ${read[1]}` : ''), by: given.by || null, author: null, own: null };
   }
   const ed = rec.self ? edition(rec.page) : null;
   const pub = ed ? `${SITE.name} · ${ed.title}` : given.pub || rec.publisher || new URL(rec.finalUrl || rec.url).hostname.replace(/^www\./, '');
   const date = ed ? ed.dateLabel : given.date || dayLabel(rec.published) || `read ${dayLabel(rec.readAt)}`;
-  return { n: rec.src, pub, date, own: ed ? ed.title : null };
+  const author = ed ? null : cleanAuthor(rec.author);
+  const by = ed ? null : given.by || (author && !namesAuthor(pub, author) ? author : null);
+  return { n: rec.src, pub, date, by, author, own: ed ? ed.title : null };
+}
+/** A page shot's source as its label sets it: "[02] Julian Horsey, Geeky Gadgets". */
+const pageCredit = (ps) => `${ps.n ? `[${ps.n}] ` : ''}${ps.by ? `${ps.by}, ` : ''}${ps.pub}`;
+
+/**
+ * The label's type. One line at the frame's size where it fits; a long one (an author, an office and its
+ * department) a little smaller; longer still, two lines growing up from the same place, so it never runs past the
+ * panel into the Short's buttons. Martian Mono at the label's width and tracking advances 0.748 to 0.755 em a
+ * character (measured in Chromium, 2026-10-20), so a line's width is known before a frame; 0.76 errs wide.
+ */
+function labelType(P, text) {
+  const em = 0.76, n = Math.max(1, text.length);
+  if (n * em * P.size <= P.w) return { size: P.size, lines: 1 };
+  const one = Math.floor(P.w / (n * em));
+  if (one >= Math.round(0.85 * P.size)) return { size: one, lines: 1 };
+  return { size: Math.min(P.size, Math.floor((1.8 * P.w) / (n * em))), lines: 2 };
 }
 
 /**
@@ -476,25 +526,24 @@ export function pageRecord(C, tag) {
  * On a light page the box multiplies, a highlighter; on a dark one (ours) it is a bar with the words inverted into
  * it, so both read as dark type on Acid, and Flash where our page's own Acid is in frame. A capture that was
  * refused (a wall, robots.txt, YouTube) becomes the quote card with the same words, so the cut always renders and
- * nothing is routed around. `d` is the shot's length, `words` the film's, timed; `work` takes the cropped PNG.
+ * nothing is routed around; so does one whose crop would keep a picture on the words (pageView). The label names the
+ * author where the capture or the cut list gives one (pageSource). `d` is the shot's length, `words` the film's,
+ * timed; `work` takes the cropped PNG.
  */
 export async function pageHtml(C, s, { d, words = [], work }) {
   const { shot, rec } = pageRecord(C, s.tag);
   const ps = pageSource(C, rec);
-  if (rec.refused) {
+  const v = pageView(C, rec, shot);
+  if (v.card) {
     // The edition's own source line says when it was read; the wall's title says nothing about the source.
-    const pub = `${rec.src ? `[${rec.src}] ` : ''}${ps.pub}`;
     const plan = sweepPlan([shot.hl[0]], s, d, words)[0];
-    const qC = { ...C, S: { ...C.S, sources: { page: { pub, date: ps.date } } } };
+    const qC = { ...C, S: { ...C.S, sources: { page: { pub: pageCredit(ps), date: ps.date } } } };
     const h = quoteHtml(qC, { src: 'page', text: shot.hl.join(' … '), hl: shot.hl[0], by: '' }, plan.at);
-    return { ...h, animMs: plan.at + 900, brand: h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>'), refused: `${rec.refusal}: ${rec.reason}`, sweeps: [plan] };
+    return { ...h, animMs: plan.at + 900, brand: h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>'), card: v.card, refused: v.card === 'refused' ? `${rec.refusal}: ${rec.reason}` : null, sweeps: [plan] };
   }
   if (!rec.ok || !rec.png) die(`shots: the capture for [[page: ${s.tag.body}]] failed (${rec.error || 'no PNG'}); fix the tag and capture again`);
-  const phrases = (rec.hl || []).filter((h) => h.found && h.union && h.boxes && h.boxes.length);
-  if (phrases.length < shot.hl.length) die(`shots: [[page: ${s.tag.body}]]: ${shot.hl.length - phrases.length} phrase(s) not boxed in the capture; capture again`);
-  const P = pageFrame(C), png = path.join(C.PAGES, rec.png), dpr = rec.viewport.dpr || 2;
-  const c = pageCrop(rec, phrases, P);
-  if (c.touches) warnOnce(`shots: [[page: ${s.tag.body}]]: a picture on the page touches the words, so it stays in the shot; choose words away from it`);
+  if (v.error) die(`shots: [[page: ${s.tag.body}]]: ${v.error}; capture again`);
+  const { P, crop: c, phrases } = v, png = path.join(C.PAGES, rec.png), dpr = rec.viewport.dpr || 2;
   if (c.runs) warnOnce(`shots: [[page: ${s.tag.body}]]: the words are too long for the ${C.SHORT ? 'Short\'s' : 'film\'s'} panel at a readable size, so they run past its edge; a shorter hl: shows them whole`);
   // Only the crop goes into the frame: a whole capture is up to 6 MB of PNG for a fifth of its pixels.
   const crop = path.join(work, `${rec.name}-${C.SHORT ? 'tall' : 'wide'}.png`);
@@ -525,12 +574,13 @@ export async function pageHtml(C, s, { d, words = [], work }) {
   const all = hull(boxes.flat());
   const ox = all.x, oy = all.y + all.h / 2;
   const plan = sweepPlan(phrases.map((h) => h.text), s, d, words);
-  const label = `${rec.src ? `[${rec.src}] ` : ''}${ps.pub} · ${ps.date}`.replace(/—/g, ' – ');
+  const label = `${pageCredit(ps)} · ${ps.date}`.replace(/—/g, ' – ');
+  const lt = labelType(P, label), lh = Math.round(1.3 * lt.size);
   const f = (v) => v.toFixed(1);
   const hl = boxes.map((bs, p) => bs.map((b) => `<div class="hl" data-p="${p}" style="left:${f(b.x)}px;top:${f(b.y)}px;height:${f(b.h)}px;width:0">${dark ? `<span style="left:${f(-b.x)}px;top:${f(-b.y)}px"></span>` : ''}</div>`).join('')).join('');
   const masks = c.masks.map((m) => `<div class="mask" style="left:${f(m.x)}px;top:${f(m.y)}px;width:${f(m.w)}px;height:${f(m.h)}px"></div>`).join('');
   const data = `url(data:image/png;base64,${fs.readFileSync(crop).toString('base64')})`;
-  const extra = `.lab{position:absolute;left:${P.x}px;top:${P.label}px;font-size:${P.size}px;color:${MAL};white-space:nowrap}
+  const extra = `.lab{position:absolute;left:${P.x}px;top:${P.label - (lt.lines - 1) * lh}px;font-size:${lt.size}px;color:${MAL};${lt.lines > 1 ? `width:${P.w}px;line-height:${lh}px` : 'white-space:nowrap'}}
 .panel{position:absolute;left:${P.x}px;top:${P.y}px;width:${P.w}px;height:${P.h}px;overflow:hidden;background:${VOID}}
 .doc{position:absolute;left:0;top:0;width:${P.w}px;height:${P.h}px;transform-origin:${f(ox)}px ${f(oy)}px;--pg:${data}}
 .pg{position:absolute;inset:0;background:var(--pg) 0 0/${P.w}px ${P.h}px no-repeat}
@@ -723,7 +773,7 @@ export async function renderSegment(C, R, s, i) {
     s.builtMs = h.anim ? Math.min(animMs / pace, d * 1000) : 0; // the picture moves until here; longHolds counts the rest
     if (s.tag.kind === 'page') {
       const said = h.sweeps.map((x) => `"${x.text.slice(0, 40)}" at ${x.at} ms${x.word ? ` on "${x.word.w}" (${x.word.s.toFixed(2)} s)` : ', not spoken in the shot'}`).join('; ');
-      pageNote = h.refused ? `        page refused (${h.refused.slice(0, 90)}): the quote card, ${said}\n`
+      pageNote = h.card ? `        page ${h.refused ? `refused (${h.refused.slice(0, 90)})` : 'with a picture on its words'}: the quote card, ${said}\n`
         : `        page "${h.label}": ${said}; zoom ${h.zoom.toFixed(2)}${h.dark ? ', dark page' : ''}${h.flash ? ', Flash bar (the page\'s own Acid is in frame)' : ''}${h.masked ? `, ${h.masked} picture(s) covered` : ''}\n`;
     }
     const n = h.anim ? Math.min(Math.ceil((animMs / pace / 1000) * FPS) + 1, Math.ceil(d * FPS)) : 1;

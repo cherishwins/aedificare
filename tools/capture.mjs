@@ -41,8 +41,10 @@
  * taller than any frame needs means a push-in never shows its edge. Every box in the JSON is in CSS px of that
  * viewport (double it for the PNG's pixels). Each phrase also carries `block`, the box of the paragraph or table
  * row it sits in, so the render can crop to the words' own column and leave a sidebar out. `media` lists the
- * pictures in view, so the render can crop a news photograph out and show only the words. A refused shot writes
- * its JSON and no PNG.
+ * pictures in view, so the render can crop a news photograph out and show only the words; on someone else's page
+ * every one of them but inline SVG is painted Void in the PNG itself (`masked` counts them), because that PNG is
+ * filed on a public Release, and no copy of a photograph should exist to file. A refused shot writes its JSON and
+ * no PNG.
  * Exit 1 when a shot failed (its words are not on the page, the URL is gone, the tag is wrong); a refusal is an
  * answer, not a failure, because the render has a fallback for it.
  */
@@ -51,6 +53,8 @@ import net from 'node:net';
 import http from 'node:http';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { lookup as dnsLookup } from 'node:dns/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { browser } from './lib/film.mjs';
 import { SITE, abs } from '../src/config.mjs';
@@ -66,8 +70,19 @@ export const WIDTH = 1440, DPR = 2, HEIGHT = 1600;
 const NEVER = /(^|\.)(youtube\.com|youtu\.be|youtube-nocookie\.com|youtubei\.googleapis\.com|youtube\.googleapis\.com|googlevideo\.com|ytimg\.com|yt\d\.ggpht\.com|netflix\.com|nflxvideo\.net|nflximg\.net|nflxext\.com|nflxso\.net|primevideo\.com|disneyplus\.com|disney-plus\.net|bamgrid\.com|hulu\.com|hulustream\.com|max\.com|hbomax\.com|peacocktv\.com|paramountplus\.com|crunchyroll\.com|tv\.apple\.com|twitch\.tv|ttvnw\.net|jtvnw\.net|vimeo\.com|vimeocdn\.com|dailymotion\.com|dmcdn\.net|tiktok\.com|tiktokcdn\.com|spotify\.com|scdn\.co|soundcloud\.com|sndcdn\.com)$/i;
 /** Whether a URL is one of those hosts; tools/cuts.mjs asks before it fetches a quote's source. */
 export const neverFetched = (url) => { try { return NEVER.test(new URL(url).hostname); } catch { return true; } };
-// A page out there has no business reaching this machine's own services (the gate, the sandbox's proxy).
-const LOCAL = /^(localhost|.*\.localhost|127\.\d+\.\d+\.\d+|0\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|169\.254\.\d+\.\d+|::1?|f[cd][0-9a-f]*:.*|fe80:.*)$/i;
+// A page out there has no business reaching this machine or its network (the gate, the sandbox's proxy, a cloud's
+// metadata address): loopback, private, shared, link-local, multicast and reserved ranges. A BlockList reads an
+// IPv4-mapped IPv6 address (::ffff:7f00:1) as the IPv4 address it carries, which a pattern on the text did not.
+const PRIVATE = new net.BlockList();
+for (const [a, n] of [['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8], ['169.254.0.0', 16], ['172.16.0.0', 12], ['192.0.0.0', 24], ['192.168.0.0', 16], ['198.18.0.0', 15], ['224.0.0.0', 3]]) PRIVATE.addSubnet(a, n, 'ipv4');
+for (const [a, n] of [['::', 96], ['fc00::', 7], ['fe80::', 10], ['fec0::', 10], ['ff00::', 8]]) PRIVATE.addSubnet(a, n, 'ipv6');
+const bare = (host) => String(host).replace(/^\[|\]$/g, '').replace(/%.*$/, '').replace(/\.$/, '').toLowerCase();
+/** A local name, or an address literal in a local range, however it is spelled; a name is resolved by the gate. */
+export function isLocal(host) {
+  const h = bare(host), v = net.isIP(h);
+  if (!v) return h === 'localhost' || h.endsWith('.localhost');
+  try { return PRIVATE.check(h, v === 6 ? 'ipv6' : 'ipv4'); } catch { return true; }
+}
 // The consent managers' own containers, by their documented ids and classes; a banner none of them names is found
 // by its words instead (CLEAN, below).
 const CMP = ['#onetrust-consent-sdk', '#onetrust-banner-sdk', '.onetrust-pc-dark-filter', '#CybotCookiebotDialog', '#CybotCookiebotDialogBodyUnderlay',
@@ -179,42 +194,57 @@ export function robotsVerdict(groups, pathAndQuery) {
  * sandbox does; a runner does not) and directly otherwise. It refuses at the connection, so it holds for redirect
  * hops, preconnects, iframes and sockets, which a Playwright route never sees. It counts what it let through and
  * what it refused, and each shot's JSON carries that count.
+ *
+ * Nothing local gets through, however it is spelled: an address literal in a local range (::ffff:7f00:1 is
+ * 127.0.0.1), and a name that resolves to one (localtest.me, 127.1), which the gate resolves itself before it
+ * connects, every request and every tunnel, then connects to the very addresses it checked, so a second answer
+ * cannot differ. Behind an upstream proxy the upstream resolves: a name this machine cannot resolve (this sandbox
+ * has no DNS of its own) goes to it by name, and its network, not this machine's, is where the name lands.
+ * `lookup` is dns.lookup unless a harness gives its own.
  */
-async function openGate() {
+async function openGate({ lookup = dnsLookup } = {}) {
   let up = null;
   try { up = process.env.HTTPS_PROXY || process.env.https_proxy ? new URL(process.env.HTTPS_PROXY || process.env.https_proxy) : null; } catch { up = null; }
   const auth = up && up.username ? `Proxy-Authorization: Basic ${Buffer.from(`${decodeURIComponent(up.username)}:${decodeURIComponent(up.password)}`).toString('base64')}\r\n` : '';
   const gate = { closed: false, hosts: {}, refused: {} };
-  const why = (host) => {
-    host = host.replace(/^\[|\]$/g, '').toLowerCase();
-    if (gate.closed) return 'closed';
-    if (LOCAL.test(host)) return 'local';
-    if (NEVER.test(host)) return 'never';
-    return null;
+  /** Why a host is refused, or the addresses to connect to (null: by name, through the upstream). */
+  const why = async (raw) => {
+    const host = bare(raw);
+    if (gate.closed) return { no: 'closed' };
+    if (NEVER.test(host)) return { no: 'never' };
+    if (isLocal(host)) return { no: 'local' };
+    if (net.isIP(host)) return { addrs: [{ address: host, family: net.isIP(host) }] };
+    let addrs;
+    try { addrs = await lookup(host, { all: true, order: 'verbatim' }); } catch { return up ? { addrs: null } : { no: 'unresolved' }; }
+    if (!addrs.length) return up ? { addrs: null } : { no: 'unresolved' };
+    if (addrs.some((a) => isLocal(a.address))) return { no: 'local' };
+    return { addrs };
   };
+  // Connect to what was checked: net's own lookup is replaced by the answer the gate already judged.
+  const pinned = (addrs) => (h, o, cb) => (o && o.all ? cb(null, addrs) : cb(null, addrs[0].address, addrs[0].family));
   const tally = (host, no) => { const t = no ? gate.refused : gate.hosts; const k = host.toLowerCase(); t[k] = (t[k] || 0) + 1; };
   const sockets = new Set();
-  const server = http.createServer((req, res) => {
+  const server = http.createServer(async (req, res) => {
     let u;
     try { u = new URL(req.url); } catch { res.writeHead(400).end(); return; }
-    const no = why(u.hostname);
-    tally(u.hostname, no);
-    if (no) { res.writeHead(403).end(); return; }
+    const v = await why(u.hostname);
+    tally(u.hostname, v.no);
+    if (v.no) { res.writeHead(403).end(); return; }
     const opt = up
       ? { host: up.hostname, port: up.port || 80, path: req.url, method: req.method, headers: { ...req.headers, ...(auth ? { 'proxy-authorization': auth.slice(21, -2) } : {}) } }
-      : { host: u.hostname, port: u.port || 80, path: u.pathname + u.search, method: req.method, headers: req.headers };
+      : { host: bare(u.hostname), port: u.port || 80, path: u.pathname + u.search, method: req.method, headers: req.headers, lookup: pinned(v.addrs) };
     const out = http.request(opt, (r) => { res.writeHead(r.statusCode, r.headers); r.pipe(res); });
     out.on('error', () => { if (!res.headersSent) res.writeHead(502); res.end(); });
     req.pipe(out);
   });
   server.on('connection', (s) => { sockets.add(s); s.on('close', () => sockets.delete(s)); });
-  server.on('connect', (req, sock, head) => {
+  server.on('connect', async (req, sock, head) => {
     sock.on('error', () => {});
     const m = /^\[?([^\]]+?)\]?:(\d+)$/.exec(req.url || '');
     if (!m) { sock.end('HTTP/1.1 400 Bad Request\r\n\r\n'); return; }
-    const [, host, port] = m, no = why(host);
-    tally(host, no);
-    if (no) { sock.end('HTTP/1.1 403 Forbidden\r\n\r\n'); return; }
+    const [, host, port] = m, v = await why(host);
+    tally(host, v.no);
+    if (v.no) { sock.end('HTTP/1.1 403 Forbidden\r\n\r\n'); return; }
     const join = (out, rest) => {
       sock.write('HTTP/1.1 200 Connection Established\r\n\r\n');
       if (rest && rest.length) sock.write(rest);
@@ -222,7 +252,7 @@ async function openGate() {
       out.pipe(sock); sock.pipe(out);
     };
     const target = host.includes(':') ? `[${host}]:${port}` : `${host}:${port}`;
-    const out = up ? net.connect(+(up.port || 80), up.hostname) : net.connect(+port, host);
+    const out = up ? net.connect(+(up.port || 80), up.hostname) : net.connect({ port: +port, host: bare(host), lookup: pinned(v.addrs) });
     sockets.add(out);
     out.on('close', () => { sockets.delete(out); sock.destroy(); });
     out.on('error', () => sock.destroy());
@@ -584,7 +614,7 @@ async function outside(b, gate, run, rec, shot) {
   if (!/^https?:$/.test(u.protocol)) return Object.assign(rec, { error: `${u.protocol} is not the web` });
   if ([new URL(SITE.origin).hostname, `www.${new URL(SITE.origin).hostname}`].includes(host)) return Object.assign(rec, { error: 'our own site: shoot it from the build with self <n>' });
   if (NEVER.test(host)) return refuse('policy', `${host} is YouTube or a streaming service, never fetched (their terms forbid it; CLAUDE.md, override 8)`);
-  if (LOCAL.test(host)) return refuse('policy', `${host} is a local or private address`);
+  if (isLocal(host)) return refuse('policy', `${host} is a local or private address`);
   if (run.stopped.has(host)) return refuse('stopped', `${host} refused earlier in this run (${run.stopped.get(host)}), so it is not asked again`);
   const polite = async () => { const wait = (run.last.get(host) || 0) + Math.max(1000, (run.delay.get(host) || 0) * 1000) - Date.now(); if (wait > 0) await sleep(wait); run.last.set(host, Date.now()); };
   const ctx = await b.newContext({ ...ctxOptions(run.height), userAgent: UA, colorScheme: 'light' });
@@ -615,7 +645,7 @@ async function outside(b, gate, run, rec, shot) {
     await ctx.route('**/*', (route) => {
       const q = route.request();
       const h = new URL(q.url()).hostname.replace(/^\[|\]$/g, '');
-      if (NEVER.test(h) || LOCAL.test(h)) { aborted.never++; return route.abort('blockedbyclient'); }
+      if (NEVER.test(h) || isLocal(h)) { aborted.never++; return route.abort('blockedbyclient'); }
       // No video or sound is ever downloaded for a still of a page.
       if (q.resourceType() === 'media') { aborted.media++; return route.abort('blockedbyclient'); }
       return route.continue();
@@ -713,13 +743,35 @@ async function ours(b, gate, run, rec, shot, slug) {
 }
 
 async function shoot(page, rec, run) {
-  const png = await page.screenshot({ type: 'png', animations: 'disabled', caret: 'hide' });
-  fs.writeFileSync(path.join(run.out, `${rec.name}.png`), png);
+  let png = await page.screenshot({ type: 'png', animations: 'disabled', caret: 'hide' });
   // The pictures counted again once the PNG exists: a lazy image that arrived between the measure and the shot is
   // in the PNG and must be in the list the render crops by. One counted that never showed costs only a crop.
   const seen = new Set(rec.media.map((m) => `${m.kind},${m.x},${m.y},${m.w},${m.h}`));
   for (const m of await page.evaluate(MEDIA)) if (!seen.has(`${m.kind},${m.x},${m.y},${m.w},${m.h}`)) rec.media.push(m);
+  // Someone else's page is written with every picture on it painted Void, so no copy of their photograph exists to
+  // file: this PNG is what the film is cut from and what recut.yml puts on the public Release pages-<slug> (spec 2.3,
+  // row 5, text only; Chosen Figure). Our own pages are ours and stay whole.
+  if (!rec.self) { png = paintOut(png, rec.media, (rec.viewport && rec.viewport.dpr) || DPR); rec.masked = rec.media.filter((m) => m.kind !== 'svg').length; }
+  fs.writeFileSync(path.join(run.out, `${rec.name}.png`), png);
   Object.assign(rec, { png: `${rec.name}.png`, pngSha256: crypto.createHash('sha256').update(png).digest('hex') });
+}
+
+/**
+ * A PNG with each picture's box (CSS px, as MEDIA measures them, clipped as they show) filled Void, through ffmpeg's
+ * drawbox, which leaves every other pixel as it was (checked byte for byte on a 2880 by 3200 capture, 2026-10-20).
+ * Inline SVG stays, as the render keeps it: it is the page's type and diagrams. A PNG that cannot be painted is not
+ * written, so the capture fails rather than leaving a photograph in it.
+ */
+function paintOut(png, media, dpr) {
+  const boxes = media.filter((m) => m.kind !== 'svg').map((m) => {
+    const x0 = Math.max(0, Math.floor(m.x * dpr)), y0 = Math.max(0, Math.floor(m.y * dpr));
+    return { x: x0, y: y0, w: Math.ceil((m.x + m.w) * dpr) - x0, h: Math.ceil((m.y + m.h) * dpr) - y0 };
+  }).filter((b) => b.w > 0 && b.h > 0);
+  if (!boxes.length) return png;
+  const vf = boxes.map((b) => `drawbox=x=${b.x}:y=${b.y}:w=${b.w}:h=${b.h}:color=0x050A06@1:t=fill`).join(',');
+  const r = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-f', 'png_pipe', '-i', 'pipe:0', '-vf', vf, '-frames:v', '1', '-f', 'image2pipe', '-c:v', 'png', 'pipe:1'], { input: png, maxBuffer: 1 << 28 });
+  if (r.status !== 0 || !r.stdout || !r.stdout.length) throw new Error(`could not paint the page's pictures out (ffmpeg: ${String(r.stderr || r.error || '').trim().slice(-200)})`);
+  return r.stdout;
 }
 
 /* ---- the run -------------------------------------------------------------------- */
@@ -772,7 +824,7 @@ export async function capture(slug, shots, { out = path.join(ROOT, 'brand/youtub
 }
 
 // The page probes and the gate, so a harness can drive them against synthetic pages with no network.
-export const internals = { PROBE, CLEAN, FIND, MEASURE, COVER, BLOCKS, MEDIA, walls, locate, measure, openGate, PAYWALL_SEL, MODAL_SEL, CMP, AD_SLOTS };
+export const internals = { PROBE, CLEAN, FIND, MEASURE, COVER, BLOCKS, MEDIA, walls, locate, measure, shoot, openGate, PAYWALL_SEL, MODAL_SEL, CMP, AD_SLOTS };
 
 /* ---- the command ---------------------------------------------------------------- */
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

@@ -18,6 +18,9 @@
 # filed, so the film shows what was checked; a tag with no capture yet is shot
 # here (tools/capture.mjs, which refuses at any wall) and what it captured is
 # filed there for the next run. A refusal is not filed: the next run asks again.
+# That release is public, so what is filed is the copy the film is cut from,
+# with every picture on someone else's page painted Void by capture.mjs: the
+# same pixels on every later run, and no third-party photograph published.
 #
 # Uploading stays with youtube.yml (action=upload, replace=corrected).
 name: recut
@@ -36,7 +39,9 @@ jobs:
   recut:
     runs-on: ubuntu-latest
     timeout-minutes: 150
-    # The same group as film.yml: a render and a re-cut of one edition never run at once.
+    # The same group as film.yml's render and release.yml's filing job: a render, a re-cut and a filing of one
+    # edition never run at once. A job waiting on the group is replaced by a newer one, which then runs; the filing
+    # job's pin check refuses a re-cut whose base moved meanwhile, whatever order they ran in.
     concurrency:
       group: film-${{ inputs.slug }}
       cancel-in-progress: false
@@ -100,8 +105,14 @@ jobs:
             gh release create "pages-$SLUG" -R "$GITHUB_REPOSITORY" --title "Pages for $SLUG" --latest=false \
               --notes "The source pages the re-cut of /$SLUG shows, as tools/capture.mjs shot them: a PNG and its record per shot."
           fi
+          # The release is public: a capture of someone else's page is filed only as capture.mjs writes it, every
+          # picture on it painted Void (masked), so no photograph of theirs is published; our own pages are ours.
           while IFS= read -r j; do
-            if jq -e '.ok == true' "$j" >/dev/null; then gh release upload "pages-$SLUG" -R "$GITHUB_REPOSITORY" "$j" "${j%.json}.png" --clobber; fi
+            if jq -e '.ok == true and (.self == true or (.masked | type) == "number")' "$j" >/dev/null; then
+              gh release upload "pages-$SLUG" -R "$GITHUB_REPOSITORY" "$j" "${j%.json}.png" --clobber
+            elif jq -e '.ok == true' "$j" >/dev/null; then
+              echo "::warning::$(basename "$j") does not say its pictures were painted out; not filed"
+            fi
           done < <(find "$dir/pages" -name '*.json' -newer "$RUNNER_TEMP/mark")
 
       - name: Check

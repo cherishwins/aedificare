@@ -58,19 +58,24 @@ export function filmMeta(E, S, N, { short = false, musicLine, cuts = null }) {
  * line, as every film filed before the re-cut did (kept byte for byte, so a refile changes nothing). A re-cut can show
  * pages its sources published (`pixels`: a page shot as served, or the owner's footage), and then "every frame is
  * computed" would be false: the voice keeps its text on a line of its own, the next line says what is computed, and
- * the sources named on screen follow in the short form ("[NN] Publisher, date", no URL; the source-heavy films leave
- * 75 to 94 bytes a source), then one line pointing at the numbered list.
+ * the sources named on screen follow in the short form ("[NN] Author, Publisher, date", no URL; the source-heavy
+ * films leave 75 to 94 bytes a source), then one line pointing at the numbered list. The owner's footage (`footage`)
+ * is pixels whatever its credit says, and its credits.txt line is its credit.
  */
 function framesLines(E, N, url, shown) {
   const computed = `computed from r = cos(kθ), seed ${E.seed}, k ${kLabel(E.k)}`;
   if (!shown) return [`${voiceText(N)}. Every frame is ${computed}.`];
   if (!shown.length) return [`${voiceText(N)}.`, `Every frame is ${computed}.`];
   const list = E.contents?.find((c) => /^sources$/i.test(c.t));
+  const except = [
+    shown.some((c) => c.pixels && !c.own && !c.footage) && 'the source pages shown as their publishers serve them',
+    shown.some((c) => c.footage) && 'the footage credited below',
+  ].filter(Boolean);
   return [
     `${voiceText(N)}.`,
-    shown.some((c) => c.pixels && !c.own) ? `${computed[0].toUpperCase()}${computed.slice(1)}, except the source pages shown as their publishers serve them.` : `Every frame is ${computed}.`,
+    except.length ? `${computed[0].toUpperCase()}${computed.slice(1)}, except ${except.join(' and ')}.` : `Every frame is ${computed}.`,
     'Sources on screen:',
-    ...shown.map((c) => c.line),
+    ...shown.map((c) => c.line).filter(Boolean),
     `Every source, numbered: ${url}${list ? `#${list.id}` : ''}`,
   ];
 }
