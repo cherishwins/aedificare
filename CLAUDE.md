@@ -547,9 +547,16 @@ for a shortlist for bios and cards, which is a separate deliverable.
   largest rounded corner and their list markers, and the boxes it draws
   that hold no text (a search field, a painted panel, a rule down a
   side). The window is the words' paragraph, list item, term and
-  definition, or table row, sized by its lines and shown whole across
-  with margins of two ems of the words' type (24 CSS px at least) that
-  stop halfway to anything of another block level with it: text, a
+  definition, or row of a grid (a table, or a grid of divs: blocks of
+  cells side by side that share their columns with the rows beside them,
+  as Morse Micro's release notes are built), sized by its lines and shown
+  whole across. A grid is one unit across: a row's window holds the
+  whole grid, outer rules and all, and another grid level with the
+  window is taken in whole or left out, never cut through a column (an
+  edge inside Meshtastic's preset table cut its left rule and first
+  column, 20 Oct). The margins are two ems of the words' type (24 CSS
+  px at least) that stop halfway to anything of another block level
+  with it: text, a
   picture, an inline SVG chart with the figure that holds it, a box
   drawn with no text, a box another block paints or frames. A box that
   holds the words and paints its ground or rules a side keeps the
@@ -558,23 +565,54 @@ for a shortlist for bios and cards, which is a separate deliverable.
   would cut is left out, and so is any box they would halve: a top or
   bottom edge halves a fill, a frame or a rule down a side, a side edge
   a fill or a frame; a rule across alone is a line, and a table's cells
-  are its grid, kept or left out as rows. A figure's or a table's
-  caption or head stays in the window with its figures where the
-  window can move to keep it. Every line shown stays whole through the
-  push-in, and the picture's top and bottom stand halfway between the
-  last line it keeps and the first thing it leaves out, at most two ems
-  past the line; where the window, the push-in or a box sets an edge
-  instead, a line nearer it than a quarter em of the words' type is
-  left out too, so none ends flush on the edge. The push-in never eats
-  a margin: the picture starts inset by a twentieth of its way to where
-  the words start, meets the panel's edge only on the last frame, and
-  the zoom shrinks to allow it. The rest of the panel is Void.
+  are its grid, kept or left out as rows. Text above the heading that
+  opens the words' section (the nearest heading above them in the page's
+  order) is another section's and is left out, and so is the tail of a
+  list whose first item the picture leaves out (RSS-247's 6.4 list over
+  6.5's heading). A figure's caption, a table's caption or head, and a
+  grid of divs' head (a framed row above its rows that shares their
+  columns) stay in the window with the figures they name where the
+  window can move to keep them, the words leaving the band if that is
+  what it takes. Where the words carry a figure nothing in them names
+  (Morse Micro's "24 30", whose units and directions are in the head),
+  the zoom also drops toward the floor to hold both (2.25 to 1.95 there),
+  and where even the floor cannot, the shot is its quote card
+  (`unnamed`). Another grid's rows come with their head too, or are left
+  out: Parallel's table of PHY rates over its 40 to 60 percent line
+  could not be shown whole, because the line's quote bar keeps the
+  window inside the table's left rule, so the line shows alone. Text the
+  side edges would crowd is taken in whole where the window can grow;
+  where it cannot, the window moves across within the other side's
+  margin before a line is left out (Cisco's heading was left out 1.5 px
+  inside the edge with 28 px to spare on the right), and a window at its
+  full width moves toward equal margins where the side it moves to is
+  clear. A rule across the picture (a heading's underline, a ruled row)
+  ends inside it with the same margin on both sides or runs off both,
+  never one (Parallel's heading rules ended 1.7 px from one edge and
+  10.3 px from the other); one wider than the widest window, with its
+  block's own text at its end, can do neither, and that block is left
+  out. The highlighter's boxes are the glyphs' line boxes: a Range also
+  returns the box of every element it wholly holds, and a phrase across
+  Morse Micro's cells lit a whole cell as an Acid slab, one across a bar
+  of The Floor's own figures the bar's empty track. Every line
+  shown stays whole through the push-in, and the picture's top and
+  bottom stand halfway between the last line it keeps and the first
+  thing it leaves out, at most two ems past the line; where the window,
+  the push-in or a box sets an edge instead, a line nearer it than a
+  quarter em of the words' type is left out too, so none ends flush on
+  the edge. The push-in never eats a margin: the picture starts inset by
+  a twentieth of its way to where the words start, meets the panel's
+  edge only on the last frame, and the zoom shrinks to allow it. The
+  rest of the panel is Void.
   **A page shot's type is never under 11 pt on the phone the frame
   fills**, the smallest size Apple's interface guidelines call legible:
   30 px in the Short (1,080 px across a phone 390 pt wide) and 25 px in
   the film (1,920 across the same phone on its side), at most 45 and
   42. A block that cannot be read whole at that size gives way to the
-  cells that hold the words, scaled to fit, and where those are too
+  cells that hold the words, with the row's label (its first cell) and
+  everything between them, because a figure is not shown without the
+  name of its row (The Markup's ledger showed its 43.3 cell with no
+  "Throughput"), scaled to fit, and where those are too
   wide as well, the shot is its quote card (`wide`), never a picture of
   lines cut at both ends; one that stays a sliver of its page at the
   largest size, even with the blocks around it, is its card too
@@ -583,21 +621,27 @@ for a shortlist for bios and cards, which is a separate deliverable.
   and `check` notes them, and a
   page shot's card sweeps every phrase on its own word, one lit at a
   time, as the page would have (it lit only the first). On The Floor
-  that puts ten page shots on their cards: four of the Short's six (a
-  Geeky Gadgets list item and The Floor's own paragraph run 625 and 738
-  CSS px of 18 px type where the Short can show at most 512 whole,
-  Morse Micro's spec row 628 px of 13 px type where it can show 370,
-  and the ledger's two rows carry an 11 px head, which leaves 313 for a
-  364 px cell), while the ledger's 43.3 cell and Parallel's price
-  paragraph show the page; and in the film the four arXiv shots (the
-  abstract's lines run 1,093 CSS px of 13.6 px type, in a 1,100.8 px
-  blockquote, where the film can show at most 870 whole), OpenMANET's
-  support table and Seeed's price box. Two of the Short's cards, The
-  Floor's paragraph and the ledger's rows, run back to back with no cut
-  between; the second is set on Bottle, its source line Flash, so it
-  reads as a new picture and not the first one changing its words
-  (`renderSegment` does it for any two cards in a row; no episode
-  script has two). Every tag and builder of the six
+  that puts fourteen page shots on their cards: five of the Short's six
+  (a Geeky Gadgets list item and The Floor's own paragraph run 625 and
+  738 CSS px of 18 px type where the Short can show at most 512 whole,
+  Morse Micro's spec row 628 px of 13 px type where it can show 370, the
+  ledger's two rows carry an 11 px head, which leaves 313 for a 364 px
+  cell, and the ledger's 43.3 cell with its row's label runs 1,080 px of
+  15 px type where it can show 427), while Parallel's price paragraph
+  shows the page; and in the film the four arXiv shots (the abstract's
+  lines run 1,093 CSS px of 13.6 px type, in a 1,100.8 px blockquote,
+  where the film can show at most 870 whole), OpenMANET's support table,
+  Seeed's price box and the three ledger shots of the 43.3 cell (lines
+  33, 45 and 161: the same 1,080 px, more than the film's 960 of 15 px
+  type). Cards
+  that run back to back with no cut between, in the film as in the
+  Short, are set on the two grounds in turn: the second on Bottle, its
+  source line Flash, so it reads as a new picture and not the first one
+  changing its words. In the Short that is the Geeky Gadgets card after
+  the ledger's 43.3 cell (lines 33 and 34) and the ledger's rows after
+  The Floor's paragraph (44 and 45); in the film, the quote card on line
+  174 after the one on 173 (`renderSegment` does it for any two cards in
+  a row; no episode script has two). Every tag and builder of the six
   episode scripts still parses and builds byte for byte as before, and
   short-onegov renders to the same 284 hashes. An episode script's
   `check` refuses both kinds: its timeline places no pop, and capture
@@ -751,7 +795,18 @@ for a shortlist for bios and cards, which is a separate deliverable.
   under 8 px from the picture's edge in 12 film frames and 1 Short frame
   before and in none after, and a picture already at the panel's edge
   on its first frame in 38 film inserts and 1 Short before and in none
-  after. One thing seen there stays the list's:
+  after. A recheck of those frames found two regressions (an edge inside
+  Meshtastic's preset table, Cisco's heading left out where a 2 px move
+  had room), three older faults (Morse Micro's release notes without
+  their head, an Acid slab over a cell, the tail of RSS-247's 6.4 list
+  over 6.5) and heading rules that ran off one side of Parallel's page,
+  each fixed in the crop as written above; all 90 inserts were rendered
+  again at their first and last frames beside both earlier passes and
+  looked at. The pixel check then found no first frame at the panel's
+  edge and one frame with ink under 8 px from the picture's edge: the
+  last of line 63, where the highlighter stands 6 px in, because the
+  Firmware heading's rule keeps margins of 6 CSS px a side at the type
+  floor. One thing seen there stays the list's:
   the pop "THE CHANNEL" (line 39) stands over the top lines of the
   Parallel page shot under it in the Short. **The spec's targets disagree
   on this film**: a rose at 10 percent or less needs about 130 inserts,
