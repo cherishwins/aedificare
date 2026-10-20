@@ -569,8 +569,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   bottom edge halves a fill, a frame or a rule down a side, a side edge
   a fill or a frame; a rule across alone is a line, and a table's cells
   are its grid, kept or left out as rows. A row that draws (its ground
-  or rules, or its cells') is one box with them, kept whole or left out,
-  never halved: kept by its lines alone, Meshtastic's framed cells ran
+  or rules, or its cells') keeps what it draws whole or leaves it out,
+  never halved (an edge may stand a few pixels into the next row's box
+  where that row draws only a rule below; the words' own row and the
+  rows of the head that names them are held by where the window is
+  placed, not by this rule): kept by its
+  lines alone, Meshtastic's framed cells ran
   off the picture's bottom with no rule under them (line 131) and The
   Floor's parts table ended on a row with its rule left out (55 and 61).
   The window moves to keep such a row whole where it can, as it does for
@@ -607,8 +611,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   table's antenna row (line 68) drops from 2.8 to 2.69, its words from
   72 to 78 percent of the panel to 69 to 75, and its Battery hat row
   (lines 70 and 139), 275 CSS px under its head, would need 2.08 against
-  the 2.27 its 11 px head reads at, so it drops to 2.27, its words at 70
-  to 82 percent where at 2.64, the largest zoom that fit, they sat at 81
+  the 2.27 its 11 px head reads at, so it drops to 2.27, its words at 71
+  to 81 percent where at 2.64, the largest zoom that fit, they sat at 81
   to 94, under YouTube's captions. Another grid's rows come with their head too, or are left
   out: Parallel's table of PHY rates over its 40 to 60 percent line
   could not be shown whole, because the line's quote bar keeps the
