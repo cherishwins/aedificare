@@ -79,7 +79,11 @@
  * release and kind (the release's current video) or by its id (an earlier
  * cut still out), for a film found wrong after it went out. Never
  * deleted, so its views and comments stay and the owner can restore it in
- * Studio. Each write is read back.
+ * Studio. Each write is read back. With --privacy unlisted it sets an
+ * earlier cut unlisted instead (owner, 20 Oct 2026: a superseded cut goes
+ * unlisted, never deleted, so a link already shared still opens), and it
+ * refuses a video with a publish time, because that is a keeper waiting to
+ * go out and unlisting it would drop the time. Retire takes the same flag.
  *
  * A video is matched by the id filed on its release first, then by file
  * name, then by a title equal to the render's and of the same kind (a hand
@@ -97,6 +101,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fitDescription } from './lib/chapters.mjs';
+import { lineDiff } from './lib/diff.mjs';
 
 const REPO = 'cherishwins/aedificare';
 const OUT = 'brand/youtube';
@@ -122,7 +127,7 @@ const REPLACE = process.argv.includes('--replace-old-voice');
 // video matches them, and nothing else is uploaded in that run.
 const REPLACE_TAGS = arg('--replace', '').split(',').map((x) => x.trim()).filter(Boolean);
 const inVoice = (text) => String(text || '').toLowerCase().includes(VOICE.toLowerCase());
-if (!['list', 'sync', 'upload', 'retire', 'schedule', 'withdraw', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>] [--every <hours>] [--replace-old-voice] [--replace <tag>[,...]] | retire [--dry] | schedule --set <release>:<film|short>=<ISO|none>[,...] [--dry] | withdraw --set <release>:<film|short>[,...] [--dry]'); process.exit(1); }
+if (!['list', 'sync', 'upload', 'retire', 'schedule', 'withdraw', 'probe'].includes(CMD)) { console.error('youtube-channel: probe | list | sync [--dry] [--force] [--only <tag>] | upload [--dry] [--only <tag>] [--kinds film,short] [--max 10] [--privacy private|unlisted] [--publish-at <ISO>] [--every <hours>] [--replace-old-voice] [--replace <tag>[,...]] | retire [--dry] [--privacy private|unlisted] | schedule --set <release>:<film|short>=<ISO|none>[,...] [--dry] | withdraw --set <release>:<film|short>|<videoId>[,...] [--dry] [--privacy private|unlisted]'); process.exit(1); }
 // Nothing goes public from a machine (CLAUDE.md, the bed, the Short, the upload): public is refused here, and a scheduled publish is the owner's call, made by passing a time.
 if (!['private', 'unlisted'].includes(PRIVACY)) { console.error('youtube-channel: --privacy is private or unlisted; publishing is the owner\'s, in Studio or with --publish-at'); process.exit(1); }
 if (PUBLISH_AT && !(Date.parse(PUBLISH_AT) > Date.now())) { console.error(`youtube-channel: --publish-at ${PUBLISH_AT} is not a future ISO time`); process.exit(1); }
@@ -489,15 +494,17 @@ if (CMD === 'withdraw') {
     return { tag, kind, v: c[0].v };
   });
   if (!plan.length) fail('withdraw needs --set <release>:<film|short>');
-  console.log(`\nwithdraw${DRY ? ' (dry run)' : ''}: each named video goes private now, never deleted`);
+  // Unlisted is for an earlier cut: a scheduled video is a keeper, and unlisting it would cancel its publish time.
+  if (PRIVACY === 'unlisted') for (const { v } of plan) if (v.status.publishAt) fail(`${v.id} is scheduled for ${v.status.publishAt}; unlisting it would drop that time. Name an earlier cut, or hold it with schedule first if that is meant`);
+  console.log(`\nwithdraw${DRY ? ' (dry run)' : ''}: each named video goes ${PRIVACY} now, never deleted`);
   let done = 0, failed = 0;
   for (const { tag, kind, v } of plan) {
     const name = `${v.id} ${tag}:${kind}`;
-    if (v.status.privacyStatus === 'private' && !v.status.publishAt) { console.log(`  ${name}: already private`); continue; }
-    console.log(`  ${name}: ${v.status.privacyStatus}${v.status.publishAt ? `, publishes ${v.status.publishAt}` : ''} -> private (its ${v.statistics?.viewCount ?? 0} views stay with it)`);
+    if (v.status.privacyStatus === PRIVACY && !v.status.publishAt) { console.log(`  ${name}: already ${PRIVACY}`); continue; }
+    console.log(`  ${name}: ${v.status.privacyStatus}${v.status.publishAt ? `, publishes ${v.status.publishAt}` : ''} -> ${PRIVACY} (its ${v.statistics?.viewCount ?? 0} views stay with it)`);
     if (DRY) { done++; continue; }
     const keep = ['license', 'embeddable', 'publicStatsViewable', 'selfDeclaredMadeForKids', 'containsSyntheticMedia'].filter((k) => k in v.status);
-    const status = { ...Object.fromEntries(keep.map((k) => [k, v.status[k]])), privacyStatus: 'private' };
+    const status = { ...Object.fromEntries(keep.map((k) => [k, v.status[k]])), privacyStatus: PRIVACY };
     try {
       const put = await fetch(`${API}/videos?part=status`, { method: 'PUT', headers: { ...auth, 'content-type': 'application/json' }, body: JSON.stringify({ id: v.id, status }) });
       if (!put.ok) throw new Error(`${put.status} ${await put.text()}`);
@@ -508,10 +515,10 @@ if (CMD === 'withdraw') {
         const r = await fetch(`${API}/videos?part=status&id=${v.id}`, { headers: auth });
         if (!r.ok) throw new Error(`the write went through but the read back failed: ${r.status} ${await r.text()}`);
         now = (await r.json()).items?.[0]?.status || {};
-        if (now.privacyStatus === 'private' && !now.publishAt) break;
+        if (now.privacyStatus === PRIVACY && !now.publishAt) break;
       }
       console.log(`    now ${now.privacyStatus}${now.publishAt ? `, publishes ${now.publishAt}` : ''}`);
-      if (now.privacyStatus !== 'private' || now.publishAt) throw new Error(`not as asked: YouTube kept ${now.privacyStatus}${now.publishAt ? `, ${now.publishAt}` : ''}`);
+      if (now.privacyStatus !== PRIVACY || now.publishAt) throw new Error(`not as asked: YouTube kept ${now.privacyStatus}${now.publishAt ? `, ${now.publishAt}` : ''}`);
       done++;
     } catch (e) {
       console.log(`    FAILED: ${e.message}`);
@@ -527,24 +534,24 @@ if (CMD === 'withdraw') {
 // deleted: its views and comments stay with it, and the owner can bring it back in Studio). Never before, so the
 // channel is not left without the piece if the new upload is held, rejected or still scheduled.
 if (CMD === 'retire') {
-  console.log(`\nretire${DRY ? ' (dry run)' : ''}: a video in an older voice, or superseded by a corrected render, goes private once its replacement is public`);
+  console.log(`\nretire${DRY ? ' (dry run)' : ''}: a video in an older voice, or superseded by a corrected render, goes ${PRIVACY} once its replacement is public`);
   let done = 0;
   for (const { v, r, older } of rows) {
     if (!older) continue;
     const next = rows.find((x) => x.r === r && !x.older && x.v.id !== v.id);
     const name = `${v.id} ${r.tag}/${r.metaName}`;
-    if (v.status.privacyStatus === 'private') { console.log(`  ${name}: already private`); continue; }
+    if (v.status.privacyStatus === PRIVACY) { console.log(`  ${name}: already ${PRIVACY}`); continue; }
     if (!next) { console.log(`  ${name}: left, no replacement on the channel (upload --replace-old-voice, or --replace for a corrected render, first)`); continue; }
     if (next.v.status.privacyStatus !== 'public') { console.log(`  ${name}: left until its replacement ${next.v.id} is public${next.v.status.publishAt ? ` (scheduled ${next.v.status.publishAt})` : ''}`); continue; }
-    console.log(`  ${name}: ${DRY ? 'would go' : 'going'} private, replaced by ${next.v.id} (its ${v.statistics?.viewCount ?? 0} views stay with it)`);
+    console.log(`  ${name}: ${DRY ? 'would go' : 'going'} ${PRIVACY}, replaced by ${next.v.id} (its ${v.statistics?.viewCount ?? 0} views stay with it)`);
     done++;
     if (DRY) continue;
     // The API replaces the whole status part, so every writable field the video has is sent back unchanged beside the privacy.
     const keep = ['license', 'embeddable', 'publicStatsViewable', 'selfDeclaredMadeForKids', 'containsSyntheticMedia'].filter((k) => k in v.status);
-    const status = { ...Object.fromEntries(keep.map((k) => [k, v.status[k]])), privacyStatus: 'private' };
+    const status = { ...Object.fromEntries(keep.map((k) => [k, v.status[k]])), privacyStatus: PRIVACY };
     const put = await fetch(`${API}/videos?part=status`, { method: 'PUT', headers: { ...auth, 'content-type': 'application/json' }, body: JSON.stringify({ id: v.id, status }) });
-    if (!put.ok) { console.error(`youtube-channel: ${v.id} could not be made private`, put.status, await put.text()); process.exit(1); }
-    console.log('    private');
+    if (!put.ok) { console.error(`youtube-channel: ${v.id} could not be made ${PRIVACY}`, put.status, await put.text()); process.exit(1); }
+    console.log(`    ${PRIVACY}`);
   }
   console.log(`  ${done} ${DRY ? 'to retire' : 'retired'}`);
   process.exit(0);
@@ -558,22 +565,29 @@ for (const { v, r, older, superseded } of rows) {
   if (superseded) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: left, superseded by ${r.ledgerId}; the render's captions and chapters belong to that video`); continue; }
   if (older) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: refused, the video is in an older voice and the render in ${VOICE}; its captions and chapters would not fit the video's audio. Replace it (upload --replace-old-voice, then retire once the new one is public) or leave it`); continue; }
   // Compared with the description as the uploader will send it, chapters fitted (tools/lib/chapters.mjs).
-  const same = v.snippet.title === r.meta.title && v.snippet.description === fitDescription(r.meta.description, r.meta.duration);
+  const sendDesc = fitDescription(r.meta.description, r.meta.duration);
+  const same = v.snippet.title === r.meta.title && v.snippet.description === sendDesc;
   // A video the release's ledger names, with something its upload could not send (captions, a thumbnail), is not done.
   const owed = r.ledgerId === v.id ? r.owed : [];
   if (same && !FORCE && !owed.length) { console.log(`  ${v.id} ${r.tag}/${r.metaName}: already matches, skipped`); continue; }
-  console.log(`  ${v.id} ${r.tag}/${r.metaName}: ${!same ? 'title or description differs' : owed.length ? `owed its ${owed.join(' and ')}` : 'forced'}, updating`);
+  console.log(`  ${v.id} ${r.tag}/${r.metaName}: ${!same ? 'title or description differs' : owed.length ? `owed its ${owed.join(' and ')}` : 'forced'}, ${DRY ? 'would update' : 'updating'}`);
+  // What changes, before and after, line by line: the record a dry run is read for, and the log of a real one.
+  if (v.snippet.title !== r.meta.title) console.log(`      title  - ${v.snippet.title}\n      title  + ${r.meta.title}`);
+  if (v.snippet.description !== sendDesc) console.log(lineDiff(v.snippet.description, sendDesc).replace(/^/gm, '      '));
+  // Only words changed: the title and description go up alone (about 50 units), not the captions and thumbnail
+  // again (about 450 more each), so a retitle of every film fits inside one day's 10,000.
+  const metaOnly = !same && !owed.length && !FORCE;
   changed++;
   if (DRY) continue;
   const dir = path.join(OUT, r.tag);
   fs.mkdirSync(dir, { recursive: true });
   // The ledger comes down too when it names this video, so the update keeps the upload's record and only settles what is owed.
   const mine = r.ledgerId === v.id;
-  for (const name of [r.metaName, r.meta.captions, r.meta.thumbnail, mine && r.ledgerName].filter(Boolean)) {
+  for (const name of [r.metaName, !metaOnly && r.meta.captions, !metaOnly && r.meta.thumbnail, mine && r.ledgerName].filter(Boolean)) {
     if (asset(r.rel, name)) fs.writeFileSync(path.join(dir, name), fetchAsset(r.rel, name));
   }
   // upload-youtube writes youtube.json or youtube-short.json beside the meta, so the record of what went where stays with the render.
-  execFileSync(process.execPath, ['tools/upload-youtube.mjs', path.join(dir, r.metaName), '--update', v.id, ...(mine ? [] : ['--untracked'])], { stdio: 'inherit' });
+  execFileSync(process.execPath, ['tools/upload-youtube.mjs', path.join(dir, r.metaName), '--update', v.id, ...(mine ? [] : ['--untracked']), ...(metaOnly ? ['--meta-only'] : [])], { stdio: 'inherit' });
   // Filed back only over a ledger that already named this video: a debt paid is cleared, and a match by file name alone does not
   // claim the render. Such a video (a hand upload) has nowhere to record a debt, so one is said here, with the way to pay it.
   if (mine) fileLedger(r, dir);

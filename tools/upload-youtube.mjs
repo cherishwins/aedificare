@@ -48,9 +48,13 @@ if (PUBLISH_AT && !(Date.parse(PUBLISH_AT) > Date.now())) { console.error(`uploa
 const UPDATE = arg('--update', null);
 // Set by youtube-channel.mjs sync when no ledger on the release names this video: its ledger is not filed, so no sync will see a debt.
 const UNTRACKED = process.argv.includes('--untracked');
+// Update only the words (title, description, category, language, licence): no caption track and no thumbnail, which
+// cost about 450 units a video against the day's 10,000. youtube-channel.mjs sync passes it when only the words differ.
+const META_ONLY = process.argv.includes('--meta-only');
 // In update mode the playlist is touched only when asked for explicitly: the hand upload may already be in it.
 const PLAYLIST = arg('--playlist', UPDATE ? null : (process.env.YT_PLAYLIST_ID || null));
 if (!META || !fs.existsSync(META)) { console.error('upload-youtube: pass the path to a meta.json written by generate-film'); process.exit(1); }
+if (META_ONLY && !UPDATE) { console.error('upload-youtube: --meta-only updates a video already up; it needs --update <videoId>'); process.exit(1); }
 const { YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN } = process.env;
 if (!YT_CLIENT_ID || !YT_CLIENT_SECRET || !YT_REFRESH_TOKEN) { console.error('upload-youtube: YT_CLIENT_ID, YT_CLIENT_SECRET and YT_REFRESH_TOKEN must be set'); process.exit(1); }
 if (!['private', 'unlisted', 'public'].includes(PRIVACY)) { console.error('upload-youtube: --privacy must be private, unlisted or public'); process.exit(1); }
@@ -113,7 +117,7 @@ if (UPDATE) {
 }
 
 /* ---- captions: replace the English track if one exists, else insert ------- */
-if (meta.captions && fs.existsSync(path.join(dir, meta.captions))) {
+if (!META_ONLY && meta.captions && fs.existsSync(path.join(dir, meta.captions))) {
   const srt = fs.readFileSync(path.join(dir, meta.captions));
   const list = await fetch(`${API}/captions?part=snippet&videoId=${id}`, { headers: auth });
   const existing = list.ok ? ((await list.json()).items || []).find((c) => c.snippet.language === 'en' && !c.snippet.isAutoSynced && c.snippet.trackKind !== 'asr') : null;
@@ -130,7 +134,7 @@ if (meta.captions && fs.existsSync(path.join(dir, meta.captions))) {
 }
 
 /* ---- thumbnail (needs a phone-verified channel; otherwise YouTube keeps its own frame) ---- */
-if (meta.thumbnail && fs.existsSync(path.join(dir, meta.thumbnail))) {
+if (!META_ONLY && meta.thumbnail && fs.existsSync(path.join(dir, meta.thumbnail))) {
   const th = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${id}`, { method: 'POST', headers: { ...auth, 'content-type': 'image/png' }, body: fs.readFileSync(path.join(dir, meta.thumbnail)) });
   if (!th.ok) { owed.push('thumbnail'); console.error('  thumbnail failed (the video is up):', th.status, await th.text()); } else console.log(`  thumbnail: ${meta.thumbnail}`);
 }
@@ -148,6 +152,8 @@ const prior = UPDATE && fs.existsSync(ledgerPath) ? JSON.parse(fs.readFileSync(l
 const record = prior && prior.id === id
   ? { ...prior, title: meta.title, updated: new Date().toISOString() }
   : { id, url: `https://youtu.be/${id}`, privacy: UPDATE ? 'unchanged' : PRIVACY, publishAt: UPDATE ? undefined : PUBLISH_AT || undefined, mode: UPDATE ? 'update' : 'upload', at: new Date().toISOString(), title: meta.title };
+// A words-only update tried no caption track and no thumbnail, so it settles nothing the ledger says is owed.
+if (META_ONLY && prior?.id === id && prior.owed?.length) owed.push(...prior.owed);
 if (owed.length) record.owed = owed; else delete record.owed;
 fs.writeFileSync(ledgerPath, JSON.stringify(record, null, 1) + '\n');
 if (owed.length && UNTRACKED) console.log(`  owed: ${owed.join(' and ')} did not go up, and no ledger on the release names this video, so a plain sync will not send ${owed.length > 1 ? 'them' : 'it'}`);

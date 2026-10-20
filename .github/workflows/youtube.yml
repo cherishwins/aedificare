@@ -12,10 +12,13 @@
 #                  refuses drafts whose shots.md still lists missing shots;
 #                  files each video's id back on its release
 #   action=sync    the generated title, description, chapters, captions and
-#                  thumbnail onto every matched video (including hand uploads)
-#   action=retire  a video in an older voice goes private once its
-#                  replacement (upload with replace=old-voice) is public,
-#                  or a cut superseded by a corrected render (replace=corrected)
+#                  thumbnail onto every matched video (including hand uploads);
+#                  where only the words differ, only the words go up; dry=true
+#                  prints each title and description change line by line
+#   action=retire  a video in an older voice goes private (or privacy=unlisted)
+#                  once its replacement (upload with replace=old-voice) is
+#                  public, or a cut superseded by a corrected render
+#                  (replace=corrected)
 #   action=schedule  moves a private video's publish time, or holds it with
 #                  none (set="film-edition-01:film=2026-10-22T15:00:00Z,
 #                  film-edition-01:short=none"); never touches a video that
@@ -23,7 +26,8 @@
 #   action=withdraw  a video found wrong after it went out goes private now
 #                  (set="film-edition-01:film"); never deletes; the
 #                  corrected render then goes up with upload, replace=corrected
-#                  and only=<release>
+#                  and only=<release>; privacy=unlisted sets an earlier cut
+#                  unlisted instead, so a link already shared still opens
 #
 # tools/youtube-channel.mjs does the work; .claude/skills/youtube/SKILL.md is
 # how a session decides which action to run. The job summary carries the
@@ -52,7 +56,7 @@ on:
         required: false
         default: '10'
       privacy:
-        description: 'upload: private or unlisted (public is never set from here)'
+        description: 'upload: private or unlisted; withdraw and retire: what the earlier cut becomes, private or unlisted (public is never set from here)'
         required: false
         default: private
         type: choice
@@ -145,6 +149,7 @@ jobs:
             fi
           fi
           if [ "$ACTION" = "schedule" ] || [ "$ACTION" = "withdraw" ]; then args+=(--set "$SET"); fi
+          if [ "$ACTION" = "withdraw" ] || [ "$ACTION" = "retire" ]; then args+=(--privacy "$PRIVACY"); fi
           if [ "$ACTION" = "sync" ] && [ "$SET" = "force" ]; then args+=(--force); fi
           # The summary is written whatever the exit, so a failed run's page still says what was and was not done.
           rc=0

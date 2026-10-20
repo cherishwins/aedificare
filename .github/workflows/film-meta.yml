@@ -1,0 +1,73 @@
+# Files a film's title and description again without rendering it. The title
+# is typed once per edition in src/lib/editions.mjs (`youtube`); this rebuilds
+# meta.json, meta-short.json and both upload sheets on each film-<slug>
+# release from that release's own script.json and narration.json
+# (tools/film-meta.mjs, the same function the render uses), and gives the
+# release the new title. Nothing reaches YouTube from here: youtube.yml
+# action=sync, dry first, sends the new words to the videos.
+name: film-meta
+
+on:
+  workflow_dispatch:
+    inputs:
+      slugs:
+        description: 'Edition slugs, comma-separated, or empty for every published edition with a film release'
+        required: false
+        default: ''
+      dry:
+        description: 'Print each change and file nothing'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: film-meta
+  cancel-in-progress: false
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SLUGS: ${{ inputs.slugs }}
+      DRY: ${{ inputs.dry }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Rebuild and file
+        run: |
+          set -eo pipefail
+          if [ -z "$SLUGS" ]; then
+            SLUGS=$(node --input-type=module -e "import { PUBLISHED } from './src/lib/editions.mjs'; console.log(PUBLISHED.map((e) => e.slug).join(','))")
+          fi
+          mode=()
+          if [ "$DRY" = "true" ]; then mode=(--dry); fi
+          IFS=',' read -ra list <<< "$SLUGS"
+          for slug in "${list[@]}"; do
+            slug="${slug// /}"
+            tag="film-$slug"
+            dir="brand/youtube/$slug"
+            if ! gh release view "$tag" >/dev/null 2>&1; then echo "$slug: no release $tag, skipped"; continue; fi
+            mkdir -p "$dir"
+            for f in script.json narration.json meta.json meta-short.json sheet.txt sheet-short.txt; do
+              gh release download "$tag" -D "$dir" --clobber -p "$f" 2>/dev/null || true
+            done
+            [ -f "$dir/meta.json" ] || { echo "::error::$tag has no meta.json"; exit 1; }
+            node tools/film-meta.mjs --slug "$slug" "${mode[@]}"
+            if [ -f "$dir/meta-short.json" ]; then node tools/film-meta.mjs --slug "$slug" --short "${mode[@]}"; fi
+            if [ "$DRY" = "true" ]; then continue; fi
+            # Sheets first and the meta files last, as release.yml files them: meta.json is what sync reads.
+            for f in sheet.txt sheet-short.txt meta.json meta-short.json; do
+              if [ -f "$dir/$f" ]; then gh release upload "$tag" "$dir/$f" --clobber; fi
+            done
+            gh release edit "$tag" --title "$(jq -r .title "$dir/meta.json")" --notes-file "$dir/sheet.txt"
+            echo "$slug: filed"
+          done
