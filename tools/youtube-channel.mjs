@@ -81,9 +81,13 @@
  * deleted, so its views and comments stay and the owner can restore it in
  * Studio. Each write is read back. With --privacy unlisted it sets an
  * earlier cut unlisted instead (owner, 20 Oct 2026: a superseded cut goes
- * unlisted, never deleted, so a link already shared still opens), and it
- * refuses a video with a publish time, because that is a keeper waiting to
- * go out and unlisting it would drop the time. Retire takes the same flag.
+ * unlisted, never deleted, so a link already shared still opens), named
+ * by its id only: never the video a release files (a keeper, perhaps held
+ * private while its edition is checked) and never one with a publish
+ * time. Retire takes the same flag and only ever lowers a cut, so one
+ * already private stays private. An earlier cut that matched its render
+ * only by title reads "no render" once film-meta.yml retitles the release
+ * (sync never touches an earlier cut's own title), and is reached by id.
  *
  * A video is matched by the id filed on its release first, then by file
  * name, then by a title equal to the render's and of the same kind (a hand
@@ -483,7 +487,7 @@ if (CMD === 'withdraw') {
       const links = new RegExp(`${SITE.origin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?=$|[\\s/?#])`, 'm');
       const ours = y && (y.r || links.test(String(y.v.snippet.description || '')));
       if (!ours) fail(`${x} is not one of this repository's videos (matched to no render, and its description carries no link to ${SITE.origin})`);
-      return { tag: y.r ? y.r.tag : 'an earlier cut', kind: y.r ? y.r.meta.kind : 'unmatched', v: y.v };
+      return { tag: y.r ? y.r.tag : 'an earlier cut', kind: y.r ? y.r.meta.kind : 'unmatched', v: y.v, earlier: !y.r || y.older };
     }
     const m = /^([\w.-]+):(film|short)$/.exec(x);
     if (!m) fail(`--set wants <release>:<film|short> or a video id, got "${x}"`);
@@ -491,11 +495,15 @@ if (CMD === 'withdraw') {
     if (!releases.some((r) => r.tag_name === tag)) fail(`${tag} is not a film release on this repository`);
     const c = rows.filter((y) => y.r && y.r.tag === tag && y.r.meta.kind === kind && !y.older);
     if (c.length !== 1) fail(`${tag}:${kind} matches ${c.length ? c.map((y) => y.v.id).join(', ') : 'no video'}; withdraw names exactly one`);
-    return { tag, kind, v: c[0].v };
+    return { tag, kind, v: c[0].v, earlier: false };
   });
   if (!plan.length) fail('withdraw needs --set <release>:<film|short>');
-  // Unlisted is for an earlier cut: a scheduled video is a keeper, and unlisting it would cancel its publish time.
-  if (PRIVACY === 'unlisted') for (const { v } of plan) if (v.status.publishAt) fail(`${v.id} is scheduled for ${v.status.publishAt}; unlisting it would drop that time. Name an earlier cut, or hold it with schedule first if that is meant`);
+  // Unlisted is for an earlier cut, named by its id: <release>:<kind> always names the release's own video, the keeper,
+  // which may be held private while its edition is checked, and a scheduled one would lose its publish time.
+  if (PRIVACY === 'unlisted') for (const { v, earlier } of plan) {
+    if (!earlier) fail(`${v.id} is the video its release files, not an earlier cut; unlisted takes an earlier cut's video id (an older voice, superseded, or matched to no render)`);
+    if (v.status.publishAt) fail(`${v.id} is scheduled for ${v.status.publishAt}; unlisting it would drop that time`);
+  }
   console.log(`\nwithdraw${DRY ? ' (dry run)' : ''}: each named video goes ${PRIVACY} now, never deleted`);
   let done = 0, failed = 0;
   for (const { tag, kind, v } of plan) {
@@ -540,7 +548,11 @@ if (CMD === 'retire') {
     if (!older) continue;
     const next = rows.find((x) => x.r === r && !x.older && x.v.id !== v.id);
     const name = `${v.id} ${r.tag}/${r.metaName}`;
-    if (v.status.privacyStatus === PRIVACY) { console.log(`  ${name}: already ${PRIVACY}`); continue; }
+    // Retire only ever lowers: a cut already private (one withdrawn because its edition's check removed claims) is left
+    // private whatever --privacy says, and one with a publish time is left to schedule. Raising a private cut to
+    // unlisted is the owner's call, film by film, through withdraw by id.
+    if (v.status.privacyStatus === 'private' || v.status.privacyStatus === PRIVACY) { console.log(`  ${name}: already ${v.status.privacyStatus}`); continue; }
+    if (v.status.publishAt) { console.log(`  ${name}: left, it is scheduled for ${v.status.publishAt}`); continue; }
     if (!next) { console.log(`  ${name}: left, no replacement on the channel (upload --replace-old-voice, or --replace for a corrected render, first)`); continue; }
     if (next.v.status.privacyStatus !== 'public') { console.log(`  ${name}: left until its replacement ${next.v.id} is public${next.v.status.publishAt ? ` (scheduled ${next.v.status.publishAt})` : ''}`); continue; }
     console.log(`  ${name}: ${DRY ? 'would go' : 'going'} ${PRIVACY}, replaced by ${next.v.id} (its ${v.statistics?.viewCount ?? 0} views stay with it)`);
@@ -575,8 +587,10 @@ for (const { v, r, older, superseded } of rows) {
   if (v.snippet.title !== r.meta.title) console.log(`      title  - ${v.snippet.title}\n      title  + ${r.meta.title}`);
   if (v.snippet.description !== sendDesc) console.log(lineDiff(v.snippet.description, sendDesc).replace(/^/gm, '      '));
   // Only words changed: the title and description go up alone (about 50 units), not the captions and thumbnail
-  // again (about 450 more each), so a retitle of every film fits inside one day's 10,000.
-  const metaOnly = !same && !owed.length && !FORCE;
+  // again (about 450 more each), so a retitle of every film fits inside one day's 10,000. Only for the video the
+  // release's ledger names, whose upload is known to have sent them (what it could not send is `owed`); a hand upload
+  // or any other untracked match keeps the full update, because nothing records whether its captions went up.
+  const metaOnly = r.ledgerId === v.id && !same && !owed.length && !FORCE;
   changed++;
   if (DRY) continue;
   const dir = path.join(OUT, r.tag);

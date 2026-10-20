@@ -26,8 +26,9 @@
 #   action=withdraw  a video found wrong after it went out goes private now
 #                  (set="film-edition-01:film"); never deletes; the
 #                  corrected render then goes up with upload, replace=corrected
-#                  and only=<release>; privacy=unlisted sets an earlier cut
-#                  unlisted instead, so a link already shared still opens
+#                  and only=<release>; privacy=unlisted sets an earlier cut,
+#                  named by its video id, unlisted instead, so a link already
+#                  shared still opens
 #
 # tools/youtube-channel.mjs does the work; .claude/skills/youtube/SKILL.md is
 # how a session decides which action to run. The job summary carries the

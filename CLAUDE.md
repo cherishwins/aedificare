@@ -413,9 +413,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   after it went up (by release, which names that release's current video,
   or by video id for any earlier cut of ours: one matched to a render, in
   an older voice or superseded, or one that matches no render but whose
-  description links the apex; `--privacy unlisted` sets an earlier cut
-  unlisted instead, never one with a publish time, and `retire` takes the
-  same flag), and `upload --replace <release>` puts a corrected
+  description links the apex; `--privacy unlisted` sets an earlier cut,
+  named by its id, unlisted instead, never the release's own video and
+  never one with a publish time, and `retire` takes the same flag and only
+  ever lowers a cut, so one withdrawn to private stays private), and
+  `upload --replace <release>` puts a corrected
   render up beside the video it replaces, which then reads superseded and
   is retired like an older voice, and holds the replaced video if it was
   still scheduled, so the two never both publish; what an upload could not
@@ -424,8 +426,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   the ledger again without it, because on 18 Oct 2026 the day's quota ran
   out under three caption tracks and the runs went green; `youtube.yml`
   forces a sync with `set=force`; a sync whose only difference is the
-  words sends only the words, and prints every title and description
-  change line by line, so its dry run is the before and after),
+  words sends only the words to the video its release's ledger names (a
+  hand upload keeps the full update, since nothing records whether its
+  captions went up), and prints every title and description change line
+  by line, so its dry run is the before and after),
   `generate-design-system.mjs` (the claude.ai/design bundle, below),
   `episode.mjs` (the news films, override 8: `check`, `sheet`, `narrate`,
   `render`; quote cards with a highlighter, maps from Natural Earth,

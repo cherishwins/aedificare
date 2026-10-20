@@ -164,11 +164,13 @@ The owner's rules (20 Oct 2026, CLAUDE.md Decisions log):
   what it amends name each other next. Both are generated
   (`tools/lib/film-meta.mjs`).
 - **One public cut per edition.** A superseded cut goes unlisted or
-  private, never deleted (`withdraw --privacy unlisted` by id, or
-  `retire --privacy unlisted` once its replacement is public), and the
-  owner chooses per film: unlisted keeps a link already shared working,
-  private keeps a cut whose claims a check removed out of reach. A cut
-  with real views is always the owner's call.
+  private, never deleted (`withdraw --privacy unlisted` with the cut's
+  video id, or `retire --privacy unlisted`, which only lowers a cut that
+  is public once its replacement is), and the owner chooses per film:
+  unlisted keeps a link already shared working, private keeps a cut whose
+  claims a check removed out of reach. A cut with real views is always
+  the owner's call. Once a release is retitled, an earlier cut that
+  matched it only by its old title lists as "no render": reach it by id.
 
 ## What must be true before a render goes up
 
@@ -218,8 +220,10 @@ no conclusion about the channel.
 
 10,000 units a day per project. A list costs a few units. A sync that
 changes a video costs about 500 (update 50, captions 400, thumbnail 50),
-and about 50 when only its words differ: then only the words go up
-(`--meta-only`), so a retitle of every film costs about a tenth of a day.
+and about 50 when only its words differ on the video its release's
+ledger names: then only the words go up (`--meta-only`), so a retitle of
+every film costs about a tenth of a day. A hand upload keeps the full
+update.
 An API upload costs about 500 more (since 1 June 2026 videos.insert has
 its own bucket of 100 a day; captions, thumbnail and listing come out of
 the 10,000). A full sync of every release fits in one day; a second forced
