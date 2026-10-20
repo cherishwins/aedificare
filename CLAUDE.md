@@ -384,7 +384,15 @@ for a shortlist for bios and cards, which is a separate deliverable.
   context, the encoder), `upload-youtube.mjs` (a rendered film to the
   channel through the Data API, from the render's `meta.json`, private by
   default; `--update <videoId>` sets the same generated metadata, captions
-  and thumbnail on a video the owner uploaded by hand), `youtube-auth.mjs`
+  and thumbnail on a video the owner uploaded by hand, and `--meta-only`
+  with it sends only the words, about 50 units where captions and a
+  thumbnail cost about 450 more), `film-meta.mjs` (files a film's title and
+  description again without a render, from the release's own
+  `script.json` and `narration.json`, through `lib/film-meta.mjs`, the
+  function the render itself writes them with, so the two cannot differ;
+  `.github/workflows/film-meta.yml` runs it over the releases, dry by
+  default; `lib/diff.mjs` is the line diff both it and a sync dry run
+  print), `youtube-auth.mjs`
   (mints the refresh token once, on the owner's machine, with the upload,
   metadata and read scopes), `youtube-analytics.mjs` (the channel's numbers
   as a report: views, watch time, average view duration, subscribers,
@@ -405,7 +413,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   after it went up (by release, which names that release's current video,
   or by video id for any earlier cut of ours: one matched to a render, in
   an older voice or superseded, or one that matches no render but whose
-  description links the apex), and `upload --replace <release>` puts a corrected
+  description links the apex; `--privacy unlisted` sets an earlier cut,
+  named by its id, unlisted instead, never the release's own video and
+  never one with a publish time, and `retire` takes the same flag and only
+  ever lowers a cut, so one withdrawn to private stays private), and
+  `upload --replace <release>` puts a corrected
   render up beside the video it replaces, which then reads superseded and
   is retired like an older voice, and holds the replaced video if it was
   still scheduled, so the two never both publish; what an upload could not
@@ -413,7 +425,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `owed`, `list` marks the video OWED, and the next `sync` sends it and files
   the ledger again without it, because on 18 Oct 2026 the day's quota ran
   out under three caption tracks and the runs went green; `youtube.yml`
-  forces a sync with `set=force`),
+  forces a sync with `set=force`; a sync whose only difference is the
+  words sends only the words to the video its release's ledger names (a
+  hand upload keeps the full update, since nothing records whether its
+  captions went up), and prints every title and description change line
+  by line, so its dry run is the before and after),
   `generate-design-system.mjs` (the claude.ai/design bundle, below),
   `episode.mjs` (the news films, override 8: `check`, `sheet`, `narrate`,
   `render`; quote cards with a highlighter, maps from Natural Earth,
@@ -537,6 +553,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   thumbnail on a video the owner uploaded by hand (not locked by the API
   audit); a push never uploads. The script format and the process are
   `source/episodes/FORMAT.md`.
+- `.github/workflows/film-meta.yml`: manual dispatch, `slugs` and `dry`
+  (true by default). Rebuilds `meta.json`, `meta-short.json` and both
+  sheets on each `film-<slug>` release from that release's own script and
+  narration, and retitles the release; nothing reaches YouTube, which is
+  `youtube.yml action=sync`'s job, dry first. Written 2026-10-20 so a
+  title or description changes in `src/lib/editions.mjs` and reaches the
+  channel in minutes, at no render and no voice credits.
 - `.github/workflows/verify-live.yml`: manual dispatch, `url` input. Curls
   every route and discovery file on the live origin, checks the headers,
   canonical, draft noindex and sitemap exclusion, then runs the same sweep
@@ -734,8 +757,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   already a frame generator; the Playwright pipeline was kept because it
   shares `src/lib/rose.mjs` and the client script with the site, and
   Remotion's Chrome and bundle would land in a static site's install path.
-  YouTube's inauthentic-content rule (renamed and clarified 16 July 2026,
-  with, in YouTube's own words, no change in the underlying policy) disqualifies
+  YouTube's inauthentic-content rule (renamed and clarified 15 July 2025,
+  not 2026 as first written here: YouTube's monetization policy page,
+  read 20 Oct 2026; in YouTube's own words, no change in the underlying
+  policy) disqualifies
   templated, interchangeable, mass-produced uploads and readings of other
   people's material; it allows an original script per episode with
   original visuals and one consistent synthetic voice, which is exactly
@@ -1517,7 +1542,40 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   removed claim and were left for the owner to decide. During the
   afternoon GitHub's run-status API lagged by up to twenty minutes while
   the jobs had already run, so a run's job log, read directly, is the
-  truth about whether it ran.
+  truth about whether it ran. **Resolved 20 Oct: the owner made them
+  public in Studio** ("I made a few more public"); nothing else had
+  access. The four uncorrected cuts stay private until the owner chooses,
+  film by film, between private and unlisted (the titles task, below).
+
+- **2026-10-20 · A title names its subject inside the first 40
+  characters, typed once.** The owner brought a brief from a claude.ai
+  chat (a titles task and an `aedificare-film` skill): a phone shows about
+  the first 40 characters, and "Depth, tokens, time" or "Two men, one
+  year" tells a stranger nothing, so the searchable noun (NVIDIA, OpenAI,
+  Raspberry Pi, Navier–Stokes, AI agents) goes in front, the edition's own
+  line kept where it works, and nothing in a title the film does not say.
+  Until now the title was generated, the lede's first sentence; a title
+  is a packaging call made per film, so it is typed once, as `youtube` on
+  the edition in `src/lib/editions.mjs` (`film`, and `short` where the
+  Short needs its own), and generated everywhere from there. Every title
+  was checked against its keeper's own captions (the narration's word
+  timings, so exactly what the film says) and the edition's corrections,
+  by a verifier and a skeptic per group: the chat side's proposals were
+  written before some corrections, and several said more than the film
+  (The Floor's 15 Mbps belongs to the first Haven, not the $400 node;
+  The Markup's $18,214 is a ceiling, not a price; The Subtraction's film
+  never says "170HX"). The descriptions now open with the edition's link, and an
+  amendment and what it amends name each other near the top. A sync can
+  only send what the release carries, so a change made in Studio would be
+  undone by the next one; `film-meta.yml` refiles the words and `sync`
+  sends them, both dry first, and nothing is written to YouTube before
+  the owner says go. The chat side's skill was read and not installed as
+  it stands: it says every frame is computed (override 8 lets footage
+  in), fetches captions with `yt-dlp --no-check-certificates` (a TLS check
+  is never turned off here, and the films' own captions are on their
+  releases), and quotes YouTube Partner Program thresholds it marks as
+  reported. Its rules that hold are recorded here and in
+  `.claude/skills/youtube/SKILL.md`.
 
 ## Open
 

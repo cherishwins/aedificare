@@ -143,6 +143,35 @@ Never pass `--privacy public`. A scheduled `publish_at` is the owner's call
 there"), and a scheduled video can be changed or cancelled in Studio until
 its time.
 
+## Titles, descriptions, and one public cut per edition
+
+The owner's rules (20 Oct 2026, CLAUDE.md Decisions log):
+
+- **A title names its subject inside the first 40 characters** (a phone
+  shows about that much): the company, product or named problem first,
+  the edition's own line after it where it works, 70 characters or
+  fewer. Nothing in a title that the film does not say: check it against
+  the keeper's own `captions.srt` on its release (those are the
+  narration's words, exactly), and against the edition's corrections in
+  CLAUDE.md's Findings. Never fetch captions from YouTube.
+- **Titles are typed once**, as `youtube: { film, short }` on the edition
+  in `src/lib/editions.mjs`. Never retitle in Studio or by hand through
+  the API: the next sync sends the release's words and undoes it. The
+  route is `film-meta.yml` (dry, then not), which refiles `meta.json` on
+  the release, then `youtube.yml action=sync dry=true`, which prints every
+  title and description change, then the owner's "go", then the sync.
+- **The description opens with the edition's link**; an amendment and
+  what it amends name each other next. Both are generated
+  (`tools/lib/film-meta.mjs`).
+- **One public cut per edition.** A superseded cut goes unlisted or
+  private, never deleted (`withdraw --privacy unlisted` with the cut's
+  video id, or `retire --privacy unlisted`, which only lowers a cut that
+  is public once its replacement is), and the owner chooses per film:
+  unlisted keeps a link already shared working, private keeps a cut whose
+  claims a check removed out of reach. A cut with real views is always
+  the owner's call. Once a release is retitled, an earlier cut that
+  matched it only by its old title lists as "no render": reach it by id.
+
 ## What must be true before a render goes up
 
 - **No slates.** An episode render lists every missing shot in `shots.md`
@@ -190,7 +219,11 @@ no conclusion about the channel.
 ## Quota
 
 10,000 units a day per project. A list costs a few units. A sync that
-changes a video costs about 500 (update 50, captions 400, thumbnail 50).
+changes a video costs about 500 (update 50, captions 400, thumbnail 50),
+and about 50 when only its words differ on the video its release's
+ledger names: then only the words go up (`--meta-only`), so a retitle of
+every film costs about a tenth of a day. A hand upload keeps the full
+update.
 An API upload costs about 500 more (since 1 June 2026 videos.insert has
 its own bucket of 100 a day; captions, thumbnail and listing come out of
 the 10,000). A full sync of every release fits in one day; a second forced

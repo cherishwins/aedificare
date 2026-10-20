@@ -20,6 +20,13 @@
  * a note, typed nowhere: the amendment says what it amends, the amended
  * says when, and only once the amendment is published.
  *
+ * `youtube: { film, short }` is the film's and the Short's YouTube title
+ * (owner, 20 Oct 2026): the searchable noun inside the first 40 characters,
+ * which is what a phone shows, and nothing the film does not say, each one
+ * checked against that video's own captions. Typed here because a title is
+ * a packaging call; tools/lib/film-meta.mjs reads it, and without one a
+ * film is titled by its lede's first sentence.
+ *
  * `draft: true` keeps an edition out of the index, the feed, llms.txt, the
  * sitemap and robots; the page still builds (noindex) so it can be swept.
  * A draft's date is provisional: set it to the day it goes live.
@@ -31,6 +38,7 @@ const RAW = [
     slug: 'the-floor', path: '/the-floor',
     title: 'The Floor', acid: 'Floor',
     lede: 'The Markup quoted the datasheet. The builder had measured the first Haven a year before.',
+    youtube: { film: "A $100 Raspberry Pi HaLow radio on the builder's bench: about 15 Mbps", short: "HaLow chip: 43.3 Mbps is a datasheet peak, not a measurement" },
     // Drafted 16 Sep 2026 from the owner's transcript; every source opened and the page corrected on 18 Oct 2026,
     // the day it went live, so that is its date (the code is the date). CLAUDE.md, Findings 6.
     date: '2026-10-18', dateLabel: '18 Oct 2026',
@@ -52,6 +60,7 @@ const RAW = [
     slug: 'edition-02', path: '/edition-02', print: 'Edition 02',
     title: 'The Subtraction', acid: 'Subtraction',
     lede: 'A processor was built, then deliberately reduced, then sold at a fraction of its worth. The reduction is the product.',
+    youtube: { film: "NVIDIA's CMP mining card: the A100's silicon, cut down on purpose", short: "NVIDIA's CMP mining card: the reduction is the product" },
     // The print was a FACTS PENDING chassis and was never issued, so the date is the day the sourced page went
     // live (the code is the date). Sourced 17 and 18 Oct 2026; CLAUDE.md, Findings 0g. No PDF: none was issued.
     date: '2026-10-18', dateLabel: '18 Oct 2026',
@@ -72,6 +81,7 @@ const RAW = [
     slug: 'the-countersign', path: '/the-countersign', print: 'Edition 09',
     title: 'The Countersign', acid: 'Countersign',
     lede: 'The first AI millionaire, and the human who signed for every cent.',
+    youtube: { film: "Truth Terminal, called the first AI millionaire, owned nothing", short: "Marc Andreessen sent a chatbot $50,000 in Bitcoin" },
     date: '2026-10-16', dateLabel: '16 Oct 2026',
     seed: '0909', k: [5.048, 6.947, 3.043], pdf: '/pdf/edition-09.pdf',
     contents: [
@@ -96,6 +106,7 @@ const RAW = [
     slug: 'the-supply-cabinet', path: '/the-supply-cabinet', print: 'Edition 06',
     title: 'The Supply Cabinet', acid: 'Cabinet',
     lede: 'Give a thousand agents one shared drawer. They will build a society in it.',
+    youtube: { film: "Give 1,000 AI agents one shared drawer. They will find each other.", short: "About 1,200 OpenAI agents found a way to talk" },
     date: '2026-10-08', dateLabel: '8 Oct 2026',
     seed: '9A17', k: [17 / 4, 29 / 5, 23 / 6], pdf: '/pdf/edition-06.pdf',
     // Published 17 Oct 2026, once every source had been opened: 98 claims
@@ -119,6 +130,7 @@ const RAW = [
     slug: 'the-fourth-axis', path: '/the-fourth-axis', print: 'Edition 05',
     title: 'The Fourth Axis', acid: 'Axis',
     lede: 'Depth, tokens, time. Three solved. The fourth is where the money went.',
+    youtube: { film: "OpenAI's patents: the fourth axis is where the money went", short: "OpenAI's 69 published patent families: most of the brain goes on arXiv" },
     date: '2026-10-06', dateLabel: '6 Oct 2026',
     seed: '7C21', k: [21 / 4, 37 / 5, 19 / 6], pdf: '/pdf/edition-05.pdf',
     contents: [
@@ -140,6 +152,7 @@ const RAW = [
     slug: 'the-tilt-gap', path: '/the-tilt-gap', print: 'Edition 04',
     title: 'The Tilt Gap', acid: 'Gap',
     lede: 'Games, exhaust, and the thing no credential certifies.',
+    youtube: { film: "Can game data teach AI the thing no credential certifies?", short: "Can game data teach AI what your résumé can't prove?" },
     date: '2026-10-03', dateLabel: '3 Oct 2026',
     seed: '20261003', pdf: '/pdf/edition-04.pdf',
     contents: [
@@ -164,6 +177,7 @@ const RAW = [
     slug: 'edition-03', path: '/edition-03', print: 'Edition 03',
     title: 'The Markup', acid: 'Markup',
     lede: 'A mesh radio the state pays eighteen thousand dollars for. A mesh radio a Canadian builds for four hundred.',
+    youtube: { film: "Military radio, $18,000. Raspberry Pi mesh radio, $400.", short: "Raspberry Pi mesh radio, $400. Military mesh radio, $18,000." },
     date: '2026-09-15', dateLabel: '15 Sep 2026',
     seed: '0003', k: [5, 7], pdf: '/pdf/edition-03.pdf',
     contents: [
@@ -181,6 +195,7 @@ const RAW = [
     slug: 'ns-02', path: '/ns-02', print: 'NS-02',
     title: 'The Closest Humans', acid: 'Humans',
     lede: 'Two men, one year, and two calls on a Sunday.',
+    youtube: { film: "OpenAI and Navier-Stokes: two men, one year, and two calls on a Sunday", short: "OpenAI: two men, one year, and two calls on a Sunday" },
     date: '2026-09-13', dateLabel: '13 Sep 2026',
     seed: '0902', k: [6, 11], pdf: '/pdf/ns-02.pdf',
     amends: 'ns-01',
@@ -204,6 +219,7 @@ const RAW = [
     slug: 'ns-01', path: '/ns-01', print: 'NS-01',
     title: 'The Hand in the Water', acid: 'Hand',
     lede: 'OpenAI opened doors C and D. Most headlines did not say which.',
+    youtube: { film: "OpenAI and Navier-Stokes: most headlines did not say which doors", short: "Navier-Stokes: OpenAI opened doors C and D" },
     date: '2026-09-11', dateLabel: '11 Sep 2026',
     seed: '0413', k: [4, 9], pdf: '/pdf/ns-01.pdf',
     contents: [
@@ -224,6 +240,7 @@ const RAW = [
     slug: 'edition-01', path: '/edition-01', print: 'Edition 01',
     title: 'The Snapshot Problem', acid: 'Snapshot',
     lede: 'Agents formed societies this summer. The models under them learned nothing.',
+    youtube: { film: "AI agents formed societies. The models under them learned nothing.", short: "AI agents formed societies. Their models learned nothing." },
     date: '2026-09-11', dateLabel: '11 Sep 2026',
     seed: '5A1E', k: [16 / 3, 29 / 4, 13 / 4], pdf: '/pdf/edition-01.pdf',
     contents: [
