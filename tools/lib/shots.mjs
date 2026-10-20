@@ -8,6 +8,10 @@
  * What were module globals in episode.mjs (the script, the frame, its margins
  * and type sizes, the footage folder) arrive as one context object, made by
  * shotContext(); every builder takes it first.
+ *
+ * Two kinds were added for the edition films' re-cut (spec steps 3 and 4):
+ * `pop`, one to three words landing on the word that says them, and `page`, a
+ * cited source as tools/capture.mjs shot it, the quoted words swept in Acid.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,11 +19,16 @@ import { spawnSync } from 'node:child_process';
 import { css, esc, FORMATS, ACID, MAL, BOTTLE, VOID, FLASH } from './film.mjs';
 import { markPath } from '../../src/lib/rose.mjs';
 import { SITE } from '../../src/config.mjs';
+import { edition } from '../../src/lib/editions.mjs';
 import { chartBody, chartCss, parseChart, hotValues, findSpoken, rowKey, numKey } from './chart.mjs';
+// A page tag's body is capture.mjs's own tag, so the render names the very file the capture wrote.
+import { parsePage, shotName } from '../capture.mjs';
 
 export const FPS = 24;
-export const KINDS = ['footage', 'gag', 'clip', 'quote', 'map', 'chart', 'fig', 'card', 'title', 'over'];
-export const CUTS = KINDS.filter((k) => k !== 'over');
+export const KINDS = ['footage', 'gag', 'clip', 'quote', 'map', 'chart', 'fig', 'card', 'title', 'over', 'page', 'pop'];
+// An overlay rides over the shot beneath it; every other kind is a cut.
+export const OVERLAYS = ['over', 'pop'];
+export const CUTS = KINDS.filter((k) => !OVERLAYS.includes(k));
 export const OWNER = ['footage', 'gag', 'clip']; // shots the owner supplies
 // The grade that makes footage from six decades read as one film: most of the colour out, contrast up, pushed toward Void.
 export const GRADE = 'hue=s=0.18,eq=contrast=1.22:brightness=-0.07:gamma=0.92,'
@@ -29,13 +38,14 @@ const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' '
 
 /**
  * The context every shot is built in. `S` is the parsed script (its meta and sources), `short` the tall frame for
- * the Shorts feed (1080x1920), `dir` the work directory whose footage/ folder holds the owner's files.
+ * the Shorts feed (1080x1920), `dir` the work directory whose footage/ folder holds the owner's files. `slug` and
+ * `pages` say where tools/capture.mjs wrote a page shot's PNG and JSON (brand/youtube/<slug>/pages/ by default).
  */
-export function shotContext({ S, short = false, dir }) {
+export function shotContext({ S, short = false, dir, slug = S?.meta?.slug, pages = path.join(dir, 'pages') }) {
   const F = short ? FORMATS.tall : FORMATS.wide, W = F.W, H = F.H, M = short ? 64 : 120;
   // Type sized to the frame: tall frames are narrower, and the bottom third of a Short sits under YouTube's own controls.
   const TY = short ? { quote: 62, stmt: 170, title: 190, end: 130, slate: 44, low: Math.round(H * 0.3) } : { quote: 84, stmt: 170, title: 200, end: 150, slate: 56, low: M + 150 };
-  return { S, SHORT: short, F, W, H, M, TY, DIR: dir, FOOT: path.join(dir, 'footage') };
+  return { S, SHORT: short, F, W, H, M, TY, DIR: dir, FOOT: path.join(dir, 'footage'), SLUG: slug, PAGES: pages };
 }
 /** A figure's size: its base, or smaller if the string would not fit between the margins (condensed digits run about half an em). */
 export const fit = (C, value, base) => Math.min(base, Math.floor((C.W - 2 * C.M) / (Math.max(1, value.length) * 0.5)));
@@ -63,6 +73,18 @@ export function parseTag(inner) {
   if (tag.kind === 'fig' || tag.kind === 'over') { tag.value = args[0] || ''; tag.label = args[1] || ''; }
   if (tag.kind === 'card' || tag.kind === 'title') { tag.text = args[0] || ''; tag.label = args[1] || ''; }
   if (tag.kind === 'chart') { tag.type = args[0] || ''; tag.title = args[1] || ''; Object.assign(tag, parseChart(tag.type, args.slice(2))); tag.srcs = (tag.src || '').split(',').map((x) => x.trim()).filter(Boolean); }
+  if (tag.kind === 'pop') {
+    // Keyword text is one to four words and never the sentence (sync rule 2); the kit's pop is three at most.
+    tag.text = (args[0] || '').replace(/^["“]|["”]$/g, '');
+    const n = tag.text.split(/\s+/).filter(Boolean).length;
+    tag.errors = [...(n < 1 || n > 3 ? [`pop "${tag.text}": one to three words, not ${n}`] : []), ...(tag.text.includes('!') ? [`pop "${tag.text}": no exclamation`] : [])];
+  }
+  if (tag.kind === 'page') {
+    // Kept whole for capture.mjs's parser; `hls` are the phrases in order (one picture, its related steps).
+    tag.body = m[3].trim();
+    tag.hls = parts.filter((p) => /^hl\s*:/.test(p)).map((p) => p.replace(/^hl\s*:\s*/, '').replace(/^["“](.*)["”]$/, '$1'));
+    tag.src = /^\d{1,3}$/.test(args[0] || '') ? args[0].padStart(2, '0') : null;
+  }
   return tag;
 }
 
@@ -138,7 +160,8 @@ svg.map{position:absolute;inset:0;width:${W}px;height:${H}px}
 ${extra}</style></head><body>${body}</body></html>`;
 };
 
-export function quoteHtml(C, tag) {
+/** A quote card; `at` (ms) holds the highlighter until the voice reaches the words, as a refused page shot's card does. */
+export function quoteHtml(C, tag, at = 0) {
   const src = C.S.sources[tag.src];
   const text = tag.text.replace(/—/g, ' – ');
   const hl = (tag.hl || '').replace(/—/g, ' – ');
@@ -151,8 +174,8 @@ export function quoteHtml(C, tag) {
     // One span per word, each carrying the space after it, so the sweep reads as one bar and not a row of boxes.
     inner = esc(text.slice(0, i)) + words.map((w, k) => `<span class="h" data-k="${k}">${esc(w)}${k < n - 1 ? ' ' : ''}</span>`).join('') + esc(text.slice(i + hl.length));
   }
-  const html = page(C, `<div class="q"><div class="src mono">${esc(src ? `${src.pub} · ${src.date}` : '')}</div><div class="t">“${inner}”</div><div class="by mono">${esc(tag.by)}</div></div>
-<script>window.__frame=(ms)=>{const n=${n};document.querySelectorAll('.h').forEach((e)=>{e.classList.toggle('on',ms>=(+e.dataset.k/Math.max(1,n))*900)})};window.__frame(0);window.__ready=true;</script>`);
+  const html = page(C, `<div class="q"><div class="src mono">${esc(src ? [src.pub, src.date].filter(Boolean).join(' · ') : '')}</div><div class="t">“${inner}”</div><div class="by mono">${esc(tag.by)}</div></div>
+<script>window.__frame=(ms)=>{const n=${n};document.querySelectorAll('.h').forEach((e)=>{e.classList.toggle('on',ms>=${at ? `${Math.round(at)}+` : ''}(+e.dataset.k/Math.max(1,n))*900)})};window.__frame(0);window.__ready=true;</script>`);
   return { html, anim: n > 0, live: true };
 }
 
@@ -249,9 +272,308 @@ export const slateHtml = (C, tag) => ({ html: page(C, `<div class="slate"><div c
 export const endHtml = (C) => ({ html: page(C, `<div class="stmt" style="font-size:${C.TY.end}px;text-transform:none">${esc(new URL(SITE.origin).host)}</div><div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`) });
 export const overHtml = (C, tag) => page(C, `${tag.value ? `<div class="big" style="font-size:${fit(C, tag.value, tag.value.length > 9 ? 200 : 300)}px;color:${ACID}">${esc(tag.value)}</div>` : ''}${tag.label ? `<div class="sub mono" style="color:${FLASH}">${esc(tag.label)}</div>` : ''}`, 'transparent');
 
-/** A computed shot's HTML by its kind; a footage, gag or clip shot with no file is the slate that names it. */
-export async function shotHtml(C, s, landMs = null, held = []) {
+/* ---- page: a cited source as served, its words swept in Acid -------------------- */
+const die = (m) => { console.error(m); process.exit(1); };
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** A page's date as the editions write one ("5 Sep 2025"), from ISO, 2026/05/17 or anything Date reads; null if none. */
+function dayLabel(v) {
+  const m = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/.exec(String(v || ''));
+  const t = m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : Date.parse(v || '');
+  if (!Number.isFinite(t)) return null;
+  const d = new Date(t);
+  return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+const wordKey = (w) => String(w).toLowerCase().replace(/[^a-z0-9]+/g, '');
+const CITE = /^\[\d+\]$/; // the narration keeps each citation mark as a zero-length word; it is never said
+const STOP = new Set('with from that this have been were will your what when which their there about into more than then them they also only over such each does said says page'.split(' '));
+/**
+ * The first word in [t0, t1) that says one of a phrase's own words: a number (by value: "2,000" says 2000), or a
+ * word of four letters or more that carries meaning. The source's words and the narration's rarely match whole,
+ * so one shared word is the cue.
+ */
+function spokenWord(words, phrase, t0, t1) {
+  const want = phrase.split(/[\s\u2013\u2014/-]+/).map((w) => ({ k: wordKey(w), n: numKey(w) })).filter((x) => x.n !== null || (x.k.length >= 4 && !STOP.has(x.k)));
+  if (!want.length) return null;
+  for (const w of words) {
+    if (w.s < t0 - 0.05 || w.s >= t1 || CITE.test(w.w)) continue;
+    const n = numKey(w.w), k = wordKey(w.w);
+    if (want.some((x) => (x.n !== null ? n !== null && Math.abs(x.n - n) <= 1e-9 * Math.max(1, Math.abs(n)) : x.k === k))) return w;
+  }
+  return null;
+}
+
+/**
+ * When each phrase's highlighter starts, in ms from the shot's first frame: on the word that says it (sync rule 3:
+ * the Acid lands on its word), or one beat in for a single phrase nobody says (the quote card's rule), later
+ * phrases spread across the shot. A sweep runs 900 ms, the kit's slow beat, shortened only when the shot cannot
+ * hold every phrase at that pace; each starts after the one before has finished, and the last finishes half a beat
+ * before the cut (a quarter of a short shot), so the point is on screen before the next shot. A phrase starts no
+ * later than leaves room for the ones after it: clamped one at a time, two phrases in a one-second shot once
+ * started on the same frame.
+ */
+function sweepPlan(texts, s, d, words) {
+  const n = texts.length;
+  if (!n) return [];
+  const lo = Math.min(0.3, d / 4), end = d - Math.min(0.45, d / 4);
+  const dur = Math.min(0.9, Math.max(1 / FPS, (end - lo) / n));
+  const latest = (i) => Math.max(lo, end - (n - i) * dur);
+  const first = Math.round(s.t * FPS) / FPS; // the shot's first frame on the film's grid
+  const a = Math.min(0.9, latest(0));
+  let prev = -Infinity;
+  return texts.map((text, i) => {
+    const w = spokenWord(words, text, s.t, s.end);
+    let at = w ? w.s - first : n === 1 ? a : a + (i * (latest(n - 1) - a)) / (n - 1);
+    at = Math.min(latest(i), Math.max(lo, at, prev + dur));
+    prev = at;
+    return { text, word: w, at: Math.round(at * 1000), dur: Math.round(dur * 1000) };
+  });
+}
+
+/**
+ * Where a page shot puts its label and its panel. Wide: the panel fills the frame inside the margins, under a
+ * label line. Tall: below the Shorts feed's top bar, above its lower quarter of controls, clear of the right
+ * 120 px where its buttons stand. `kMin` to `kMax` is the zoom from CSS px to frame px that keeps body type
+ * readable on a phone (16 CSS px becomes 30 to 42 frame px wide, 32 to 45 tall), widened as far as `kFloor` to keep
+ * a long phrase whole; `at` is where the words sit, as a share of the panel's height, above YouTube's captions.
+ */
+const pageFrame = (C) => (C.SHORT
+  ? { label: 228, x: C.M, y: 300, w: C.W - C.M - 120, h: Math.round(C.H * 0.75) - 300, kMin: 2.0, kMax: 2.8, kFloor: 1.2, at: 0.36, size: 26 }
+  : { label: 72, x: C.M, y: 150, w: C.W - 2 * C.M, h: C.H - 250, kMin: 1.9, kMax: 2.6, kFloor: 1.3, at: 0.42, size: 28 });
+
+const hull = (bs) => {
+  bs = bs.filter(Boolean);
+  if (!bs.length) return null;
+  const x = Math.min(...bs.map((b) => b.x)), y = Math.min(...bs.map((b) => b.y));
+  return { x, y, w: Math.max(...bs.map((b) => b.x + b.w)) - x, h: Math.max(...bs.map((b) => b.y + b.h)) - y };
+};
+
+/**
+ * The part of the capture the panel shows, in CSS px of the capture's viewport. Across: the words' own block (the
+ * paragraph or table row capture.mjs found them in), so the column fills the panel and a sidebar stays out, held
+ * between the zoom limits; a block too wide keeps its left edge while the words still fit, as a reader's eye
+ * would. Down: the words at `at` of the panel. Then the pictures (spec 2.3, row 5: text only, a news photograph
+ * is cropped out): one beside the words narrows the window, one above or below moves it, and any still inside is
+ * covered in Void, the frame's own ground, because a screenshot of someone's photograph is not ours to show.
+ * Our own pages (self) are ours, so nothing on them is covered.
+ */
+function pageCrop(rec, phrases, P) {
+  // 40 CSS px of margin: the push-in grows about the words, and 24 let it take a line's first letter off the left.
+  const vw = rec.viewport.width, vh = rec.viewport.height, pad = 40;
+  const maxW = P.w / P.kMin, minW = P.w / P.kMax;
+  const U = hull(phrases.map((h) => h.union)) || { x: pad, y: vh * 0.12, w: Math.min(vw - 2 * pad, maxW - 2 * pad), h: 40 };
+  const B = hull(phrases.map((h) => h.block));
+  let x0 = Math.max(0, Math.min(B ? B.x : U.x, U.x) - pad), x1 = Math.min(vw, Math.max(B ? B.x + B.w : U.x + U.w, U.x + U.w) + pad);
+  const win = Math.max(maxW, U.w + 2 * pad);
+  if (x1 - x0 > win) {
+    // Too wide to read whole: its left edge if the words still fit there, else its right edge (a table row's last
+    // column whole), else the window starts where the words start. A window about the words' middle cut every
+    // line at both ends (The Markup's ledger, 2026-10-20).
+    if (U.x + U.w + pad <= x0 + win) x1 = x0 + win;
+    else if (U.x - pad >= x1 - win) x0 = x1 - win;
+    else { x0 = Math.max(0, U.x - pad); x1 = Math.min(vw, x0 + win); x0 = Math.max(0, x1 - win); }
+  }
+  // A phrase too long to show whole above the zoom floor starts at its first word and runs past the panel: type
+  // shrunk to 12 px to fit (a Short given a regulation's sentence, 2026-10-20) is a picture of type nobody reads.
+  const runs = U.w + 2 * pad > P.w / P.kFloor;
+  if (runs) { x0 = Math.max(0, U.x - pad); x1 = Math.min(vw, x0 + P.w / P.kFloor); }
+  const grow = (want) => { if (x1 - x0 >= want) return; const g = (want - (x1 - x0)) / 2; x0 = Math.max(0, x0 - g); x1 = Math.min(vw, x0 + want); x0 = Math.max(0, x1 - want); };
+  grow(minW);
+  let k, ph, y0;
+  const fitY = () => {
+    k = P.w / (x1 - x0); ph = P.h / k;
+    y0 = U.h > 0.8 * ph ? U.y - 0.1 * ph : U.y + U.h / 2 - P.at * ph;
+    y0 = Math.max(0, Math.min(y0, vh - ph));
+  };
+  fitY();
+  const photos = rec.self ? [] : (rec.media || []).filter((m) => m.kind !== 'svg');
+  const inside = (m) => m.x < x1 - 1 && m.x + m.w > x0 + 1 && m.y < y0 + ph - 1 && m.y + m.h > y0 + 1;
+  const freeX = (a, b) => !photos.some((m) => m.x < b && m.x + m.w > a && m.y < y0 + ph && m.y + m.h > y0);
+  // A picture level with the words narrows the window from its side; one above or below moves it (next). Tried the
+  // other way round, a product photo above Morse Micro's spec row narrowed the window first and took its margin.
+  const level = (m) => m.y < U.y + U.h && m.y + m.h > U.y;
+  for (let pass = 0; pass < 3; pass++) {
+    let moved = false;
+    for (const m of photos.filter((q) => inside(q) && level(q))) {
+      if (m.x + m.w <= U.x - 6) { x0 = m.x + m.w + 6; moved = true; } else if (m.x >= U.x + U.w + 6) { x1 = m.x - 6; moved = true; }
+    }
+    if (!moved) break;
+    // The zoom the narrowing cost is given back on whichever side has no picture, so the type does not balloon.
+    if (x1 - x0 < minW && freeX(x1, Math.min(vw, x0 + minW))) x1 = Math.min(vw, x0 + minW);
+    else if (x1 - x0 < minW && freeX(Math.max(0, x1 - minW), x0)) x0 = Math.max(0, x1 - minW);
+    fitY();
+  }
+  // A picture above or below moves the window only while the words stay between 6 and 75 percent of the panel:
+  // lower than that, YouTube's captions cover them (Parallel's page put them at 85 percent), so it is covered instead.
+  const keeps = (y) => U.y >= y + 0.06 * ph && U.y + U.h <= y + 0.75 * ph;
+  for (const m of photos.filter(inside)) {
+    const past = Math.min(vh - ph, Math.max(y0, m.y + m.h + 6)), short = Math.max(0, Math.min(y0, m.y - 6 - ph));
+    if (m.y + m.h <= U.y - 6 && keeps(past)) y0 = past;
+    else if (m.y >= U.y + U.h + 6 && keeps(short)) y0 = short;
+  }
+  const over = photos.filter(inside);
+  const touches = over.filter((m) => m.x < U.x + U.w && m.x + m.w > U.x && m.y < U.y + U.h && m.y + m.h > U.y);
+  const masks = over.filter((m) => !touches.includes(m)).map((m) => ({ x: (m.x - x0) * k, y: (m.y - y0) * k, w: m.w * k, h: m.h * k }));
+  return { x0, y0, cw: x1 - x0, ch: ph, k, masks, touches: touches.length, runs };
+}
+
+/** The mean luminance (0 to 255) of a box of a PNG, in its own pixels: a light page takes a highlighter, a dark one an inverted bar. */
+function luma(file, b) {
+  const r = spawnSync('ffmpeg', ['-v', 'error', '-i', file, '-vf', `crop=${Math.max(2, Math.round(b.w))}:${Math.max(2, Math.round(b.h))}:${Math.round(b.x)}:${Math.round(b.y)},scale=1:1:flags=area,format=rgb24`, '-frames:v', '1', '-f', 'rawvideo', 'pipe:1'], { maxBuffer: 1 << 20 });
+  if (r.status !== 0 || !r.stdout || r.stdout.length < 3) return 255;
+  return 0.2126 * r.stdout[0] + 0.7152 * r.stdout[1] + 0.0722 * r.stdout[2];
+}
+
+/**
+ * Whether a PNG holds the brand's Acid, counted on a quarter-size copy. Our own pages spend their one Acid on a
+ * section number or a figure, and a shot of one that keeps it in frame has spent the shot's Acid already.
+ */
+function hasAcid(file) {
+  const r = spawnSync('ffmpeg', ['-v', 'error', '-i', file, '-vf', 'scale=iw/4:-1,format=rgb24', '-frames:v', '1', '-f', 'rawvideo', 'pipe:1'], { maxBuffer: 1 << 26 });
+  if (r.status !== 0 || !r.stdout) return false;
+  let n = 0;
+  for (let i = 0; i + 2 < r.stdout.length; i += 3) if (r.stdout[i] > 170 && r.stdout[i] < 235 && r.stdout[i + 1] > 225 && r.stdout[i + 2] < 70 && ++n > 24) return true;
+  return false;
+}
+
+/**
+ * The record tools/capture.mjs wrote for a page tag, found by the same name the capture gave it. The cut list's
+ * sources give an outside source its URL, as they gave it to the capture; a value is a URL or a source object.
+ */
+export function pageRecord(C, tag) {
+  const urls = Object.fromEntries(Object.entries(C.S.sources || {}).map(([k, v]) => [k, typeof v === 'string' ? v : v && v.url]).filter(([, v]) => v));
+  let shot;
+  try { shot = parsePage(tag.body, urls); } catch (e) { die(`shots: [[page: ${tag.body}]]: ${e.message}`); }
+  const name = shotName(C.SLUG, shot);
+  const file = path.join(C.PAGES, `${name}.json`);
+  if (!fs.existsSync(file)) die(`shots: no capture for [[page: ${tag.body}]] (${path.join(C.PAGES, name)}.json); run node tools/capture.mjs ${C.SLUG} --page "${tag.body}"`);
+  return { shot, rec: JSON.parse(fs.readFileSync(file, 'utf8')), file };
+}
+
+/**
+ * A page shot of `d` seconds. The capture on Void, ungraded so the source is recognisably itself (spec 2.5,
+ * reading 1), cropped to its words (pageCrop); a Malachite mono label naming the publisher and the date; an Acid
+ * box sweeping each phrase on the word that says it, one phrase lit at a time, so the shot spends one Acid; and one
+ * linear 5 percent push-in from the words for the whole shot, footage grammar on third-party pixels (reading 2).
+ * On a light page the box multiplies, a highlighter; on a dark one (ours) it is a bar with the words inverted into
+ * it, so both read as dark type on Acid, and Flash where our page's own Acid is in frame. A capture that was
+ * refused (a wall, robots.txt, YouTube) becomes the quote card with the same words, so the cut always renders and
+ * nothing is routed around. `d` is the shot's length, `words` the film's, timed; `work` takes the cropped PNG.
+ */
+export async function pageHtml(C, s, { d, words = [], work }) {
+  const { shot, rec } = pageRecord(C, s.tag);
+  const src = rec.src ? C.S.sources?.[rec.src] : null;
+  const given = src && typeof src === 'object' ? src : {};
+  if (rec.refused) {
+    // The edition's own source line says when it was read; the wall's title says nothing about the source.
+    const read = rec.source && /\bread (\d{1,2} [A-Z][a-z]{2} \d{4})/.exec(rec.source.text || '');
+    const pub = `${rec.src ? `[${rec.src}] ` : ''}${given.pub || new URL(rec.url).hostname.replace(/^www\./, '')}`;
+    const plan = sweepPlan([shot.hl[0]], s, d, words)[0];
+    const qC = { ...C, S: { ...C.S, sources: { page: { pub, date: given.date || (read ? `read ${read[1]}` : '') } } } };
+    const h = quoteHtml(qC, { src: 'page', text: shot.hl.join(' … '), hl: shot.hl[0], by: '' }, plan.at);
+    return { ...h, animMs: plan.at + 900, brand: h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>'), refused: `${rec.refusal}: ${rec.reason}`, sweeps: [plan] };
+  }
+  if (!rec.ok || !rec.png) die(`shots: the capture for [[page: ${s.tag.body}]] failed (${rec.error || 'no PNG'}); fix the tag and capture again`);
+  const phrases = (rec.hl || []).filter((h) => h.found && h.union && h.boxes && h.boxes.length);
+  if (phrases.length < shot.hl.length) die(`shots: [[page: ${s.tag.body}]]: ${shot.hl.length - phrases.length} phrase(s) not boxed in the capture; capture again`);
+  const P = pageFrame(C), png = path.join(C.PAGES, rec.png), dpr = rec.viewport.dpr || 2;
+  const c = pageCrop(rec, phrases, P);
+  if (c.touches) warnOnce(`shots: [[page: ${s.tag.body}]]: a picture on the page touches the words, so it stays in the shot; choose words away from it`);
+  if (c.runs) warnOnce(`shots: [[page: ${s.tag.body}]]: the words are too long for the ${C.SHORT ? 'Short\'s' : 'film\'s'} panel at a readable size, so they run past its edge; a shorter hl: shows them whole`);
+  // Only the crop goes into the frame: a whole capture is up to 6 MB of PNG for a fifth of its pixels.
+  const crop = path.join(work, `${rec.name}-${C.SHORT ? 'tall' : 'wide'}.png`);
+  const px = (v) => Math.round(v * dpr);
+  ff(['-i', png, '-vf', `crop=${px(c.cw)}:${px(c.ch)}:${px(c.x0)}:${px(c.y0)}`, '-frames:v', '1', crop], `page crop ${rec.name}`);
+  const dark = luma(png, { x: px(phrases[0].union.x), y: px(phrases[0].union.y), w: px(phrases[0].union.w), h: px(phrases[0].union.h) }) < 110;
+  // On our own page with its Acid in frame the bar is Flash, so the shot still spends one Acid, the page's own.
+  const bar = rec.self && dark && hasAcid(crop) ? FLASH : ACID;
+  // One box a line: a phrase that runs into bold or a link comes back as a box per element, and two padded boxes
+  // overlapping multiply into a darker seam (Parallel's "$208–$450", 2026-10-20). Lines are found by the boxes'
+  // middles first, then merged left to right: a table row's two cells sit 2 px apart in height, and sorting by
+  // height alone merged the value into the label across the whole row (Morse Micro).
+  const lines = (bs) => {
+    const rows = [];
+    for (const b of bs) { const r = rows.find((q) => Math.abs(q[0].y + q[0].h / 2 - (b.y + b.h / 2)) < 0.5 * Math.min(q[0].h, b.h)); if (r) r.push(b); else rows.push([b]); }
+    return rows.sort((a, b) => a[0].y - b[0].y).flatMap((r) => r.sort((a, b) => a.x - b.x).reduce((out, b) => {
+      const l = out[out.length - 1];
+      if (l && b.x <= l.x + l.w + 0.6 * b.h) Object.assign(l, hull([l, b])); else out.push({ ...b });
+      return out;
+    }, []));
+  };
+  const boxes = phrases.map((h) => lines(h.boxes).map((b) => {
+    const padX = 0.14 * b.h * c.k, padY = 0.08 * b.h * c.k;
+    return { x: (b.x - c.x0) * c.k - padX, y: (b.y - c.y0) * c.k - padY, w: b.w * c.k + 2 * padX, h: b.h * c.k + 2 * padY };
+  }));
+  // The push-in grows from where the words start: the eye reads from there, and a move about their middle took the
+  // first letters of every line off the left when the words sat far right (arXiv, 2026-10-20).
+  const all = hull(boxes.flat());
+  const ox = all.x, oy = all.y + all.h / 2;
+  const plan = sweepPlan(phrases.map((h) => h.text), s, d, words);
+  const ed = rec.self ? edition(rec.page) : null;
+  const pub = ed ? `${SITE.name} · ${ed.title}` : given.pub || rec.publisher || new URL(rec.finalUrl || rec.url).hostname.replace(/^www\./, '');
+  const date = ed ? ed.dateLabel : given.date || dayLabel(rec.published) || `read ${dayLabel(rec.readAt)}`;
+  const label = `${rec.src ? `[${rec.src}] ` : ''}${pub} · ${date}`.replace(/—/g, ' – ');
+  const f = (v) => v.toFixed(1);
+  const hl = boxes.map((bs, p) => bs.map((b) => `<div class="hl" data-p="${p}" style="left:${f(b.x)}px;top:${f(b.y)}px;height:${f(b.h)}px;width:0">${dark ? `<span style="left:${f(-b.x)}px;top:${f(-b.y)}px"></span>` : ''}</div>`).join('')).join('');
+  const masks = c.masks.map((m) => `<div class="mask" style="left:${f(m.x)}px;top:${f(m.y)}px;width:${f(m.w)}px;height:${f(m.h)}px"></div>`).join('');
+  const data = `url(data:image/png;base64,${fs.readFileSync(crop).toString('base64')})`;
+  const extra = `.lab{position:absolute;left:${P.x}px;top:${P.label}px;font-size:${P.size}px;color:${MAL};white-space:nowrap}
+.panel{position:absolute;left:${P.x}px;top:${P.y}px;width:${P.w}px;height:${P.h}px;overflow:hidden;background:${VOID}}
+.doc{position:absolute;left:0;top:0;width:${P.w}px;height:${P.h}px;transform-origin:${f(ox)}px ${f(oy)}px;--pg:${data}}
+.pg{position:absolute;inset:0;background:var(--pg) 0 0/${P.w}px ${P.h}px no-repeat}
+.mask{position:absolute;background:${VOID}}
+.hl{position:absolute;overflow:hidden;background:${bar}${dark ? '' : ';mix-blend-mode:multiply'}}
+.hl span{position:absolute;width:${P.w}px;height:${P.h}px;background:var(--pg) 0 0/${P.w}px ${P.h}px no-repeat;filter:grayscale(1) invert(1);mix-blend-mode:multiply}`;
+  const html = page(C, `<div class="lab mono">${esc(label)}</div><div class="panel"><div class="doc" id="doc"><div class="pg"></div>${masks}${hl}</div></div>
+<script>const W=${JSON.stringify(boxes.map((bs) => bs.map((b) => +f(b.w))))},T=${JSON.stringify(plan.map((x) => [x.at, x.dur]))},D=${Math.round(d * 1000)},doc=document.getElementById('doc'),els=W.map((_,p)=>[...document.querySelectorAll('.hl[data-p="'+p+'"]')]);
+window.__frame=(ms)=>{doc.style.transform='scale('+(1+0.05*Math.min(1,ms/D)).toFixed(5)+')';let cur=-1;T.forEach((t,p)=>{if(ms>=t[0])cur=p;});
+W.forEach((ws,p)=>{let left=p===cur?ws.reduce((a,b)=>a+b,0)*Math.min(1,(ms-T[p][0])/T[p][1]):0;els[p].forEach((e,j)=>{const w=Math.max(0,Math.min(ws[j],left));e.style.width=w.toFixed(2)+'px';left-=w;});});};
+window.__frame(0);window.__ready=true;</script>`, VOID, extra);
+  return { html, brand: html.replace(/url\(data:[^)]*\)/g, 'url()'), anim: true, live: true, animMs: Math.round(d * 1000), whole: true, sweeps: plan, label, dark, flash: bar === FLASH, masked: c.masks.length, zoom: c.k };
+}
+
+/* ---- pop: one to three words, landing on the word --------------------------------- */
+/**
+ * The pop as a transparent overlay: uppercase Bricolage at weight 800, left on the grid in the upper third, clear
+ * of the captions, in a Void field box so it reads over a page, footage or the rose alike (the kit's field, never a
+ * shadow). It lands in 120 ms with its width axis stepping 75 to 100 (override 3, the one flexing element), and is
+ * sized in the frame, after the face has loaded, to fit at width 100. Flash by default; Acid only when the shot
+ * beneath spends none (`acid`), so a pop over a page's highlighter or a chart's point never makes a second.
+ */
+export function popHtml(C, tag, { acid = false } = {}) {
+  const size = C.SHORT ? 132 : 150, top = Math.round(C.H * (C.SHORT ? 0.15 : 0.12));
+  const max = C.SHORT ? C.W - C.M - 120 : C.W - 2 * C.M, padX = Math.round(size * 0.22), padY = Math.round(size * 0.14);
+  return page(C, `<div class="pop" id="p"><span id="w">${esc(tag.text)}</span></div>
+<script>const p=document.getElementById('p'),w=document.getElementById('w');
+document.fonts.load("800 ${size}px 'Bricolage Grotesque'").then(()=>{w.style.setProperty('--wdth','100');const r=p.getBoundingClientRect().width;
+if(r>${max})w.style.fontSize=(${size}*(${max - 2 * padX})/(r-${2 * padX})).toFixed(1)+'px';
+window.__frame=(ms)=>{w.style.setProperty('--wdth',(75+25*Math.min(1,ms/120)).toFixed(2))};window.__frame(0);window.__ready=true;});</script>`, 'transparent',
+  `.pop{position:absolute;left:${C.M - padX}px;top:${top - padY}px;padding:${padY}px ${padX}px;background:${VOID};white-space:nowrap}
+.pop span{display:block;font-size:${size}px;line-height:.86;letter-spacing:-.02em;text-transform:uppercase;color:${acid ? ACID : FLASH};font-variation-settings:'opsz' 96,'wdth' var(--wdth,75),'wght' 800}`);
+}
+
+/**
+ * When a pop leaves (R5): from the first word it names, for that word's length and 0.6 s more, never under 0.9 s,
+ * one slow beat, never past `next`; `hold:` overrides. A pop that paraphrases ("NO MEASUREMENT." over "It had no
+ * measurement") matches on the words it shares; one that shares none holds from the word it lands on.
+ */
+export function popEnd(o, next, words) {
+  if (o.tag.hold) return Math.min(next, o.t + +o.tag.hold);
+  const want = new Set(o.tag.text.split(/\s+/).map(wordKey).filter(Boolean));
+  const win = words.filter((w) => w.s >= o.t - 0.05 && w.s < next && !CITE.test(w.w));
+  if (!win.length) return Math.min(next, o.t + 0.9);
+  const hits = win.slice(0, 8).filter((w) => want.has(wordKey(w.w)));
+  const a = hits[0] || win[0], b = hits[hits.length - 1] || win[0];
+  return Math.min(next, Math.max(o.t + 0.9, a.s + 0.9, b.e + 0.6));
+}
+
+/**
+ * A computed shot's HTML by its kind; a footage, gag or clip shot with no file is the slate that names it. A page
+ * shot also needs its length, the film's words and the work directory (`opts`), because it moves for the whole
+ * shot and lands on the voice.
+ */
+export async function shotHtml(C, s, landMs = null, held = [], opts = {}) {
   const k = s.tag.kind;
+  if (k === 'page') return pageHtml(C, s, opts);
   if (k === 'quote') return quoteHtml(C, s.tag);
   if (k === 'map') return mapHtml(C, s.tag);
   if (k === 'chart') return chartHtml(C, s.tag, landMs, held);
@@ -335,6 +657,7 @@ export async function renderSegment(C, R, s, i) {
   const enc = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '16', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-an', out];
   const f = OWNER.includes(s.tag.kind) ? footageFile(C, s.tag.id) : null;
   let land = null; // a chart's spoken point, when the build lands on it
+  let pageNote = ''; // a page shot's label and where each highlighter landed, for the log
   if (f) {
     // B-roll cuts every four beats: a footage shot longer than six beats is cut into pieces of about 3.6 s,
     // each from a later moment of the same file, panning the other way. One clip becomes a sequence.
@@ -372,16 +695,23 @@ export async function renderSegment(C, R, s, i) {
     }
     const held = s.tag.kind === 'chart' && R.lastChart && R.lastChart.type === s.tag.type && ['bars', 'range'].includes(s.tag.type) ? R.lastChart.rows.map(rowKey) : [];
     if (s.tag.kind === 'chart') R.lastChart = s.tag;
-    const h = await shotHtml(C, s, land ? land.ms : null, held);
+    const h = await shotHtml(C, s, land ? land.ms : null, held, { d, words: R.words, work });
     if (!h.landMs) land = null;
-    fs.writeFileSync(path.join(brandDir, `${i}.html`), s.tag.kind === 'quote' ? h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>') : h.html);
+    // What check-brand reads: our own type only. A page shot's capture and a quote's words are someone else's.
+    fs.writeFileSync(path.join(brandDir, `${i}.html`), h.brand ?? (s.tag.kind === 'quote' ? h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>') : h.html));
     await show({ id: `${i}`, html: h.html, live: h.live });
     const fdir = path.join(work, `f${i}`); fs.mkdirSync(fdir);
     // A build longer than the shot is compressed to finish inside 80 percent of it, so the point always lands on screen.
     // A chart landed on its word was already fitted inside the shot (chartLand), so it keeps the voice's own pace; the
     // same rule, against the whole shot, still guarantees the build ends before the cut.
-    const animMs = h.animMs || 900, pace = h.anim ? Math.max(1, animMs / ((h.landMs ? 1 : 0.8) * d * 1000)) : 1;
+    // A move that spans the whole shot (a page's push-in) is the shot's own length and is never compressed.
+    const animMs = h.animMs || 900, pace = h.whole ? 1 : h.anim ? Math.max(1, animMs / ((h.landMs ? 1 : 0.8) * d * 1000)) : 1;
     s.builtMs = h.anim ? Math.min(animMs / pace, d * 1000) : 0; // the picture moves until here; longHolds counts the rest
+    if (s.tag.kind === 'page') {
+      const said = h.sweeps.map((x) => `"${x.text.slice(0, 40)}" at ${x.at} ms${x.word ? ` on "${x.word.w}" (${x.word.s.toFixed(2)} s)` : ', not spoken in the shot'}`).join('; ');
+      pageNote = h.refused ? `        page refused (${h.refused.slice(0, 90)}): the quote card, ${said}\n`
+        : `        page "${h.label}": ${said}; zoom ${h.zoom.toFixed(2)}${h.dark ? ', dark page' : ''}${h.flash ? ', Flash bar (the page\'s own Acid is in frame)' : ''}${h.masked ? `, ${h.masked} picture(s) covered` : ''}\n`;
+    }
     const n = h.anim ? Math.min(Math.ceil((animMs / pace / 1000) * FPS) + 1, Math.ceil(d * FPS)) : 1;
     for (let k = 0; k < n; k++) {
       if (h.live) await pg.evaluate((ms) => window.__frame(ms), (k / FPS) * 1000 * pace);
@@ -390,6 +720,7 @@ export async function renderSegment(C, R, s, i) {
     ff(['-framerate', String(FPS), '-i', path.join(fdir, '%04d.png'), '-vf', `tpad=stop_mode=clone:stop_duration=${d},trim=duration=${d},format=yuv420p`, ...enc], `shot ${i}`);
   }
   process.stdout.write(`  ${String(i).padStart(3)} ${s.t.toFixed(2).padStart(7)} ${d.toFixed(2).padStart(6)}s ${s.tag.kind}${s.tag.id ? ' ' + s.tag.id : ''}${OWNER.includes(s.tag.kind) && !f ? ' (slate)' : ''}\n`);
+  if (s.tag.kind === 'page' && pageNote) process.stdout.write(pageNote);
   if (s.tag.kind === 'chart') {
     const held = !land || Math.round(land.at) === land.ms ? '' : ` (spoken at ${Math.round(land.at)} ms; held ${land.at < land.ms ? 'to one beat in' : 'to half a beat before the cut'})`;
     process.stdout.write(land
@@ -398,6 +729,26 @@ export async function renderSegment(C, R, s, i) {
     if (!land && hotValues(s.tag.type, s.tag.rows).length) console.warn(`episode: chart "${s.tag.title}" lands its point on its own timing; no word in its shot says it`);
   }
   return [out];
+}
+
+/**
+ * A pop as four transparent stills, `work/pop<j>-<k>.png`: three landing frames (the width axis at 0, 42 and 83 ms)
+ * and the landed word, each with the film time it shows from and the time it gives way, on the 24 fps grid, for the
+ * compose to overlay in turn. `o` is { t, end, tag, acid }, t already led ahead of its word by the caller.
+ */
+export async function renderPop(C, R, o, j) {
+  const html = popHtml(C, o.tag, { acid: !!o.acid });
+  fs.writeFileSync(path.join(R.brandDir, `pop${j}.html`), html);
+  await R.show({ id: `pop${j}`, html, live: true });
+  const f0 = Math.round(o.t * FPS), f1 = Math.max(f0 + 4, Math.round(o.end * FPS));
+  const pieces = [];
+  for (let k = 0; k < 4; k++) {
+    await R.pg.evaluate((ms) => window.__frame(ms), (k / FPS) * 1000);
+    const png = path.join(R.work, `pop${j}-${k}.png`);
+    fs.writeFileSync(png, await R.shot({ omitBackground: true, type: 'png' }));
+    pieces.push({ png, t: (f0 + k) / FPS, end: (k < 3 ? f0 + k + 1 : f1) / FPS });
+  }
+  return { ...o, pieces };
 }
 
 /** An overlay as one transparent still, `work/over<j>.png`, cut in and out on the word by the final mix. */

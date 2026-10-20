@@ -39,8 +39,10 @@
  * words, the element, the mode, the height), so the same tag always names the same file. The PNG is the viewport,
  * 1440 CSS px wide at 2 device pixels per CSS px, scrolled so the words sit at 40 percent of its height; a viewport
  * taller than any frame needs means a push-in never shows its edge. Every box in the JSON is in CSS px of that
- * viewport (double it for the PNG's pixels). `media` lists the pictures in view, so the render can crop a news
- * photograph out and show only the words. A refused shot writes its JSON and no PNG.
+ * viewport (double it for the PNG's pixels). Each phrase also carries `block`, the box of the paragraph or table
+ * row it sits in, so the render can crop to the words' own column and leave a sidebar out. `media` lists the
+ * pictures in view, so the render can crop a news photograph out and show only the words. A refused shot writes
+ * its JSON and no PNG.
  * Exit 1 when a shot failed (its words are not on the page, the URL is gone, the tag is wrong); a refusal is an
  * answer, not a failure, because the render has a fallback for it.
  */
@@ -428,13 +430,47 @@ const COVER = () => (window.__aedRanges || []).map((r) => {
   return null;
 });
 
-/** The pictures in view (a news photograph is cropped out at render; a shot of a source shows its words). */
+/**
+ * The block each phrase sits in: its nearest ancestor that is not inline, or the whole row when that is a table
+ * cell, because a row's label is the cell's context. The render crops to its left and right edges, which a news
+ * page's sidebar of photographs lies outside.
+ */
+const BLOCKS = () => (window.__aedRanges || []).map((r) => {
+  let el = r.commonAncestorContainer.nodeType === 1 ? r.commonAncestorContainer : r.commonAncestorContainer.parentElement;
+  while (el && el !== document.body && /^(inline|contents|ruby)/.test(getComputedStyle(el).display)) el = el.parentElement;
+  if (el && /^table-cell$/.test(getComputedStyle(el).display) && el.closest('tr')) el = el.closest('tr');
+  if (!el || el === document.body || el === document.documentElement) return null;
+  const b = el.getBoundingClientRect();
+  return { x: +b.left.toFixed(1), y: +b.top.toFixed(1), w: +b.width.toFixed(1), h: +b.height.toFixed(1), tag: el.tagName.toLowerCase() };
+});
+
+/**
+ * The pictures in view (a news photograph is cropped out at render; a shot of a source shows its words). Opacity
+ * is not a test: a lazy image fades in from 0. Nor is 48 px: Geeky Gadgets' sidebar thumbnails are 75 by 42 and
+ * were in the PNG while this list said there were none (2026-10-20). Under 32 px it is an icon.
+ */
 const MEDIA = () => {
   const out = [], vw = innerWidth, vh = innerHeight;
+  // What shows of a picture is its box cut by every ancestor that clips: a carousel's thumbnails past its strip
+  // report boxes over the text beside it (Parallel's product page, 2026-10-20), and the render would cover the text.
+  const shown = (el) => {
+    const b = el.getBoundingClientRect();
+    let x0 = b.left, y0 = b.top, x1 = b.right, y1 = b.bottom;
+    for (let a = el.parentElement; a && a !== document.body && a !== document.documentElement; a = a.parentElement) {
+      const s = getComputedStyle(a);
+      if (s.overflowX !== 'visible' || s.overflowY !== 'visible') {
+        const c = a.getBoundingClientRect();
+        if (s.overflowX !== 'visible') { x0 = Math.max(x0, c.left); x1 = Math.min(x1, c.right); }
+        if (s.overflowY !== 'visible') { y0 = Math.max(y0, c.top); y1 = Math.min(y1, c.bottom); }
+      }
+      if (s.position === 'fixed') break;
+    }
+    return { left: x0, top: y0, right: x1, bottom: y1, width: x1 - x0, height: y1 - y0 };
+  };
   const add = (el, kind) => {
-    const r = el.getBoundingClientRect();
-    if (r.width < 48 || r.height < 48 || r.bottom <= 0 || r.top >= vh || r.right <= 0 || r.left >= vw) return;
-    if (el.checkVisibility && !el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return;
+    const r = shown(el);
+    if (r.width < 32 || r.height < 32 || r.bottom <= 0 || r.top >= vh || r.right <= 0 || r.left >= vw) return;
+    if (el.checkVisibility && !el.checkVisibility({ checkVisibilityCSS: true })) return;
     out.push({ kind, x: +r.left.toFixed(1), y: +r.top.toFixed(1), w: +r.width.toFixed(1), h: +r.height.toFixed(1) });
   };
   document.querySelectorAll('img,video,canvas,iframe,embed,object').forEach((el) => add(el, el.tagName.toLowerCase()));
@@ -489,12 +525,12 @@ async function locate(page, shot, height) {
 
 /** The boxes as they are now, whether anything covers them, and the pictures in view. */
 async function measure(page, at, height) {
-  const rects = await page.evaluate(MEASURE), covers = await page.evaluate(COVER);
+  const rects = await page.evaluate(MEASURE), covers = await page.evaluate(COVER), blocks = await page.evaluate(BLOCKS);
   let k = 0;
   const hl = at.found.phrases.map((p) => {
     if (!p.found) return p;
-    const boxes = rects[k] || [], u = box(boxes), covered = covers[k++] || null;
-    return { ...p, boxes, union: u, inView: !!u && u.y >= 0 && u.y + u.h <= height && u.x >= 0 && u.x + u.w <= WIDTH, covered };
+    const boxes = rects[k] || [], u = box(boxes), covered = covers[k] || null, block = blocks[k++] || null;
+    return { ...p, boxes, union: u, block, inView: !!u && u.y >= 0 && u.y + u.h <= height && u.x >= 0 && u.x + u.w <= WIDTH, covered };
   });
   const under = hl.filter((h) => h.covered).map((h) => `"${h.text}" is under ${h.covered.by}${h.covered.text ? ` ("${h.covered.text.slice(0, 60)}")` : ''}`);
   return { hl, media: await page.evaluate(MEDIA), error: at.error || (under.length ? `covered, so not on screen: ${under.join('; ')}` : null) };
@@ -677,6 +713,10 @@ async function ours(b, gate, run, rec, shot, slug) {
 async function shoot(page, rec, run) {
   const png = await page.screenshot({ type: 'png', animations: 'disabled', caret: 'hide' });
   fs.writeFileSync(path.join(run.out, `${rec.name}.png`), png);
+  // The pictures counted again once the PNG exists: a lazy image that arrived between the measure and the shot is
+  // in the PNG and must be in the list the render crops by. One counted that never showed costs only a crop.
+  const seen = new Set(rec.media.map((m) => `${m.kind},${m.x},${m.y},${m.w},${m.h}`));
+  for (const m of await page.evaluate(MEDIA)) if (!seen.has(`${m.kind},${m.x},${m.y},${m.w},${m.h}`)) rec.media.push(m);
   Object.assign(rec, { png: `${rec.name}.png`, pngSha256: crypto.createHash('sha256').update(png).digest('hex') });
 }
 
@@ -730,7 +770,7 @@ export async function capture(slug, shots, { out = path.join(ROOT, 'brand/youtub
 }
 
 // The page probes and the gate, so a harness can drive them against synthetic pages with no network.
-export const internals = { PROBE, CLEAN, FIND, MEASURE, COVER, MEDIA, walls, locate, measure, openGate, PAYWALL_SEL, MODAL_SEL, CMP, AD_SLOTS };
+export const internals = { PROBE, CLEAN, FIND, MEASURE, COVER, BLOCKS, MEDIA, walls, locate, measure, openGate, PAYWALL_SEL, MODAL_SEL, CMP, AD_SLOTS };
 
 /* ---- the command ---------------------------------------------------------------- */
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

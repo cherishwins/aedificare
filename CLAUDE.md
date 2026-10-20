@@ -494,6 +494,37 @@ for a shortlist for bios and cards, which is a separate deliverable.
   differently (at most 6 levels in 255) from a second run of the same
   code, so a regression that differs from one baseline is checked against
   a second before the difference counts.
+  **Two kinds for the re-cut** (2026-10-20, spec steps 3 and 4). `pop`:
+  one to three words in Bricolage at weight 800, in a Void field box,
+  left in the upper third and clear of the captions, landing in 120 ms
+  as the width axis steps 75 to 100 (override 3); four transparent
+  stills for the compose; Flash unless the shot beneath spends no Acid;
+  it leaves once its word has been said and read (`popEnd`). `page`: the
+  capture `tools/capture.mjs` wrote, found by the capture's own file
+  name, cropped to the words' own column at a zoom that keeps body type
+  readable on a phone, ungraded, on Void under a Malachite mono label
+  (the publisher and the date, or the day it was read), an Acid box
+  sweeping each phrase from the word in the narration that says it, one
+  phrase lit at a time, and one linear 5 percent push-in from where the
+  words start. A picture on a source's page is kept out (spec 2.3, row
+  5, text only): one level with the words narrows the window, one above
+  or below moves it while the words stay clear of the captions, and any
+  still inside is covered in Void. On our own dark pages the bar inverts
+  the words into it, so it reads as it does on a light page, and turns
+  Flash where the page's own Acid is in frame, so the shot still spends
+  one Acid. A refused capture becomes the quote card with the same
+  words, its highlighter held until the voice reaches them. Tried on The
+  Floor's captures in both frames with every sample frame looked at, the
+  first versions cut a wide table row at both ends, merged a row's two
+  cells into one bar, doubled the Acid where a phrase ran into bold,
+  pushed the words under the captions to dodge thumbnails, and took the
+  first letter of each line off the left with the push-in; each is fixed
+  and named where the code does it. Every tag and builder of the six
+  episode scripts still parses and builds byte for byte as before, and
+  short-onegov renders to the same 284 hashes. An episode script's
+  `check` refuses both kinds: its timeline places no pop, and capture
+  shoots only an edition's sources. The cut lists (spec step 2) place
+  them.
   **`tools/capture.mjs` shoots the pages a film shows** (2026-10-20), the
   capture half of the `page` shot: a cited source in Chromium, 1440 CSS px
   wide at twice the pixel density, under the honest agent
@@ -519,7 +550,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   Access" gate, both YouTube sources refused unfetched, and source 11, The
   Markup, shot from the build. Morse Micro's "not the data rate" line
   failed as hidden (it is in a collapsed FAQ answer), so its spec row was
-  shot instead.
+  shot instead. For the render's crop, each phrase also carries its
+  block, the paragraph or table row it sits in, and the pictures in view
+  are counted at any opacity (a lazy image fades in from 0), down to
+  32 px (Geeky Gadgets' sidebar thumbnails are 75 by 42 and were missed
+  at 48), cut by every ancestor that clips them (a carousel's hidden
+  thumbnails reported boxes over the text beside it), and counted again
+  once the PNG exists.
 - `.claude/skills/youtube/SKILL.md`: how a session runs the channel (the
   credentials check, list and sync, the private lock and the two upload
   routes, what must be true before a render goes up, analytics, quota,

@@ -166,6 +166,9 @@ async function check(S, { quiet = false } = {}) {
         if (values.length && findSpoken(onScreen(bi, e).map((w) => ({ w })), values) < 0) warnings.push(`chart "${e.tag.title}": its point (${typed}) is not spoken while the chart is on screen (its tag to the next cut), so it lands on the chart's own timing, ahead of the voice or without it`);
       }
       if (e.tag.kind === 'map' && e.tag.stops.some((x) => !x)) issues.push(`map stops must be "Name lat,lon > Name lat,lon": ${e.tag.args[0]}`);
+      // The shared parser knows these for the edition films' cut lists; an episode's timeline places no pop and
+      // tools/capture.mjs shoots only an edition's sources, so here either would vanish or fail an hour in.
+      if (e.tag.kind === 'page' || e.tag.kind === 'pop') issues.push(`[[${e.tag.kind}: ...]] is a cut list's shot (the edition films' re-cut); an episode script cannot cut it yet`);
       if ((e.tag.kind === 'fig' || e.tag.kind === 'over') && /\d/.test(e.tag.value) && !cites.length) issues.push(`figure "${e.tag.value}" sits in a paragraph with no citation`);
     }
   }
