@@ -160,8 +160,13 @@ svg.map{position:absolute;inset:0;width:${W}px;height:${H}px}
 ${extra}</style></head><body>${body}</body></html>`;
 };
 
-/** A quote card; `at` (ms) holds the highlighter until the voice reaches the words, as a refused page shot's card does. */
-export function quoteHtml(C, tag, at = 0) {
+/**
+ * A quote card; `at` (ms) holds the highlighter until the voice reaches the words, as a refused page shot's card does.
+ * `sweeps` ({ text, at, dur } a phrase, from sweepPlan) is a page shot's card: its phrases joined by an ellipsis, each
+ * swept on the word that says it and lit alone, one Acid at a time, as the page itself would have swept them.
+ */
+export function quoteHtml(C, tag, at = 0, sweeps = null) {
+  if (sweeps) return quoteSweeps(C, tag, sweeps);
   const src = C.S.sources[tag.src];
   const text = tag.text.replace(/—/g, ' – ');
   const hl = (tag.hl || '').replace(/—/g, ' – ');
@@ -177,6 +182,16 @@ export function quoteHtml(C, tag, at = 0) {
   const html = page(C, `<div class="q"><div class="src mono">${esc(src ? [src.pub, src.date].filter(Boolean).join(' · ') : '')}</div><div class="t">“${inner}”</div><div class="by mono">${esc(tag.by)}</div></div>
 <script>window.__frame=(ms)=>{const n=${n};document.querySelectorAll('.h').forEach((e)=>{e.classList.toggle('on',ms>=${at ? `${Math.round(at)}+` : ''}(+e.dataset.k/Math.max(1,n))*900)})};window.__frame(0);window.__ready=true;</script>`);
   return { html, anim: n > 0, live: true };
+}
+
+function quoteSweeps(C, tag, sweeps) {
+  const src = C.S.sources[tag.src];
+  const W = sweeps.map((x) => x.text.replace(/—/g, ' – ').split(' '));
+  const inner = W.map((words, p) => words.map((w, k) => `<span class="h" data-p="${p}" data-k="${k}">${esc(w)}${k < words.length - 1 ? ' ' : ''}</span>`).join('')).join(' … ');
+  const T = sweeps.map((x, p) => [x.at, x.dur, W[p].length]);
+  const html = page(C, `<div class="q"><div class="src mono">${esc(src ? [src.pub, src.date].filter(Boolean).join(' · ') : '')}</div><div class="t">“${inner}”</div><div class="by mono">${esc(tag.by || '')}</div></div>
+<script>const T=${JSON.stringify(T)};window.__frame=(ms)=>{let cur=-1;T.forEach((t,p)=>{if(ms>=t[0])cur=p;});document.querySelectorAll('.h').forEach((e)=>{const p=+e.dataset.p,t=T[p];e.classList.toggle('on',p===cur&&ms>=t[0]+(+e.dataset.k/Math.max(1,t[2]))*t[1])})};window.__frame(0);window.__ready=true;</script>`);
+  return { html, anim: true, live: true };
 }
 
 let WORLD = null;
@@ -332,13 +347,18 @@ export function sweepPlan(texts, s, d, words) {
 /**
  * Where a page shot puts its label and its panel. Wide: the panel fills the frame inside the margins, under a
  * label line. Tall: below the Shorts feed's top bar, above its lower quarter of controls, clear of the right
- * 120 px where its buttons stand. `kMin` to `kMax` is the zoom from CSS px to frame px that keeps body type
- * readable on a phone (16 CSS px becomes 30 to 42 frame px wide, 32 to 45 tall), widened as far as `kFloor` to keep
- * a long phrase whole; `at` is where the words sit, as a share of the panel's height, above YouTube's captions.
+ * 120 px where its buttons stand. `minType` and `maxType` bound the words' own type as the panel shows it, in frame
+ * px. The floor is 11 pt on the phone the frame fills, the smallest size Apple's Human Interface Guidelines call
+ * legible: a Short's 1080 px fill a phone 390 pt wide (0.36 pt a px), so 30 px; a film's 1920 fill the same phone
+ * held sideways, 844 pt (0.44 pt a px), so 25 px. Type that cannot reach the floor is not shown as a picture of
+ * type (pageCrop falls back to a cell, then to the quote card). The ceiling keeps one short cell from ballooning:
+ * 42 and 45 px, the old zoom limit on 16 px body type. `at` is where the words sit, as a share of the panel's
+ * height, above YouTube's captions.
  */
 const pageFrame = (C) => (C.SHORT
-  ? { label: 228, x: C.M, y: 300, w: C.W - C.M - 120, h: Math.round(C.H * 0.75) - 300, kMin: 2.0, kMax: 2.8, kFloor: 1.2, at: 0.36, size: 26 }
-  : { label: 72, x: C.M, y: 150, w: C.W - 2 * C.M, h: C.H - 250, kMin: 1.9, kMax: 2.6, kFloor: 1.3, at: 0.42, size: 28 });
+  ? { label: 228, x: C.M, y: 300, w: C.W - C.M - 120, h: Math.round(C.H * 0.75) - 300, minType: 30, maxType: 45, at: 0.36, size: 26 }
+  : { label: 72, x: C.M, y: 150, w: C.W - 2 * C.M, h: C.H - 250, minType: 25, maxType: 42, at: 0.42, size: 28 });
+const PUSH = 0.05; // the page shot's push-in over its whole length (pageHtml)
 
 const hull = (bs) => {
   bs = bs.filter(Boolean);
@@ -346,82 +366,308 @@ const hull = (bs) => {
   const x = Math.min(...bs.map((b) => b.x)), y = Math.min(...bs.map((b) => b.y));
   return { x, y, w: Math.max(...bs.map((b) => b.x + b.w)) - x, h: Math.max(...bs.map((b) => b.y + b.h)) - y };
 };
+const meets = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
 /**
- * The part of the capture the panel shows, in CSS px of the capture's viewport. Across: the words' own block (the
- * paragraph or table row capture.mjs found them in), so the column fills the panel and a sidebar stays out, held
- * between the zoom limits; a block too wide keeps its left edge while the words still fit, as a reader's eye
- * would. Down: the words at `at` of the panel. Then the pictures (spec 2.3, row 5: text only, a news photograph
- * is cropped out): one beside the words narrows the window, one above or below moves it, and any still inside is
- * covered in Void, the frame's own ground, because a screenshot of someone's photograph is not ours to show.
- * Our own pages (self) are ours, so nothing on them is covered.
+ * The part of the capture the panel shows, in CSS px of the capture's viewport, from the layout tools/capture.mjs
+ * recorded (every line of text in view with its font size and block, the blocks as a tree with the borders they draw
+ * and their list markers). The rules, each a defect the pilot's frames showed before it (2026-10-20):
+ * - The window snaps to the block that holds the words: their paragraph or list item (with its marker), a block and
+ *   the blocks beside it under one parent (a term and its definition), or a table cell's row, because a row's label
+ *   is the cell's context. Its edges stand off the block by two ems of the words' type, never past half the gutter to
+ *   the nearest text or picture of another block level with the window, and never across a border an enclosing box
+ *   draws, so they never start or end inside a neighbour (a letter of The Floor's rail beside its parts table, the
+ *   end of the card beside Morse Micro's MM6108, the edge of Geeky Gadgets' takeaways box). Text shown flush against
+ *   a side gets the same margin where that cuts nothing new.
+ * - The block is shown whole across, so no line of it is cut: the zoom is what fits it and its margins, with room
+ *   for the push-in, between the frame's type limits (pageFrame), the ceiling read off the type most of the picture is
+ *   set in. Text of another block level with the words that the window would still cut means the words' block sits
+ *   in a wider one, which is tried instead. A block that cannot be read whole at the floor (a table row wider than the
+ *   Short's panel, an abstract set across arXiv's page) gives way to the cells the words sit in, and, where those are
+ *   still too wide, to the shot's quote card (`wide`): cutting its lines at both ends, as The Markup's ledger and the
+ *   KAUST abstract were cut, shows a picture of type nobody can read whole. A picture under half the panel's width
+ *   takes in up to three enclosing blocks while they read whole; still under a quarter, it is the card (`small`).
+ * - Above and below, the window moves so the block shows whole where the words can stay between 6 and 75 percent of
+ *   the panel (YouTube's captions cover the rest); text of another block that its edges would cut (the sources list's
+ *   second column under its opening paragraph) is left out, and so is the rest of a paragraph or row whose start or
+ *   end they leave out, and any line they would halve, allowing for the push-in, so every line shown is whole for the
+ *   whole shot. The picture stops a margin past the last line it keeps, on the frame's Void.
+ * - Pictures (spec 2.3, row 5: text only): on someone else's page every picture but inline SVG is already Void in the
+ *   capture; one level with the words bounds the window like a neighbour's text, one above or below is left out like
+ *   a cut line, any still in the window is covered, and one on the words themselves makes the shot its quote card
+ *   (pageView). Our own pages (self) are ours, so nothing on them is covered.
+ * Returns the window (x0, y0, its width cw at zoom k, its height ch), the part of it that is picture (`crop`, whole
+ * lines only), the push-in's origin in panel px, the masks and the words' type in frame px; or `wide` or `small`; or
+ * an error for a capture with no layout.
  */
 function pageCrop(rec, phrases, P) {
-  // 40 CSS px of margin: the push-in grows about the words, and 24 let it take a line's first letter off the left.
-  const vw = rec.viewport.width, vh = rec.viewport.height, pad = 40;
-  const maxW = P.w / P.kMin, minW = P.w / P.kMax;
-  const U = hull(phrases.map((h) => h.union)) || { x: pad, y: vh * 0.12, w: Math.min(vw - 2 * pad, maxW - 2 * pad), h: 40 };
-  const B = hull(phrases.map((h) => h.block));
-  let x0 = Math.max(0, Math.min(B ? B.x : U.x, U.x) - pad), x1 = Math.min(vw, Math.max(B ? B.x + B.w : U.x + U.w, U.x + U.w) + pad);
-  const win = Math.max(maxW, U.w + 2 * pad);
-  if (x1 - x0 > win) {
-    // Too wide to read whole: its left edge if the words still fit there, else its right edge (a table row's last
-    // column whole), else the window starts where the words start. A window about the words' middle cut every
-    // line at both ends (The Markup's ledger, 2026-10-20).
-    if (U.x + U.w + pad <= x0 + win) x1 = x0 + win;
-    else if (U.x - pad >= x1 - win) x0 = x1 - win;
-    else { x0 = Math.max(0, U.x - pad); x1 = Math.min(vw, x0 + win); x0 = Math.max(0, x1 - win); }
-  }
-  // A phrase too long to show whole above the zoom floor starts at its first word and runs past the panel: type
-  // shrunk to 12 px to fit (a Short given a regulation's sentence, 2026-10-20) is a picture of type nobody reads.
-  const runs = U.w + 2 * pad > P.w / P.kFloor;
-  if (runs) { x0 = Math.max(0, U.x - pad); x1 = Math.min(vw, x0 + P.w / P.kFloor); }
-  const grow = (want) => { if (x1 - x0 >= want) return; const g = (want - (x1 - x0)) / 2; x0 = Math.max(0, x0 - g); x1 = Math.min(vw, x0 + want); x0 = Math.max(0, x1 - want); };
-  grow(minW);
-  let k, ph, y0;
-  const fitY = () => {
-    k = P.w / (x1 - x0); ph = P.h / k;
-    y0 = U.h > 0.8 * ph ? U.y - 0.1 * ph : U.y + U.h / 2 - P.at * ph;
-    y0 = Math.max(0, Math.min(y0, vh - ph));
-  };
-  fitY();
-  const photos = rec.self ? [] : (rec.media || []).filter((m) => m.kind !== 'svg');
-  const inside = (m) => m.x < x1 - 1 && m.x + m.w > x0 + 1 && m.y < y0 + ph - 1 && m.y + m.h > y0 + 1;
-  const freeX = (a, b) => !photos.some((m) => m.x < b && m.x + m.w > a && m.y < y0 + ph && m.y + m.h > y0);
-  // A picture level with the words narrows the window from its side; one above or below moves it (next). Tried the
-  // other way round, a product photo above Morse Micro's spec row narrowed the window first and took its margin.
-  const level = (m) => m.y < U.y + U.h && m.y + m.h > U.y;
-  for (let pass = 0; pass < 3; pass++) {
-    let moved = false;
-    for (const m of photos.filter((q) => inside(q) && level(q))) {
-      if (m.x + m.w <= U.x - 6) { x0 = m.x + m.w + 6; moved = true; } else if (m.x >= U.x + U.w + 6) { x1 = m.x - 6; moved = true; }
+  const L = rec.layout;
+  if (!L || !Array.isArray(L.blocks) || !Array.isArray(L.lines)) return { error: 'the capture has no layout record (it predates 2026-10-20); capture it again' };
+  const vw = rec.viewport.width, vh = rec.viewport.height, B = L.blocks;
+  const inside = (i, anc) => { for (let j = i; j >= 0; j = B[j].parent) if (j === anc) return true; return false; };
+  const bbox = (i) => { const x = Math.max(0, B[i].x), r = Math.min(vw, B[i].x + B[i].w); return { x, y: B[i].y, w: Math.max(0, r - x), h: B[i].h }; };
+  // What of a block must show: its lines, not its box, whose empty padding made The Markup's 364 px ledger cell
+  // 532 px wide, too wide for the Short. A list item's marker hangs outside the item's box, where no line records
+  // it; the item, or a block that starts where its item starts, is shown with it (two ems of the item's type: a
+  // disc and its gap run about one and a half).
+  const kbox = (i) => {
+    const ls = L.lines.filter((l) => inside(l.b, i));
+    let b = ls.length ? hull(ls) : bbox(i);
+    for (let j = i, n = 0; j >= 0 && n < 4; j = B[j].parent, n++) {
+      if (Math.abs(B[j].x - B[i].x) > 2) break;
+      if (B[j].marker) { const x = Math.max(0, Math.min(b.x, B[i].x - 2 * B[j].marker)); b = { ...b, x, w: b.x + b.w - x }; break; }
     }
-    if (!moved) break;
-    // The zoom the narrowing cost is given back on whichever side has no picture, so the type does not balloon.
-    if (x1 - x0 < minW && freeX(x1, Math.min(vw, x0 + minW))) x1 = Math.min(vw, x0 + minW);
-    else if (x1 - x0 < minW && freeX(Math.max(0, x1 - minW), x0)) x0 = Math.max(0, x1 - minW);
-    fitY();
+    return b;
+  };
+  // A phrase's lines are the ones its boxes sit on, not one whose leading grazes them (a cover title's line box).
+  const sits = (l, b) => l.x < b.x + b.w && l.x + l.w > b.x && Math.min(l.y + l.h, b.y + b.h) - Math.max(l.y, b.y) > 0.5 * Math.min(l.h, b.h);
+  const own = phrases.map((h) => L.lines.filter((l) => h.boxes.some((b) => sits(l, b))));
+  if (own.some((ls) => !ls.length)) return { error: 'the words are not on any line of the capture\'s layout; capture it again' };
+  const words = new Set(own.flat());
+  const U = hull(phrases.map((h) => h.union));
+  // Every word must be readable, the small ones too: a row's label in 15 px and its value in 13 px mono read at 13.
+  const fs = Math.min(...own.flat().map((l) => l.f)), pad = Math.max(24, 2 * fs), kRead = P.minType / fs;
+  const photos = rec.self ? [] : (rec.media || []).filter((m) => m.kind !== 'svg');
+  // The boxes the page draws that hold no text (a search field): a window edge never halves one either.
+  const drawn = L.frames || [];
+  // A line's group, for what is shown whole: its table row, or its own block.
+  const group = (l) => { for (let j = l.b; j >= 0 && B[j].display !== 'table'; j = B[j].parent) if (B[j].display === 'table-row') return j; return l.b; };
+  const wordGroups = new Set([...words].map(group));
+  // Where the words sit: a table cell's row; a block with others beside it under one parent (a figure's caption and
+  // its number, a definition and its term), that row of them; else the block itself.
+  const start = (i) => {
+    for (let j = i; j >= 0 && B[j].display !== 'table'; j = B[j].parent) if (B[j].display === 'table-row') return [j];
+    const me = bbox(i), par = B[i].parent;
+    const beside = B.map((b, j) => j).filter((j) => j !== i && B[j].parent === par && par >= 0).filter((j) => {
+      const o = bbox(j), ov = Math.min(me.y + me.h, o.y + o.h) - Math.max(me.y, o.y);
+      return o.w > 0 && ov > 0.25 * Math.min(me.h, o.h) && (o.x + o.w <= me.x + 1 || o.x >= me.x + me.w - 1);
+    });
+    return [i, ...beside];
+  };
+  // Narrower: of several blocks, those that hold the phrase's words; of one, its children that do (a row's cells, a
+  // card's label and value), when they are narrower.
+  const narrow = (ids, n) => {
+    const holds = (j) => own[n].some((l) => inside(l.b, j));
+    if (ids.length > 1) { const k = ids.filter(holds); return k.length && k.length < ids.length ? k : null; }
+    const u = ids[0];
+    const kids = [...new Set(own[n].map((l) => { let j = l.b; while (j >= 0 && B[j].parent !== u) j = B[j].parent; return j; }).filter((j) => j >= 0))];
+    if (!kids.length) return null;
+    if (hull(kids.map(kbox)).w < kbox(u).w - 1) return kids;
+    return kids.length === 1 ? narrow(kids, n) : null;
+  };
+
+  const frame = (units) => {
+    const ids = units.flat(), keep = hull(ids.map(kbox));
+    if (!keep || keep.w <= 0) return { wide: true };
+    // What may show is read in the tallest window the type allows, so a margin is never wider than the gutter.
+    const reach = P.h / kRead, levelish = (b) => b.y < U.y + U.h + reach && b.y + b.h > U.y - reach;
+    // The ceiling is read off the type the picture is mostly made of, not the words alone (a table's 11 px header
+    // set at the ceiling put its 15 px rows at 52 px), leaving out display type (a figure's 44 px number, a cover).
+    const wordsMax = Math.max(...own.flat().map((l) => l.f));
+    const near = L.lines.filter((l) => l.x < keep.x + keep.w && l.x + l.w > keep.x && levelish(l) && l.f <= 2 * wordsMax).map((l) => l.f).sort((x, y) => x - y);
+    const body = Math.max(wordsMax, near.length ? near[Math.floor(near.length / 2)] : fs);
+    const foreign = L.lines.filter((l) => !ids.some((u) => inside(l.b, u)));
+    const within = (b) => b.x >= keep.x - 1 && b.x + b.w <= keep.x + keep.w + 1 && b.y >= keep.y - 1 && b.y + b.h <= keep.y + keep.h + 1;
+    const others = drawn.filter((b) => !within(b) && !(b.x <= U.x && b.x + b.w >= U.x + U.w && b.y <= U.y && b.y + b.h >= U.y + U.h));
+    const gutter = (lv) => {
+      const obs = [...foreign, ...photos, ...others].filter(lv);
+      const right = Math.max(-Infinity, ...obs.filter((o) => o.x + o.w <= keep.x + 0.5).map((o) => o.x + o.w));
+      const left = Math.min(Infinity, ...obs.filter((o) => o.x >= keep.x + keep.w - 0.5).map((o) => o.x));
+      return [Number.isFinite(right) ? (right + keep.x) / 2 : 0, Number.isFinite(left) ? (keep.x + keep.w + left) / 2 : vw];
+    };
+    let [loX, hiX] = gutter(levelish);
+    const mL = Math.max(0, Math.min(pad, keep.x - loX)), mR = Math.max(0, Math.min(pad, hiX - keep.x - keep.w));
+    // The zoom that shows the block whole with its margins, still whole at the end of the push-in, every word
+    // inside the panel's height, within the type limits; the margins give way first, then the block gives way.
+    const kTall = P.h / ((1 + 3 * PUSH) * U.h);
+    let k = Math.min(P.maxType / body, P.w / ((1 + PUSH) * keep.w + mL + mR), kTall);
+    // Too tight for the margins at the floor: the floor, and what room is left is the margin.
+    if (k < kRead) k = Math.min(P.maxType / body, P.w / ((1 + PUSH) * keep.w), kTall) >= kRead ? kRead : 0;
+    if (k < kRead) return { wide: true };
+    const ph = P.h / k, Wt = P.w / k, e = PUSH * ph;
+    // Down: the words at `at` of the panel; moved, where the block fits, so all of it shows, but never so far that the
+    // words leave the band between 6 and 75 percent of the panel (YouTube's captions cover the rest).
+    let y0 = U.h > 0.8 * ph ? U.y - 0.1 * ph : U.y + U.h / 2 - P.at * ph;
+    const lo = Math.max(keep.y + keep.h + e - ph, U.y + U.h - 0.75 * ph), hi = Math.min(keep.y - e, U.y - 0.06 * ph);
+    if (lo <= hi) y0 = Math.max(lo, Math.min(hi, y0));
+    y0 = Math.max(0, Math.min(y0, vh - ph));
+    const level = (b) => b.y < y0 + ph && b.y + b.h > y0;
+    // The margins are the block's own: read off what stands level with the block itself, not with the whole window,
+    // whose height reached a table's header far below the words and squeezed the window to a sliver (Morse Micro's
+    // release notes). Whatever else in the window its edges would cut is left out above or below (next).
+    [loX, hiX] = gutter((b) => b.y < keep.y + keep.h + pad && b.y + b.h > keep.y - pad);
+    let x0 = keep.x - Math.max(0, Math.min(mL, keep.x - loX)), x1 = keep.x + keep.w + Math.max(0, Math.min(mR, hiX - keep.x - keep.w));
+    if (x1 - x0 > Wt) { const room = Math.max(0, Wt - keep.w), l = Math.min(keep.x - x0, room / 2); x0 = keep.x - l; x1 = Math.min(x1, keep.x + keep.w + room - l); }
+    // A margin never crosses a rule an enclosing box draws (a card's border, a rail): a sliver of its edge beside the
+    // words read as a stray mark (Geeky Gadgets' takeaways box). The window stays inside the box's border.
+    let inL = -Infinity, inR = Infinity;
+    for (const u of ids) for (let a = B[u].parent; a >= 0; a = B[a].parent) {
+      const bd = B[a].bd || [0, 0, 0, 0];
+      if (bd[3] > 0 && B[a].x <= keep.x + 0.5) inL = Math.max(inL, B[a].x + bd[3]);
+      if (bd[1] > 0 && B[a].x + B[a].w >= keep.x + keep.w - 0.5) inR = Math.min(inR, B[a].x + B[a].w - bd[1]);
+    }
+    x0 = Math.max(x0, Math.min(keep.x, inL)); x1 = Math.min(x1, Math.max(keep.x + keep.w, inR));
+    // Room the block does not fill stays the frame's Void, never more of the page: grown into, it showed a
+    // neighbour's rule at the edge.
+    const straddles = (l) => (l.x < x0 - 0.5 && l.x + l.w > x0 + 0.5) || (l.x < x1 - 0.5 && l.x + l.w > x1 + 0.5);
+    // Text above or below that the edges would cut is taken in whole, with its margin, where the window has the room
+    // and that stays inside the gutters and the box: the rows of The Markup's ledger column around its 43.3 cell, which
+    // the cell's own width left out. What cannot be taken in is left out below.
+    for (let more = true, n = 0; more && n < 12; n++) {
+      more = false;
+      for (const l of foreign.filter((q) => level(q) && straddles(q))) {
+        const a = Math.min(x0, Math.max(l.x - pad, loX, inL)), b = Math.max(x1, Math.min(l.x + l.w + pad, hiX, inR));
+        if (a <= l.x + 0.5 && b >= l.x + l.w - 0.5 && b - a <= Wt) { x0 = a; x1 = b; more = true; break; }
+      }
+    }
+    // Level with the words means sharing their line, not a line box's leading: a cover title's descent overlapped
+    // The Markup's lede by 2 px.
+    const atWords = (b) => [...words].some((w) => Math.min(b.y + b.h, w.y + w.h) - Math.max(b.y, w.y) > 0.3 * Math.min(b.h, w.h));
+    // Text beside the block that the edges would still cut, and that lies wholly to one side of the block, moves the
+    // edge in to halfway between the two, where nothing the window keeps is cut by it: the margins stop at the
+    // gutter of the rows above and below too (the ledger's middle column, which runs further right in other rows).
+    for (let more = true, n = 0; more && n < 12; n++) {
+      more = false;
+      const kept = (a, b) => L.lines.filter((q) => level(q) && q.x >= a - 0.5 && q.x + q.w <= b + 0.5);
+      for (const l of foreign.filter((q) => level(q) && straddles(q))) {
+        if (l.x + l.w <= keep.x + 0.5) {
+          const a = (l.x + l.w + keep.x) / 2;
+          if (a > x0 && !kept(x0, x1).some((q) => q.x < a - 0.5)) { x0 = a; more = true; break; }
+        } else if (l.x >= keep.x + keep.w - 0.5) {
+          const b = (keep.x + keep.w + l.x) / 2;
+          if (b < x1 && !kept(x0, x1).some((q) => q.x + q.w > b + 0.5)) { x1 = b; more = true; break; }
+        }
+      }
+    }
+    // A neighbour inside a box the page draws (a card's border, an input's frame) whose box an edge would cut is left
+    // out with its text: its words whole and its frame halved read as a stray mark (the release notes' search box).
+    const wordsAnc = new Set();
+    for (const u of ids) for (let j = u; j >= 0; j = B[j].parent) wordsAnc.add(j);
+    // A frame is a border on three sides or four; a single rule (a heading's underline, a grid row's top line) and a
+    // table's own grid are not, and run to the edge as the words' own rows do.
+    const boxed = (j) => !/^table/.test(B[j].display) && (B[j].bd || []).filter((v) => v > 0).length >= 3;
+    const framed = (l) => { for (let j = l.b; j >= 0 && !wordsAnc.has(j); j = B[j].parent) if (boxed(j)) return bbox(j); return null; };
+    const boxCut = (l, a, b) => { const f = framed(l); return !!f && (f.x < a - 1 || f.x + f.w > b + 1); };
+    const cut = foreign.filter((l) => level(l) && (straddles(l) || (l.x < x1 && l.x + l.w > x0 && boxCut(l, x0, x1))));
+    if (cut.some(atWords)) return { level: true };
+    const shownPhotos = [...photos, ...others].filter((m) => m.x < x1 && m.x + m.w > x0 && level(m));
+    // A neighbour left out because its frame is cut is left out frame and all: the picture stops at the frame's edge.
+    const out = [...cut.map((l) => (straddles(l) ? l : framed(l) || l)), ...shownPhotos.filter((m) => !atWords(m))];
+    const mid = U.y + U.h / 2;
+    let top = Math.max(y0, ...out.filter((o) => o.y + o.h / 2 < mid).map((o) => Math.min(o.y + o.h, U.y)));
+    let bot = Math.min(y0 + ph, ...out.filter((o) => o.y + o.h / 2 >= mid).map((o) => Math.max(o.y, U.y + U.h)));
+    // The push-in grows the picture about the words; a line it would carry past the panel's top or bottom is left out.
+    const oy = U.y + U.h / 2;
+    top = Math.max(top, Math.min(U.y, oy - (oy - y0) / (1 + PUSH)));
+    bot = Math.min(bot, Math.max(U.y + U.h, oy + (y0 + ph - oy) / (1 + PUSH)));
+    // Whole lines only, and whole blocks of others: a line the edge would halve is left out, and so is the rest of a
+    // paragraph or table row whose start or end the edge leaves out ("everyone." alone above The Markup's 43.3 cell).
+    const lines = L.lines.filter((l) => l.x < x1 && l.x + l.w > x0);
+    const byGroup = new Map();
+    for (const l of lines) { const g = group(l); if (!byGroup.has(g)) byGroup.set(g, []); byGroup.get(g).push(l); }
+    const t0 = top, b0 = bot;
+    for (let moved = true; moved;) {
+      moved = false;
+      // Never into the words: a cover title's line box ran 2 px into The Markup's lede.
+      for (const l of lines) {
+        if (l.y < top - 0.5 && l.y + l.h > top + 0.5) { const t = Math.min(l.y + l.h, U.y); if (t > top + 0.01) { top = t; moved = true; } }
+        if (l.y < bot - 0.5 && l.y + l.h > bot + 0.5) { const t = Math.max(l.y, U.y + U.h); if (t < bot - 0.01) { bot = t; moved = true; } }
+      }
+      for (const l of lines) {
+        if (l.y < top - 0.5 || l.y + l.h > bot + 0.5 || ids.some((u) => inside(l.b, u))) continue;
+        const f = framed(l);
+        if (!f || (f.y >= top - 1 && f.y + f.h <= bot + 1)) continue;
+        if (l.y + l.h / 2 < U.y + U.h / 2) { const t = Math.min(Math.max(l.y + l.h, f.y + f.h), U.y); if (t > top + 0.01) { top = t; moved = true; } }
+        else { const t = Math.max(Math.min(l.y, f.y), U.y + U.h); if (t < bot - 0.01) { bot = t; moved = true; } }
+      }
+      for (const [g, ls] of byGroup) {
+        if (wordGroups.has(g)) continue;
+        const inn = ls.filter((l) => l.y >= top - 0.5 && l.y + l.h <= bot + 0.5);
+        if (!inn.length || inn.length === ls.length) continue;
+        if (ls.some((l) => l.y + l.h <= top + 0.5)) { const t = Math.max(...inn.map((l) => l.y + l.h)); if (t > top && t <= U.y + 0.5) { top = t; moved = true; } }
+        if (ls.some((l) => l.y >= bot - 0.5)) { const t = Math.min(...inn.map((l) => l.y)); if (t < bot && t >= U.y + U.h - 0.5) { bot = t; moved = true; } }
+      }
+    }
+    // Half the space to the next line, at most the margin, so the picture does not stop flush on a line.
+    // Never into the words' own boxes, which run past their lines where a phrase spans table cells (a Range's
+    // rectangles include each cell it wholly holds).
+    if (top > t0 + 0.5 || top > y0 + 0.5) { const next = Math.min(bot, ...lines.filter((l) => l.y >= top - 0.5).map((l) => l.y)); top = Math.min(U.y, top + Math.min(pad, Math.max(0, next - top) / 2)); }
+    if (bot < b0 - 0.5 || bot < y0 + ph - 0.5) { const prev = Math.max(top, ...lines.filter((l) => l.y + l.h <= bot + 0.5).map((l) => l.y + l.h)); bot = Math.max(U.y + U.h, bot - Math.min(pad, Math.max(0, bot - prev) / 2)); }
+    // And no more than a margin of empty page above and below the lines shown: a field's padding or a box's edge
+    // there is a sliver of something else (the top of The Floor's bench field over its chart).
+    const held = hull(lines.filter((l) => l.y >= top - 0.5 && l.y + l.h <= bot + 0.5));
+    if (held) { top = Math.min(U.y, Math.max(top, held.y - pad)); bot = Math.max(U.y + U.h, Math.min(bot, held.y + held.h + pad)); }
+    // Text shown flush against a side (a paragraph above the words that starts where the margin ends) gets its
+    // margin too, where the gutter, the box and the panel allow and the wider window cuts nothing new.
+    if (held) {
+      const band = (b) => b.y < bot - 0.5 && b.y + b.h > top + 0.5;
+      const [gl, gr] = gutter(band);
+      const clean = (a, b) => !L.lines.some((l) => band(l) && l.x < b && l.x + l.w > a && (l.y < top - 0.5 || l.y + l.h > bot + 0.5 || l.x < a - 0.5 || l.x + l.w > b + 0.5))
+        && ![...photos, ...others].some((m) => band(m) && m.x < b && m.x + m.w > a);
+      const a0 = Math.max(held.x - pad, gl, Math.min(keep.x, inL), x1 - Wt);
+      if (held.x - x0 < pad / 2 && a0 < x0 && clean(a0, x0)) x0 = a0;
+      const b1 = Math.min(held.x + held.w + pad, gr, Math.max(keep.x + keep.w, inR), x0 + Wt);
+      if (x1 - (held.x + held.w) < pad / 2 && b1 > x1 && clean(x1, b1)) x1 = b1;
+    }
+    // The words themselves are always whole; a window that cannot keep them so is not a window for them.
+    if (bot - top < 1 || top > U.y + 0.5 || bot < U.y + U.h - 0.5) return { wide: true };
+    // Across, the push-in grows from where the words start (the eye reads from there), held so that everything shown
+    // stays whole in the panel to the last frame; the block itself if not everything can.
+    // Read off the lines themselves, not the block's box, whose empty right half once pushed a table's first column
+    // out of the left of the panel (Morse Micro's release notes).
+    const s = 1 + PUSH, pr = x0 + Wt;
+    const span = (c) => (c ? [(s * (c.x + c.w) - pr) / PUSH, (s * c.x - x0) / PUSH] : [-Infinity, Infinity]);
+    const shown = lines.filter((l) => l.y >= top - 0.5 && l.y + l.h <= bot + 0.5);
+    let [oxLo, oxHi] = span(hull(shown));
+    if (oxLo > oxHi) [oxLo, oxHi] = span(hull(shown.filter((l) => ids.some((u) => inside(l.b, u)))));
+    if (oxLo > oxHi) [oxLo, oxHi] = span(hull([...words]));
+    const ox = Math.max(oxLo, Math.min(oxHi, U.x));
+    const crop = { x: x0, y: top, w: x1 - x0, h: bot - top };
+    const masks = photos.filter((m) => meets(m, crop)).map((m) => ({ x: (m.x - x0) * k, y: (m.y - y0) * k, w: m.w * k, h: m.h * k }));
+    const touches = photos.filter((m) => phrases.some((h) => meets(m, h.union))).length;
+    return { ok: true, x0, y0, k, cw: Wt, ch: ph, crop, ox: (ox - x0) * k, oy: (oy - y0) * k, masks, touches, keep, type: fs * k };
+  };
+
+  let units = phrases.map((h, n) => start(h.blk ?? own[n][0].b));
+  for (let tries = 0; tries < 8; tries++) {
+    const r = frame(units);
+    if (r.ok) {
+      // A picture under half the panel's width (a price box on a product page) is shown with the blocks around it,
+      // up to three levels out, where those can be read whole too; one still under a quarter of the panel is a
+      // sliver of a page, and the shot is its quote card (`small`).
+      const across = (x) => x.crop.w * x.k;
+      let best = r, cur = units;
+      for (let lv = 0; lv < 3 && across(best) < 0.45 * P.w; lv++) {
+        const up = cur.map((ids) => B[ids[0]].parent);
+        if (up.some((u) => u < 0 || B[u].tag === 'body')) break;
+        cur = up.map((u) => start(u));
+        const w = frame(cur);
+        if (w.ok && across(w) > across(best)) best = w;
+      }
+      return across(best) < 0.25 * P.w ? { small: true } : best;
+    }
+    if (r.level) {
+      // Text of another block cuts the window level with the words: show the block both sit in.
+      const up = units.map((ids) => [...new Set(ids.map((u) => B[u].parent))]);
+      if (up.flat().some((u) => u < 0 || B[u].tag === 'body')) return { wide: true };
+      units = up;
+      continue;
+    }
+    const nar = units.map((ids, n) => narrow(ids, n));
+    if (!nar.some(Boolean)) return { wide: true };
+    units = units.map((ids, n) => nar[n] || ids);
   }
-  // A picture above or below moves the window only while the words stay between 6 and 75 percent of the panel:
-  // lower than that, YouTube's captions cover them (Parallel's page put them at 85 percent), so it is covered instead.
-  const keeps = (y) => U.y >= y + 0.06 * ph && U.y + U.h <= y + 0.75 * ph;
-  for (const m of photos.filter(inside)) {
-    const past = Math.min(vh - ph, Math.max(y0, m.y + m.h + 6)), short = Math.max(0, Math.min(y0, m.y - 6 - ph));
-    if (m.y + m.h <= U.y - 6 && keeps(past)) y0 = past;
-    else if (m.y >= U.y + U.h + 6 && keeps(short)) y0 = short;
-  }
-  const over = photos.filter(inside);
-  const touches = over.filter((m) => m.x < U.x + U.w && m.x + m.w > U.x && m.y < U.y + U.h && m.y + m.h > U.y);
-  const masks = over.filter((m) => !touches.includes(m)).map((m) => ({ x: (m.x - x0) * k, y: (m.y - y0) * k, w: m.w * k, h: m.h * k }));
-  return { x0, y0, cw: x1 - x0, ch: ph, k, masks, touches: touches.length, runs };
+  return { wide: true };
 }
 
 /**
- * How a page shot shows in this frame: its capture cropped to the words (pageCrop), or the quote card of its words
- * (`card`). A refused capture has only its card. So does one whose crop would keep a picture touching the words
- * (spec 2.3, row 5: text only, a news photograph is cropped out): a picture beside the words is covered in Void, and
- * one under them cannot be covered without covering the words. The render and tools/cuts.mjs check both ask this, of
- * the same crop, so what the check says is what the frame shows, and the Short can leave such a shot out.
+ * How a page shot shows in this frame: its capture cropped to the words' block (pageCrop), or the quote card of its
+ * words (`card`). A refused capture has only its card. So does one whose crop would keep a picture touching the words
+ * (`picture`; spec 2.3, row 5: text only): a picture beside the words is covered in Void, and one under them cannot
+ * be covered without covering the words. So does one whose words' block cannot be read whole at the frame's smallest
+ * type (`wide`), rather than cut its lines, and one that even with the blocks around it would be a sliver of its page
+ * at the largest (`small`: a price box on a product page). The render and tools/cuts.mjs check both ask this, of the
+ * same crop, so what the check says is what the frame shows, and the Short can leave a picture's shot out.
  */
 export function pageView(C, rec, shot) {
   if (rec.refused) return { card: 'refused' };
@@ -429,6 +675,8 @@ export function pageView(C, rec, shot) {
   const phrases = (rec.hl || []).filter((h) => h.found && h.union && h.boxes && h.boxes.length);
   if (phrases.length < shot.hl.length) return { error: `${shot.hl.length - phrases.length} phrase(s) not boxed in the capture` };
   const P = pageFrame(C), crop = pageCrop(rec, phrases, P);
+  if (crop.error) return { error: crop.error };
+  if (crop.wide || crop.small) return { card: crop.wide ? 'wide' : 'small', P, phrases };
   return { card: crop.touches ? 'picture' : null, P, crop, phrases };
 }
 
@@ -519,16 +767,16 @@ export function pageRecord(C, tag) {
 }
 
 /**
- * A page shot of `d` seconds. The capture on Void, ungraded so the source is recognisably itself (spec 2.5,
- * reading 1), cropped to its words (pageCrop); a Malachite mono label naming the publisher and the date; an Acid
+ * A page shot of `d` seconds. The capture on Void, ungraded so the source is recognisably itself (spec 2.5, reading
+ * 1), cropped to the words' own block (pageCrop); a Malachite mono label naming the publisher and the date; an Acid
  * box sweeping each phrase on the word that says it, one phrase lit at a time, so the shot spends one Acid; and one
- * linear 5 percent push-in from the words for the whole shot, footage grammar on third-party pixels (reading 2).
- * On a light page the box multiplies, a highlighter; on a dark one (ours) it is a bar with the words inverted into
- * it, so both read as dark type on Acid, and Flash where our page's own Acid is in frame. A capture that was
- * refused (a wall, robots.txt, YouTube) becomes the quote card with the same words, so the cut always renders and
- * nothing is routed around; so does one whose crop would keep a picture on the words (pageView). The label names the
- * author where the capture or the cut list gives one (pageSource). `d` is the shot's length, `words` the film's,
- * timed; `work` takes the cropped PNG.
+ * linear 5 percent push-in from the words for the whole shot, footage grammar on third-party pixels (reading 2). On a
+ * light page the box multiplies, a highlighter; on a dark one (ours) it is a bar with the words inverted into it, so
+ * both read as dark type on Acid, and Flash where our page's own Acid is in frame. A capture that was refused (a
+ * wall, robots.txt, YouTube) becomes the quote card with the same words, so the cut always renders and nothing is
+ * routed around; so does one whose crop would keep a picture on the words, or whose words' block cannot be read whole
+ * at the frame's smallest type (pageView). The label names the author where the capture or the cut list gives one
+ * (pageSource). `d` is the shot's length, `words` the film's, timed; `work` takes the cropped PNG.
  */
 export async function pageHtml(C, s, { d, words = [], work }) {
   const { shot, rec } = pageRecord(C, s.tag);
@@ -536,19 +784,25 @@ export async function pageHtml(C, s, { d, words = [], work }) {
   const v = pageView(C, rec, shot);
   if (v.card) {
     // The edition's own source line says when it was read; the wall's title says nothing about the source.
-    const plan = sweepPlan([shot.hl[0]], s, d, words)[0];
+    // Every phrase is swept on its word, as the page would have swept it; a refused page's card never had more.
+    const plans = sweepPlan(shot.hl, s, d, words);
     const qC = { ...C, S: { ...C.S, sources: { page: { pub: pageCredit(ps), date: ps.date } } } };
-    const h = quoteHtml(qC, { src: 'page', text: shot.hl.join(' … '), hl: shot.hl[0], by: '' }, plan.at);
-    return { ...h, animMs: plan.at + 900, brand: h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>'), card: v.card, refused: v.card === 'refused' ? `${rec.refusal}: ${rec.reason}` : null, sweeps: [plan] };
+    const h = quoteHtml(qC, { src: 'page', text: shot.hl.join(' … '), hl: shot.hl[0], by: '' }, plans[0].at, shot.hl.length > 1 ? plans : null);
+    // Several phrases keep the voice's own pace (sweepPlan ends the last before the cut), as the page does (`whole`).
+    const many = shot.hl.length > 1, last = plans[plans.length - 1];
+    return { ...h, animMs: many ? last.at + last.dur : plans[0].at + 900, whole: many || undefined, brand: h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>'), card: v.card, refused: v.card === 'refused' ? `${rec.refusal}: ${rec.reason}` : null, sweeps: plans };
   }
   if (!rec.ok || !rec.png) die(`shots: the capture for [[page: ${s.tag.body}]] failed (${rec.error || 'no PNG'}); fix the tag and capture again`);
   if (v.error) die(`shots: [[page: ${s.tag.body}]]: ${v.error}; capture again`);
   const { P, crop: c, phrases } = v, png = path.join(C.PAGES, rec.png), dpr = rec.viewport.dpr || 2;
-  if (c.runs) warnOnce(`shots: [[page: ${s.tag.body}]]: the words are too long for the ${C.SHORT ? 'Short\'s' : 'film\'s'} panel at a readable size, so they run past its edge; a shorter hl: shows them whole`);
-  // Only the crop goes into the frame: a whole capture is up to 6 MB of PNG for a fifth of its pixels.
+  // Only the crop goes into the frame: a whole capture is up to 6 MB of PNG for a fifth of its pixels. The crop is
+  // the part of the window that is picture (whole lines of the words' block); the rest of the panel is Void.
   const crop = path.join(work, `${rec.name}-${C.SHORT ? 'tall' : 'wide'}.png`);
   const px = (v) => Math.round(v * dpr);
-  ff(['-i', png, '-vf', `crop=${px(c.cw)}:${px(c.ch)}:${px(c.x0)}:${px(c.y0)}`, '-frames:v', '1', crop], `page crop ${rec.name}`);
+  const cx = px(c.crop.x), cy = px(c.crop.y), cw = px(c.crop.x + c.crop.w) - cx, ch = px(c.crop.y + c.crop.h) - cy;
+  ff(['-i', png, '-vf', `crop=${cw}:${ch}:${cx}:${cy}`, '-frames:v', '1', crop], `page crop ${rec.name}`);
+  // Where the picture sits in the panel, in frame px: the window's left edge is the panel's, the words at `at`.
+  const pic = { x: (cx / dpr - c.x0) * c.k, y: (cy / dpr - c.y0) * c.k, w: (cw / dpr) * c.k, h: (ch / dpr) * c.k };
   const dark = luma(png, { x: px(phrases[0].union.x), y: px(phrases[0].union.y), w: px(phrases[0].union.w), h: px(phrases[0].union.h) }) < 110;
   // On our own page with its Acid in frame the bar is Flash, so the shot still spends one Acid, the page's own.
   const bar = rec.self && dark && hasAcid(crop) ? FLASH : ACID;
@@ -570,29 +824,29 @@ export async function pageHtml(C, s, { d, words = [], work }) {
     return { x: (b.x - c.x0) * c.k - padX, y: (b.y - c.y0) * c.k - padY, w: b.w * c.k + 2 * padX, h: b.h * c.k + 2 * padY };
   }));
   // The push-in grows from where the words start: the eye reads from there, and a move about their middle took the
-  // first letters of every line off the left when the words sat far right (arXiv, 2026-10-20).
-  const all = hull(boxes.flat());
-  const ox = all.x, oy = all.y + all.h / 2;
+  // first letters of every line off the left when the words sat far right (arXiv, 2026-10-20). pageCrop holds it
+  // where every line shown stays whole to the last frame.
+  const { ox, oy } = c;
   const plan = sweepPlan(phrases.map((h) => h.text), s, d, words);
   const label = `${pageCredit(ps)} · ${ps.date}`.replace(/—/g, ' – ');
   const lt = labelType(P, label), lh = Math.round(1.3 * lt.size);
   const f = (v) => v.toFixed(1);
-  const hl = boxes.map((bs, p) => bs.map((b) => `<div class="hl" data-p="${p}" style="left:${f(b.x)}px;top:${f(b.y)}px;height:${f(b.h)}px;width:0">${dark ? `<span style="left:${f(-b.x)}px;top:${f(-b.y)}px"></span>` : ''}</div>`).join('')).join('');
+  const hl = boxes.map((bs, p) => bs.map((b) => `<div class="hl" data-p="${p}" style="left:${f(b.x)}px;top:${f(b.y)}px;height:${f(b.h)}px;width:0">${dark ? `<span style="left:${f(pic.x - b.x)}px;top:${f(pic.y - b.y)}px"></span>` : ''}</div>`).join('')).join('');
   const masks = c.masks.map((m) => `<div class="mask" style="left:${f(m.x)}px;top:${f(m.y)}px;width:${f(m.w)}px;height:${f(m.h)}px"></div>`).join('');
   const data = `url(data:image/png;base64,${fs.readFileSync(crop).toString('base64')})`;
   const extra = `.lab{position:absolute;left:${P.x}px;top:${P.label - (lt.lines - 1) * lh}px;font-size:${lt.size}px;color:${MAL};${lt.lines > 1 ? `width:${P.w}px;line-height:${lh}px` : 'white-space:nowrap'}}
 .panel{position:absolute;left:${P.x}px;top:${P.y}px;width:${P.w}px;height:${P.h}px;overflow:hidden;background:${VOID}}
 .doc{position:absolute;left:0;top:0;width:${P.w}px;height:${P.h}px;transform-origin:${f(ox)}px ${f(oy)}px;--pg:${data}}
-.pg{position:absolute;inset:0;background:var(--pg) 0 0/${P.w}px ${P.h}px no-repeat}
+.pg{position:absolute;left:${f(pic.x)}px;top:${f(pic.y)}px;width:${f(pic.w)}px;height:${f(pic.h)}px;background:var(--pg) 0 0/100% 100% no-repeat}
 .mask{position:absolute;background:${VOID}}
 .hl{position:absolute;overflow:hidden;background:${bar}${dark ? '' : ';mix-blend-mode:multiply'}}
-.hl span{position:absolute;width:${P.w}px;height:${P.h}px;background:var(--pg) 0 0/${P.w}px ${P.h}px no-repeat;filter:grayscale(1) invert(1);mix-blend-mode:multiply}`;
+.hl span{position:absolute;width:${f(pic.w)}px;height:${f(pic.h)}px;background:var(--pg) 0 0/100% 100% no-repeat;filter:grayscale(1) invert(1);mix-blend-mode:multiply}`;
   const html = page(C, `<div class="lab mono">${esc(label)}</div><div class="panel"><div class="doc" id="doc"><div class="pg"></div>${masks}${hl}</div></div>
 <script>const W=${JSON.stringify(boxes.map((bs) => bs.map((b) => +f(b.w))))},T=${JSON.stringify(plan.map((x) => [x.at, x.dur]))},D=${Math.round(d * 1000)},doc=document.getElementById('doc'),els=W.map((_,p)=>[...document.querySelectorAll('.hl[data-p="'+p+'"]')]);
 window.__frame=(ms)=>{doc.style.transform='scale('+(1+0.05*Math.min(1,ms/D)).toFixed(5)+')';let cur=-1;T.forEach((t,p)=>{if(ms>=t[0])cur=p;});
 W.forEach((ws,p)=>{let left=p===cur?ws.reduce((a,b)=>a+b,0)*Math.min(1,(ms-T[p][0])/T[p][1]):0;els[p].forEach((e,j)=>{const w=Math.max(0,Math.min(ws[j],left));e.style.width=w.toFixed(2)+'px';left-=w;});});};
 window.__frame(0);window.__ready=true;</script>`, VOID, extra);
-  return { html, brand: html.replace(/url\(data:[^)]*\)/g, 'url()'), anim: true, live: true, animMs: Math.round(d * 1000), whole: true, sweeps: plan, label, dark, flash: bar === FLASH, masked: c.masks.length, zoom: c.k };
+  return { html, brand: html.replace(/url\(data:[^)]*\)/g, 'url()'), anim: true, live: true, animMs: Math.round(d * 1000), whole: true, sweeps: plan, label, dark, flash: bar === FLASH, masked: c.masks.length, zoom: c.k, type: c.type };
 }
 
 /* ---- pop: one to three words, landing on the word --------------------------------- */
@@ -773,8 +1027,9 @@ export async function renderSegment(C, R, s, i) {
     s.builtMs = h.anim ? Math.min(animMs / pace, d * 1000) : 0; // the picture moves until here; longHolds counts the rest
     if (s.tag.kind === 'page') {
       const said = h.sweeps.map((x) => `"${x.text.slice(0, 40)}" at ${x.at} ms${x.word ? ` on "${x.word.w}" (${x.word.s.toFixed(2)} s)` : ', not spoken in the shot'}`).join('; ');
-      pageNote = h.card ? `        page ${h.refused ? `refused (${h.refused.slice(0, 90)})` : 'with a picture on its words'}: the quote card, ${said}\n`
-        : `        page "${h.label}": ${said}; zoom ${h.zoom.toFixed(2)}${h.dark ? ', dark page' : ''}${h.flash ? ', Flash bar (the page\'s own Acid is in frame)' : ''}${h.masked ? `, ${h.masked} picture(s) covered` : ''}\n`;
+      const why = h.refused ? `refused (${h.refused.slice(0, 90)})` : h.card === 'wide' ? 'too wide to read whole at the frame\'s smallest type' : h.card === 'small' ? 'a sliver of its page at the frame\'s largest type' : 'with a picture on its words';
+      pageNote = h.card ? `        page ${why}: the quote card, ${said}\n`
+        : `        page "${h.label}": ${said}; zoom ${h.zoom.toFixed(2)}, type ${h.type.toFixed(0)} px${h.dark ? ', dark page' : ''}${h.flash ? ', Flash bar (the page\'s own Acid is in frame)' : ''}${h.masked ? `, ${h.masked} picture(s) covered` : ''}\n`;
     }
     const n = h.anim ? Math.min(Math.ceil((animMs / pace / 1000) * FPS) + 1, Math.ceil(d * FPS)) : 1;
     for (let k = 0; k < n; k++) {

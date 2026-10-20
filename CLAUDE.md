@@ -508,8 +508,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   stills for the compose; Flash unless the shot beneath spends no Acid;
   it leaves once its word has been said and read (`popEnd`). `page`: the
   capture `tools/capture.mjs` wrote, found by the capture's own file
-  name, cropped to the words' own column at a zoom that keeps body type
-  readable on a phone, ungraded, on Void under a Malachite mono label
+  name, cropped to the block that holds the words (below), ungraded,
+  on Void under a Malachite mono label
   (the author where the page or the cut list's `by:` gives one, because
   fair dealing names the author the source gives (ss. 29.1 and 29.2),
   then the publisher and the date, or the day it was read; a long label
@@ -517,9 +517,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   sweeping each phrase from the word in the narration that says it, one
   phrase lit at a time, and one linear 5 percent push-in from where the
   words start. A picture on a source's page is kept out (spec 2.3, row
-  5, text only): one level with the words narrows the window, one above
-  or below moves it while the words stay clear of the captions, and any
-  still inside is covered in Void. One on the words themselves cannot be
+  5, text only): one level with the words bounds the window as a
+  neighbour's text does, the picture stops short of one above or below,
+  and any still inside is covered in Void. One on the words themselves cannot be
   covered without them, so that shot is its quote card in the film and
   is left out of the Short; `pageView` decides it from the crop the
   render takes, and `check` asks the same function, so the guard is not
@@ -533,14 +533,45 @@ for a shortlist for bios and cards, which is a separate deliverable.
   cells into one bar, doubled the Acid where a phrase ran into bold,
   pushed the words under the captions to dodge thumbnails, and took the
   first letter of each line off the left with the push-in; each is fixed
-  and named where the code does it, the first in the wide frame only,
-  where a wide row now keeps its last column whole. In the tall frame
-  The Markup's ledger is still cut at both ends (review, 20 Oct): the
-  panel holds 448 CSS px at the zoom that keeps body type readable on a
-  phone, and the ledger's last column alone is wider, so the window
-  starts where the words start; the words are whole, and the cells
-  around them, the row's own label among them, are cut. Readable type
-  was kept over the whole row. Every tag and builder of the six
+  and named where the code does it. **The crop snaps to the words'
+  block** (`pageCrop` in `tools/lib/shots.mjs`, rewritten 20 Oct after
+  the pilot's contact sheets showed a letter of the rail beside The
+  Floor's parts table, the end of the card beside Morse Micro's MM6108,
+  the KAUST abstract cut at the left, The Floor's sources list cut at
+  its second column, and, in the Short, The Markup's ledger cut at both
+  ends, where the 896 px panel held 448 CSS px). The capture records the
+  page's layout for it: every visible line of text with its font size
+  and block, the blocks as a tree with the borders they draw and their
+  list markers, and the boxes it draws that hold no text (a search
+  field). The window is the words' paragraph, list item, term and
+  definition, or table row, sized by its lines and shown whole across
+  with two ems of margin that stop halfway to any other text, picture
+  or drawn box level with it and never cross a box's drawn border;
+  above and below, text the edges would cut is left out, and so is a
+  framed box they would halve, every line shown stays whole through the
+  push-in, and the picture ends a margin past its last line, on Void.
+  **A page shot's type is never under 11 pt on the phone the frame
+  fills**, the smallest size Apple's interface guidelines call legible:
+  30 px in the Short (1,080 px across a phone 390 pt wide) and 25 px in
+  the film (1,920 across the same phone on its side), at most 45 and
+  42. A block that cannot be read whole at that size gives way to the
+  cells that hold the words, scaled to fit, and where those are too
+  wide as well, the shot is its quote card (`wide`), never a picture of
+  lines cut at both ends; one that stays a sliver of its page at the
+  largest size, even with the blocks around it, is its card too
+  (`small`). A capture made before the layout was recorded fails
+  `check`, which says to shoot it again. `pageView` returns both cards
+  and `check` notes them, and a
+  page shot's card sweeps every phrase on its own word, one lit at a
+  time, as the page would have (it lit only the first). On The Floor
+  that puts ten page shots on their cards: four of the Short's six (a
+  Geeky Gadgets list item, Morse Micro's spec row and The Floor's own
+  paragraph are each wider than the 448 CSS px the Short reads of 15 to
+  16 px type, and the ledger's two rows carry an 11 px head), while the
+  ledger's 43.3 cell and Parallel's price paragraph show the page; and
+  in the film the four arXiv shots (its abstract is one 1,000 px
+  paragraph of 11 px type), OpenMANET's support table and Seeed's price
+  box. Every tag and builder of the six
   episode scripts still parses and builds byte for byte as before, and
   short-onegov renders to the same 284 hashes. An episode script's
   `check` refuses both kinds: its timeline places no pop, and capture
@@ -580,7 +611,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   Markup, shot from the build. Morse Micro's "not the data rate" line
   failed as hidden (it is in a collapsed FAQ answer), so its spec row was
   shot instead. For the render's crop, each phrase also carries its
-  block, the paragraph or table row it sits in, and the pictures in view
+  block, the paragraph or table row it sits in, the page's layout is
+  recorded (every visible line of text, cut by whatever clips it, with
+  its font size and block; the blocks as a tree with their padding,
+  drawn borders and list markers; the boxes the page draws that hold
+  no text; visually hidden text left out), and the pictures in view
   are counted at any opacity (a lazy image fades in from 0), down to
   32 px (Geeky Gadgets' sidebar thumbnails are 75 by 42 and were missed
   at 48), cut by every ancestor that clips them (a carousel's hidden
@@ -669,21 +704,25 @@ for a shortlist for bios and cards, which is a separate deliverable.
   After the review's fixes the film was rendered again (31 minutes) and
   every insert looked at again, one frame each on contact sheets, the
   two inserts the review changed also full size on both sides of their
-  cuts. Seen there and left for the next edit of the list: a letter from
-  beside The Floor's parts table at the edge of two of its shots (lines
-  55 and 65), and lines cut at the left where the words end a wide
-  paragraph (the KAUST abstract, line 95) or at the right of The
-  Floor's sources list (line 191). **The spec's targets disagree
+  cuts. What those sheets showed at the edges of page shots (a letter
+  beside the parts table, lines 55 and 65; the neighbouring card beside
+  the MM6108's, line 85; the KAUST abstract cut at the left, line 95;
+  the sources list cut at its second column, line 191; the ledger cut
+  at both ends in the Short) was fixed in the crop, not the list
+  (above); every page shot was then captured again and its frame in the
+  film and the Short rendered beside the old one, all 90 looked at, and
+  the Short and the whole film re-cut through `cuts.mjs render` and
+  looked at on contact sheets. One thing seen there stays the list's:
+  the pop "THE CHANNEL" (line 39) stands over the top lines of the
+  Parallel page shot under it in the Short. **The spec's targets disagree
   on this film**: a rose at 10 percent or less needs about 130 inserts,
   and the clean render already brings 7.9 new pictures a minute, so new
   scenes land near 16 a minute against the spec's 6 to 10. The list keeps
   the rose target, because the rose is what the owner asked to see less
-  of; the scene rate is the owner's to judge on the preview. Since the
-  review of 20 Oct one of its page shots, Seeed's $14.99 (line 67), is
-  its quote card in the film: the capture counted a carousel slide over
-  those words that the page had hidden, and a picture on the words now
-  turns a shot into its card rather than a warning in the log; words
-  away from the carousel would show the page.
+  of; the scene rate is the owner's to judge on the preview. One of its
+  page shots, Seeed's $14.99 (line 67), is its quote card in the film:
+  the price box is a sliver of the product page at the frame's largest
+  type (`small`).
 - `.claude/skills/youtube/SKILL.md`: how a session runs the channel (the
   credentials check, list and sync, the private lock and the two upload
   routes, what must be true before a render goes up, analytics, quota,

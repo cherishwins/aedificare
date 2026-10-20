@@ -40,7 +40,9 @@
  * 1440 CSS px wide at 2 device pixels per CSS px, scrolled so the words sit at 40 percent of its height; a viewport
  * taller than any frame needs means a push-in never shows its edge. Every box in the JSON is in CSS px of that
  * viewport (double it for the PNG's pixels). Each phrase also carries `block`, the box of the paragraph or table
- * row it sits in, so the render can crop to the words' own column and leave a sidebar out. `media` lists the
+ * row it sits in, and `blk`, its block in `layout`: every line of text in view, the blocks as a tree and the boxes
+ * the page draws that hold no text (LAYOUT), so the render can snap its crop to the words' block and keep its edges
+ * out of a neighbour's text (pageCrop in tools/lib/shots.mjs). `media` lists the
  * pictures in view, so the render can crop a news photograph out and show only the words; on someone else's page
  * every one of them but inline SVG is painted Void in the PNG itself (`masked` counts them), because that PNG is
  * filed on a public Release, and no copy of a photograph should exist to file. A refused shot writes its JSON and
@@ -477,6 +479,94 @@ const BLOCKS = () => (window.__aedRanges || []).map((r) => {
 });
 
 /**
+ * The page's text as it lies in view, for the render's crop (pageCrop in tools/lib/shots.mjs): every line of visible
+ * text as one box a block and a line, with its font size and the block it belongs to, and those blocks as a tree
+ * (tag, display, border box, padding, the borders it draws, a list marker's font size, parent), with `words`, each
+ * phrase's own block, and `frames`, the boxes the page draws that hold no text (a search field, an empty card). A crop that knows where every
+ * other block's text lies can snap to the words' paragraph, list item, row, cell or card and keep its edges out of
+ * the text beside it; the first version knew only the words' block, and its 40 px of margin took a letter of The
+ * Floor's rail and the ends of Morse Micro's neighbouring card into the frame (2026-10-20). A line is cut by every
+ * ancestor that clips it, as a picture is (MEDIA); visually hidden text (a 1 px box, clip: rect(0 0 0 0)) is not text
+ * anyone sees, so it is left out.
+ */
+const LAYOUT = () => {
+  const vw = innerWidth, vh = innerHeight, ids = new Map(), blocks = [], clips = new Map();
+  const r1 = (v) => +(+v).toFixed(1);
+  const inl = (el) => /^(inline|contents|ruby)/.test(getComputedStyle(el).display);
+  const blockOf = (el) => { while (el && el !== document.body && el !== document.documentElement && inl(el)) el = el.parentElement; return el && el !== document.documentElement ? el : document.body; };
+  const id = (el) => {
+    if (ids.has(el)) return ids.get(el);
+    const k = blocks.length;
+    ids.set(el, k); blocks.push(null);
+    const s = getComputedStyle(el), b = el.getBoundingClientRect(), px = (v) => r1(parseFloat(v) || 0);
+    const parent = el === document.body ? -1 : id(blockOf(el.parentElement));
+    // A border drawn on the page (a box's rule, a rail): its width a side, or 0 where none shows.
+    const bd = ['Top', 'Right', 'Bottom', 'Left'].map((d) => (s[`border${d}Style`] === 'none' || s[`border${d}Style`] === 'hidden' || /rgba\([^)]*,\s*0\)$|transparent/.test(s[`border${d}Color`]) ? 0 : px(s[`border${d}Width`])));
+    blocks[k] = { tag: el.tagName.toLowerCase(), display: s.display, x: r1(b.left), y: r1(b.top), w: r1(b.width), h: r1(b.height),
+      pad: [px(s.paddingTop), px(s.paddingRight), px(s.paddingBottom), px(s.paddingLeft)], bd, parent,
+      // A list item's marker hangs outside its box, where no text line records it: its font size says how far.
+      ...(s.display === 'list-item' && s.listStyleType !== 'none' && s.listStylePosition === 'outside' ? { marker: px(s.fontSize) } : {}) };
+    return k;
+  };
+  // What of an element's box any clipping ancestor (or the element itself) lets show, or null when nothing does.
+  const clipOf = (el) => {
+    if (clips.has(el)) return clips.get(el);
+    let c = { x0: -Infinity, y0: -Infinity, x1: Infinity, y1: Infinity };
+    if (el && el !== document.body && el !== document.documentElement) {
+      const up = getComputedStyle(el).position === 'fixed' ? c : clipOf(el.parentElement);
+      const s = getComputedStyle(el), b = el.getBoundingClientRect();
+      if (!up || (s.position === 'absolute' && /^rect\(0(px)?,? 0(px)?,? 0(px)?,? 0(px)?\)$/.test(s.clip)) || (s.overflow !== 'visible' && (b.width <= 2 || b.height <= 2))) c = null;
+      else {
+        c = { ...up };
+        if (s.overflowX !== 'visible') { c.x0 = Math.max(c.x0, b.left); c.x1 = Math.min(c.x1, b.right); }
+        if (s.overflowY !== 'visible') { c.y0 = Math.max(c.y0, b.top); c.y1 = Math.min(c.y1, b.bottom); }
+        if (c.x1 - c.x0 < 1 || c.y1 - c.y0 < 1) c = null;
+      }
+    }
+    clips.set(el, c);
+    return c;
+  };
+  const SKIP = /^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE|IFRAME|OBJECT|TEXTAREA|SELECT|OPTION)$/;
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+    acceptNode: (n) => (n.nodeType === 3 ? (/\S/.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT)
+      : SKIP.test(n.tagName.toUpperCase()) || (n.checkVisibility && getComputedStyle(n).display !== 'contents' && !n.checkVisibility({ checkVisibilityCSS: true })) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_SKIP),
+  });
+  const lines = [], range = document.createRange();
+  for (let n; (n = w.nextNode());) {
+    const el = n.parentElement, c = clipOf(el);
+    if (!c) continue;
+    const b = id(blockOf(el)), f = r1(parseFloat(getComputedStyle(el).fontSize) || 16);
+    range.selectNodeContents(n);
+    for (const x of range.getClientRects()) {
+      const x0 = Math.max(x.left, c.x0, 0), y0 = Math.max(x.top, c.y0, 0), x1 = Math.min(x.right, c.x1, vw), y1 = Math.min(x.bottom, c.y1, vh);
+      if (x1 - x0 < 2 || y1 - y0 < 2) continue;
+      // One box a block and a line: the next fragment of the same block on the same line, within an em, joins it.
+      const l = lines[lines.length - 1];
+      if (l && l.b === b && Math.abs(l.y - y0) < 1 && Math.abs(l.y + l.h - y1) < 1 && x0 >= l.x - 0.5 && x0 - (l.x + l.w) < f) { l.w = r1(Math.max(l.x + l.w, x1) - l.x); l.f = Math.max(l.f, f); continue; }
+      lines.push({ x: r1(x0), y: r1(y0), w: r1(x1 - x0), h: r1(y1 - y0), f, b });
+    }
+  }
+  // Boxes the page draws that hold no text a line records: a search field, a button of icons, an empty card. A crop
+  // that halves one shows a stray frame at its edge (Morse Micro's search box under its release notes' list).
+  const frames = [];
+  for (const el of document.querySelectorAll('body *')) {
+    if (SKIP.test(el.tagName) && !/^(TEXTAREA|SELECT)$/.test(el.tagName)) continue;
+    const s = getComputedStyle(el), control = /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(el.tagName) && s.display !== 'none';
+    const sides = ['Top', 'Right', 'Bottom', 'Left'].filter((d) => s[`border${d}Style`] !== 'none' && s[`border${d}Style`] !== 'hidden' && parseFloat(s[`border${d}Width`]) > 0 && !/rgba\([^)]*,\s*0\)$|transparent/.test(s[`border${d}Color`])).length;
+    if (!control && sides < 3) continue;
+    if (!control && /\S/.test(el.innerText || '')) continue;
+    if (el.checkVisibility && !el.checkVisibility({ checkVisibilityCSS: true })) continue;
+    const c = clipOf(el), b = el.getBoundingClientRect();
+    if (!c) continue;
+    const x0 = Math.max(b.left, c.x0, 0), y0 = Math.max(b.top, c.y0, 0), x1 = Math.min(b.right, c.x1, vw), y1 = Math.min(b.bottom, c.y1, vh);
+    if (x1 - x0 < 8 || y1 - y0 < 8) continue;
+    frames.push({ x: r1(x0), y: r1(y0), w: r1(x1 - x0), h: r1(y1 - y0) });
+  }
+  const words = (window.__aedRanges || []).map((r) => id(blockOf(r.commonAncestorContainer.nodeType === 1 ? r.commonAncestorContainer : r.commonAncestorContainer.parentElement)));
+  return { blocks, lines, frames, words };
+};
+
+/**
  * The pictures in view (a news photograph is cropped out at render; a shot of a source shows its words). Opacity
  * is not a test: a lazy image fades in from 0. Nor is 48 px: Geeky Gadgets' sidebar thumbnails are 75 by 42 and
  * were in the PNG while this list said there were none (2026-10-20). Under 32 px it is an icon.
@@ -565,7 +655,9 @@ async function measure(page, at, height) {
     return { ...p, boxes, union: u, block, inView: !!u && u.y >= 0 && u.y + u.h <= height && u.x >= 0 && u.x + u.w <= WIDTH, covered };
   });
   const under = hl.filter((h) => h.covered).map((h) => `"${h.text}" is under ${h.covered.by}${h.covered.text ? ` ("${h.covered.text.slice(0, 60)}")` : ''}`);
-  return { hl, media: await page.evaluate(MEDIA), error: at.error || (under.length ? `covered, so not on screen: ${under.join('; ')}` : null) };
+  const layout = await page.evaluate(LAYOUT);
+  hl.forEach((h, i) => { if (h.found) h.blk = layout.words[at.found.phrases.slice(0, i + 1).filter((p) => p.found).length - 1] ?? null; });
+  return { hl, media: await page.evaluate(MEDIA), layout: { blocks: layout.blocks, lines: layout.lines, frames: layout.frames }, error: at.error || (under.length ? `covered, so not on screen: ${under.join('; ')}` : null) };
 }
 
 async function settle(page) {
@@ -686,7 +778,7 @@ async function outside(b, gate, run, rec, shot) {
     sig = walls(rec.status, headers, probe, shot.url, page.url(), navs);
     if (sig.length) return finish(), refuse('wall', `after the scroll: ${sig[0]}`, sig);
     const m = await measure(page, at, run.height);
-    Object.assign(rec, { scroll: at.scroll, opened: at.opened, hl: m.hl, media: m.media, error: m.error });
+    Object.assign(rec, { scroll: at.scroll, opened: at.opened, hl: m.hl, media: m.media, layout: m.layout, error: m.error });
     await shoot(page, rec, run);
     rec.ms.total = Date.now() - t0;
     return finish();
@@ -735,7 +827,7 @@ async function ours(b, gate, run, rec, shot, slug) {
     const at = await locate(page, shot, run.height);
     if (!at.found) return Object.assign(rec, { error: at.error });
     const m = await measure(page, at, run.height);
-    Object.assign(rec, { scroll: at.scroll, opened: at.opened, hl: m.hl, media: m.media, error: m.error });
+    Object.assign(rec, { scroll: at.scroll, opened: at.opened, hl: m.hl, media: m.media, layout: m.layout, error: m.error });
     await shoot(page, rec, run);
     rec.ms = { total: Date.now() - t0 };
     return Object.assign(rec, { offsite });
@@ -824,7 +916,7 @@ export async function capture(slug, shots, { out = path.join(ROOT, 'brand/youtub
 }
 
 // The page probes and the gate, so a harness can drive them against synthetic pages with no network.
-export const internals = { PROBE, CLEAN, FIND, MEASURE, COVER, BLOCKS, MEDIA, walls, locate, measure, shoot, openGate, PAYWALL_SEL, MODAL_SEL, CMP, AD_SLOTS };
+export const internals = { PROBE, CLEAN, FIND, MEASURE, COVER, BLOCKS, LAYOUT, MEDIA, walls, locate, measure, shoot, openGate, PAYWALL_SEL, MODAL_SEL, CMP, AD_SLOTS };
 
 /* ---- the command ---------------------------------------------------------------- */
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
