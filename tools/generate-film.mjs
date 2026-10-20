@@ -44,7 +44,7 @@ import { HOUSE } from '../src/lib/rose.mjs';
 import { EDITIONS, seedDrift, LICENCE, numberWord } from '../src/lib/editions.mjs';
 import { SITE, NARRATOR } from '../src/config.mjs';
 import { ACID, MAL, BOTTLE, VOID, FLASH, SHOCK, GROUND, FORMATS, kLabel, esc, css, mastHtml, fieldHtml, doveHtml, findFfmpeg, openContext, encoder, browser } from './lib/film.mjs';
-import { filmMeta, sheetText } from './lib/film-meta.mjs';
+import { filmMeta, sheetText, metaIssues } from './lib/film-meta.mjs';
 
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
 const SLUG = arg('--slug', null);
@@ -335,6 +335,13 @@ async function render() {
   const file = path.join(DIR, `${SLUG}-${SHORT ? 'short' : 'film'}-${F.W}x${F.H}${UNTIL ? '-preview' : ''}.${FF.ext}`);
   const bed = path.join(DIR, 'bed.wav');
   const music = MUSIC === 'none' ? null : MUSIC ? MUSIC : fs.existsSync(bed) ? bed : null;
+  // The title, description and sheet come from tools/lib/film-meta.mjs, which tools/film-meta.mjs also uses to file
+  // them again without a render; the music credit is the one part only the render knows. Measured here, before the
+  // first frame, against what YouTube takes, so a description too long is said now and not after the render.
+  const musicLine = music === bed ? `Music: computed from r = cos(kθ), seed ${E.seed}; no third-party audio.` : music ? `Music: ${path.basename(music)} (add the licence credit here)` : 'Music: none.';
+  const fm = filmMeta(E, S, N, { short: SHORT, musicLine });
+  const metaBad = metaIssues(fm, N);
+  if (metaBad.length) { console.error(`generate-film: ${metaBad.join('; ')}`); process.exit(1); }
   const enc = encoder(FF, file, FPS, { audio: path.join(DIR, 'narration.wav'), music, musicGain: music === bed ? 0.5 : 0.12, crf: 20, segments });
   fs.writeFileSync(path.join(DIR, 'timeline.txt'), shots.map((s) => `${s.start.toFixed(2).padStart(8)} ${s.end.toFixed(2).padStart(8)}  ${s.ground.padEnd(6)} ${s.id}`).join('\n') + '\n');
   const until = UNTIL ? Math.min(total_, UNTIL) : total_;
@@ -389,10 +396,6 @@ async function render() {
   const ts = (x) => { const h = Math.floor(x / 3600), m = Math.floor((x % 3600) / 60), s = Math.floor(x % 60), ms = Math.round((x % 1) * 1000); return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`; };
   const captions = path.join(DIR, SHORT ? 'captions-short.srt' : 'captions.srt');
   fs.writeFileSync(captions, cuesOut.map((c, i) => `${i + 1}\n${ts(c.s)} --> ${ts(c.e)}\n${c.text}\n`).join('\n'));
-  // The title, description and sheet come from tools/lib/film-meta.mjs, which tools/film-meta.mjs also uses to file
-  // them again without a render; the music credit is the one part only the render knows.
-  const musicLine = music === bed ? `Music: computed from r = cos(kθ), seed ${E.seed}; no third-party audio.` : music ? `Music: ${path.basename(music)} (add the licence credit here)` : 'Music: none.';
-  const fm = filmMeta(E, S, N, { short: SHORT, musicLine });
   const { title, description, chapters } = fm;
   // meta.json is what tools/upload-youtube.mjs reads: everything the upload needs, nothing typed.
   fs.writeFileSync(path.join(DIR, SHORT ? 'meta-short.json' : 'meta.json'), JSON.stringify({

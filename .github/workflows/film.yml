@@ -173,6 +173,13 @@ jobs:
         if: steps.film.outputs.quota != 'true'
         run: node tools/generate-film.mjs --slug "$SLUG" --step render --short
 
+      # The voice alone, filed on the release with the render (release.yml): the stem a re-cut that adds time or remixes
+      # needs, kept past the 90 days this run's artifact lasts (spec 3.2, step 0). release.yml also files this render
+      # under the base names the re-cut composes over.
+      - name: Keep the voice stem
+        if: steps.film.outputs.quota != 'true'
+        run: ffmpeg -hide_banner -loglevel error -y -i "brand/youtube/$SLUG/narration.wav" -c:a flac "brand/youtube/$SLUG/narration.flac"
+
       - name: Upload the film
         if: steps.film.outputs.quota != 'true'
         uses: actions/upload-artifact@v4

@@ -392,7 +392,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
   function the render itself writes them with, so the two cannot differ;
   `.github/workflows/film-meta.yml` runs it over the releases, dry by
   default; `lib/diff.mjs` is the line diff both it and a sync dry run
-  print), `youtube-auth.mjs`
+  print; a re-cut's credits come from its release's `cuts.json`, and a
+  meta marked as a re-cut with no `cuts.json` fails rather than strip
+  them; `--test`, run by `verify.yml`, builds every published edition's
+  description plain and as a re-cut and fails unless each still carries
+  `Voice: synthetic, <model> <voice id>` at the start of a line, where
+  `film.yml`'s morning skip test and the upload guard read it, and fits
+  YouTube's 5,000 bytes, which the render, the refile and the re-cut now
+  all measure when they file, not only the upload), `youtube-auth.mjs`
   (mints the refresh token once, on the owner's machine, with the upload,
   metadata and read scopes), `youtube-analytics.mjs` (the channel's numbers
   as a report: views, watch time, average view duration, subscribers,
@@ -472,6 +479,211 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `upload-youtube.mjs` refuses them before minting a token); chapters are
   listed only as YouTube shows them, three or more and none under ten
   seconds; every file in use with no line in `credits.txt` is named.
+  **The shots live in `tools/lib/shots.mjs`** (2026-10-20): the tag
+  parser, the grade, the quote, map, chart, figure, card, title, slate,
+  end and overlay builders, the footage probes, and the renderer that
+  turns one shot into its own segment, lifted out of `episode.mjs` with
+  no change in what they make, so the edition films' cut lists can build
+  the same shots. What were module globals (the script, the frame, its
+  margins and type sizes, the footage folder) are one context object
+  from `shotContext()`, passed first to every builder. Proved by hashes
+  identical before and after, with no voice called: short-onegov through
+  `episode.mjs render`, wide and Short (284 files: every segment, frame,
+  card, both films, captions and meta, the same as three runs of the old
+  code); softbank-975's shots through the extracted renderer directly and
+  through a copy of `episode.mjs` whose narration throws (1,053 files
+  wide, thumbnails included, and 1,041 tall, on synthetic footage that
+  takes every footage branch), never `episode.mjs render` itself, because
+  its release `script.json` predates the `narrator` field and `render()`
+  would voice it; and every tag of all six episode scripts parsed and
+  built to the same HTML in both frames. **A frame hash can move with no
+  code change**: one run of the old code drew a chart's bars a few pixels
+  differently (at most 6 levels in 255) from a second run of the same
+  code, so a regression that differs from one baseline is checked against
+  a second before the difference counts.
+  **Two kinds for the re-cut** (2026-10-20, spec steps 3 and 4). `pop`:
+  one to three words in Bricolage at weight 800, in a Void field box,
+  left in the upper third and clear of the captions, landing in 120 ms
+  as the width axis steps 75 to 100 (override 3); four transparent
+  stills for the compose; Flash unless the shot beneath spends no Acid;
+  it leaves once its word has been said and read (`popEnd`). `page`: the
+  capture `tools/capture.mjs` wrote, found by the capture's own file
+  name, cropped to the words' own column at a zoom that keeps body type
+  readable on a phone, ungraded, on Void under a Malachite mono label
+  (the author where the page or the cut list's `by:` gives one, because
+  fair dealing names the author the source gives (ss. 29.1 and 29.2),
+  then the publisher and the date, or the day it was read; a long label
+  is set smaller, then on two lines growing up), an Acid box
+  sweeping each phrase from the word in the narration that says it, one
+  phrase lit at a time, and one linear 5 percent push-in from where the
+  words start. A picture on a source's page is kept out (spec 2.3, row
+  5, text only): one level with the words narrows the window, one above
+  or below moves it while the words stay clear of the captions, and any
+  still inside is covered in Void. One on the words themselves cannot be
+  covered without them, so that shot is its quote card in the film and
+  is left out of the Short; `pageView` decides it from the crop the
+  render takes, and `check` asks the same function, so the guard is not
+  a log line. On our own dark pages the bar inverts
+  the words into it, so it reads as it does on a light page, and turns
+  Flash where the page's own Acid is in frame, so the shot still spends
+  one Acid. A refused capture becomes the quote card with the same
+  words, its highlighter held until the voice reaches them. Tried on The
+  Floor's captures in both frames with every sample frame looked at, the
+  first versions cut a wide table row at both ends, merged a row's two
+  cells into one bar, doubled the Acid where a phrase ran into bold,
+  pushed the words under the captions to dodge thumbnails, and took the
+  first letter of each line off the left with the push-in; each is fixed
+  and named where the code does it, the first in the wide frame only,
+  where a wide row now keeps its last column whole. In the tall frame
+  The Markup's ledger is still cut at both ends (review, 20 Oct): the
+  panel holds 448 CSS px at the zoom that keeps body type readable on a
+  phone, and the ledger's last column alone is wider, so the window
+  starts where the words start; the words are whole, and the cells
+  around them, the row's own label among them, are cut. Readable type
+  was kept over the whole row. Every tag and builder of the six
+  episode scripts still parses and builds byte for byte as before, and
+  short-onegov renders to the same 284 hashes. An episode script's
+  `check` refuses both kinds: its timeline places no pop, and capture
+  shoots only an edition's sources. The cut lists (spec step 2) place
+  them.
+  **`tools/capture.mjs` shoots the pages a film shows** (2026-10-20), the
+  capture half of the `page` shot: a cited source in Chromium, 1440 CSS px
+  wide at twice the pixel density, under the honest agent
+  `AedificareFilmBot/1.0`, the quoted words (`hl:`) found across text
+  nodes and boxed, one PNG and one JSON a shot in
+  `brand/youtube/<slug>/pages/`; `self <n>` shoots our own built page from
+  `dist/` with the network closed. It refuses, records why and asks that
+  host nothing more in the run: YouTube and the streaming services (never
+  fetched, not even a redirect hop), a robots.txt that disallows it, a bot
+  check, WAF challenge, sign-in wall, paywall or ad-blocker prompt, and a
+  check that clears itself by script. Every connection goes through a gate
+  on 127.0.0.1 that refuses those hosts and this machine's own addresses,
+  because a Playwright route never sees a redirect hop and Chromium skips
+  any proxy for loopback unless told not to (both found while building
+  it). Its own addresses however they are spelled (review, 20 Oct): a
+  loopback, private, link-local or reserved literal, IPv4-mapped ones
+  included (`::ffff:7f00:1` passed the first version's pattern), and a
+  name that resolves to one (`localtest.me`, `127.1`), which the gate
+  resolves itself before every connection and then connects to the very
+  address it checked. Behind an upstream proxy (this sandbox, which has
+  no DNS of its own) a name this machine cannot resolve goes to the
+  upstream by name, and lands on the upstream's network, not this
+  machine's. Clean mode hides cookie banners and ad slots by CSS and blocks
+  nothing: blocking ad servers put up Geeky Gadgets' ad-blocker modal over
+  the very sentence the shot was for. Words a reader cannot see fail
+  instead of passing: in a collapsed part of the page, or under an overlay
+  (the topmost element at each box must be the words' own). A closed
+  `<details>` holding them is opened, as a reader would open it; a
+  script's accordion is not. Tried on The Floor's sources on 20 Oct: 12 of
+  the 13 that may be fetched shot clean, eCFR refused at its "Request
+  Access" gate, both YouTube sources refused unfetched, and source 11, The
+  Markup, shot from the build. Morse Micro's "not the data rate" line
+  failed as hidden (it is in a collapsed FAQ answer), so its spec row was
+  shot instead. For the render's crop, each phrase also carries its
+  block, the paragraph or table row it sits in, and the pictures in view
+  are counted at any opacity (a lazy image fades in from 0), down to
+  32 px (Geeky Gadgets' sidebar thumbnails are 75 by 42 and were missed
+  at 48), cut by every ancestor that clips them (a carousel's hidden
+  thumbnails reported boxes over the text beside it), and counted again
+  once the PNG exists. Then, on someone else's page, every one of them
+  but inline SVG is painted Void in the PNG itself (`masked` counts
+  them), because that PNG is what the film is cut from and what
+  `recut.yml` files on a public release: no copy of a third-party
+  photograph exists to publish (review, 20 Oct; spec 2.3, row 5).
+  **`tools/cuts.mjs` re-cuts an edition film without a word spoken
+  again** (2026-10-20, spec step 2). A cut list,
+  `source/film/<slug>.cuts.md` (its format is the tool's header), names a
+  phrase of the release's own `narration.json` and the shot that lands on
+  it: any kind of `tools/lib/shots.mjs` but a clip, which carries its own
+  sound. Its front matter pins the narration and the clean film and Short
+  by sha256, because the anchors are word times and the inserts are cut
+  into those exact frames. A cut lands 0.15 s before its word on or
+  before the frame, and holds until the next cut, `until:` or `hold:`;
+  the clean render's computed shots win unless the line says `over: base`;
+  nothing covers the opening field, the title's words, the record or the
+  dove. `check` holds the spec's rules before any frame: every number on
+  a computed surface on the built page's text (spelled numbers read as
+  numbers, the page's SVG left out, so a path's 44.27 is not a fact), a
+  pop's words too; every page shot captured and its words boxed; twelve
+  words on a card, its label counted with it, three in a pop; the
+  owner's footage named in `footage/credits.txt` or refused, its line in
+  the description and the frame line saying the footage is not computed;
+  a page shot's credit naming the page's author, and a `by:` on the
+  source line that leaves that author out said; one Acid at a time (a pop over a shot
+  that spends one turns Flash, and a chart stars one row, because every
+  star is drawn in Acid); no footage in a Short (left out and
+  said); the grammar's warnings and failures (spec 2.2); and each
+  description, credits included, in YouTube's limits and still naming the
+  channel's voice. `render` cuts each insert to a segment of exactly its
+  frames, the clean render between them seeked half a frame early so the
+  first frame is the one asked for, joins them without a re-encode,
+  overlays the pops as one sparse layer, and encodes once with the clean
+  render's own sound copied packet for packet (checked after, with the
+  frame count). Its buffer is six seconds of the 8 Mbps cap: at the
+  encoder's 16 Mbit the opening field's dense curves, already compressed
+  once, came out in blocks. It writes the re-cut under the release's
+  usual names with `meta.json` (marked `recut:` with the list's hash),
+  the sheets and `cuts.json`, each insert with its frames, its capture
+  and its credit line. `suggest` drafts a list: a page line per timed
+  citation mark, every rose run over 3.6 s with its words. `pages` names
+  the page tags with no capture yet. Tried on a synthetic list over The
+  Floor's first minute: the Short and a 60 s window of the film, every
+  piece on its frame and every pop on its frames, proved frame by frame
+  against the clean render and the joined picture, the sound identical,
+  and the refile writing the same description the render wrote.
+  **`source/film/the-floor.cuts.md` is the pilot's list** (2026-10-20,
+  spec step 8): 148 inserts over The Floor's clean render, 84 page shots
+  (40 of our own pages, The Floor's and The Markup's, shot offline from
+  the build; 44 of twelve outside sources), 32 cards, 10 charts, 9
+  figures, 4 quote cards and 9 pops. Measured with R4's method on the
+  film: the rose with nothing over it falls from 65.6 to 5.1 percent of
+  the time and its longest run from 37.6 s to 3.1, new pictures rise from
+  7.9 a minute to 16.9 and cuts from 13.8 to 21.7, and the longest stretch
+  in the body with no new picture falls from 40.9 s to 10.6. The Short
+  falls from 49.3 percent rose to 3.1. Choices, so nobody undoes them by
+  accident: the list's hold is six beats, 5.4 s, the point at which a
+  picture reads as standing still; cards keep to four words (sync rule
+  2); a card that sets the builder's own words names him under them
+  ("WHAT HE CALLS IT", as his figure card does), because a frame of
+  "ENTERPRISE. END TO END." alone would put the claim the edition
+  corrects in the brand's voice (review, 20 Oct); sound effects and the
+  cold open are left out, both the owner's call; the two YouTube
+  sources are never fetched: 16 appears as quote cards of the words the
+  edition quotes, which a person confirms before upload, and on one
+  chart's source line (his phone test, line 175 of the cut list), and 01
+  only as a chart's source line; eCFR (09)
+  answered with its wall and is not shown.
+  Captures that failed and were replaced, not forced: Morse Micro's AES
+  and SHA-2 line is hidden like its FAQ, Meshtastic's band line sat under
+  its sticky sidebar, and The Floor's own table caption is visually
+  hidden. ISED answered 502 once and shot clean in a new run. The whole
+  film was rendered here once (32 minutes) and every insert looked at;
+  that caught a first sweep that fell outside its crop (two Meshtastic
+  rows a table apart, now two shots), a wide table cut at its last
+  column, a stat block cut mid-column, type too small to read in The
+  Markup's sources note, and two pops laid over other type (a chart's
+  title, a page's label), each replaced. That render came before the
+  list's last edits, so seven inserts changed after it went unseen, one
+  of them a chart that starred two rows, two Acid bars in one shot
+  (review, 20 Oct; it stars one now, and `check` fails a second star).
+  After the review's fixes the film was rendered again (31 minutes) and
+  every insert looked at again, one frame each on contact sheets, the
+  two inserts the review changed also full size on both sides of their
+  cuts. Seen there and left for the next edit of the list: a letter from
+  beside The Floor's parts table at the edge of two of its shots (lines
+  55 and 65), and lines cut at the left where the words end a wide
+  paragraph (the KAUST abstract, line 95) or at the right of The
+  Floor's sources list (line 191). **The spec's targets disagree
+  on this film**: a rose at 10 percent or less needs about 130 inserts,
+  and the clean render already brings 7.9 new pictures a minute, so new
+  scenes land near 16 a minute against the spec's 6 to 10. The list keeps
+  the rose target, because the rose is what the owner asked to see less
+  of; the scene rate is the owner's to judge on the preview. Since the
+  review of 20 Oct one of its page shots, Seeed's $14.99 (line 67), is
+  its quote card in the film: the capture counted a carousel slide over
+  those words that the page had hidden, and a picture on the words now
+  turns a shot into its card rather than a warning in the log; words
+  away from the carousel would show the page.
 - `.claude/skills/youtube/SKILL.md`: how a session runs the channel (the
   credentials check, list and sync, the private lock and the two upload
   routes, what must be true before a render goes up, analytics, quota,
@@ -497,7 +709,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - `.github/workflows/verify.yml`: build (with the three checkers), the
   audit through `tools/check-audit.cjs`, actionlint over every workflow
   (pinned by checksum; the film workflows run unattended and no longer
-  prove themselves on a push), sweep, on every PR and push to `main`.
+  prove themselves on a push), `tools/film-meta.mjs --test`, sweep, on
+  every PR and push to `main`.
 - `.github/workflows/film.yml`: manual dispatch, `slug` and `format`
   inputs, and callable (`film-queue.yml`). Renders a narrated film on a
   clean runner (build, Playwright, ffmpeg, espeak-ng, `uv`) and keeps
@@ -510,7 +723,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   warning and files nothing, and the next run continues from the cache.
   With `skip_voiced` it does nothing for an edition whose release already
   names the voice. It no longer runs when the file itself changes: a proof
-  render spent a day's quota (2026-10-17).
+  render spent a day's quota (2026-10-17). It keeps the voice alone as
+  `narration.flac`, which `release.yml` files, because the stem a re-cut
+  that adds time would need lives otherwise only in the 90-day artifact.
 - `.github/workflows/film-queue.yml`: every morning at 08:20 UTC runs
   `film.yml` once per published edition from `src/lib/editions.mjs`,
   oldest first, one at a time, with `skip_voiced`, so every edition not
@@ -541,7 +756,47 @@ for a shortlist for bios and cards, which is a separate deliverable.
   transcodes any video still at or over the limit to the same cap before
   uploading, so an old render can be filed without an hour's re-render.
   The Closest Humans' film was 2.03 GB, a near miss that the cap now
-  makes impossible.
+  makes impossible. **The clean render is filed twice** (2026-10-20): a
+  fresh render also goes up under base names
+  (`<slug>-film-base-1920x1080.mp4`, `<slug>-short-base-1080x1920.mp4`,
+  hard links, so nothing is copied) with `narration.flac`, and nothing
+  else writes those names. A re-cut is filed with `recut: true` under the
+  usual names with its `cuts.json`, and the job refuses one that carries
+  a base file or the stem. Because every upload clobbers, a re-cut filed
+  under the usual names and cut again would have composed over itself;
+  the base names and the cut list's sha256 pins make that impossible, and
+  a page corrected and rendered again refreshes the base, which the old
+  list's pins then refuse. A fresh render removes a `cuts.json` left by
+  an earlier re-cut. Three guards from the review of 20 Oct: without
+  `recut: true` an artifact that is a re-cut (a meta naming a cut list,
+  or a `cuts.json`) is refused, because filing it the fresh way
+  hard-linked the composite under the base names and deleted its
+  `cuts.json`; with it, the job reads the release's `narration.json` and
+  base files again (GitHub's own sha256 of each asset, or the bytes
+  hashed where an older asset has none) and files nothing unless they are
+  still the ones the cut list pins, so a render filed while the re-cut
+  ran is never covered by a composite of the render before it; and the
+  filing job holds `film-<slug>`, the render's and the re-cut's group,
+  so no two of them write one edition's release at once. The group sits
+  on the job, not on the callers, because a called workflow's group
+  equal to its caller's deadlocks; a job waiting on the group can be
+  replaced by a newer one, and the pin check holds whatever order they
+  run in.
+- `.github/workflows/recut.yml`: manual dispatch, `slug`. Cuts the film
+  and the Short again from `source/film/<slug>.cuts.md` with
+  `tools/cuts.mjs` over the base files it downloads, captures any page
+  shot not yet filed on the Release `pages-<slug>` (and files what it
+  captured; a refusal is asked again next run), checks with `--online`,
+  and files through `release.yml` with `recut: true`. That release is
+  public, so what it files of someone else's page is the PNG the film is
+  cut from with every picture painted Void (`capture.mjs`, above), and a
+  record that does not say so is not filed: chosen over keeping the
+  captures only in an artifact or the cache, which expire and would make
+  a later re-cut shoot the pages again and show something nobody
+  checked, and over filing only the records, which would do the same;
+  our own pages are filed whole. No secret reaches
+  it, it never runs `film.yml` or `tools/generate-film.mjs`, and nothing
+  in it can speak, so it cannot spend a credit.
 - `.github/workflows/episode.yml`: manual dispatch, `slug` input. Checks
   the episode script online, downloads the owner's footage from the
   Release `footage-<slug>`, renders with `tools/episode.mjs`, and files
@@ -559,7 +814,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   narration, and retitles the release; nothing reaches YouTube, which is
   `youtube.yml action=sync`'s job, dry first. Written 2026-10-20 so a
   title or description changes in `src/lib/editions.mjs` and reaches the
-  channel in minutes, at no render and no voice credits.
+  channel in minutes, at no render and no voice credits. It downloads a
+  re-cut's `cuts.json` too, so the refile keeps its credits.
 - `.github/workflows/verify-live.yml`: manual dispatch, `url` input. Curls
   every route and discovery file on the live origin, checks the headers,
   canonical, draft noindex and sitemap exclusion, then runs the same sweep

@@ -3,7 +3,8 @@
 # meta.json, meta-short.json and both upload sheets on each film-<slug>
 # release from that release's own script.json and narration.json
 # (tools/film-meta.mjs, the same function the render uses), and gives the
-# release the new title. Nothing reaches YouTube from here: youtube.yml
+# release the new title. A re-cut's credits come from its cuts.json, so a
+# refile keeps them. Nothing reaches YouTube from here: youtube.yml
 # action=sync, dry first, sends the new words to the videos.
 name: film-meta
 
@@ -57,7 +58,7 @@ jobs:
             dir="brand/youtube/$slug"
             if ! gh release view "$tag" >/dev/null 2>&1; then echo "$slug: no release $tag, skipped"; continue; fi
             mkdir -p "$dir"
-            for f in script.json narration.json meta.json meta-short.json sheet.txt sheet-short.txt; do
+            for f in script.json narration.json meta.json meta-short.json sheet.txt sheet-short.txt cuts.json; do
               gh release download "$tag" -D "$dir" --clobber -p "$f" 2>/dev/null || true
             done
             [ -f "$dir/meta.json" ] || { echo "::error::$tag has no meta.json"; exit 1; }
