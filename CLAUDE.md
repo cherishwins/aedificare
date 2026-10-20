@@ -472,6 +472,28 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `upload-youtube.mjs` refuses them before minting a token); chapters are
   listed only as YouTube shows them, three or more and none under ten
   seconds; every file in use with no line in `credits.txt` is named.
+  **The shots live in `tools/lib/shots.mjs`** (2026-10-20): the tag
+  parser, the grade, the quote, map, chart, figure, card, title, slate,
+  end and overlay builders, the footage probes, and the renderer that
+  turns one shot into its own segment, lifted out of `episode.mjs` with
+  no change in what they make, so the edition films' cut lists can build
+  the same shots. What were module globals (the script, the frame, its
+  margins and type sizes, the footage folder) are one context object
+  from `shotContext()`, passed first to every builder. Proved by hashes
+  identical before and after, with no voice called: short-onegov through
+  `episode.mjs render`, wide and Short (284 files: every segment, frame,
+  card, both films, captions and meta, the same as three runs of the old
+  code); softbank-975's shots through the extracted renderer directly and
+  through a copy of `episode.mjs` whose narration throws (1,053 files
+  wide, thumbnails included, and 1,041 tall, on synthetic footage that
+  takes every footage branch), never `episode.mjs render` itself, because
+  its release `script.json` predates the `narrator` field and `render()`
+  would voice it; and every tag of all six episode scripts parsed and
+  built to the same HTML in both frames. **A frame hash can move with no
+  code change**: one run of the old code drew a chart's bars a few pixels
+  differently (at most 6 levels in 255) from a second run of the same
+  code, so a regression that differs from one baseline is checked against
+  a second before the difference counts.
 - `.claude/skills/youtube/SKILL.md`: how a session runs the channel (the
   credentials check, list and sync, the private lock and the two upload
   routes, what must be true before a render goes up, analytics, quota,
