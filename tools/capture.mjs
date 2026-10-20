@@ -481,8 +481,10 @@ const BLOCKS = () => (window.__aedRanges || []).map((r) => {
 /**
  * The page's text as it lies in view, for the render's crop (pageCrop in tools/lib/shots.mjs): every line of visible
  * text as one box a block and a line, with its font size and the block it belongs to, and those blocks as a tree
- * (tag, display, border box, padding, the borders it draws, a list marker's font size, parent), with `words`, each
- * phrase's own block, and `frames`, the boxes the page draws that hold no text (a search field, an empty card). A crop that knows where every
+ * (tag, display, border box, padding, the borders it draws, `fill` where it paints a background of its own and
+ * `shadow` where a shadow draws its outline, `radius`, its largest rounded corner, a list
+ * marker's font size, parent), with `words`, each phrase's own block, and `frames`, the boxes the page draws that
+ * hold no text (a search field, an empty card, a painted panel, a rule down a side). A crop that knows where every
  * other block's text lies can snap to the words' paragraph, list item, row, cell or card and keep its edges out of
  * the text beside it; the first version knew only the words' block, and its 40 px of margin took a letter of The
  * Floor's rail and the ends of Morse Micro's neighbouring card into the frame (2026-10-20). A line is cut by every
@@ -494,16 +496,40 @@ const LAYOUT = () => {
   const r1 = (v) => +(+v).toFixed(1);
   const inl = (el) => /^(inline|contents|ruby)/.test(getComputedStyle(el).display);
   const blockOf = (el) => { while (el && el !== document.body && el !== document.documentElement && inl(el)) el = el.parentElement; return el && el !== document.documentElement ? el : document.body; };
+  // A border drawn on the page (a box's rule, a rail): its width a side, or 0 where none shows.
+  const bdOf = (s) => ['Top', 'Right', 'Bottom', 'Left'].map((d) => (s[`border${d}Style`] === 'none' || s[`border${d}Style`] === 'hidden' || /rgba\([^)]*,\s*0\)$|transparent/.test(s[`border${d}Color`]) ? 0 : r1(parseFloat(s[`border${d}Width`]) || 0)));
+  // A box the page paints: a gradient, or a background colour that differs from what lies behind it (the nearest
+  // ancestor's opaque background, else the canvas). A box that only repeats the colour behind it draws nothing.
+  // Seeed's quote button is a gradient with no border, Meshtastic's note a grey fill with one rule down its left
+  // (2026-10-20); neither was a box to the crop while it counted borders on three sides.
+  const rgba = (c) => { const m = /rgba?\(([^)]*)\)/.exec(c || ''); if (!m) return null; const v = m[1].split(/[\s,/]+/).filter(Boolean).map(parseFloat); return v.length >= 3 ? [v[0], v[1], v[2], v.length > 3 ? v[3] : 1] : null; };
+  const canvas = (() => { for (const el of [document.documentElement, document.body]) { const c = el && rgba(getComputedStyle(el).backgroundColor); if (c && c[3] >= 0.5) return c; } return [255, 255, 255, 1]; })();
+  const behind = (el) => { for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) { const c = rgba(getComputedStyle(a).backgroundColor); if (c && c[3] >= 0.5) return c; } return canvas; };
+  // A shadow draws a box's outline even where its ground is the page's own (Meshtastic's notes, a near-white fill
+  // under a soft shadow and rounded corners): any layer with a visible colour and a length that is not zero.
+  const shadowed = (s) => !!s.boxShadow && s.boxShadow !== 'none' && s.boxShadow.split(/,(?![^(]*\))/).some((layer) => {
+    const c = rgba(layer);
+    return !!c && c[3] > 0.02 && layer.replace(/rgba?\([^)]*\)/, '').trim().split(/\s+/).map(parseFloat).some((v) => Number.isFinite(v) && v !== 0);
+  });
+  const paints = (el, s) => {
+    if (/gradient\(/.test(s.backgroundImage)) return true;
+    const c = rgba(s.backgroundColor);
+    if (!c || c[3] < 0.05) return false;
+    const b = behind(el);
+    return Math.max(...[0, 1, 2].map((i) => Math.abs(c[i] * c[3] + b[i] * (1 - c[3]) - b[i]))) >= 4;
+  };
   const id = (el) => {
     if (ids.has(el)) return ids.get(el);
     const k = blocks.length;
     ids.set(el, k); blocks.push(null);
     const s = getComputedStyle(el), b = el.getBoundingClientRect(), px = (v) => r1(parseFloat(v) || 0);
     const parent = el === document.body ? -1 : id(blockOf(el.parentElement));
-    // A border drawn on the page (a box's rule, a rail): its width a side, or 0 where none shows.
-    const bd = ['Top', 'Right', 'Bottom', 'Left'].map((d) => (s[`border${d}Style`] === 'none' || s[`border${d}Style`] === 'hidden' || /rgba\([^)]*,\s*0\)$|transparent/.test(s[`border${d}Color`]) ? 0 : px(s[`border${d}Width`])));
+    const bd = bdOf(s);
     blocks[k] = { tag: el.tagName.toLowerCase(), display: s.display, x: r1(b.left), y: r1(b.top), w: r1(b.width), h: r1(b.height),
       pad: [px(s.paddingTop), px(s.paddingRight), px(s.paddingBottom), px(s.paddingLeft)], bd, parent,
+      ...(el !== document.body && paints(el, s) ? { fill: 1 } : {}), ...(el !== document.body && shadowed(s) ? { shadow: 1 } : {}),
+      // A rounded corner curves inside the box, so a crop that stops on the box's edge shows the curve.
+      ...(() => { const r = Math.max(...['TopLeft', 'TopRight', 'BottomRight', 'BottomLeft'].map((c) => parseFloat(s[`border${c}Radius`]) || 0)); return r > 0 ? { radius: r1(r) } : {}; })(),
       // A list item's marker hangs outside its box, where no text line records it: its font size says how far.
       ...(s.display === 'list-item' && s.listStyleType !== 'none' && s.listStylePosition === 'outside' ? { marker: px(s.fontSize) } : {}) };
     return k;
@@ -546,20 +572,24 @@ const LAYOUT = () => {
       lines.push({ x: r1(x0), y: r1(y0), w: r1(x1 - x0), h: r1(y1 - y0), f, b });
     }
   }
-  // Boxes the page draws that hold no text a line records: a search field, a button of icons, an empty card. A crop
-  // that halves one shows a stray frame at its edge (Morse Micro's search box under its release notes' list).
+  // Boxes the page draws that hold no text a line records: a search field, a button of icons, an empty card, a panel
+  // painted behind a gallery, a divider down a side. A crop that halves one shows a stray frame at its edge (Morse
+  // Micro's search box under its release notes' list), and one beside the words is a change of background a margin
+  // must stop at (a grey strip down the left of Seeed's product text, 2026-10-20). A rule across the top or bottom
+  // alone (a horizontal rule) is not a box: cut, it runs off the side as a table's own rows do.
   const frames = [];
   for (const el of document.querySelectorAll('body *')) {
     if (SKIP.test(el.tagName) && !/^(TEXTAREA|SELECT)$/.test(el.tagName)) continue;
     const s = getComputedStyle(el), control = /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(el.tagName) && s.display !== 'none';
-    const sides = ['Top', 'Right', 'Bottom', 'Left'].filter((d) => s[`border${d}Style`] !== 'none' && s[`border${d}Style`] !== 'hidden' && parseFloat(s[`border${d}Width`]) > 0 && !/rgba\([^)]*,\s*0\)$|transparent/.test(s[`border${d}Color`])).length;
-    if (!control && sides < 3) continue;
+    const bd = bdOf(s), sides = bd.filter((v) => v > 0).length;
+    if (!control && sides < 3 && !bd[1] && !bd[3] && !paints(el, s) && !shadowed(s)) continue;
     if (!control && /\S/.test(el.innerText || '')) continue;
-    if (el.checkVisibility && !el.checkVisibility({ checkVisibilityCSS: true })) continue;
+    if (el.checkVisibility && !el.checkVisibility({ checkVisibilityCSS: true, checkOpacity: true })) continue;
     const c = clipOf(el), b = el.getBoundingClientRect();
     if (!c) continue;
     const x0 = Math.max(b.left, c.x0, 0), y0 = Math.max(b.top, c.y0, 0), x1 = Math.min(b.right, c.x1, vw), y1 = Math.min(b.bottom, c.y1, vh);
-    if (x1 - x0 < 8 || y1 - y0 < 8) continue;
+    // Under 8 px a side is an icon; a divider down a side is one rule wide and still a mark.
+    if (x1 - x0 < (bd[1] || bd[3] ? 0.5 : 8) || y1 - y0 < 8) continue;
     frames.push({ x: r1(x0), y: r1(y0), w: r1(x1 - x0), h: r1(y1 - y0) });
   }
   const words = (window.__aedRanges || []).map((r) => id(blockOf(r.commonAncestorContainer.nodeType === 1 ? r.commonAncestorContainer : r.commonAncestorContainer.parentElement)));
