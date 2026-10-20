@@ -53,12 +53,12 @@
  * (and leaving it out of the Short), an author the page gives and no credit names said; the owner's footage
  * credited in footage/credits.txt or refused; quotes found on their source with --online; twelve words at most on a
  * card, its label counted with it, three in a pop, no exclamation; one Acid at a time (a pop over a shot that spends
- * one is Flash, an overlay that would make a second fails), Shock rose left to the opening field, the dove once and
- * last; no footage in a Short (it is left out of the Short and said); the grammar's warnings (a picture unchanged
- * past 5.4 s, a rose run in the body past 3.6 s, the rose alone over 10 percent, a gag within 60 s of the last) and
- * failures (a body stretch past 10.8 s with no new scene, the rose alone over 20 percent); and each description,
- * credits included, in YouTube's limits and still naming the channel's voice. RENDER runs CHECK for its format and
- * refuses on a failure.
+ * one is Flash, an overlay that would make a second fails, a chart stars one row), Shock rose left to the opening
+ * field, the dove once and last; no footage in a Short (it is left out of the Short and said); the grammar's warnings
+ * (a picture unchanged past 5.4 s, a rose run in the body past 3.6 s, the rose alone over 10 percent, a gag within
+ * 60 s of the last) and failures (a body stretch past 10.8 s with no new scene, the rose alone over 20 percent); and
+ * each description, credits included, in YouTube's limits and still naming the channel's voice. RENDER runs CHECK
+ * for its format and refuses on a failure.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -512,6 +512,10 @@ function facts(X, e, out) {
     if (!CHART_TYPES.includes(e.tag.type)) out.issues.push(`${where}: type "${e.tag.type}" is not one of ${CHART_TYPES.join(', ')}`);
     for (const x of e.tag.errors || []) out.issues.push(`${where}: ${x}`);
     if (!e.tag.srcs.length) out.issues.push(`${where}: it cites no source (src: NN); a chart carries its own citation on screen`);
+    // The Acid ledger counts a chart's stars: chartBody draws every starred row in Acid, so two stars are two Acid
+    // marks in one shot (sync rule 3). A line's Acid is its series, whatever is starred.
+    const stars = e.tag.type === 'line' ? 0 : (e.tag.rows || []).filter((r) => r.hot).length;
+    if (stars > 1) out.issues.push(`${where}: ${stars} rows starred, each drawn in Acid; one Acid at a time (sync rule 3): star the one row the shot is for`);
     // A timeline's dates are facts too, and a date is checked as the page writes one, not as three numbers.
     if (e.tag.type === 'timeline') for (const r of e.tag.rows) {
       const d = new Date(r.t), y = d.getUTCFullYear(), M = MONTHS[d.getUTCMonth()], day = d.getUTCDate();

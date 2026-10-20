@@ -9,8 +9,8 @@ hold: 5.4
      Every page shot's hl: was copied from the page as tools/capture.mjs shot it; every number on a computed surface is on
      the built page (tools/cuts.mjs check). The hold is six beats, 5.4 s: an insert holds until the next cut or until its
      picture would read as standing still. Left out on purpose, both waiting on the owner: sound effects and the cold open.
-     Sources 01 and 16 are videos on YouTube and are never fetched: their words come as quote cards from the transcript the
-     edition quotes, and a person confirms them before upload. Source 09 (eCFR) answered with a wall and is not shown. -->
+     Sources 01 and 16 are videos on YouTube, never fetched: 16's words are quote cards of the transcript the edition quotes,
+     which a person confirms before upload; 01 is only a chart's source line. 09 (eCFR) answered with a wall: not shown. -->
 
 # Sources
 - 01 | https://youtu.be/ofR7GFNZzJY | never fetched | pub: Data Slayer | date: 3 Sep 2025
@@ -91,7 +91,7 @@ hold: 5.4
 @ "At one metre"                                             [[pop: ONE METRE]]
 @ "published eight months apart"                             [[chart: timeline | Eight months apart | 2025-09-03=The builder's bench | 2026-05-17=The KAUST paper* | src: 01, 08]]
 @ "one overall fall"                                         [[card: ONE OVERALL FALL.]]
-@ "the rate drops about"                                     [[chart: bars | About eightfold in both | sub: MBPS · 8 MHZ AND 1 MHZ | The bench, 8 MHz=15 | The bench, 1 MHz=1.8* | KAUST at 1 m, 8 MHz=13.0 | KAUST at 1 m, 1 MHz=1.6* | src: 01, 08]]
+@ "the rate drops about"                                     [[chart: bars | About eightfold in both | sub: MBPS · 8 MHZ AND 1 MHZ | The bench, 8 MHz=15 | The bench, 1 MHz=1.8* | KAUST at 1 m, 8 MHz=13.0 | KAUST at 1 m, 1 MHz=1.6 | src: 01, 08]]
 @ "at every width"                                           [[page: 08 | hl: an NLoS coverage boundary around]]
 @ "The datasheet is not"                                     [[page: 07 | hl: Peak throughput (PHY) 43.3 Mbps]]
 @ "It is a ceiling"                                          [[card: A CEILING.]]
@@ -149,7 +149,7 @@ hold: 5.4
 @ "A camera stream by" | over: base | until: "The HaLow link is"   [[page: self #carried | hl: RTSP, UDP or HTTP, from a device on the network.]]
 @ "The HaLow link is"                                        [[page: 04 | hl: Encryption WPA3 SAE (CCMP)]]
 @ "and the chip does"                                        [[page: self #carried | hl: AES and SHA-2 in the chip's hardware.]]
-@ "He calls it the"                                          [[card: ENTERPRISE. END TO END.]]
+@ "He calls it the"                                          [[card: ENTERPRISE. END TO END. | WHAT HE CALLS IT]]
 @ "It is neither"                                            [[card: NEITHER.]]
 @ "SAE is the personal" | hold: 9.6                          [[page: 13 | hl: WPA3-Personal, which uses the Simultaneous Authentication of Equals (SAE) method | hl: for 802.1X security networks]]
 @ "enterprise WPA3 signs"                                    [[pop: ENTERPRISE]]

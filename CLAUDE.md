@@ -533,7 +533,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
   cells into one bar, doubled the Acid where a phrase ran into bold,
   pushed the words under the captions to dodge thumbnails, and took the
   first letter of each line off the left with the push-in; each is fixed
-  and named where the code does it. Every tag and builder of the six
+  and named where the code does it, the first in the wide frame only,
+  where a wide row now keeps its last column whole. In the tall frame
+  The Markup's ledger is still cut at both ends (review, 20 Oct): the
+  panel holds 448 CSS px at the zoom that keeps body type readable on a
+  phone, and the ledger's last column alone is wider, so the window
+  starts where the words start; the words are whole, and the cells
+  around them, the row's own label among them, are cut. Readable type
+  was kept over the whole row. Every tag and builder of the six
   episode scripts still parses and builds byte for byte as before, and
   short-onegov renders to the same 284 hashes. An episode script's
   `check` refuses both kinds: its timeline places no pop, and capture
@@ -603,7 +610,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   the description and the frame line saying the footage is not computed;
   a page shot's credit naming the page's author, and a `by:` on the
   source line that leaves that author out said; one Acid at a time (a pop over a shot
-  that spends one turns Flash); no footage in a Short (left out and
+  that spends one turns Flash, and a chart stars one row, because every
+  star is drawn in Acid); no footage in a Short (left out and
   said); the grammar's warnings and failures (spec 2.2); and each
   description, credits included, in YouTube's limits and still naming the
   channel's voice. `render` cuts each insert to a segment of exactly its
@@ -635,10 +643,15 @@ for a shortlist for bios and cards, which is a separate deliverable.
   falls from 49.3 percent rose to 3.1. Choices, so nobody undoes them by
   accident: the list's hold is six beats, 5.4 s, the point at which a
   picture reads as standing still; cards keep to four words (sync rule
-  2); sound effects and the cold open are left out, both the owner's
-  call; the two YouTube sources (01, 16) appear only as quote cards of the
-  words the edition quotes, never fetched, so a person confirms them
-  before upload; eCFR (09) answered with its wall and is not shown.
+  2); a card that sets the builder's own words names him under them
+  ("WHAT HE CALLS IT", as his figure card does), because a frame of
+  "ENTERPRISE. END TO END." alone would put the claim the edition
+  corrects in the brand's voice (review, 20 Oct); sound effects and the
+  cold open are left out, both the owner's call; the two YouTube
+  sources are never fetched: 16 appears only as
+  quote cards of the words the edition quotes, which a person confirms
+  before upload, and 01 only as a chart's source line; eCFR (09)
+  answered with its wall and is not shown.
   Captures that failed and were replaced, not forced: Morse Micro's AES
   and SHA-2 line is hidden like its FAQ, Meshtastic's band line sat under
   its sticky sidebar, and The Floor's own table caption is visually
@@ -648,7 +661,18 @@ for a shortlist for bios and cards, which is a separate deliverable.
   rows a table apart, now two shots), a wide table cut at its last
   column, a stat block cut mid-column, type too small to read in The
   Markup's sources note, and two pops laid over other type (a chart's
-  title, a page's label), each replaced. **The spec's targets disagree
+  title, a page's label), each replaced. That render came before the
+  list's last edits, so seven inserts changed after it went unseen, one
+  of them a chart that starred two rows, two Acid bars in one shot
+  (review, 20 Oct; it stars one now, and `check` fails a second star).
+  After the review's fixes the film was rendered again (31 minutes) and
+  every insert looked at again, one frame each on contact sheets, the
+  two inserts the review changed also full size on both sides of their
+  cuts. Seen there and left for the next edit of the list: a letter from
+  beside The Floor's parts table at the edge of two of its shots (lines
+  55 and 65), and lines cut at the left where the words end a wide
+  paragraph (the KAUST abstract, line 95) or at the right of The
+  Floor's sources list (line 191). **The spec's targets disagree
   on this film**: a rose at 10 percent or less needs about 130 inserts,
   and the clean render already brings 7.9 new pictures a minute, so new
   scenes land near 16 a minute against the spec's 6 to 10. The list keeps
