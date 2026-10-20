@@ -11,6 +11,16 @@
 # and the run id of any finished film run, to file a render that predates
 # this workflow.
 #
+# Every fresh render is also filed under base names, <slug>-film-base-1920x1080.mp4 and
+# <slug>-short-base-1080x1920.mp4, which nothing else writes, with the voice
+# alone as narration.flac (the artifact that holds narration.wav lasts 90
+# days). The re-cut (recut.yml, tools/cuts.mjs) composes over those, pinned by
+# sha256 in its cut list: because each upload here clobbers, a re-cut filed
+# under the usual names and then cut again would have composed over itself,
+# its pops and sound doubled. With recut: true this files a re-cut: the usual
+# names and cuts.json, and never a base file or the stem. A fresh render
+# removes a cuts.json left by an earlier re-cut, whose credits it does not carry.
+#
 # GitHub refuses a release asset of 2 GiB or more (HTTP 422, "size must be
 # less than 2147483648"). Found 2026-09-25 when The Snapshot Problem's film
 # came out of an uncapped CRF 20 encode at 2.34 GB and the upload aborted,
@@ -29,6 +39,14 @@ on:
       run_id:
         required: true
         type: string
+      artifact:
+        description: 'The artifact to file; empty for film-<slug>-wide'
+        type: string
+        default: ''
+      recut:
+        description: 'The artifact is a re-cut (recut.yml): never file a base file or the stem'
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       slug:
@@ -38,6 +56,14 @@ on:
       run_id:
         description: 'A finished film workflow run id whose artifact to file'
         required: true
+      artifact:
+        description: 'The artifact to file; empty for film-<slug>-wide'
+        required: false
+        default: ''
+      recut:
+        description: 'The artifact is a re-cut (recut.yml)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -50,12 +76,13 @@ jobs:
     env:
       SLUG: ${{ inputs.slug }}
       GH_TOKEN: ${{ github.token }}
+      RECUT: ${{ inputs.recut && 'yes' || 'no' }}
     steps:
       - uses: actions/checkout@v5
 
       - uses: actions/download-artifact@v4
         with:
-          name: film-${{ inputs.slug }}-wide
+          name: ${{ inputs.artifact || format('film-{0}-wide', inputs.slug) }}
           path: out
           run-id: ${{ inputs.run_id }}
           github-token: ${{ github.token }}
@@ -83,16 +110,27 @@ jobs:
         run: |
           set -e
           ls -la out
+          shopt -s nullglob
+          if [ "$RECUT" = yes ]; then
+            # A re-cut names its cut list in meta.json and files its manifest beside it, and never a clean file.
+            jq -e '.recut' out/meta.json >/dev/null && [ -f out/cuts.json ] || { echo "::error::a re-cut's meta.json names its cut list (recut) and cuts.json stands beside it"; exit 1; }
+            for f in out/*-base-*.mp4 out/*.flac; do echo "::error::a re-cut never files $f"; exit 1; done
+          else
+            # A fresh render is the clean film: filed under the base names too, hard links so nothing is copied.
+            for k in film:1920x1080 short:1080x1920; do
+              f="out/$SLUG-${k%%:*}-${k#*:}.mp4"
+              if [ -f "$f" ]; then ln -f "$f" "out/$SLUG-${k%%:*}-base-${k#*:}.mp4"; fi
+            done
+          fi
           TITLE="$(jq -r .title out/meta.json 2>/dev/null || echo "$SLUG")"
           TAG="film-$SLUG"
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" --title "$TITLE" --notes "Film of /$SLUG. Assets replaced on every render; notes are the latest upload sheet." --latest=false
           fi
           gh release edit "$TAG" --title "$TITLE" --notes-file out/sheet.txt
-          shopt -s nullglob
           # One file per call, so a refused file is one missing asset and not an empty release.
           FAILED=()
-          for f in out/*.mp4 out/*.srt out/*.txt out/*.json out/*.png out/*.md; do
+          for f in out/*.mp4 out/*.srt out/*.txt out/*.json out/*.png out/*.md out/*.flac; do
             case "$f" in out/meta.json|out/meta-short.json) continue ;; esac
             gh release upload "$TAG" "$f" --clobber || FAILED+=("$f")
           done
@@ -102,6 +140,10 @@ jobs:
             for f in out/meta.json out/meta-short.json; do
               gh release upload "$TAG" "$f" --clobber || FAILED+=("$f")
             done
+          fi
+          # A fresh render carries no re-cut's credits: a cuts.json left beside it would be read as if it did.
+          if [ "$RECUT" != yes ] && [ "${#FAILED[@]}" -eq 0 ] && gh release view "$TAG" --json assets --jq '.assets[].name' | grep -qx cuts.json; then
+            gh release delete-asset "$TAG" cuts.json -y
           fi
           echo "Filed under https://github.com/${{ github.repository }}/releases/tag/$TAG"
           gh release view "$TAG" --json assets --jq '.assets[] | "\(.name)  \(.size) bytes"'

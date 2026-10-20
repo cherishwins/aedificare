@@ -54,6 +54,11 @@ jobs:
           tar xzf al.tgz actionlint
           ./actionlint -shellcheck=
 
+      # Every film's description, plain and as a re-cut, still names the channel's voice on the line film.yml's
+      # morning skip test and the upload guard read, and fits YouTube's 5,000 bytes (tools/film-meta.mjs --test).
+      - name: Film descriptions
+        run: node tools/film-meta.mjs --test
+
       # High and critical advisories fail the build unless tools/audit-allowlist.json names them, with a reason and
       # an expiry (tools/check-audit.cjs); an advisory with no patched release anywhere is the case it exists for.
       - name: Audit dependencies

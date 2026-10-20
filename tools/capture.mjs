@@ -64,6 +64,8 @@ export const WIDTH = 1440, DPR = 2, HEIGHT = 1600;
 
 // Never fetched, whatever the page asks for: their terms forbid taking from them (override 8; the YouTube Terms).
 const NEVER = /(^|\.)(youtube\.com|youtu\.be|youtube-nocookie\.com|youtubei\.googleapis\.com|youtube\.googleapis\.com|googlevideo\.com|ytimg\.com|yt\d\.ggpht\.com|netflix\.com|nflxvideo\.net|nflximg\.net|nflxext\.com|nflxso\.net|primevideo\.com|disneyplus\.com|disney-plus\.net|bamgrid\.com|hulu\.com|hulustream\.com|max\.com|hbomax\.com|peacocktv\.com|paramountplus\.com|crunchyroll\.com|tv\.apple\.com|twitch\.tv|ttvnw\.net|jtvnw\.net|vimeo\.com|vimeocdn\.com|dailymotion\.com|dmcdn\.net|tiktok\.com|tiktokcdn\.com|spotify\.com|scdn\.co|soundcloud\.com|sndcdn\.com)$/i;
+/** Whether a URL is one of those hosts; tools/cuts.mjs asks before it fetches a quote's source. */
+export const neverFetched = (url) => { try { return NEVER.test(new URL(url).hostname); } catch { return true; } };
 // A page out there has no business reaching this machine's own services (the gate, the sandbox's proxy).
 const LOCAL = /^(localhost|.*\.localhost|127\.\d+\.\d+\.\d+|0\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|169\.254\.\d+\.\d+|::1?|f[cd][0-9a-f]*:.*|fe80:.*)$/i;
 // The consent managers' own containers, by their documented ids and classes; a banner none of them names is found
@@ -485,7 +487,7 @@ const DIST = path.join(ROOT, 'dist');
 const distPage = (ed) => path.join(DIST, ed.path.replace(/^\//, ''), 'index.html');
 const decode = (s) => s.replace(/<[^>]+>/g, '').replace(/&(#x?[0-9a-f]+|amp|lt|gt|quot|apos|nbsp);/gi, (_, e) => (e[0] === '#' ? String.fromCodePoint(e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : +e.slice(1)) : { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }[e.toLowerCase()])).replace(/\s+/g, ' ').trim();
 /** An edition's numbered sources, read from its built page (ours, generated), or null before a build. */
-function sourcesOf(ed) {
+export function sourcesOf(ed) {
   const f = distPage(ed);
   if (!fs.existsSync(f)) return null;
   const ol = /<ol[^>]*class="[^"]*\bsources\b[^"]*"[^>]*>([\s\S]*?)<\/ol>/.exec(fs.readFileSync(f, 'utf8'));

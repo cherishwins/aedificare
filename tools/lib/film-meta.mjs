@@ -11,12 +11,19 @@ import { kLabel } from './film.mjs';
 import { fitChapters } from './chapters.mjs';
 
 const mmss = (x) => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
+// What YouTube takes (developers.google.com/youtube/v3/docs/videos): a title of 100 characters, a description of
+// 5,000 bytes, and neither holding < or >. Checked here, where the words are filed, and not only at upload.
+export const TITLE_MAX = 100, DESCRIPTION_MAX = 5000;
+
+/** The voice text two guards read: film.yml's morning skip test and the voice check in tools/youtube-channel.mjs. */
+export const voiceText = (N) => `Voice: synthetic, ${N.model} ${N.voice}`;
 
 /**
  * E: the edition. S: script.json. N: narration.json. short: the Short's meta. musicLine: the description's
- * music credit, which only the render knows (the computed bed, a licensed file, or none).
+ * music credit, which only the render knows (the computed bed, a licensed file, or none). cuts: the release's
+ * cuts.json when the film is a re-cut (tools/cuts.mjs), whose credits name every source shown on screen.
  */
-export function filmMeta(E, S, N, { short = false, musicLine }) {
+export function filmMeta(E, S, N, { short = false, musicLine, cuts = null }) {
   const url = SITE.origin + E.path;
   const chapters = fitChapters([{ t: 0, text: E.title }, ...N.blocks.filter((x) => x.kind === 'h2').map((x) => ({ t: Math.max(0, x.start - 0.4), text: x.text }))], N.duration)
     .map((c) => `${mmss(c.t)} ${c.text}`);
@@ -40,10 +47,43 @@ export function filmMeta(E, S, N, { short = false, musicLine }) {
     ...(short ? [`The full edition, read in full, is on the channel and at ${url}.`] : chapters),
     '',
     `The writing is ${LICENCE.name} at ${url}: quote it, repeat it, translate it, train on it, credit ${SITE.name} and link the edition.`,
-    `Voice: synthetic, ${N.model} ${N.voice}. Every frame is computed from r = cos(kθ), seed ${E.seed}, k ${kLabel(E.k)}.`,
+    ...framesLines(E, N, url, cuts && (cuts.credits?.[short ? 'short' : 'film'] || [])),
     musicLine,
   ].join('\n');
-  return { title, description, chapters };
+  return { title, description, chapters, bytes: Buffer.byteLength(description) };
+}
+
+/**
+ * What the frames are. A film rendered by tools/generate-film.mjs is computed throughout, and says so on the voice's
+ * line, as every film filed before the re-cut did (kept byte for byte, so a refile changes nothing). A re-cut can show
+ * pages its sources published (`pixels`: a page shot as served, or the owner's footage), and then "every frame is
+ * computed" would be false: the voice keeps its text on a line of its own, the next line says what is computed, and
+ * the sources named on screen follow in the short form ("[NN] Publisher, date", no URL; the source-heavy films leave
+ * 75 to 94 bytes a source), then one line pointing at the numbered list.
+ */
+function framesLines(E, N, url, shown) {
+  const computed = `computed from r = cos(kθ), seed ${E.seed}, k ${kLabel(E.k)}`;
+  if (!shown) return [`${voiceText(N)}. Every frame is ${computed}.`];
+  if (!shown.length) return [`${voiceText(N)}.`, `Every frame is ${computed}.`];
+  const list = E.contents?.find((c) => /^sources$/i.test(c.t));
+  return [
+    `${voiceText(N)}.`,
+    shown.some((c) => c.pixels && !c.own) ? `${computed[0].toUpperCase()}${computed.slice(1)}, except the source pages shown as their publishers serve them.` : `Every frame is ${computed}.`,
+    'Sources on screen:',
+    ...shown.map((c) => c.line),
+    `Every source, numbered: ${url}${list ? `#${list.id}` : ''}`,
+  ];
+}
+
+/** What YouTube would refuse in a title and description, and a description that lost the voice text the guards read. */
+export function metaIssues({ title, description }, N) {
+  const out = [];
+  if (title.length > TITLE_MAX) out.push(`the title runs ${title.length} characters and YouTube takes ${TITLE_MAX}`);
+  const bytes = Buffer.byteLength(description);
+  if (bytes > DESCRIPTION_MAX) out.push(`the description runs ${bytes.toLocaleString('en')} bytes and YouTube takes ${DESCRIPTION_MAX.toLocaleString('en')}; shorten the credits`);
+  if (/[<>]/.test(title) || /[<>]/.test(description)) out.push('YouTube refuses < and > in a title or a description');
+  if (!description.split('\n').some((l) => l.startsWith(voiceText(N)))) out.push(`the description lost "${voiceText(N)}" at the start of a line, which film.yml's skip test and the upload's voice check read`);
+  return out;
 }
 
 /** The upload sheet a person pastes from, beside meta.json. */

@@ -311,7 +311,7 @@ function spokenWord(words, phrase, t0, t1) {
  * later than leaves room for the ones after it: clamped one at a time, two phrases in a one-second shot once
  * started on the same frame.
  */
-function sweepPlan(texts, s, d, words) {
+export function sweepPlan(texts, s, d, words) {
   const n = texts.length;
   if (!n) return [];
   const lo = Math.min(0.3, d / 4), end = d - Math.min(0.45, d / 4);
@@ -436,6 +436,25 @@ function hasAcid(file) {
 }
 
 /**
+ * Who published a captured page and when, as its shot's label names them and a description credits them
+ * (tools/cuts.mjs): the cut list's own `pub:` and `date:` for the source first, then what the capture read. Our own
+ * pages are named by edition. A refused capture is named by its host and the day the edition read it, because the
+ * wall's title says nothing about the source.
+ */
+export function pageSource(C, rec) {
+  const src = rec.src ? C.S.sources?.[rec.src] : null;
+  const given = src && typeof src === 'object' ? src : {};
+  if (rec.refused) {
+    const read = rec.source && /\bread (\d{1,2} [A-Z][a-z]{2} \d{4})/.exec(rec.source.text || '');
+    return { n: rec.src, pub: given.pub || new URL(rec.url).hostname.replace(/^www\./, ''), date: given.date || (read ? `read ${read[1]}` : ''), own: null };
+  }
+  const ed = rec.self ? edition(rec.page) : null;
+  const pub = ed ? `${SITE.name} · ${ed.title}` : given.pub || rec.publisher || new URL(rec.finalUrl || rec.url).hostname.replace(/^www\./, '');
+  const date = ed ? ed.dateLabel : given.date || dayLabel(rec.published) || `read ${dayLabel(rec.readAt)}`;
+  return { n: rec.src, pub, date, own: ed ? ed.title : null };
+}
+
+/**
  * The record tools/capture.mjs wrote for a page tag, found by the same name the capture gave it. The cut list's
  * sources give an outside source its URL, as they gave it to the capture; a value is a URL or a source object.
  */
@@ -461,14 +480,12 @@ export function pageRecord(C, tag) {
  */
 export async function pageHtml(C, s, { d, words = [], work }) {
   const { shot, rec } = pageRecord(C, s.tag);
-  const src = rec.src ? C.S.sources?.[rec.src] : null;
-  const given = src && typeof src === 'object' ? src : {};
+  const ps = pageSource(C, rec);
   if (rec.refused) {
     // The edition's own source line says when it was read; the wall's title says nothing about the source.
-    const read = rec.source && /\bread (\d{1,2} [A-Z][a-z]{2} \d{4})/.exec(rec.source.text || '');
-    const pub = `${rec.src ? `[${rec.src}] ` : ''}${given.pub || new URL(rec.url).hostname.replace(/^www\./, '')}`;
+    const pub = `${rec.src ? `[${rec.src}] ` : ''}${ps.pub}`;
     const plan = sweepPlan([shot.hl[0]], s, d, words)[0];
-    const qC = { ...C, S: { ...C.S, sources: { page: { pub, date: given.date || (read ? `read ${read[1]}` : '') } } } };
+    const qC = { ...C, S: { ...C.S, sources: { page: { pub, date: ps.date } } } };
     const h = quoteHtml(qC, { src: 'page', text: shot.hl.join(' … '), hl: shot.hl[0], by: '' }, plan.at);
     return { ...h, animMs: plan.at + 900, brand: h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>'), refused: `${rec.refusal}: ${rec.reason}`, sweeps: [plan] };
   }
@@ -508,10 +525,7 @@ export async function pageHtml(C, s, { d, words = [], work }) {
   const all = hull(boxes.flat());
   const ox = all.x, oy = all.y + all.h / 2;
   const plan = sweepPlan(phrases.map((h) => h.text), s, d, words);
-  const ed = rec.self ? edition(rec.page) : null;
-  const pub = ed ? `${SITE.name} · ${ed.title}` : given.pub || rec.publisher || new URL(rec.finalUrl || rec.url).hostname.replace(/^www\./, '');
-  const date = ed ? ed.dateLabel : given.date || dayLabel(rec.published) || `read ${dayLabel(rec.readAt)}`;
-  const label = `${rec.src ? `[${rec.src}] ` : ''}${pub} · ${date}`.replace(/—/g, ' – ');
+  const label = `${rec.src ? `[${rec.src}] ` : ''}${ps.pub} · ${ps.date}`.replace(/—/g, ' – ');
   const f = (v) => v.toFixed(1);
   const hl = boxes.map((bs, p) => bs.map((b) => `<div class="hl" data-p="${p}" style="left:${f(b.x)}px;top:${f(b.y)}px;height:${f(b.h)}px;width:0">${dark ? `<span style="left:${f(-b.x)}px;top:${f(-b.y)}px"></span>` : ''}</div>`).join('')).join('');
   const masks = c.masks.map((m) => `<div class="mask" style="left:${f(m.x)}px;top:${f(m.y)}px;width:${f(m.w)}px;height:${f(m.h)}px"></div>`).join('');

@@ -392,7 +392,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
   function the render itself writes them with, so the two cannot differ;
   `.github/workflows/film-meta.yml` runs it over the releases, dry by
   default; `lib/diff.mjs` is the line diff both it and a sync dry run
-  print), `youtube-auth.mjs`
+  print; a re-cut's credits come from its release's `cuts.json`, and a
+  meta marked as a re-cut with no `cuts.json` fails rather than strip
+  them; `--test`, run by `verify.yml`, builds every published edition's
+  description plain and as a re-cut and fails unless each still carries
+  `Voice: synthetic, <model> <voice id>` at the start of a line, where
+  `film.yml`'s morning skip test and the upload guard read it, and fits
+  YouTube's 5,000 bytes, which the render, the refile and the re-cut now
+  all measure when they file, not only the upload), `youtube-auth.mjs`
   (mints the refresh token once, on the owner's machine, with the upload,
   metadata and read scopes), `youtube-analytics.mjs` (the channel's numbers
   as a report: views, watch time, average view duration, subscribers,
@@ -557,6 +564,42 @@ for a shortlist for bios and cards, which is a separate deliverable.
   at 48), cut by every ancestor that clips them (a carousel's hidden
   thumbnails reported boxes over the text beside it), and counted again
   once the PNG exists.
+  **`tools/cuts.mjs` re-cuts an edition film without a word spoken
+  again** (2026-10-20, spec step 2). A cut list,
+  `source/film/<slug>.cuts.md` (its format is the tool's header), names a
+  phrase of the release's own `narration.json` and the shot that lands on
+  it: any kind of `tools/lib/shots.mjs` but a clip, which carries its own
+  sound. Its front matter pins the narration and the clean film and Short
+  by sha256, because the anchors are word times and the inserts are cut
+  into those exact frames. A cut lands 0.15 s before its word on or
+  before the frame, and holds until the next cut, `until:` or `hold:`;
+  the clean render's computed shots win unless the line says `over: base`;
+  nothing covers the opening field, the title's words, the record or the
+  dove. `check` holds the spec's rules before any frame: every number on
+  a computed surface on the built page's text (spelled numbers read as
+  numbers, the page's SVG left out, so a path's 44.27 is not a fact), a
+  pop's words too; every page shot captured and its words boxed; twelve
+  words on a card, three in a pop; one Acid at a time (a pop over a shot
+  that spends one turns Flash); no footage in a Short (left out and
+  said); the grammar's warnings and failures (spec 2.2); and each
+  description, credits included, in YouTube's limits and still naming the
+  channel's voice. `render` cuts each insert to a segment of exactly its
+  frames, the clean render between them seeked half a frame early so the
+  first frame is the one asked for, joins them without a re-encode,
+  overlays the pops as one sparse layer, and encodes once with the clean
+  render's own sound copied packet for packet (checked after, with the
+  frame count). Its buffer is six seconds of the 8 Mbps cap: at the
+  encoder's 16 Mbit the opening field's dense curves, already compressed
+  once, came out in blocks. It writes the re-cut under the release's
+  usual names with `meta.json` (marked `recut:` with the list's hash),
+  the sheets and `cuts.json`, each insert with its frames, its capture
+  and its credit line. `suggest` drafts a list: a page line per timed
+  citation mark, every rose run over 3.6 s with its words. `pages` names
+  the page tags with no capture yet. Tried on a synthetic list over The
+  Floor's first minute: the Short and a 60 s window of the film, every
+  piece on its frame and every pop on its frames, proved frame by frame
+  against the clean render and the joined picture, the sound identical,
+  and the refile writing the same description the render wrote.
 - `.claude/skills/youtube/SKILL.md`: how a session runs the channel (the
   credentials check, list and sync, the private lock and the two upload
   routes, what must be true before a render goes up, analytics, quota,
@@ -582,7 +625,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - `.github/workflows/verify.yml`: build (with the three checkers), the
   audit through `tools/check-audit.cjs`, actionlint over every workflow
   (pinned by checksum; the film workflows run unattended and no longer
-  prove themselves on a push), sweep, on every PR and push to `main`.
+  prove themselves on a push), `tools/film-meta.mjs --test`, sweep, on
+  every PR and push to `main`.
 - `.github/workflows/film.yml`: manual dispatch, `slug` and `format`
   inputs, and callable (`film-queue.yml`). Renders a narrated film on a
   clean runner (build, Playwright, ffmpeg, espeak-ng, `uv`) and keeps
@@ -595,7 +639,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   warning and files nothing, and the next run continues from the cache.
   With `skip_voiced` it does nothing for an edition whose release already
   names the voice. It no longer runs when the file itself changes: a proof
-  render spent a day's quota (2026-10-17).
+  render spent a day's quota (2026-10-17). It keeps the voice alone as
+  `narration.flac`, which `release.yml` files, because the stem a re-cut
+  that adds time would need lives otherwise only in the 90-day artifact.
 - `.github/workflows/film-queue.yml`: every morning at 08:20 UTC runs
   `film.yml` once per published edition from `src/lib/editions.mjs`,
   oldest first, one at a time, with `skip_voiced`, so every edition not
@@ -626,7 +672,26 @@ for a shortlist for bios and cards, which is a separate deliverable.
   transcodes any video still at or over the limit to the same cap before
   uploading, so an old render can be filed without an hour's re-render.
   The Closest Humans' film was 2.03 GB, a near miss that the cap now
-  makes impossible.
+  makes impossible. **The clean render is filed twice** (2026-10-20): a
+  fresh render also goes up under base names
+  (`<slug>-film-base-1920x1080.mp4`, `<slug>-short-base-1080x1920.mp4`,
+  hard links, so nothing is copied) with `narration.flac`, and nothing
+  else writes those names. A re-cut is filed with `recut: true` under the
+  usual names with its `cuts.json`, and the job refuses one that carries
+  a base file or the stem. Because every upload clobbers, a re-cut filed
+  under the usual names and cut again would have composed over itself;
+  the base names and the cut list's sha256 pins make that impossible, and
+  a page corrected and rendered again refreshes the base, which the old
+  list's pins then refuse. A fresh render removes a `cuts.json` left by
+  an earlier re-cut.
+- `.github/workflows/recut.yml`: manual dispatch, `slug`. Cuts the film
+  and the Short again from `source/film/<slug>.cuts.md` with
+  `tools/cuts.mjs` over the base files it downloads, captures any page
+  shot not yet filed on the Release `pages-<slug>` (and files what it
+  captured; a refusal is asked again next run), checks with `--online`,
+  and files through `release.yml` with `recut: true`. No secret reaches
+  it, it never runs `film.yml` or `tools/generate-film.mjs`, and nothing
+  in it can speak, so it cannot spend a credit.
 - `.github/workflows/episode.yml`: manual dispatch, `slug` input. Checks
   the episode script online, downloads the owner's footage from the
   Release `footage-<slug>`, renders with `tools/episode.mjs`, and files
@@ -644,7 +709,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   narration, and retitles the release; nothing reaches YouTube, which is
   `youtube.yml action=sync`'s job, dry first. Written 2026-10-20 so a
   title or description changes in `src/lib/editions.mjs` and reaches the
-  channel in minutes, at no render and no voice credits.
+  channel in minutes, at no render and no voice credits. It downloads a
+  re-cut's `cuts.json` too, so the refile keeps its credits.
 - `.github/workflows/verify-live.yml`: manual dispatch, `url` input. Curls
   every route and discovery file on the live origin, checks the headers,
   canonical, draft noindex and sitemap exclusion, then runs the same sweep

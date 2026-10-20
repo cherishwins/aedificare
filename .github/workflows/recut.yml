@@ -1,0 +1,135 @@
+# The re-cut (tools/cuts.mjs; spec 3.2, step 2): an edition film and its Short
+# cut again from the cut list source/film/<slug>.cuts.md, with the shots that
+# list names landing on the words, over the clean render the list pins by
+# sha256, and filed under the release's usual file names with cuts.json, the
+# manifest the description's credits are read from.
+#
+# Nothing here can speak, so nothing here can spend a credit: no secret
+# reaches this workflow (not ELEVENLABS_API_KEY, not PLUTO, not
+# GEMINI_API_KEY), it never runs film.yml, and it never runs
+# tools/generate-film.mjs at all, whose first step reads the current page and
+# whose narrate step is the paid voice. The narration, its word times and the
+# picture are the release's own files: the clean film and Short under their
+# base names (<slug>-film-base-1920x1080.mp4, <slug>-short-base-1080x1920.mp4),
+# which release.yml files from every fresh render and never from a re-cut, so
+# a re-cut never composes over the last re-cut.
+#
+# The page shots: the captures filed on the Release pages-<slug> are used as
+# filed, so the film shows what was checked; a tag with no capture yet is shot
+# here (tools/capture.mjs, which refuses at any wall) and what it captured is
+# filed there for the next run. A refusal is not filed: the next run asks again.
+#
+# Uploading stays with youtube.yml (action=upload, replace=corrected).
+name: recut
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'Edition slug; the cut list is source/film/<slug>.cuts.md'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  recut:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    # The same group as film.yml: a render and a re-cut of one edition never run at once.
+    concurrency:
+      group: film-${{ inputs.slug }}
+      cancel-in-progress: false
+    permissions:
+      contents: write  # files new captures on the Release pages-<slug>
+    env:
+      SLUG: ${{ inputs.slug }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Playwright stays out of package.json (CLAUDE.md, Stack). No espeak-ng and no uv: nothing here narrates.
+      - name: Install Playwright and ffmpeg
+        run: |
+          npm i --no-save playwright
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      # The check reads the built page (every number shown must be on it), and a shot of our own page is taken from it.
+      - name: Build
+        run: npm run build
+
+      - name: The release's files
+        run: |
+          set -e
+          list="source/film/$SLUG.cuts.md"
+          [ -f "$list" ] || { echo "::error::$list does not exist"; exit 1; }
+          dir="brand/youtube/$SLUG"
+          mkdir -p "$dir/pages" "$dir/footage"
+          # One file at a time, so a missing one is named; the check says what each is for.
+          for f in narration.json script.json timeline.txt meta.json meta-short.json "$SLUG-film-base-1920x1080.mp4" "$SLUG-short-base-1080x1920.mp4"; do
+            gh release download "film-$SLUG" -R "$GITHUB_REPOSITORY" -D "$dir" --clobber -p "$f" || echo "::warning::film-$SLUG has no $f"
+          done
+          # The captures filed for this edition (pages-<slug>) and the owner's footage (footage-<slug>), where they exist.
+          for rel in pages footage; do
+            if gh release view "$rel-$SLUG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              gh release download "$rel-$SLUG" -R "$GITHUB_REPOSITORY" -D "$dir/$rel" --clobber
+            fi
+          done
+
+      - name: Capture what is not filed
+        run: |
+          set -e
+          dir="brand/youtube/$SLUG"
+          mapfile -t tags < <(node tools/cuts.mjs pages "source/film/$SLUG.cuts.md")
+          if [ "${#tags[@]}" -eq 0 ]; then echo "every page shot is filed"; exit 0; fi
+          args=()
+          for t in "${tags[@]}"; do args+=(--page "$t"); done
+          touch "$RUNNER_TEMP/mark"
+          # A failed capture (words not on the page) fails the check next, with its reason.
+          node tools/capture.mjs "$SLUG" "${args[@]}" || echo "::warning::a capture failed; the check names it"
+          if ! gh release view "pages-$SLUG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "pages-$SLUG" -R "$GITHUB_REPOSITORY" --title "Pages for $SLUG" --latest=false \
+              --notes "The source pages the re-cut of /$SLUG shows, as tools/capture.mjs shot them: a PNG and its record per shot."
+          fi
+          while IFS= read -r j; do
+            if jq -e '.ok == true' "$j" >/dev/null; then gh release upload "pages-$SLUG" -R "$GITHUB_REPOSITORY" "$j" "${j%.json}.png" --clobber; fi
+          done < <(find "$dir/pages" -name '*.json' -newer "$RUNNER_TEMP/mark")
+
+      - name: Check
+        run: node tools/cuts.mjs check "source/film/$SLUG.cuts.md" --online
+
+      - name: Film
+        run: node tools/cuts.mjs render "source/film/$SLUG.cuts.md"
+
+      - name: Short
+        run: node tools/cuts.mjs render "source/film/$SLUG.cuts.md" --short
+
+      - name: Keep the re-cut
+        uses: actions/upload-artifact@v4
+        with:
+          name: recut-${{ env.SLUG }}
+          path: brand/youtube/${{ env.SLUG }}/recut
+          retention-days: 90
+          compression-level: 0
+
+  # Filed as film-<slug> under the usual names, the base files and the voice stem left as they are.
+  release:
+    needs: recut
+    uses: ./.github/workflows/release.yml
+    permissions:
+      contents: write
+      actions: read
+    with:
+      slug: ${{ inputs.slug }}
+      run_id: ${{ github.run_id }}
+      artifact: recut-${{ inputs.slug }}
+      recut: true
