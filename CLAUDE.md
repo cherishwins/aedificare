@@ -554,7 +554,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   whole grid, outer rules and all, and another grid level with the
   window is taken in whole or left out, never cut through a column (an
   edge inside Meshtastic's preset table cut its left rule and first
-  column, 20 Oct). The margins are two ems of the words' type (24 CSS
+  column, 20 Oct). A grid is as wide as what its rows show, their text,
+  the rules and grounds their cells draw and their bars, not the empty
+  end of a row box wider than its columns (The Floor's bar chart sat left
+  of a 42 px strip). The margins are two ems of the words' type (24 CSS
   px at least) that stop halfway to anything of another block level
   with it: text, a
   picture, an inline SVG chart with the figure that holds it, a box
@@ -567,9 +570,16 @@ for a shortlist for bios and cards, which is a separate deliverable.
   a fill or a frame; a rule across alone is a line, and a table's cells
   are its grid, kept or left out as rows. Text above the heading that
   opens the words' section (the nearest heading above them in the page's
-  order) is another section's and is left out, and so is the tail of a
-  list whose first item the picture leaves out (RSS-247's 6.4 list over
-  6.5's heading). A figure's caption, a table's caption or head, and a
+  order) is another section's and is left out, and so are the next
+  heading below them and what follows it (RSS-247's "6.4 Hybrid Systems"
+  and its lead-in under 6.3.2's words, the list's items cut off; the
+  "Haven 1" section under Parallel's price paragraph). So is the tail of a list
+  whose first item the picture leaves out (RSS-247's 6.4 list over 6.5's
+  heading), the start of one whose last item it leaves out below the
+  words, and the block just before a list it leaves out whole, the
+  list's lead-in. A list item is one block with the lists inside it,
+  shown whole or not at all (RSS-247's item c ended the picture on
+  "comply with the following:" with its sub-items left out). A figure's caption, a table's caption or head, and a
   grid of divs' head (a framed row above its rows that shares their
   columns) stay in the window with the figures they name where the
   window can move to keep them, the words leaving the band if that is
@@ -577,7 +587,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   (Morse Micro's "24 30", whose units and directions are in the head),
   the zoom also drops toward the floor to hold both (2.25 to 1.95 there),
   and where even the floor cannot, the shot is its quote card
-  (`unnamed`). Another grid's rows come with their head too, or are left
+  (`unnamed`). The same holds wherever the words sit in a grid whose
+  head names its columns, bare figure or not, because the picture shows
+  the other columns too (Meshtastic's "11 / 2048" and "4/5" with nothing
+  to say they are a spreading factor and a coding rate; "not stated" in
+  The Floor's parts table with no STATED over it): the parts table's
+  Battery hat row (lines 70 and 139) drops from 2.8 to 2.64 to show its
+  head. Another grid's rows come with their head too, or are left
   out: Parallel's table of PHY rates over its 40 to 60 percent line
   could not be shown whole, because the line's quote bar keeps the
   window inside the table's left rule, so the line shows alone. Text the
@@ -586,7 +602,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   margin before a line is left out (Cisco's heading was left out 1.5 px
   inside the edge with 28 px to spare on the right), and a window at its
   full width moves toward equal margins where the side it moves to is
-  clear. A rule across the picture (a heading's underline, a ruled row)
+  clear. Both measure from the ink the picture shows, its lines and the
+  boxes drawn whole inside it: the shift that brought Cisco's heading
+  back, measured from the text alone, left its framed note's right rule
+  4.8 CSS px from the edge, and now the note and the heading stand 9.4
+  px from either side. A rule across the picture (a heading's underline, a ruled row)
   ends inside it with the same margin on both sides or runs off both,
   never one (Parallel's heading rules ended 1.7 px from one edge and
   10.3 px from the other); one wider than the widest window, with its
@@ -608,7 +628,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
   fills**, the smallest size Apple's interface guidelines call legible:
   30 px in the Short (1,080 px across a phone 390 pt wide) and 25 px in
   the film (1,920 across the same phone on its side), at most 45 and
-  42. A block that cannot be read whole at that size gives way to the
+  42. That is every line in the picture, not only the words: the zoom
+  is at least what reads the smallest line of the blocks shown whole (a
+  line of citation marks in 12 px under The Floor's 18 px prose, lines
+  44 and 159), and another block's line that would still show smaller
+  is left out with what stands beyond it (The Markup's 11 px byline,
+  line 125; Morse Micro's 12 px Previous and Next under its version
+  table, 168; a 13.6 px code link in GitHub's list under Parallel's
+  firmware line, 63, whose list and its lead-in then go too). A block that cannot be read whole at that size gives way to the
   cells that hold the words, with the row's label (its first cell) and
   everything between them, because a figure is not shown without the
   name of its row (The Markup's ledger showed its 43.3 cell with no
@@ -621,7 +648,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   and `check` notes them, and a
   page shot's card sweeps every phrase on its own word, one lit at a
   time, as the page would have (it lit only the first). On The Floor
-  that puts fourteen page shots on their cards: five of the Short's six
+  that puts seventeen page shots on their cards: five of the Short's six
   (a Geeky Gadgets list item and The Floor's own paragraph run 625 and
   738 CSS px of 18 px type where the Short can show at most 512 whole,
   Morse Micro's spec row 628 px of 13 px type where it can show 370, the
@@ -633,7 +660,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   where the film can show at most 870 whole), OpenMANET's support table,
   Seeed's price box and the three ledger shots of the 43.3 cell (lines
   33, 45 and 161: the same 1,080 px, more than the film's 960 of 15 px
-  type). Cards
+  type), and three whose table's head cannot be held with them
+  (`unnamed`): Meshtastic's Long Fast row (line 130), 650 CSS px from
+  its head, which would take a zoom of 1.14 where the floor for its 16
+  px type is 1.56, and the
+  parts table's Wi-Fi dongle and Total rows (72 and 75), whose 11 px
+  head needs a zoom of 2.27 where 338 and 422 px from head to row allow
+  2.16 and 1.74. Cards
   that run back to back with no cut between, in the film as in the
   Short, are set on the two grounds in turn: the second on Bottle, its
   source line Flash, so it reads as a new picture and not the first one
@@ -806,7 +839,16 @@ for a shortlist for bios and cards, which is a separate deliverable.
   edge and one frame with ink under 8 px from the picture's edge: the
   last of line 63, where the highlighter stands 6 px in, because the
   Firmware heading's rule keeps margins of 6 CSS px a side at the type
-  floor. One thing seen there stays the list's:
+  floor. Two more skeptics then read those frames for regressions and
+  for whether the fixes held, and found type under the floor beside the
+  words, another section's heading and lead-in under them, a list item's
+  lead-in with its sub-items cut off, rows shown without their table's
+  head, a framed note's rule 8 px from the edge after the shift for
+  Cisco's heading, and a bar chart left of an empty strip; each is fixed
+  in the crop as written above, and all 90 inserts were rendered again at
+  their first, middle and last frames beside the previous pass's (30
+  changed, 60 pixel-identical) and looked at. One thing seen there stays
+  the list's:
   the pop "THE CHANNEL" (line 39) stands over the top lines of the
   Parallel page shot under it in the Short. **The spec's targets disagree
   on this film**: a rose at 10 percent or less needs about 130 inserts,

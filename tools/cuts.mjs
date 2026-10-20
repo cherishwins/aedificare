@@ -285,7 +285,7 @@ function place(X, P, fmt, frames, C) {
     // A block too wide to read whole at the frame's smallest type is its quote card, never a picture of cut lines.
     if (v?.card === 'wide') notes.push(`line ${e.line}: page: the words' block cannot be read whole at the ${fmt}'s smallest type (${v.P.minType} px), so the ${fmt} shows the shot's quote card; words in a narrower block show the page`);
     if (v?.card === 'small') notes.push(`line ${e.line}: page: the words' block, with the blocks around it, is a sliver of its page at the ${fmt}'s largest type (${v.P.maxType} px), so the ${fmt} shows the shot's quote card`);
-    if (v?.card === 'unnamed') notes.push(`line ${e.line}: page: the words carry a figure only their table's head or caption names, and the ${fmt} cannot show both at its smallest type (${v.P.minType} px), so it shows the shot's quote card`);
+    if (v?.card === 'unnamed') notes.push(`line ${e.line}: page: the words sit in a table whose head names its columns, or carry a figure only a head or caption names, and the ${fmt} cannot show both at its smallest type (${v.P.minType} px), so it shows the shot's quote card`);
     let a = e.a, b = Math.min(e.b, lim);
     const bad = forbidden(a, b);
     if (bad) { issues.push(`line ${e.line}: ${e.kind} at ${secs(a)} s would cover ${bad.id}, which nothing covers`); continue; }
