@@ -494,6 +494,32 @@ for a shortlist for bios and cards, which is a separate deliverable.
   differently (at most 6 levels in 255) from a second run of the same
   code, so a regression that differs from one baseline is checked against
   a second before the difference counts.
+  **`tools/capture.mjs` shoots the pages a film shows** (2026-10-20), the
+  capture half of the `page` shot: a cited source in Chromium, 1440 CSS px
+  wide at twice the pixel density, under the honest agent
+  `AedificareFilmBot/1.0`, the quoted words (`hl:`) found across text
+  nodes and boxed, one PNG and one JSON a shot in
+  `brand/youtube/<slug>/pages/`; `self <n>` shoots our own built page from
+  `dist/` with the network closed. It refuses, records why and asks that
+  host nothing more in the run: YouTube and the streaming services (never
+  fetched, not even a redirect hop), a robots.txt that disallows it, a bot
+  check, WAF challenge, sign-in wall, paywall or ad-blocker prompt, and a
+  check that clears itself by script. Every connection goes through a gate
+  on 127.0.0.1 that refuses those hosts and this machine's own addresses,
+  because a Playwright route never sees a redirect hop and Chromium skips
+  any proxy for loopback unless told not to (both found while building
+  it). Clean mode hides cookie banners and ad slots by CSS and blocks
+  nothing: blocking ad servers put up Geeky Gadgets' ad-blocker modal over
+  the very sentence the shot was for. Words a reader cannot see fail
+  instead of passing: in a collapsed part of the page, or under an overlay
+  (the topmost element at each box must be the words' own). A closed
+  `<details>` holding them is opened, as a reader would open it; a
+  script's accordion is not. Tried on The Floor's sources on 20 Oct: 12 of
+  the 13 that may be fetched shot clean, eCFR refused at its "Request
+  Access" gate, both YouTube sources refused unfetched, and source 11, The
+  Markup, shot from the build. Morse Micro's "not the data rate" line
+  failed as hidden (it is in a collapsed FAQ answer), so its spec row was
+  shot instead.
 - `.claude/skills/youtube/SKILL.md`: how a session runs the channel (the
   credentials check, list and sync, the private lock and the two upload
   routes, what must be true before a render goes up, analytics, quota,
