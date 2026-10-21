@@ -2297,7 +2297,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   **Small on purpose.** Each thumbnail
   sets one word or figure in Acid; at 112 by 63 its tallest band of Acid
   ink, as the probe reads it where it is shown, is 14 px (The Supply
-  Cabinet's 1,200), 12 (SUBTRACTION) and 11 (69), and The Markup's
+  Cabinet's 1,200 and The Countersign's 9,000+), 12 (SUBTRACTION) and
+  11 (69), and The Markup's
   $18,214, not linked yet, reads 15, all under the 16 px capital
   of 24 px type where the probe starts counting "at scale". At 128 by 72
   the 1,200 reached 16 px with its comma, so the size came down. A surface
@@ -2327,7 +2328,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   would have turned every PR red until a correct link was dropped). First linked, as the films
   public at 15:23 UTC on 20 Oct, each id checked against its ledger: The
   Fourth Axis (`9joaycmFqsU`), The Subtraction (`00hUzMPhGsY`) and The
-  Supply Cabinet (`yGdOAIj1Wa8`).
+  Supply Cabinet (`yGdOAIj1Wa8`); then The Countersign (`6j4BfaF8ZvM`),
+  public at 15:00 UTC on 21 Oct.
 
 ## Open
 
