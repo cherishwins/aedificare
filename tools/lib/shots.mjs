@@ -323,29 +323,35 @@ function spokenWord(words, phrase, t0, t1) {
 }
 
 /**
- * When each phrase's highlighter starts, in ms from the shot's first frame: on the word that says it (sync rule 3:
+* When each phrase's highlighter starts, in ms from the shot's first frame: on the word that says it (sync rule 3:
  * the Acid lands on its word), or one beat in for a single phrase nobody says (the quote card's rule), later
  * phrases spread across the shot. A sweep runs 900 ms, the kit's slow beat, shortened only when the shot cannot
- * hold every phrase at that pace; each starts after the one before has finished, and the last finishes half a beat
- * before the cut (a quarter of a short shot), so the point is on screen before the next shot. A phrase starts no
- * later than leaves room for the ones after it: clamped one at a time, two phrases in a one-second shot once
- * started on the same frame.
+ * hold every phrase at that pace; each starts after the one before has been shown whole on a frame of the film's
+ * grid, and the last finishes half a beat before the cut (a quarter of a short shot), so the point is on screen
+ * before the next shot. Started on the very millisecond the sweep before it finished, a phrase took over before any
+ * frame showed that one whole: four of The Floor's phrases were never more than 96 to 99 percent lit, the end of
+ * "for." and a full stop never lit at all (review, 21 Oct 2026). A phrase starts no later than leaves room for the
+ * ones after it: clamped one at a time, two phrases in a one-second shot once started on the same frame.
  */
 export function sweepPlan(texts, s, d, words) {
   const n = texts.length;
   if (!n) return [];
-  const lo = Math.min(0.3, d / 4), end = d - Math.min(0.45, d / 4);
-  const dur = Math.min(0.9, Math.max(1 / FPS, (end - lo) / n));
-  const latest = (i) => Math.max(lo, end - (n - i) * dur);
+  const lo = Math.min(0.3, d / 4), end = d - Math.min(0.45, d / 4), gap = 1 / FPS;
+  const dur = Math.min(0.9, Math.max(1 / FPS, (end - lo - (n - 1) * gap) / n));
+  const latest = (i) => Math.max(lo, end - dur - (n - 1 - i) * (dur + gap));
   const first = Math.round(s.t * FPS) / FPS; // the shot's first frame on the film's grid
   const a = Math.min(0.9, latest(0));
-  let prev = -Infinity;
+  let next = -Infinity;
   return texts.map((text, i) => {
     const w = spokenWord(words, text, s.t, s.end);
     let at = w ? w.s - first : n === 1 ? a : a + (i * (latest(n - 1) - a)) / (n - 1);
-    at = Math.min(latest(i), Math.max(lo, at, prev + dur));
-    prev = at;
-    return { text, word: w, at: Math.round(at * 1000), dur: Math.round(dur * 1000) };
+    at = Math.min(latest(i), Math.max(lo, at, next));
+    const atMs = Math.round(at * 1000), durMs = Math.round(dur * 1000);
+    // The first frame at or after this sweep ends (frames fall every 1000/FPS ms from the shot's first): the next
+    // phrase starts after it, so that frame shows this one whole.
+    const lit = (Math.ceil(((atMs + durMs) * FPS) / 1000 - 1e-9) * 1000) / FPS;
+    next = (Math.floor(lit) + 1) / 1000;
+    return { text, word: w, at: atMs, dur: durMs };
   });
 }
 

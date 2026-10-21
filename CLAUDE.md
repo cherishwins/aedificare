@@ -583,7 +583,16 @@ for a shortlist for bios and cards, which is a separate deliverable.
   Acid in the same copy, no longer a blended box, so a picture's covers
   go over it. Measured on the pilot's 90 page inserts (84 in the film, 6
   in the Short, 17 of them quote cards), at each insert's first and last
-  frame and each phrase's fully lit frame: glyphs crossed by a bar's end
+  frame and each phrase's first fully lit frame on the film's grid (one
+  exists for every phrase since `sweepPlan` starts a phrase only after a
+  frame has shown the one before it whole: five phrases of The Floor,
+  on lines 66, 125, 132 and 170 and two on line 62's card, were taken
+  over on the very millisecond their sweep finished, never more than 96
+  to 99 percent lit, the end of "for." and a full stop never lit, review
+  of 21 Oct; the phrases after them start up to 34 ms later, or, where
+  the shot is full, the sweeps before them up to 41 ms earlier, line
+  66's 4 ms shorter): glyphs
+  crossed by a bar's end
   (two of its pixels lit and two untouched, read against the same frame
   with the bars hidden) fell from 13 at b1aa369, the quote mark after
   "$106.23" and twelve commas and full stops on others' pages, to none
@@ -594,14 +603,17 @@ for a shortlist for bios and cards, which is a separate deliverable.
   with no ink within three is exact Acid (1,075 had stood one level off
   where two lines' bars met), and exact Flash on all 35 rendered with
   the bar forced to Flash (no shot of the pilot keeps the page's own
-  Acid). Against 4934f65 (21 Oct): the shift that best matches each
+  Acid). Against 4934f65 (20 Oct): the shift that best matches each
   bar's words to the same words with the bars hidden is none for all 262
   bars, where six had been half a pixel low (on 115 and 156; b1aa369 had
   nine a quarter or half a pixel across, on our pages); pixels of
   others' pages lit by a bar whose green, which Acid keeps, differs from
-  the page's by more than 2 fell from 28,748 to 24, in single columns of
-  three frames and at most 8 levels (b1aa369 had 8, in one of those
-  columns); the first row wholly inside each of the 236 top and bottom
+  the page's by more than 2 fell from 28,748 to 24 at the lit frames
+  first measured (single columns of three frames, at most 8 levels), and
+  read again at the film's real frames from 28,772 to 10, in one column
+  of one frame, at most 11 levels, where b1aa369 has none there (its
+  blended box made such columns too, 8 pixels at an off-grid frame of
+  line 107); none is visible; the first row wholly inside each of the 236 top and bottom
   edges of our pages' bars is full Acid along its middle, where 12 had
   been partly dark; ends with no more than a column of the bar past the
   phrase's ink fell from 19 to one, Seeed's ",powered", whose comma
