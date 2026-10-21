@@ -1,0 +1,30 @@
+---
+/**
+ * An edition's film, once it is out: a block link to its YouTube watch page
+ * with the film's own thumbnail, and the film's record (Film, its length, the
+ * platform) set like the PDF's beside it. No call to action, and nothing
+ * embedded: the thumbnail is served from this origin at the size it is shown,
+ * so a page that carries it makes no request to anyone else, and the link is
+ * the only way out (CLAUDE.md, Decisions log, 21 Oct 2026). Which films are
+ * out is src/lib/films.mjs's; without one this renders nothing.
+ *
+ * The thumbnail stays small on purpose: its Acid word or figure stands under
+ * a 24px capital, so it is not a second loud move on the surface it sits on
+ * (tools/films.mjs sets the size, tools/verify.cjs measures the ink). The
+ * hairline gives it an edge where its ground is the surface's own.
+ */
+import { film } from '../lib/films.mjs';
+interface Props { slug: string; class?: string }
+const { slug, class: cls } = Astro.props;
+const f = film(slug);
+---
+{f && (
+  <a class:list={['block-link', 'film', cls]} href={f.url}>
+    <img src={f.thumb.src} srcset={`${f.thumb.src2x} 2x`} width={f.thumb.width} height={f.thumb.height} alt={f.thumb.alt} loading="lazy" decoding="async" />
+    <span>Film · {f.length} · YouTube</span>
+  </a>
+)}
+<style>
+  .film { display: flex; align-items: center; gap: 16px; }
+  .film img { flex: none; box-sizing: content-box; border: 1px solid rgba(0, 178, 79, .38); }
+</style>

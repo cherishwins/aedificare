@@ -13,6 +13,7 @@ const ROOT = process.argv[2] || 'dist';
 async function main() {
   const { PUBLISHED } = await import('../src/lib/editions.mjs');
   const { SITE } = await import('../src/config.mjs');
+  const { film } = await import('../src/lib/films.mjs');
   const out = [`${SITE.name}. Numbered editions by ${SITE.author}. ${SITE.origin}`, 'Licence: CC BY 4.0. Quote, repeat, translate, train; credit Aedificare and link the edition.', ''];
   let words = 0;
   for (const e of PUBLISHED) {
@@ -31,7 +32,7 @@ async function main() {
       .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>')
       .replace(/[ \t]+/g, ' ').replace(/ ·\s*\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
     words += text.split(/\s+/).length;
-    out.push('='.repeat(72), `${e.code} · ${e.title}`, `${e.dateLabel} · ${SITE.origin}${e.path}${e.pdf ? ` · PDF ${SITE.origin}${e.pdf}` : ''}`, '='.repeat(72), '', text, '');
+    out.push('='.repeat(72), `${e.code} · ${e.title}`, `${e.dateLabel} · ${SITE.origin}${e.path}${e.pdf ? ` · PDF ${SITE.origin}${e.pdf}` : ''}${film(e.slug) ? ` · Film ${film(e.slug).url}` : ''}`, '='.repeat(72), '', text, '');
   }
   fs.writeFileSync(path.join(ROOT, 'llms-full.txt'), out.join('\n'));
   console.log(`generate-llms-full: ${PUBLISHED.length} editions, ~${words} words -> ${ROOT}/llms-full.txt`);

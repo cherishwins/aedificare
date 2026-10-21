@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Masthead from '../components/Masthead.astro';
 import RoseField from '../components/RoseField.astro';
+import FilmLink from '../components/FilmLink.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { PUBLISHED, LICENCE, numberWord } from '../lib/editions.mjs';
 import fs from 'node:fs';
@@ -58,6 +59,7 @@ for (const e of PUBLISHED) {
           <p class="c-full links mono-b">
             <a class="block-link" href={e.path}>Read · {e.title}</a>
             {e.pdf && <a class="block-link" href={e.pdf}>PDF · {mb(e.pdf)}</a>}
+            <FilmLink slug={e.slug} />
             <span class="aside mono">{e.contents.length} sections · seed {e.seed}</span>
           </p>
         </div>

@@ -1,14 +1,17 @@
 ---
 /**
  * The end of a dossier: the dove (the sequence's one resolve), the closing
- * lines, then the footer with the PDF and the neighbouring editions as block
- * links. Acid is spent on the dove, so the closing lines stay Flash.
+ * lines, then the footer with the PDF, the film where one is out, and the
+ * neighbouring editions as block links. Acid is spent on the dove, so the
+ * closing lines stay Flash.
  *
  * Everything here is read from the editions list by slug: the date, the
- * seed, the PDF and the neighbours. Nothing is typed per page, so a
- * neighbour's name cannot drift from its entry. Drafts have no neighbours.
+ * seed, the PDF and the neighbours; the film from src/lib/films.mjs. Nothing
+ * is typed per page, so a neighbour's name cannot drift from its entry.
+ * Drafts have no neighbours and no film.
  */
 import Dove from './Dove.astro';
+import FilmLink from './FilmLink.astro';
 import { LICENCE, edition, neighbours, label } from '../lib/editions.mjs';
 interface Props { slug: string; seed?: string }
 const { slug, seed } = Astro.props;
@@ -29,6 +32,7 @@ const { newer, older } = neighbours(slug);
 <nav class="surface tight" aria-label="Editions">
   <div class="grid">
     {e.pdf && <a class="c-l block-link mono-b" href={e.pdf}>Download the PDF</a>}
+    <FilmLink slug={slug} class={`${e.pdf ? 'c-r' : 'c-l'} mono-b`} />
     {older && <a class="c-l block-link mono-b" href={older.path}>Earlier · {label(older)}</a>}
     {newer && <a class="c-r block-link mono-b" href={newer.path}>Later · {label(newer)}</a>}
   </div>
@@ -39,4 +43,6 @@ const { newer, older } = neighbours(slug);
   .close:empty { display: none; }
   .end { padding-top: clamp(80px, 14vh, 200px); }
   nav .block-link { padding-block: 10px; }
+  /* The film's thumbnail makes its row taller; the PDF beside it sits level with the film's record, not above it. */
+  nav .grid { align-items: center; }
 </style>
