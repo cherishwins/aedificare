@@ -269,9 +269,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   question before any service is "is it free, and does it stay free at
   scale."
 - **Client JS budget: 5 kB gzipped for the whole site**, enforced by
-  `tools/check-budget.cjs` in the build. **Measured: 2,672 B** (the one
-  bundled script, 1,119 B, plus Astro's inline hydration shim on the-tilt-gap,
-  1,553 B; the nine bytes over the earlier 2,663 are `drift()` moving into
+  `tools/check-budget.cjs` in the build. **Measured: 2,660 B** (the one
+  bundled script, 1,114 B, plus Astro's inline hydration shim on the-tilt-gap,
+  1,546 B; 2,672 until vite 8.3.4's newer rolldown, 21 Oct 2026, and the nine
+  bytes over the earlier 2,663 were `drift()` moving into
   `src/lib/rose.mjs`, below). The rose must be computed live and the axis must move with the
   reader; that is the only JavaScript the brand earns.
 - **WCAG AA on every surface and zero axe-core violations**, enforced by
@@ -345,7 +346,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   release, 4.3.0, shipped and the entry was removed on 2026-10-06, the day
   a new source-map-js advisory turned CI red and `npm audit fix` took both
   to patched versions, so the allowlist is empty and stays the place a
-  future exemption goes),
+  future exemption goes; on 2026-10-21 three advisories in the
+  `launch-editor` that vite 8.3.0 bundles, one high, turned CI red the same
+  way, and `npm audit fix` took vite to 8.3.4 with its rolldown, postcss and
+  nanoid, the lockfile alone),
   `check-contents.cjs` (every contents entry in
   `src/lib/editions.mjs` must exist as an id and a heading in the built
   edition page, and every published page's meta description must run 100
