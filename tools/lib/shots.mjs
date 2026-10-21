@@ -1223,15 +1223,22 @@ const KIT_GROUNDS = [rgb(VOID), rgb(BOTTLE)];
  * Where the bar on one line of a phrase ends, in the crop's own pixels. `b` is the line's box and `rows` the bar's
  * rows ([top, bottom), both in crop px), `pad` how far the bar runs past the words (0.14 of the line's height). A
  * column holds ink where a pixel of it in the bar's rows stands more than 6 from the box's ground, its commonest
- * colour (on a dark page Void and Bottle are ground too, a field's). Each end runs the pad past the phrase's own ink,
- * the ink in its box, but stops on a clean column before the first other ink, the next glyph, a punctuation mark,
- * the next word or a rule, so that column stays outside the bar; where that ink is closer than the pad, the bar ends
- * at the phrase's own ink. The pad had run on into the colon after The Floor's "numbers" and The Markup's "print",
- * and into the quote marks round "I Built ... $106.23", lighting half of each (2026-10-20). A mark with no clean
- * column between it and the phrase's ink, a comma kerned into the last letter until they share a column or touch
- * (The Markup's "network,", The Floor's "Alouini,", Seeed's ",powered"), cannot be parted from it by a straight end,
- * so the bar takes it whole where it ends within two pads, rather than cut it in two. Returns [first lit column,
- * first column after it], whole pixels, so the bar's ends fall on the crop's own pixel grid (pageHtml).
+ * colour (on a dark page Void and Bottle are ground too, a field's). Each end runs the pad past the line's box (the
+ * box holds the words' side bearings, so a bar runs a pixel or two further past their ink), or past the last ink the
+ * bar takes where that runs beyond the box, but stops on a clean column before the first other ink, the next glyph,
+ * the next word or a rule, so that column stays outside the bar. The pad had run on into the colon after The Floor's
+ * "numbers" and The Markup's "print", and into the quote marks round "I Built ... $106.23", lighting half of each
+ * (2026-10-20). Other ink the pad would reach that is a mark, a comma, colon, full stop or quote mark, is taken whole
+ * and the pad runs on past it: stopped before it, the bar had ended flush on the phrase's last letter where the other
+ * end kept its pad ("numbers" before its colon, "documentation" before its comma, 2026-10-21). A mark is ink running
+ * from there through gaps of one clean column (a quote mark's two strokes) to two clean columns, ending within three
+ * pads of the box (a closing quote and the comma kerned under it, after "$106.23", end 2.4 pads out) and reaching
+ * neither of the bar's first and last rows, which a rule down the side or the next line's ink would; a word runs
+ * longer. A mark with no clean column between it and the phrase's ink, a comma kerned into the last letter until they
+ * share a column or touch (The Markup's "network,", The Floor's "Alouini,", Seeed's ",powered"), cannot be parted from
+ * it by a straight end, so the bar takes it whole where it ends within two pads, rather than cut it in two, and runs
+ * the pad past it as past any mark ("ATAK," and "network," had ended flush on their commas). Returns [first lit
+ * column, first column after it], whole pixels, so the bar's ends fall on the crop's own pixel grid (pageHtml).
  */
 function barEnds(img, cw, ch, b, rows, pad, dark) {
   const y0 = Math.max(0, Math.floor(rows[0])), y1 = Math.min(ch, Math.ceil(rows[1]));
@@ -1240,9 +1247,10 @@ function barEnds(img, cw, ch, b, rows, pad, dark) {
   for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = 3 * (y * cw + x), k = (img[i] << 16) | (img[i + 1] << 8) | img[i + 2]; count.set(k, (count.get(k) || 0) + 1); }
   const mode = count.size ? [...count].reduce((a, q) => (q[1] > a[1] ? q : a))[0] : 0, g = [mode >> 16, (mode >> 8) & 255, mode & 255];
   const far = (i, c) => Math.hypot(img[i] - c[0], img[i + 1] - c[1], img[i + 2] - c[2]) > 6;
+  const inkAt = (x, y) => { const i = 3 * (y * cw + x); return far(i, g) && !(dark && KIT_GROUNDS.some((c) => !far(i, c))); };
   const ink = (x) => {
     if (x < 0 || x >= cw) return false;
-    for (let y = y0; y < y1; y++) { const i = 3 * (y * cw + x); if (far(i, g) && !(dark && KIT_GROUNDS.some((c) => !far(i, c)))) return true; }
+    for (let y = y0; y < y1; y++) if (inkAt(x, y)) return true;
     return false;
   };
   const wantR = Math.min(cw, Math.round(R + pad)), wantL = Math.max(0, Math.round(L - pad));
@@ -1258,9 +1266,40 @@ function barEnds(img, cw, ch, b, rows, pad, dark) {
   x = lo - 1;
   while (x >= limL && ink(x)) x--;
   if (x >= limL) lo = x + 1;
-  let e1 = wantR, e0 = wantL;
-  for (x = hi + 1; x <= wantR; x++) if (ink(x)) { e1 = x - 1; break; }
-  for (x = lo - 1; x >= wantL - 1; x--) if (ink(x)) { e0 = x + 2; break; }
+  // A mark from its first ink column `x`, `step` the way out: the first of two clean columns past it, where that falls
+  // within `lim` (three pads of the box) and no ink of the mark is in the bar's first or last row; null otherwise.
+  const mark = (x, step, lim) => {
+    const from = x;
+    for (; step > 0 ? x <= lim : x >= lim; x += step) {
+      if (ink(x) || ink(x + step)) continue;
+      for (let c = Math.max(0, Math.min(from, x)); c <= Math.min(cw - 1, Math.max(from, x)); c++) if (inkAt(c, y0) || inkAt(c, y1 - 1)) return null;
+      return x;
+    }
+    return null;
+  };
+  // Each end's reach: the pad past the box, or past the last ink the bar takes where that runs beyond the box.
+  const reachR = () => Math.max(wantR, Math.min(cw, Math.round(hi + 1 + pad))), reachL = () => Math.min(wantL, Math.max(0, Math.round(lo - pad)));
+  let e1 = reachR(), e0 = reachL();
+  for (x = hi + 1; x <= e1; x++) if (ink(x)) break;
+  if (x <= e1) {
+    const xe = mark(x, 1, Math.min(cw, Math.round(R + 3 * pad)));
+    if (xe === null) e1 = x - 1;
+    else {
+      hi = xe - 1;
+      e1 = reachR();
+      for (x = xe; x <= e1; x++) if (ink(x)) { e1 = x - 1; break; }
+    }
+  }
+  for (x = lo - 1; x >= e0 - 1; x--) if (ink(x)) break;
+  if (x >= e0 - 1) {
+    const xe = mark(x, -1, Math.max(0, Math.round(L - 3 * pad)));
+    if (xe === null) e0 = x + 2;
+    else {
+      lo = xe + 1;
+      e0 = reachL();
+      for (x = xe; x >= e0 - 1; x--) if (ink(x)) { e0 = x + 2; break; }
+    }
+  }
   return [Math.min(e0, lo), Math.max(e1, hi + 1)];
 }
 
@@ -1399,12 +1438,13 @@ export function pageRecord(C, tag) {
  * linear 5 percent push-in from the words for the whole shot, footage grammar on third-party pixels (reading 2). On a
  * light page the bar is the page multiplied by Acid, a highlighter; on a dark one (ours) it is drawn from the crop
  * (litRect), exact Acid with the words in Void, so both read as dark type on Acid, and Flash where our page's own Acid
- * is in frame. Each end of a bar stops short of any ink not the phrase's own (barEnds), on the crop's own pixel grid.
- * The bar is drawn into the picture rather than over it: each line's box shows its own copy of the crop, set exactly
- * where the page is, lit between the bar's ends and the page itself for three pixels past each, so the box's edge
- * falls where its picture and the page's are the same pixels and is never seen, and the bar's end is a boundary
- * between two of the crop's pixels, resampled as the page is; an end clipped over the page instead mixed the bar, the
- * page's ground and a glyph's edge in one pixel wherever the frame's grid cut it. The label, and a card's source line
+ * is in frame. Each end of a bar stops short of other ink, or takes a mark beside the words whole (barEnds), on the
+ * crop's own pixel grid. The bar is drawn into the picture rather than over it: each line has its own copy of the
+ * crop in the page's own box, the same place and size, lit between the bar's ends and the page itself for three
+ * pixels past each, clipped to the line's box, so the clip's ends fall where its picture and the page's are the same
+ * pixels and are never seen, and the bar's end is a boundary between two of the crop's pixels, resampled as the page
+ * is; an end clipped over the page instead mixed the bar, the page's ground and a glyph's edge in one pixel wherever
+ * the frame's grid cut it. The label, and a card's source line
  * and words, are set at the frame's floor or
  * above (labelType), clear of the Short's buttons. A capture that was refused (a
  * wall, robots.txt, YouTube) becomes the quote card with the same words, so the cut always renders and nothing is
@@ -1462,7 +1502,7 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
     }, []));
   };
   // The bar's ends in the crop's pixels (barEnds) and its rows, 0.08 of the line's height above and below it as
-  // before. Each line's box reaches EXT of the crop's pixels past each end, where it shows the page itself.
+  // before. Each line's box reaches EXT of the crop's pixels past each end, where its copy is the page itself.
   const f = (v) => v.toFixed(1);
   const img = rgbPixels(crop, cw, ch);
   const pg = { x: +f(pic.x), y: +f(pic.y), w: +f(pic.w), h: +f(pic.h) }, sx = pg.w / cw;
@@ -1494,6 +1534,14 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
     return pngData(px, cw, ch);
   };
   const boxes = bars.map((bs) => bs.map((r) => r.box));
+  // Each copy is the page's own box, the same left, top, width and height, clipped to its line's box (left, top,
+  // bottom, and the right inset at no width; the sweep takes the bar's width off that). A copy inside a box of its
+  // own, offset back by the box's place, was set where the page is only in sum: Chromium keeps each offset to a 64th
+  // of a pixel, rounds a background's edges to whole pixels, and where the two sums fell either side of a half the
+  // copy was drawn a pixel taller than the page, the words in it half a pixel low (Geeky Gadgets and Parallel's
+  // table, 2026-10-21). The clip is the line's box as it stands, not rounded to whole pixels as an overflow clip is,
+  // which had taken part of a row off a bar's top or bottom on our pages.
+  const clips = boxes.map((bs) => bs.map((b) => [b.x - pg.x, b.y - pg.y, pg.y + pg.h - b.y - b.h, pg.x + pg.w - b.x].map((v) => +v.toFixed(2))));
   // The push-in grows from where the words start: the eye reads from there, and a move about their middle took the
   // first letters of every line off the left when the words sat far right (arXiv, 2026-10-20). pageCrop holds it
   // where every line shown stays whole to the last frame.
@@ -1501,7 +1549,7 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
   const plan = sweepPlan(phrases.map((h) => h.text), s, d, words);
   const label = `${pageCredit(ps)} · ${ps.date}`.replace(/—/g, ' – ');
   const lt = labelType(P, label), lh = Math.round(1.3 * lt.size), many = lt.lines.length > 1;
-  const hl = boxes.map((bs, p) => bs.map((b, j) => `<div class="hl" data-p="${p}" style="left:${f(b.x)}px;top:${f(b.y)}px;height:${f(b.h)}px;width:0"><span style="left:${f(pg.x - +f(b.x))}px;top:${f(pg.y - +f(b.y))}px;background:url(${cut(p, j)}) 0 0/100% 100% no-repeat"></span></div>`).join('')).join('');
+  const hl = clips.map((qs, p) => qs.map((q, j) => `<div class="hl" data-p="${p}" style="clip-path:inset(${q[1]}px ${q[3]}px ${q[2]}px ${q[0]}px);background-image:url(${cut(p, j)})"></div>`).join('')).join('');
   const masks = c.masks.map((m) => `<div class="mask" style="left:${f(m.x)}px;top:${f(m.y)}px;width:${f(m.w)}px;height:${f(m.h)}px"></div>`).join('');
   const data = `url(data:image/png;base64,${fs.readFileSync(crop).toString('base64')})`;
   // More than one line grows up from the foot of the first line's place, each line as labelLines broke it.
@@ -1510,13 +1558,12 @@ export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
 .doc{position:absolute;left:0;top:0;width:${P.w}px;height:${P.h}px;transform-origin:${f(ox)}px ${f(oy)}px;--pg:${data}}
 .pg{position:absolute;left:${f(pg.x)}px;top:${f(pg.y)}px;width:${f(pg.w)}px;height:${f(pg.h)}px;background:var(--pg) 0 0/100% 100% no-repeat}
 .mask{position:absolute;background:${VOID}}
-.hl{position:absolute;overflow:hidden}
-.hl span{position:absolute;width:${f(pg.w)}px;height:${f(pg.h)}px}`;
+.hl{position:absolute;left:${f(pg.x)}px;top:${f(pg.y)}px;width:${f(pg.w)}px;height:${f(pg.h)}px;background:0 0/100% 100% no-repeat}`;
   // The picture's covers go over the bars, whose copies of the crop show the page's own pixels round them.
   const html = page(C, `<div class="lab mono">${esc(lt.lines.join('\n'))}</div><div class="panel"><div class="doc" id="doc"><div class="pg"></div>${hl}${masks}</div></div>
-<script>const W=${JSON.stringify(boxes.map((bs) => bs.map((b) => +f(b.w))))},T=${JSON.stringify(plan.map((x) => [x.at, x.dur]))},D=${Math.round(d * 1000)},doc=document.getElementById('doc'),els=W.map((_,p)=>[...document.querySelectorAll('.hl[data-p="'+p+'"]')]);
+<script>const W=${JSON.stringify(boxes.map((bs) => bs.map((b) => +f(b.w))))},Q=${JSON.stringify(clips)},T=${JSON.stringify(plan.map((x) => [x.at, x.dur]))},D=${Math.round(d * 1000)},doc=document.getElementById('doc'),els=W.map((_,p)=>[...document.querySelectorAll('.hl[data-p="'+p+'"]')]);
 window.__frame=(ms)=>{doc.style.transform='scale('+(1+0.05*Math.min(1,ms/D)).toFixed(5)+')';let cur=-1;T.forEach((t,p)=>{if(ms>=t[0])cur=p;});
-W.forEach((ws,p)=>{let left=p===cur?ws.reduce((a,b)=>a+b,0)*Math.min(1,(ms-T[p][0])/T[p][1]):0;els[p].forEach((e,j)=>{const w=Math.max(0,Math.min(ws[j],left));e.style.width=w.toFixed(2)+'px';left-=w;});});};
+W.forEach((ws,p)=>{let left=p===cur?ws.reduce((a,b)=>a+b,0)*Math.min(1,(ms-T[p][0])/T[p][1]):0;els[p].forEach((e,j)=>{const w=Math.max(0,Math.min(ws[j],left)),q=Q[p][j];e.style.clipPath='inset('+q[1]+'px '+(q[3]-w).toFixed(2)+'px '+q[2]+'px '+q[0]+'px)';left-=w;});});};
 window.__frame(0);window.__ready=true;</script>`, VOID, extra);
   return { html, brand: html.replace(/url\(data:[^)]*\)/g, 'url()'), anim: true, live: true, animMs: Math.round(d * 1000), whole: true, sweeps: plan, label, dark, flash: bar === FLASH, masked: c.masks.length, zoom: c.k, type: c.type };
 }

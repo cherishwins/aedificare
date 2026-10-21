@@ -538,53 +538,83 @@ for a shortlist for bios and cards, which is a separate deliverable.
   the shot still spends one Acid. Until 20 Oct it multiplied a grey,
   inverted copy of the page into the bar, which left it (167,209,0) over
   Bottle and (197,246,0) over Void, off the kit. **A bar's ends stop
-  short of other ink** (`barEnds`, 20 Oct). Each end still runs 0.14 of
-  the line's height past the phrase's own ink, the ink in its box, but
-  on the crop's own pixels it stops on a clean column before the first
-  ink that is not the phrase's (the next glyph, a punctuation mark, the
-  next word, a rule), and where that ink stands closer than the pad,
-  the bar ends at the phrase's own ink: the colon after "numbers" stands
-  one clean column from its "s", and the bar ends on that column. The
-  pad had lit part of that colon, of the colon after "print" and of the
-  quote marks round "I Built ... $106.23" on our pages, and part of a
-  comma or a full stop beside the words on six of others'. A mark with no
-  clean column between it and the phrase (a comma kerned into the last
-  letter until they share a column or touch: The Markup's "network,",
-  The Floor's "Alouini," and "page,", Seeed's ",powered") cannot be
-  parted from it by a straight end, so where a clean column ends it
-  within two pads the bar takes it whole, as the pad already did,
-  rather than cut it in two. Each line's bar is drawn into the picture,
-  not clipped over it: its box shows its own copy of the crop, the
-  crop's size and in the page's own place (a cut drawn at its own place
-  landed up to a pixel off the page, because Chromium snaps where an
-  image starts), clear but for the line's box, where it is the page,
+  short of other ink** (`barEnds`, 20 and 21 Oct). Each end runs 0.14 of
+  the line's height past the line's box (the box holds the words' side
+  bearings, so a bar runs a pixel or two further past their ink), or
+  past the last ink the bar takes where that runs beyond the box, but on
+  the crop's own pixels it stops on a clean column before the first
+  other ink (the next glyph, the next word, a rule). The pad had lit
+  part of the colon after "numbers", of the colon after "print" and of
+  the quote marks round "I Built ... $106.23" on our pages, and part of
+  a comma or a full stop beside the words on six of others'. Other ink
+  the pad would reach that is a mark (a comma, colon, full stop or quote
+  mark: ink running, through gaps of one clean column, to two clean
+  columns within three pads of the box, and reaching neither of the
+  bar's first and last rows, as a rule down the side or the next line's
+  ink would) is taken whole, and the pad runs on past it. Stopped before
+  the mark instead, as on 20 Oct, the bar ended flush on the phrase's
+  last letter while its other end kept the pad ("numbers" before its
+  colon, "documentation" before its comma, "Starlink" before its full
+  stop). A mark with no clean column between it and the phrase (a comma
+  kerned into the last letter until they share a column or touch: The
+  Markup's "network,", The Floor's "Alouini," and "page,", Seeed's
+  ",powered", Geeky Gadgets' "ATAK,") cannot be parted from it by a
+  straight end, so where a clean column ends it within two pads the bar
+  takes it whole, rather than cut it in two, and runs the pad past it
+  too. Each line's bar is drawn into the picture, not clipped over it:
+  its own copy of the crop has the page's own box, the same left, top,
+  width and height, clear but for the line's box, where it is the page,
   lit between the bar's ends and left as the page for three pixels past
-  each, so the box's edge falls on pixels the two pictures share and
-  the bar's end is a boundary between two of the crop's pixels, which
-  the frame resamples as it does the page. Clipped over the page at a
-  fractional place, an end had mixed the bar, the ground and a glyph's
-  edge in one pixel. A light page's bar is the page multiplied by Acid
-  in the same copy, no longer a blended box, so a picture's covers go
-  over it. Measured on the pilot's 90 page inserts (84 in the film, 6 in
-  the Short, 17 of them quote cards), at each insert's first and last
-  frame and each phrase's fully lit frame, against b1aa369: glyphs
-  crossed by a bar's end (two of its pixels lit and two untouched,
-  read against the same frame with the bars hidden) fell from 13, the
-  quote mark after "$106.23" and twelve commas and full stops on others'
-  pages, to none at the 524 ends of the 160 lit frames of page shots;
-  pixels more than 3 levels from a kit colour or a mix of two on our own
-  pages, where the other marks were cut only at their edges, fell from
-  93 to none; and on our 35 page shots every pixel of the bar two
-  or more in from its edges with no ink within three is exact Acid
-  (1,075 had stood one level off where two lines' bars met), and exact
-  Flash on all 35 rendered with the bar forced to Flash (no shot of the
-  pilot keeps the page's own Acid). Outside the bars, others' pages
-  moved by at most 10 levels in one strip of one first frame, where the
-  old blended box, at no width at all, still made Chromium draw the
-  page in a group of its own (b1aa369 with the blend taken out
-  draws that frame as this does), and by 1 level along Chromium's
-  raster tile seams, every 254 pixels, in ten more frames, which shift
-  with whatever else a frame draws. A refused capture becomes the quote card with the same
+  each, and is clipped to the line's box (`clip-path: inset()`), so the
+  clip's ends fall on pixels the two pictures share and the bar's end is
+  a boundary between two of the crop's pixels, which the frame resamples
+  as it does the page. Clipped over the page at a fractional place, an
+  end had mixed the bar, the ground and a glyph's edge in one pixel. On
+  20 Oct the copy sat in a box of its own, set back by that box's place,
+  so it stood where the page is only in sum: Chromium keeps each offset
+  to a 64th of a pixel and rounds a background's top and bottom to whole
+  pixels, and where the two sums fell either side of a half (Geeky
+  Gadgets' "internet access via uplinks like Starlink", 115, and the
+  protection table in Parallel's repository, 156) the copy was drawn a
+  pixel taller than the page, its words half a pixel low and soft; and
+  that box's overflow clip, rounded to whole pixels as well, took part
+  of a row off a bar's top or bottom on our pages. The clip-path is the
+  line's box as it stands. A light page's bar is the page multiplied by
+  Acid in the same copy, no longer a blended box, so a picture's covers
+  go over it. Measured on the pilot's 90 page inserts (84 in the film, 6
+  in the Short, 17 of them quote cards), at each insert's first and last
+  frame and each phrase's fully lit frame: glyphs crossed by a bar's end
+  (two of its pixels lit and two untouched, read against the same frame
+  with the bars hidden) fell from 13 at b1aa369, the quote mark after
+  "$106.23" and twelve commas and full stops on others' pages, to none
+  at the 524 ends of the 160 lit frames of page shots; pixels more than
+  3 levels from a kit colour or a mix of two on our own pages, where the
+  other marks were cut only at their edges, fell from 93 to none; and on
+  our 35 page shots every pixel of the bar two or more in from its edges
+  with no ink within three is exact Acid (1,075 had stood one level off
+  where two lines' bars met), and exact Flash on all 35 rendered with
+  the bar forced to Flash (no shot of the pilot keeps the page's own
+  Acid). Against 4934f65 (21 Oct): the shift that best matches each
+  bar's words to the same words with the bars hidden is none for all 262
+  bars, where six had been half a pixel low (on 115 and 156; b1aa369 had
+  nine a quarter or half a pixel across, on our pages); pixels of
+  others' pages lit by a bar whose green, which Acid keeps, differs from
+  the page's by more than 2 fell from 28,748 to 24, in single columns of
+  three frames and at most 8 levels (b1aa369 had 8, in one of those
+  columns); the first row wholly inside each of the 236 top and bottom
+  edges of our pages' bars is full Acid along its middle, where 12 had
+  been partly dark; ends with no more than a column of the bar past the
+  phrase's ink fell from 19 to one, Seeed's ",powered", whose comma
+  stands one clean column from the word before it; outside the bars
+  nothing changed, and every first frame, every frame with the bars
+  hidden and every quote card is as it was byte for byte. Outside the
+  bars against b1aa369, others' pages moved by at most 10 levels in one
+  strip of one first frame, where the old blended box, at no width at
+  all, still made Chromium draw the page in a group of its own (b1aa369
+  with the blend taken out draws that frame as this does), and by 1
+  level along Chromium's raster tile seams, every 254 pixels, in ten
+  more frames, which shift with whatever else a frame draws. A refused
+  capture becomes the quote card with the same
   words, its highlighter held until the voice reaches them. Tried on The
   Floor's captures in both frames with every sample frame looked at, the
   first versions cut a wide table row at both ends, merged a row's two
