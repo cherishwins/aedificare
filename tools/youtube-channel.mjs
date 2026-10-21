@@ -89,6 +89,18 @@
  * only by title reads "no render" once film-meta.yml retitles the release
  * (sync never touches an earlier cut's own title), and is reached by id.
  *
+ * THE SITE'S FILM LINKS. Each published edition links its current film
+ * from its page once the film is public (src/lib/films.json, written only by
+ * tools/films.mjs; CLAUDE.md, Decisions log, 21 Oct 2026). Public is known
+ * here and nowhere else in the repository, so every command judges each link
+ * against the channel after the list: the video is on the channel, public,
+ * the film its release files, and as long as the link says. A link that
+ * fails is flagged with the command that sets it right, and list then exits
+ * non-zero; a current film that is public and not linked yet is named, with
+ * the command that links it. Withdraw, retire and upload --replace say so
+ * when they take down or supersede a linked film. Nothing here writes the
+ * link: it changes by tools/films.mjs and a commit, the same day.
+ *
  * A video is matched by the id filed on its release first, then by file
  * name, then by a title equal to the render's and of the same kind (a hand
  * upload whose title was pasted from sheet.txt).
@@ -289,13 +301,49 @@ if (missing.length) {
   console.log('\nRendered, not on the channel:');
   for (const r of missing) console.log(`  ${r.tag}/${r.meta.file}  ${r.meta.kind}  ${Math.round(r.meta.duration / 60)} min  "${r.meta.title}"${r.slates ? `  (draft: ${r.slates} shots missing)` : ''}${REPLACE_TAGS.includes(r.tag) ? '  (a corrected render, to go up with --replace)' : r.ledgerId ? `  (filed as ${r.ledgerId}, not on the channel: deleted?)` : ''}`);
 }
+
+/* ---- the site's film links ---------------------------------------------------- */
+// src/lib/films.json links each published edition's current film once it is public; only this tool can see what is
+// public, so each link is judged here on every command but probe, which has exited (the header says what holds). The link is never written from here.
+const { readFilms: readSiteFilms, clock: siteClock } = await import(new URL('../src/lib/films.mjs', import.meta.url).href);
+const { PUBLISHED } = await import(new URL('../src/lib/editions.mjs', import.meta.url).href);
+const LINKED = readSiteFilms();
+const linkedAs = (id) => Object.keys(LINKED).find((slug) => LINKED[slug].id === id);
+const flag = (msg) => console.log(`${process.env.GITHUB_ACTIONS ? '::warning::' : '  '}${msg}`);
+const rowOf = (id) => rows.find((x) => x.v.id === id);
+const filedFilm = (slug) => renders.find((r) => r.tag === `film-${slug}` && r.metaName === 'meta.json')?.ledgerId || null;
+const siteLinks = Object.entries(LINKED).filter(([slug]) => releases.some((r) => r.tag_name === `film-${slug}`)).map(([slug, f]) => {
+  const x = rowOf(f.id), current = filedFilm(slug), next = current && current !== f.id ? rowOf(current) : null;
+  const wrong = !x ? 'is not on the channel'
+    : x.v.status.privacyStatus !== 'public' ? `is ${x.v.status.privacyStatus}`
+    : current !== f.id ? `is not the film film-${slug} files (${current || 'none'})`
+    : secs(x.v.contentDetails.duration) !== f.duration ? `runs ${dur(x.v.contentDetails.duration)} on YouTube where the site says ${siteClock(f.duration)}`
+    : null;
+  const fix = !wrong ? null
+    : next?.v.status.privacyStatus === 'public' ? `Run node tools/films.mjs ${current} (the film that replaced it)`
+    : wrong.startsWith('runs') ? `Fix the length rule (lengthOf in src/lib/films.mjs), then run node tools/films.mjs ${f.id}`
+    : `Run node tools/films.mjs --drop ${slug}`;
+  return { slug, id: f.id, ok: !wrong, wrong, fix };
+});
+// A current film that is out and that no link names yet: the morning it publishes, one command and a commit link it.
+const unlinked = PUBLISHED.filter((e) => releases.some((r) => r.tag_name === `film-${e.slug}`) && !LINKED[e.slug])
+  .map((e) => ({ slug: e.slug, id: filedFilm(e.slug) }))
+  .filter(({ id }) => id && rowOf(id)?.v.status.privacyStatus === 'public' && !rowOf(id).older);
+if (siteLinks.length || unlinked.length) {
+  console.log('\nThe site\'s film links (src/lib/films.json):');
+  for (const l of siteLinks) if (l.ok) console.log(`  ${l.slug}: ${l.id}, public, ${siteClock(LINKED[l.slug].duration)}, the film its release files`);
+  for (const l of siteLinks) if (!l.ok) flag(`SITE LINK WRONG: ${l.slug} links ${l.id}, which ${l.wrong}. ${l.fix}, and commit, today`);
+  for (const u of unlinked) console.log(`  ${u.slug}: its film ${u.id} is public and the site does not link it yet; node tools/films.mjs ${u.id} and a commit link it`);
+}
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'channel.json'), JSON.stringify({
   at: new Date().toISOString(), channel: { id: channel.id, title: channel.snippet.title, handle: channel.snippet.customUrl, subscribers: +channel.statistics.subscriberCount, longUploads: LONG },
   videos: rows.map(({ v, r, file, older, superseded }) => ({ id: v.id, title: v.snippet.title, privacy: v.status.privacyStatus, publishAt: v.status.publishAt || null, upload: v.status.uploadStatus, published: v.snippet.publishedAt, duration: v.contentDetails.duration, views: +(v.statistics?.viewCount ?? 0), file, release: r ? `${r.tag}/${r.metaName}` : null, olderVoice: older && !superseded, superseded })),
   notOnChannel: missing.map((r) => ({ release: r.tag, file: r.meta.file, kind: r.meta.kind, title: r.meta.title, slates: r.slates, filedAs: r.ledgerId })),
+  siteLinks, siteUnlinked: unlinked,
 }, null, 1) + '\n');
-if (CMD === 'list') process.exit(0);
+// A wrong link fails the list, so the run reads red until the commit that sets it right; the other commands go on.
+if (CMD === 'list') process.exit(siteLinks.some((l) => !l.ok) ? 1 : 0);
 
 /* ---- upload ------------------------------------------------------------------- */
 if (CMD === 'upload') {
@@ -333,6 +381,10 @@ if (CMD === 'upload') {
     if (done >= MAX) { console.log(`  ${r.tag}/${r.meta.file}: next run (the cap of ${MAX} keeps a run inside one day's quota)`); continue; }
     done++;
     console.log(`  ${r.tag}/${r.meta.file}: ${DRY ? 'would upload' : 'uploading'} "${r.meta.title}"${current ? `, replacing ${current.v.id} (${current.v.status.privacyStatus})` : ''}${PUBLISH_AT ? `, publishing ${new Date(Date.parse(PUBLISH_AT) + (done - 1) * EVERY_H * 3600e3).toISOString()}` : ''}`);
+    // The site links only a release's current film, and once this files the new id the old one is not: tools/films.mjs
+    // --check --online fails the link from then on.
+    const linkedSlug = current && linkedAs(current.v.id);
+    if (linkedSlug) flag(`${current.v.id} is ${linkedSlug}'s film on the site, and ${DRY ? 'this upload would make' : 'this upload makes'} it an earlier cut: node tools/films.mjs --drop ${linkedSlug} and commit now, then node tools/films.mjs <the new id, in ${r.ledgerName}> the morning the new video is public`);
     if (DRY) continue;
     const dir = path.join(OUT, r.tag);
     fs.mkdirSync(dir, { recursive: true });
@@ -506,11 +558,12 @@ if (CMD === 'withdraw') {
   }
   console.log(`\nwithdraw${DRY ? ' (dry run)' : ''}: each named video goes ${PRIVACY} now, never deleted`);
   let done = 0, failed = 0;
+  const down = []; // what is, or in a dry run would be, no longer public: the site must not link it
   for (const { tag, kind, v } of plan) {
     const name = `${v.id} ${tag}:${kind}`;
-    if (v.status.privacyStatus === PRIVACY && !v.status.publishAt) { console.log(`  ${name}: already ${PRIVACY}`); continue; }
+    if (v.status.privacyStatus === PRIVACY && !v.status.publishAt) { console.log(`  ${name}: already ${PRIVACY}`); down.push(v); continue; }
     console.log(`  ${name}: ${v.status.privacyStatus}${v.status.publishAt ? `, publishes ${v.status.publishAt}` : ''} -> ${PRIVACY} (its ${v.statistics?.viewCount ?? 0} views stay with it)`);
-    if (DRY) { done++; continue; }
+    if (DRY) { done++; down.push(v); continue; }
     const keep = ['license', 'embeddable', 'publicStatsViewable', 'selfDeclaredMadeForKids', 'containsSyntheticMedia'].filter((k) => k in v.status);
     const status = { ...Object.fromEntries(keep.map((k) => [k, v.status[k]])), privacyStatus: PRIVACY };
     try {
@@ -528,12 +581,18 @@ if (CMD === 'withdraw') {
       console.log(`    now ${now.privacyStatus}${now.publishAt ? `, publishes ${now.publishAt}` : ''}`);
       if (now.privacyStatus !== PRIVACY || now.publishAt) throw new Error(`not as asked: YouTube kept ${now.privacyStatus}${now.publishAt ? `, ${now.publishAt}` : ''}`);
       done++;
+      down.push(v);
     } catch (e) {
       console.log(`    FAILED: ${e.message}`);
       failed++;
     }
   }
   console.log(`  ${done} ${DRY ? 'to withdraw' : 'withdrawn'}${failed ? `, ${failed} failed` : ''}`);
+  // A withdrawn film the site still links is a link to a private video until the commit that drops it.
+  for (const v of down) {
+    const slug = linkedAs(v.id);
+    if (slug) flag(`${v.id} is ${slug}'s film on the site; ${DRY ? 'withdrawn, the page would link' : 'the page now links'} a video that is not public: node tools/films.mjs --drop ${slug}, and commit, today`);
+  }
   process.exit(failed ? 1 : 0);
 }
 
@@ -556,6 +615,8 @@ if (CMD === 'retire') {
     if (!next) { console.log(`  ${name}: left, no replacement on the channel (upload --replace-old-voice, or --replace for a corrected render, first)`); continue; }
     if (next.v.status.privacyStatus !== 'public') { console.log(`  ${name}: left until its replacement ${next.v.id} is public${next.v.status.publishAt ? ` (scheduled ${next.v.status.publishAt})` : ''}`); continue; }
     console.log(`  ${name}: ${DRY ? 'would go' : 'going'} ${PRIVACY}, replaced by ${next.v.id} (its ${v.statistics?.viewCount ?? 0} views stay with it)`);
+    const linkedSlug = linkedAs(v.id);
+    if (linkedSlug) flag(`${v.id} is ${linkedSlug}'s film on the site; its replacement ${next.v.id} is public: node tools/films.mjs ${next.v.id}, and commit, today`);
     done++;
     if (DRY) continue;
     // The API replaces the whole status part, so every writable field the video has is sent back unchanged beside the privacy.

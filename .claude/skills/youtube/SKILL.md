@@ -132,6 +132,14 @@ public. A held video's replacement needs no withdraw; it is already
 private. The owner deletes superseded files in Studio if they want them
 gone.
 
+**If the site links the film** (its edition's entry in
+`src/lib/films.json`), the page must not keep linking it: the same day a
+linked film is withdrawn or superseded, `node tools/films.mjs --drop
+<slug>` and a commit; once the replacement is public, `node tools/films.mjs
+<its id>` and a commit. The tool names the command when withdraw, retire or
+`upload --replace` touches a linked film, and `list` flags any wrong link
+and exits non-zero until the commit lands.
+
 **Hand uploads** still work: the owner uploads the file exactly as
 downloaded from the release, and `youtube.yml action=sync` sets the
 generated title, description with chapters and sources, category,
@@ -142,6 +150,29 @@ Never pass `--privacy public`. A scheduled `publish_at` is the owner's call
 (on 2026-10-17 they asked for the films to go out: "let's get our work out
 there"), and a scheduled video can be changed or cancelled in Studio until
 its time.
+
+## The site's film links
+
+The owner's choice (21 Oct 2026, in chat, from options; CLAUDE.md Decisions log): each edition page
+links its **current** film (the long one, never a Short or an earlier cut)
+with its thumbnail, **once it is public**, and nothing is embedded. Public
+is known only from the channel, so:
+
+- The morning a film publishes, read `list`: it names each public current
+  film the site does not link yet. Then `node tools/films.mjs <id>` (it
+  matches the id to its release's `youtube.json`, measures the film's
+  length from the MP4 on the release, rounded up as YouTube shows it, and
+  reduces the thumbnail), build, and commit `src/lib/films.json` and
+  `public/film/`.
+- `list` (and every command but `probe`) judges every link: on the channel, public, the film
+  its release files, as long as the link says. A `SITE LINK WRONG` line
+  names the command that sets it right; do it the same day.
+- `verify.yml` runs `node tools/films.mjs --check --online`, which fails a
+  link whose release's ledger now names another video, and warns when a
+  render or re-cut has been filed onto the release since (the video, and
+  the link, are unchanged until the new render goes up and is linked).
+- The owner chose the plain link over a click-to-play facade and a full
+  embed; do not add either without their say.
 
 ## Titles, descriptions, and one public cut per edition
 

@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Masthead from '../components/Masthead.astro';
 import RoseField from '../components/RoseField.astro';
+import FilmLink from '../components/FilmLink.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { PUBLISHED, LICENCE, numberWord } from '../lib/editions.mjs';
 import fs from 'node:fs';
@@ -56,8 +57,11 @@ for (const e of PUBLISHED) {
             </ol>
           </nav>
           <p class="c-full links mono-b">
-            <a class="block-link" href={e.path}>Read · {e.title}</a>
-            {e.pdf && <a class="block-link" href={e.pdf}>PDF · {mb(e.pdf)}</a>}
+            <span class="go">
+              <a class="block-link" href={e.path}>Read · {e.title}</a>
+              {e.pdf && <a class="block-link" href={e.pdf}>PDF · {mb(e.pdf)}</a>}
+              <FilmLink slug={e.slug} />
+            </span>
             <span class="aside mono">{e.contents.length} sections · seed {e.seed}</span>
           </p>
         </div>
@@ -96,12 +100,17 @@ for (const e of PUBLISHED) {
   .toc a { display: inline-flex; gap: 1.2em; align-items: baseline; padding-block: 6px; color: var(--flash); }
   .toc .n { color: var(--malachite); font-variation-settings: 'wdth' 75, 'wght' 700; }
   .toc a:hover, .toc a:focus-visible { color: var(--acid); }
-  .links { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 32px; }
+  /* The links, then the record of the edition at the far end of the row. They share a baseline, so a film's record
+     sits on the line of Read and PDF with its thumbnail hanging below. Where the record does not fit beside the links
+     (a film makes the row wider), it drops to a line of its own and, alone there, starts at the left, as on a phone,
+     rather than hanging at the right under the film: space-between does that, which an auto margin would not. */
+  .links { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 32px; }
+  .links .go { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 32px; }
   .links .block-link { padding-block: 8px; }
-  .links .aside { color: var(--malachite); margin-left: auto; }
+  .links .aside { color: var(--malachite); }
   .bottle .code, .bottle .toc .n, .bottle .links .aside { color: var(--flash); }
   @media (max-width: 760px) {
     .toc ol { columns: 1; }
-    .links .aside { margin-left: 0; width: 100%; }
+    .links .aside { width: 100%; }
   }
 </style>

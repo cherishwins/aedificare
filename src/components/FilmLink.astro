@@ -1,0 +1,41 @@
+---
+/**
+ * An edition's film, once it is out: a block link to its YouTube watch page,
+ * reading as the film's record (Film, its length, the platform) set like the
+ * PDF's beside it, with the film's own thumbnail after it. No call to action,
+ * and nothing embedded: the thumbnail is served from this origin at the size
+ * it is shown, so a page that carries it makes no request to anyone else, and
+ * the link is the only way out (CLAUDE.md, Decisions log, 21 Oct 2026). Which
+ * films are out is src/lib/films.mjs's; without one this renders nothing.
+ *
+ * The record comes first, in the reading order and on the screen, so the
+ * link's name starts with what it says ("Film · 18:16 · YouTube") and its
+ * baseline is the one the links beside it sit on; the thumbnail hangs from
+ * the record's line, and drops under it, whole, where the two do not fit on
+ * one. The length is a <time> duration, so it is not read as a time of day.
+ *
+ * The thumbnail stays small on purpose: its Acid word or figure stands under
+ * a 24px capital, so it is not a second loud move on the surface it sits on
+ * (src/lib/films.mjs holds the size, tools/verify.cjs fails a film thumbnail
+ * whose Acid ink reaches that capital where it is shown). It has no border,
+ * because the kit draws none: it sits in a narrow colour field instead, the
+ * kit's own way to set content apart (Void on Bottle, Bottle on Void), so a
+ * thumbnail whose ground is the surface's own, as The Supply Cabinet's is on
+ * its Bottle home entry, still reads as a picture and not as loose type.
+ */
+import { film } from '../lib/films.mjs';
+interface Props { slug: string; class?: string }
+const { slug, class: cls } = Astro.props;
+const f = film(slug);
+---
+{f && (
+  <a class:list={['block-link', 'film', cls]} href={f.url}>
+    <span class="record">Film · <time datetime={f.iso}>{f.length}</time> · YouTube</span>
+    <span class="field thumb"><img src={f.thumb.src} srcset={`${f.thumb.src2x} 2x`} width={f.thumb.width} height={f.thumb.height} alt={f.thumb.alt} loading="lazy" decoding="async" /></span>
+  </a>
+)}
+<style>
+  .film { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 16px; }
+  .record { white-space: nowrap; }
+  .film .thumb { flex: none; display: block; padding: 6px; line-height: 0; }
+</style>

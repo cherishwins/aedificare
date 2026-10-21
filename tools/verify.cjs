@@ -5,10 +5,12 @@
  * Serves dist/ through Playwright request interception, so it exercises the
  * bytes Vercel will publish and needs no network. Every page across ten
  * viewports (320 to 2560) for horizontal overflow, text cut off the screen,
- * console errors, tap targets and broken references; once at 1280 for WCAG AA contrast against
+ * console errors, tap targets, broken references and any request that leaves
+ * the origin; once at 1280 for WCAG AA contrast against
  * the nearest opaque ancestor, a full axe-core pass, og:image:alt, that the
  * brand faces actually loaded, that Acid appears at scale at most once per
- * surface, and that every rose field runs live; then once under
+ * surface and never in a film's thumbnail, and that every rose field runs
+ * live; then once under
  * prefers-reduced-motion to prove the still exists. Exits non-zero.
  *
  *   node tools/verify.cjs [dist]                 sweep the local build
@@ -61,18 +63,22 @@ const MIME = { html: 'text/html', css: 'text/css', js: 'text/javascript', png: '
  * Local mode: other origins answer 204 (the page must not depend on any) and
  * anything that 404s is a broken reference. Live mode: nothing is stubbed;
  * every same-origin response outside 2xx/3xx, and every failed request, is
- * a broken reference.
+ * a broken reference. In both, a request to any other host is counted: a page
+ * here asks nobody else for anything (no embed, no font service, no
+ * analytics; CLAUDE.md, Decisions log, 21 Oct 2026), and until then a
+ * third-party request was answered 204 and never seen.
  */
-function serve(page, onBroken) {
+function serve(page, onBroken, onOffOrigin = () => {}) {
   if (LIVE) {
     const host = new URL(LIVE).host;
+    page.on('request', (r) => { const u = new URL(r.url()); if (/^https?:$/.test(u.protocol) && u.host !== host) onOffOrigin(u.href); });
     page.on('response', (r) => { const u = new URL(r.url()); if (u.host === host && (r.status() < 200 || r.status() >= 400) && u.pathname !== '/404.html') onBroken(`${u.pathname} (${r.status()})`); });
     page.on('requestfailed', (r) => { const u = new URL(r.url()); if (u.host === host) onBroken(`${u.pathname} (${r.failure()?.errorText})`); });
     return Promise.resolve();
   }
   return page.route('**/*', (route) => {
     const u = new URL(route.request().url());
-    if (u.host !== 'local.test') return route.fulfill({ status: 204, body: '' });
+    if (u.host !== 'local.test') { onOffOrigin(u.href); return route.fulfill({ status: 204, body: '' }); }
     let f = path.join(ROOT, decodeURIComponent(u.pathname));
     if (f.endsWith('/')) f += 'index.html';
     if (fs.existsSync(f) && fs.statSync(f).isDirectory()) f = path.join(f, 'index.html');
@@ -166,12 +172,46 @@ const TAP_PROBE = () => {
  * Acid appears once per surface, at scale. "At scale" is text at 24px or
  * larger, or an SVG stroke whose box is 200px or larger. Hairlines and 11px
  * mono labels do not count; a headline, a beat, a figure or a rose does.
+ * An image counts by its pixels (a film's thumbnail sets its word or figure
+ * in Acid): drawn at the size it is shown, its tallest unbroken band of Acid
+ * ink must stay under a capital of 24px type in the brand face, or it is a
+ * loud move like any other. A lazy image is loaded first, so the one below
+ * the fold is measured too. A film's thumbnail (an image in a .film link)
+ * is never to be a loud move at all (CLAUDE.md, Decisions log, 21 Oct 2026),
+ * so one at scale fails on its own, whatever else its surface spends.
  */
-const ACID_PROBE = () => {
+const ACID_PROBE = async () => {
   const ACID = 'rgb(204, 255, 0)';
+  const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+  ctx.font = "800 24px 'Bricolage Grotesque'";
+  const CAP = ctx.measureText('H').actualBoundingBoxAscent;
+  const acidInk = async (img) => {
+    if (!img.complete || !img.naturalWidth) { img.loading = 'eager'; try { await img.decode(); } catch { return 0; } }
+    const w = img.clientWidth, h = img.clientHeight;
+    if (!w || !h) return 0;
+    ctx.canvas.width = w; ctx.canvas.height = h;
+    ctx.drawImage(img, 0, 0, w, h);
+    const d = ctx.getImageData(0, 0, w, h).data;
+    let run = 0, tallest = 0;
+    for (let y = 0; y < h; y++) {
+      let lit = false;
+      for (let x = 0; x < w && !lit; x++) { const i = (y * w + x) * 4; lit = d[i] > 150 && d[i + 1] > 200 && d[i + 2] < 100; }
+      run = lit ? run + 1 : 0;
+      tallest = Math.max(tallest, run);
+    }
+    return tallest;
+  };
   const out = [];
-  document.querySelectorAll('.surface').forEach((s, i) => {
+  for (const [i, s] of [...document.querySelectorAll('.surface')].entries()) {
     const hits = [];
+    const label = () => s.getAttribute('aria-label') || s.getAttribute('aria-labelledby') || `#${i + 1}`;
+    for (const img of s.querySelectorAll('img')) {
+      if (img.closest('.surface') !== s) continue;
+      const ink = await acidInk(img);
+      if (ink < CAP) continue;
+      hits.push(`[image ${img.getAttribute('src')}]`);
+      if (img.closest('.film')) out.push({ surface: label(), hits: [`[film thumbnail ${img.getAttribute('src')}: ${ink}px of Acid ink, at or over the ${CAP.toFixed(1)}px capital]`], film: true });
+    }
     for (const el of s.querySelectorAll('*')) {
       if (el.closest('.surface') !== s) continue;
       const cs = getComputedStyle(el);
@@ -184,8 +224,8 @@ const ACID_PROBE = () => {
         if (!hits.includes('[rose]')) hits.push(svg?.dataset.dove !== undefined ? '[dove]' : '[rose]');
       }
     }
-    if (hits.length > 1) out.push({ surface: (s.getAttribute('aria-label') || s.getAttribute('aria-labelledby') || `#${i + 1}`), hits });
-  });
+    if (hits.length > 1) out.push({ surface: label(), hits });
+  }
   return out;
 };
 
@@ -211,14 +251,15 @@ const RENDER_PROBE = () => ({
   for (const m of swProblems) console.log(`  SW        ${m}`);
 
   const browser = await chromium.launch();
-  let overflow = 0, clipped = 0, jsErrors = 0, taps = 0, contrast = 0, missing = 0, altMissing = 0, broken = 0, axeFails = 0, acid = 0, render = 0;
+  let overflow = 0, clipped = 0, jsErrors = 0, taps = 0, contrast = 0, missing = 0, altMissing = 0, broken = 0, axeFails = 0, acid = 0, render = 0, offOrigin = 0;
   const report = [];
 
   for (const width of VIEWPORTS) {
     const ctx = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: 1 });
     const page = await ctx.newPage();
     let current = '';
-    await serve(page, (p) => { broken++; report.push(`  BROKEN    ${width}px  ${current}  -> ${p}`); });
+    await serve(page, (p) => { broken++; report.push(`  BROKEN    ${width}px  ${current}  -> ${p}`); },
+      (u) => { offOrigin++; report.push(`  OFF-ORIGIN ${width}px  ${current}  -> ${u}`); });
     page.on('pageerror', (e) => { jsErrors++; report.push(`  JS ERROR  ${width}px  ${current}  ${e.message}`); });
     page.on('console', (m) => {
       if (m.type() !== 'error') return;
@@ -243,7 +284,7 @@ const RENDER_PROBE = () => ({
 
       if (width === 1280) {
         for (const c of await page.evaluate(CONTRAST_PROBE)) { contrast++; report.push(`  CONTRAST  ${p}  ${c.ratio}:1 (needs ${c.need}) ${c.px}px  "${c.text}"`); }
-        for (const a of await page.evaluate(ACID_PROBE)) { acid++; report.push(`  ACID      ${p}  surface ${a.surface}: ${a.hits.length} at scale: ${a.hits.join(' | ')}`); }
+        for (const a of await page.evaluate(ACID_PROBE)) { acid++; report.push(`  ACID      ${p}  surface ${a.surface}: ${a.film ? 'a film thumbnail is a loud move' : `${a.hits.length} at scale`}: ${a.hits.join(' | ')}`); }
         const r = await page.evaluate(RENDER_PROBE);
         if (!r.bricolage || !r.martian) { render++; report.push(`  FONTS     ${p}  bricolage=${r.bricolage} martian=${r.martian}`); }
         for (const rose of r.roses) if (rose.motion !== 'live' || rose.paths < 1) { render++; report.push(`  ROSE      ${p}  motion=${rose.motion} paths=${rose.paths}`); }
@@ -270,7 +311,7 @@ const RENDER_PROBE = () => ({
   // Reduced motion: every field must render its still and say so.
   const rm = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
   const rp = await rm.newPage();
-  await serve(rp, () => {});
+  await serve(rp, () => {}, (u) => { offOrigin++; report.push(`  OFF-ORIGIN reduced-motion  -> ${u}`); });
   for (const p of PAGES) {
     await rp.goto(ORIGIN + p, { waitUntil: 'load' }).catch(() => null);
     await rp.waitForTimeout(80);
@@ -291,11 +332,12 @@ const RENDER_PROBE = () => ({
   console.log(`  pages not served         ${missing}`);
   console.log(`  pages missing og alt     ${altMissing}`);
   console.log(`  broken references        ${broken}`);
+  console.log(`  requests off the origin  ${offOrigin}`);
   console.log(`  service-worker problems  ${swProblems.length}`);
   console.log(`  axe-core violations      ${axeFails}`);
-  console.log(`  Acid twice on a surface  ${acid}`);
+  console.log(`  Acid beyond its rule     ${acid}`);  // twice at scale on a surface, or a film thumbnail at scale
   console.log(`  render (fonts/rose/dove) ${render}`);
-  const bad = overflow + clipped + jsErrors + taps + contrast + missing + altMissing + broken + swProblems.length + axeFails + acid + render;
+  const bad = overflow + clipped + jsErrors + taps + contrast + missing + altMissing + broken + offOrigin + swProblems.length + axeFails + acid + render;
   console.log(bad ? `\nverify: ${bad} issue(s)` : '\nverify: clean');
   process.exit(bad ? 1 : 0);
 })();

@@ -1,0 +1,71 @@
+{
+  "edition-02": {
+    "id": "00hUzMPhGsY",
+    "duration": 1096,
+    "source": {
+      "release": "film-edition-02",
+      "asset": "edition-02-film-1920x1080.mp4",
+      "bytes": 997156851,
+      "updated": "2026-10-18T20:47:50Z",
+      "seconds": 1095.375
+    },
+    "thumb": {
+      "src": "/film/edition-02.389ff6fe.png",
+      "src2x": "/film/edition-02-2x.c6752415.png",
+      "width": 112,
+      "height": 63,
+      "alt": "Thumbnail: SUBTRACTION in acid green on black",
+      "source": {
+        "release": "film-edition-02",
+        "asset": "edition-02-thumb-1280x720.png",
+        "sha256": "5a478521e04bfa3ffabf0bc0129a30c229d333194d8f2f1194eac9368d29682a"
+      }
+    }
+  },
+  "the-supply-cabinet": {
+    "id": "yGdOAIj1Wa8",
+    "duration": 819,
+    "source": {
+      "release": "film-the-supply-cabinet",
+      "asset": "the-supply-cabinet-film-1920x1080.mp4",
+      "bytes": 764783475,
+      "updated": "2026-10-17T23:00:17Z",
+      "seconds": 818.125
+    },
+    "thumb": {
+      "src": "/film/the-supply-cabinet.81866759.png",
+      "src2x": "/film/the-supply-cabinet-2x.3db23648.png",
+      "width": 112,
+      "height": 63,
+      "alt": "Thumbnail: 1,200 in acid green on dark green",
+      "source": {
+        "release": "film-the-supply-cabinet",
+        "asset": "the-supply-cabinet-thumb-1280x720.png",
+        "sha256": "22a16dc6b93767891e84243c3a12b6e4a58c326c1db1429759c90517b657a5e3"
+      }
+    }
+  },
+  "the-fourth-axis": {
+    "id": "9joaycmFqsU",
+    "duration": 865,
+    "source": {
+      "release": "film-the-fourth-axis",
+      "asset": "the-fourth-axis-film-1920x1080.mp4",
+      "bytes": 807963074,
+      "updated": "2026-10-17T18:24:45Z",
+      "seconds": 864.959
+    },
+    "thumb": {
+      "src": "/film/the-fourth-axis.942ddae1.png",
+      "src2x": "/film/the-fourth-axis-2x.23a5af5b.png",
+      "width": 112,
+      "height": 63,
+      "alt": "Thumbnail: 69 in acid green on dark green",
+      "source": {
+        "release": "film-the-fourth-axis",
+        "asset": "the-fourth-axis-thumb-1280x720.png",
+        "sha256": "828c1bdc1d5bd301770c0d5e5db1b71dfb2dd48d69f05a7976c51ee09bfc8670"
+      }
+    }
+  }
+}
