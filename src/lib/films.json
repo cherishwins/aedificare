@@ -1,7 +1,14 @@
 {
   "edition-02": {
     "id": "00hUzMPhGsY",
-    "duration": 1095,
+    "duration": 1096,
+    "source": {
+      "release": "film-edition-02",
+      "asset": "edition-02-film-1920x1080.mp4",
+      "bytes": 997156851,
+      "updated": "2026-10-18T20:47:50Z",
+      "seconds": 1095.375
+    },
     "thumb": {
       "src": "/film/edition-02.389ff6fe.png",
       "src2x": "/film/edition-02-2x.c6752415.png",
@@ -17,7 +24,14 @@
   },
   "the-supply-cabinet": {
     "id": "yGdOAIj1Wa8",
-    "duration": 818,
+    "duration": 819,
+    "source": {
+      "release": "film-the-supply-cabinet",
+      "asset": "the-supply-cabinet-film-1920x1080.mp4",
+      "bytes": 764783475,
+      "updated": "2026-10-17T23:00:17Z",
+      "seconds": 818.125
+    },
     "thumb": {
       "src": "/film/the-supply-cabinet.81866759.png",
       "src2x": "/film/the-supply-cabinet-2x.3db23648.png",
@@ -34,6 +48,13 @@
   "the-fourth-axis": {
     "id": "9joaycmFqsU",
     "duration": 865,
+    "source": {
+      "release": "film-the-fourth-axis",
+      "asset": "the-fourth-axis-film-1920x1080.mp4",
+      "bytes": 807963074,
+      "updated": "2026-10-17T18:24:45Z",
+      "seconds": 864.959
+    },
     "thumb": {
       "src": "/film/the-fourth-axis.942ddae1.png",
       "src2x": "/film/the-fourth-axis-2x.23a5af5b.png",

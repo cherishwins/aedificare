@@ -4,9 +4,12 @@ import { film } from '../lib/films.mjs';
 
 // llmstxt.org shape: H1, a blockquote summary, H2 sections whose entries are
 // real markdown links with notes. Generated from the editions list so it can
-// never disagree with the site. It states only what does not change; the
+// never disagree with the site. It states what an edition is (its date,
+// title, lede, URL and PDF), which does not change once it is issued; the
 // full text lives in /llms-full.txt, built from the published HTML. An
-// edition's film, once it is out, follows its PDF (src/lib/films.mjs).
+// edition's film, once it is out, follows its PDF (src/lib/films.mjs), and
+// that URL does change: a corrected film is a new video, and a withdrawn one
+// is taken off, each with the commit that changes src/lib/films.json.
 export function GET() {
   const lines = [
     `# ${SITE.name}`, '',

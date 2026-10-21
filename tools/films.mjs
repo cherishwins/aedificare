@@ -5,29 +5,48 @@
  * gets a block link to the film's watch page with the film's own thumbnail,
  * served from this origin; src/lib/films.json says which, and this writes it.
  *
- *   node tools/films.mjs <video id> [...]   link these films (each one public: the caller says so)
+ *   node tools/films.mjs <video id> [...]    link these films (each one public: the caller says so)
  *   node tools/films.mjs --drop <slug> [...] take an edition's film off the site
- *   node tools/films.mjs --check            check src/lib/films.json and public/film/ (the build runs this)
+ *   node tools/films.mjs --check             check src/lib/films.json and public/film/, no network (the build runs this)
+ *   node tools/films.mjs --check --online    and each link against its release now (verify.yml runs this)
  *
  * What is public cannot be read from here without the channel's secrets, so
  * it is the input: the morning a film publishes, one command with its id and
  * a commit. Each id is matched to its edition by the ledger the uploader
  * files on the release film-<slug> (youtube.json), so only the CURRENT film
  * of a published edition can be linked: an earlier cut, a Short or a video
- * that is not ours names no ledger and is refused. The length and the
- * thumbnail's file name come from that release's meta.json, the thumbnail is
- * that release's asset, and its alt text names what the render put on it
- * (the first headline figure, or the acid word, read from script.json by the
- * rule tools/generate-film.mjs uses), checked against the thumbnail's own
- * ground colour.
+ * that is not ours names no ledger and is refused. A ledger's privacy and
+ * publishAt are what the upload sent, not what is true now, so only its id
+ * and its time are read.
+ *
+ * The length is the film file's own, read from the movie header of the MP4
+ * on the release by range requests (a few hundred kilobytes of a gigabyte)
+ * and rounded up to the second, as YouTube shows it; meta.json's length is
+ * rounded to the nearest and read a second short on two of the first three
+ * films. The file must have been filed before the upload the ledger records,
+ * or it is a later render and not the video's. The thumbnail's file name
+ * comes from meta.json, the thumbnail is that release's asset, and its alt
+ * text names what the render put on it (the first headline figure, or the
+ * acid word, read from script.json by the rule tools/generate-film.mjs uses),
+ * checked against the thumbnail's own ground colour.
  *
  * The thumbnail is reduced to the size it is shown at, and twice that for a
  * dense screen, by an area average in linear light, encoded here with no
- * library, and content-hashed like the OG cards. An entry whose id, length,
- * source bytes and size have not changed keeps its files, so a run for a new
- * film never re-encodes the others. Files under public/film that no entry links
- * are removed. Release assets of this public repository download without a
- * token; nothing here calls YouTube.
+ * library, and content-hashed like the OG cards. An entry whose id, film
+ * file, thumbnail bytes and size have not changed keeps its files, so a run
+ * for a new film never re-encodes the others. Files under public/film that no
+ * entry links are removed.
+ *
+ * --check --online holds every link to its release as it is now: the
+ * release still files that id as its film (a corrected render uploaded with
+ * upload --replace files a new one), and the film file and the thumbnail are
+ * still the bytes measured. It cannot see whether a video is still public;
+ * tools/youtube-channel.mjs judges every link against the channel on each
+ * run, and says so when it withdraws, holds or retires a linked film.
+ *
+ * Release files of this public repository download without a token; the
+ * releases API takes GH_TOKEN or GITHUB_TOKEN when set, for its rate limit.
+ * Nothing here calls YouTube.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -35,31 +54,107 @@ import crypto from 'node:crypto';
 import zlib from 'node:zlib';
 import { execFileSync } from 'node:child_process';
 import { PUBLISHED } from '../src/lib/editions.mjs';
-import { films as linked, problems, readFilms, clock, watchUrl, FILMS_FILE as FILE, FILMS_DIR as DIR } from '../src/lib/films.mjs';
+import { films as linked, problems, readFilms, clock, lengthOf, watchUrl, THUMB, FILMS_FILE as FILE, FILMS_DIR as DIR } from '../src/lib/films.mjs';
 
 const REPO = 'cherishwins/aedificare';
-/**
- * Shown at 112 by 63. Every thumbnail so far sets one word or figure in Acid
- * at most about 0.22 of its height tall (1,200 with its comma's tail); at 63
- * px that is 14 px of ink, under the 16 px capital of 24 px type, which is
- * where tools/verify.cjs starts counting Acid "at scale". At 128 by 72 the
- * comma took 1,200 to 16 px, level with the capital, so the size came down.
- * The thumbnail spends no Acid on the surface it sits on, and the sweep
- * measures that on every build rather than trusting this note.
- */
-const SIZE = { width: 112, height: 63 };
 
 const argv = process.argv.slice(2);
-const usage = () => { console.error('films: node tools/films.mjs <video id> [...] | --drop <slug> [...] | --check'); process.exit(1); };
+const usage = () => { console.error('films: node tools/films.mjs <video id> [...] | --drop <slug> [...] | --check [--online]'); process.exit(1); };
 if (!argv.length) usage();
+const fail = (msg) => { console.error(`films: ${msg}`); process.exit(1); };
 
-/* ---- --check: what the build runs ------------------------------------------- */
+/* ---- the releases ------------------------------------------------------------ */
+const ghToken = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+const curl = (args, max = 1 << 26) => execFileSync('curl', ['-sSLf', '--retry', '2', ...args], { maxBuffer: max, stdio: ['ignore', 'pipe', 'pipe'] });
+const why = (err) => String(err.stderr || err.message).trim();
+/** Every film-<slug> release with its assets (name, size, updated_at, digest, download URL), from one or two API calls. */
+const releases = () => {
+  const all = [];
+  for (let page = 1; ; page++) {
+    let batch;
+    try { batch = JSON.parse(curl(['-H', 'accept: application/vnd.github+json', ...(ghToken ? ['-H', `authorization: Bearer ${ghToken}`] : []), `https://api.github.com/repos/${REPO}/releases?per_page=100&page=${page}`])); }
+    catch (err) { fail(`could not list the releases: ${why(err)}`); }
+    all.push(...batch);
+    if (batch.length < 100) break;
+  }
+  return new Map(all.filter((r) => r.tag_name.startsWith('film-')).map((r) => [r.tag_name, r]));
+};
+const assetOf = (rel, name) => rel?.assets.find((a) => a.name === name);
+const download = (a) => {
+  try { return curl([a.browser_download_url]); }
+  catch (err) { fail(`could not fetch ${a.browser_download_url}: ${why(err)}`); }
+};
+const json = (rel, name) => { const a = assetOf(rel, name); return a ? JSON.parse(download(a).toString('utf8')) : null; };
+// A ledger left as .prev by an upload run that died while filing it still names the release's film (youtube-channel.mjs).
+const ledgerOf = (rel) => json(rel, 'youtube.json') ?? json(rel, 'youtube.json.prev');
+const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
+/** A release asset's sha256: GitHub's own digest where the asset has one, else its bytes hashed. */
+const digestOf = (a) => (/^sha256:[0-9a-f]{64}$/.test(a.digest ?? '') ? a.digest.slice(7) : sha256(download(a)));
+
+/**
+ * The film's length in seconds, from the movie header (moov/mvhd) of the MP4 on the release, by range requests: the
+ * top-level boxes are walked by their headers and only the moov is fetched. --max-filesize stops a server that ignores
+ * the range from sending the whole film.
+ */
+function filmSeconds(a) {
+  const range = (from, to) => {
+    try { return curl(['-r', `${from}-${to}`, '--max-filesize', String(to - from + 1 + 4096), a.browser_download_url], 1 << 28); }
+    catch (err) { fail(`could not read ${a.name} bytes ${from} to ${to}: ${why(err)}`); }
+  };
+  for (let off = 0; off + 8 <= a.size;) {
+    const h = range(off, Math.min(off + 15, a.size - 1));
+    let size = h.readUInt32BE(0), head = 8;
+    const type = h.toString('latin1', 4, 8);
+    if (size === 1) { size = Number(h.readBigUInt64BE(8)); head = 16; } else if (size === 0) size = a.size - off;
+    if (size < head) fail(`${a.name}: a ${type} box of ${size} bytes at ${off}; not an MP4 this can read`);
+    if (type === 'moov') {
+      const moov = range(off, off + size - 1);
+      for (let p = head; p + 8 <= moov.length;) {
+        const s = moov.readUInt32BE(p), t = moov.toString('latin1', p + 4, p + 8);
+        if (t === 'mvhd') {
+          const v1 = moov[p + 8] === 1;
+          const scale = moov.readUInt32BE(p + (v1 ? 28 : 20));
+          const units = v1 ? Number(moov.readBigUInt64BE(p + 32)) : moov.readUInt32BE(p + 24);
+          if (!scale || !units) fail(`${a.name}: its movie header gives no length`);
+          return units / scale;
+        }
+        if (s < 8) break;
+        p += s;
+      }
+      fail(`${a.name}: its moov box holds no movie header`);
+    }
+    off += size;
+  }
+  fail(`${a.name}: no moov box in ${a.size} bytes`);
+}
+
+/* ---- --check: what the build runs, and verify.yml with --online -------------- */
 if (argv[0] === '--check') {
-  try {
-    const all = linked();
-    console.log(`check-films: ${all.length} film(s) linked (${all.map((f) => f.slug).join(', ') || 'none'}), every thumbnail present, its size and its hash`);
+  let all;
+  try { all = linked(); } catch (err) { console.error(err.message); process.exit(1); }
+  const names = all.map((f) => f.slug).join(', ') || 'none';
+  if (!argv.includes('--online')) {
+    console.log(`check-films: ${all.length} film(s) linked (${names}), every entry bound to its edition and its release, every thumbnail present, its size and its hash`);
     process.exit(0);
-  } catch (err) { console.error(err.message); process.exit(1); }
+  }
+  const raw = readFilms(), rels = releases(), bad = [];
+  for (const [slug, f] of Object.entries(raw)) {
+    const rel = rels.get(`film-${slug}`);
+    if (!rel) { bad.push(`${slug}: there is no release film-${slug}`); continue; }
+    const ledger = ledgerOf(rel);
+    if (ledger?.id !== f.id) bad.push(`${slug}: film-${slug} now files ${ledger?.id ?? 'no video'} as its film, not the linked ${f.id} (a corrected render went up beside it?). Once that video is public, node tools/films.mjs ${ledger?.id ?? '<its id>'} relinks the edition; until then node tools/films.mjs --drop ${slug}`);
+    const meta = json(rel, 'meta.json');
+    if (meta?.file !== f.source.asset || meta?.thumbnail !== f.thumb.source.asset) bad.push(`${slug}: film-${slug}/meta.json names ${meta?.file} and ${meta?.thumbnail}, not the ${f.source.asset} and ${f.thumb.source.asset} the link was made from; node tools/films.mjs ${f.id}`);
+    const fa = assetOf(rel, f.source.asset);
+    if (!fa || fa.size !== f.source.bytes || fa.updated_at !== f.source.updated) bad.push(`${slug}: film-${slug}/${f.source.asset} has been filed again since it was measured (${fa ? `${fa.size} B, ${fa.updated_at}` : 'gone'}; measured ${f.source.bytes} B, ${f.source.updated}); node tools/films.mjs ${f.id} measures it again, or refuses it if it is a later render than the video`);
+    // Measured again, so a length typed into the file is caught as well as a file filed again.
+    else { const s = filmSeconds(fa); if (s !== f.source.seconds) bad.push(`${slug}: ${f.source.asset} runs ${s} s, not the ${f.source.seconds} s films.json says; node tools/films.mjs ${f.id}`); }
+    const ta = assetOf(rel, f.thumb.source.asset);
+    if (!ta || digestOf(ta) !== f.thumb.source.sha256) bad.push(`${slug}: film-${slug}/${f.thumb.source.asset} is ${ta ? 'no longer the bytes the thumbnail was reduced from' : 'gone'}; node tools/films.mjs ${f.id}`);
+  }
+  if (bad.length) { console.error(`check-films --online: ${bad.length} link(s) no longer what their releases file:\n  ${bad.join('\n  ')}`); process.exit(1); }
+  console.log(`check-films --online: ${all.length} film(s) linked (${names}), each still the film its release files, measured from the bytes still filed. Whether each is still public, tools/youtube-channel.mjs says on every run`);
+  process.exit(0);
 }
 
 const films = readFilms();
@@ -68,7 +163,7 @@ const films = readFilms();
 let dropped = 0;
 if (argv[0] === '--drop') {
   for (const slug of argv.slice(1)) {
-    if (!films[slug]) { console.error(`films: ${slug} has no film linked`); process.exit(1); }
+    if (!films[slug]) fail(`${slug} has no film linked`);
     delete films[slug];
     dropped++;
     console.log(`  ${slug}: film taken off the site`);
@@ -77,55 +172,65 @@ if (argv[0] === '--drop') {
 } else {
   /* ---- link: match each id to the ledger that names it ---------------------- */
   const ids = argv;
-  for (const id of ids) if (!/^[A-Za-z0-9_-]{11}$/.test(id)) { console.error(`films: ${id} is not an eleven-character YouTube id`); process.exit(1); }
-  const url = (slug, name) => `https://github.com/${REPO}/releases/download/film-${slug}/${name}`;
-  const get = (u) => {
-    try { return execFileSync('curl', ['-sSLf', '--retry', '2', u], { maxBuffer: 1 << 26, stdio: ['ignore', 'pipe', 'pipe'] }); }
-    catch (err) { if (err.status === 22) return null; throw new Error(`films: could not fetch ${u}: ${String(err.stderr || err.message).trim()}`); }
-  };
-  const json = (u) => { const b = get(u); return b ? JSON.parse(b.toString('utf8')) : null; };
-
+  for (const id of ids) if (!/^[A-Za-z0-9_-]{11}$/.test(id)) fail(`${id} is not an eleven-character YouTube id`);
+  const rels = releases();
   const ledgers = new Map();
   for (const e of PUBLISHED) {
-    const l = json(url(e.slug, 'youtube.json'));
-    if (l?.id) ledgers.set(l.id, e);
+    const rel = rels.get(`film-${e.slug}`);
+    const l = rel && ledgerOf(rel);
+    if (l?.id) ledgers.set(l.id, { e, rel, ledger: l });
   }
   for (const id of ids) {
-    const e = ledgers.get(id);
-    if (!e) { console.error(`films: ${id} is not the film any published edition's release files in its youtube.json; an earlier cut, a Short or another channel's video gets no link`); process.exit(1); }
-    const meta = json(url(e.slug, 'meta.json'));
-    if (!meta || meta.kind !== 'film' || meta.slug !== e.slug) { console.error(`films: film-${e.slug}/meta.json is missing or not this edition's film`); process.exit(1); }
-    if (!Number.isInteger(meta.duration) || meta.duration <= 0) { console.error(`films: film-${e.slug}/meta.json has no duration`); process.exit(1); }
-    if (!new RegExp(`^${e.slug}-thumb-\\d+x\\d+\\.png$`).test(meta.thumbnail ?? '')) { console.error(`films: film-${e.slug}/meta.json names no thumbnail of its own (${meta.thumbnail})`); process.exit(1); }
-    const src = get(url(e.slug, meta.thumbnail));
-    if (!src) { console.error(`films: film-${e.slug}/${meta.thumbnail} is not on the release`); process.exit(1); }
-    const sha256 = crypto.createHash('sha256').update(src).digest('hex');
+    const hit = ledgers.get(id);
+    if (!hit) fail(`${id} is not the film any published edition's release files in its youtube.json; an earlier cut, a Short or another channel's video gets no link`);
+    const { e, rel, ledger } = hit;
+    const meta = json(rel, 'meta.json');
+    if (!meta || meta.kind !== 'film' || meta.slug !== e.slug) fail(`film-${e.slug}/meta.json is missing or not this edition's film`);
+    if (!Number.isInteger(meta.duration) || meta.duration <= 0) fail(`film-${e.slug}/meta.json has no duration`);
+    const fa = assetOf(rel, meta.file);
+    if (!fa || !new RegExp(`^${e.slug}-film-\\d+x\\d+\\.mp4$`).test(meta.file)) fail(`film-${e.slug}/meta.json names ${meta.file}, which is not this edition's film on the release`);
+    // The file on the release must be the one that went up: filed before the upload the ledger records. A render filed
+    // since (a correction, a re-cut) is not the video until upload --replace puts it up, which files a new id.
+    if (!Date.parse(ledger.at)) fail(`film-${e.slug}'s ledger records no upload time, so the film file on the release cannot be shown to be the video's`);
+    if (!(Date.parse(fa.updated_at) <= Date.parse(ledger.at))) fail(`film-${e.slug}/${meta.file} was filed ${fa.updated_at}, after ${id} went up (${ledger.at}), so its length is not that video's; link the edition's film once the render that replaces it is up and public`);
+    if (!new RegExp(`^${e.slug}-thumb-\\d+x\\d+\\.png$`).test(meta.thumbnail ?? '')) fail(`film-${e.slug}/meta.json names no thumbnail of its own (${meta.thumbnail})`);
+    const ta = assetOf(rel, meta.thumbnail);
+    if (!ta) fail(`film-${e.slug}/${meta.thumbnail} is not on the release`);
     const old = films[e.slug];
-    if (old && old.id === id && old.duration === meta.duration && old.thumb?.source?.sha256 === sha256 && old.thumb.width === SIZE.width && old.thumb.height === SIZE.height && !problems({ [e.slug]: old }).some((p) => !/is linked by no entry/.test(p))) {
+    const sameFilm = old?.source?.asset === meta.file && old.source.bytes === fa.size && old.source.updated === fa.updated_at && Number.isFinite(old.source.seconds);
+    const seconds = sameFilm ? old.source.seconds : filmSeconds(fa);
+    // meta.json rounds the narration's length; the file runs within a second of it, or the two are not one render.
+    if (Math.abs(seconds - meta.duration) > 1) fail(`film-${e.slug}: meta.json says ${meta.duration} s and ${meta.file} runs ${seconds} s; they are not one render`);
+    const duration = lengthOf(seconds);
+    const digest = digestOf(ta);
+    const source = { release: rel.tag_name, asset: meta.file, bytes: fa.size, updated: fa.updated_at, seconds };
+    if (old && old.id === id && sameFilm && old.duration === duration && old.thumb?.source?.sha256 === digest && old.thumb.width === THUMB.width && old.thumb.height === THUMB.height && !problems({ [e.slug]: old }).some((p) => !/is linked by no entry/.test(p))) {
       console.log(`  ${e.slug}: ${id}, unchanged`);
       continue;
     }
+    const src = download(ta);
+    if (sha256(src) !== digest) fail(`film-${e.slug}/${meta.thumbnail} downloaded as other bytes than GitHub's digest says`);
     const img = decodePng(src);
-    if (img.width * SIZE.height !== img.height * SIZE.width) { console.error(`films: ${meta.thumbnail} is ${img.width}x${img.height}, not 16:9`); process.exit(1); }
-    const script = json(url(e.slug, 'script.json'));
-    if (!script?.blocks) { console.error(`films: film-${e.slug}/script.json is missing`); process.exit(1); }
+    if (img.width * THUMB.height !== img.height * THUMB.width) fail(`${meta.thumbnail} is ${img.width}x${img.height}, not 16:9`);
+    const script = json(rel, 'script.json');
+    if (!script?.blocks) fail(`film-${e.slug}/script.json is missing`);
     const alt = altText(e, script, img);
     fs.mkdirSync(DIR, { recursive: true });
     const write = (scale) => {
-      const w = SIZE.width * scale, h = SIZE.height * scale;
+      const w = THUMB.width * scale, h = THUMB.height * scale;
       const bytes = encodePng(w, h, resample(img, w, h));
-      const hash = crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 8);
+      const hash = sha256(bytes).slice(0, 8);
       const name = `${e.slug}${scale > 1 ? `-${scale}x` : ''}.${hash}.png`;
       fs.writeFileSync(path.join(DIR, name), bytes);
       console.log(`  ${path.join(DIR, name)}`.padEnd(48) + `${w}x${h}  ${bytes.length} B`);
       return `/film/${name}`;
     };
     films[e.slug] = {
-      id, duration: meta.duration,
-      thumb: { src: write(1), src2x: write(2), width: SIZE.width, height: SIZE.height, alt,
-        source: { release: `film-${e.slug}`, asset: meta.thumbnail, sha256 } },
+      id, duration, source,
+      thumb: { src: write(1), src2x: write(2), width: THUMB.width, height: THUMB.height, alt,
+        source: { release: rel.tag_name, asset: meta.thumbnail, sha256: digest } },
     };
-    console.log(`  ${e.slug}: ${watchUrl(id)}  ${clock(meta.duration)}  "${alt}"`);
+    console.log(`  ${e.slug}: ${watchUrl(id)}  ${clock(duration)} (${meta.file} runs ${seconds} s; meta.json says ${meta.duration})  "${alt}"`);
   }
 }
 
@@ -137,7 +242,7 @@ fs.writeFileSync(FILE, JSON.stringify(ordered, null, 2) + '\n');
 const keep = new Set(Object.values(ordered).flatMap((f) => [f.thumb?.src, f.thumb?.src2x]).filter(Boolean).map((s) => path.basename(s)));
 if (fs.existsSync(DIR)) for (const f of fs.readdirSync(DIR)) if (!keep.has(f)) { fs.unlinkSync(path.join(DIR, f)); console.log(`  removed ${path.join(DIR, f)}`); }
 const bad = problems(ordered);
-if (bad.length) { console.error(`films: ${FILE} written, and it does not hold:\n  ${bad.join('\n  ')}`); process.exit(1); }
+if (bad.length) fail(`${FILE} written, and it does not hold:\n  ${bad.join('\n  ')}`);
 console.log(`  ${FILE}: ${Object.keys(ordered).length} film(s)`);
 
 /* ---- what the thumbnail shows ----------------------------------------------- */

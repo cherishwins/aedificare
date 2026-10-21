@@ -84,7 +84,8 @@ that is a reference, not documentation.
    Acid probe in `tools/verify.cjs` (text ≥ 24px or an SVG stroke ≥ 200px
    counts as "at scale"; 11px labels and 2px rules do not; an image counts
    by its pixels, when its tallest band of Acid ink, drawn at the size it
-   is shown, reaches the capital of 24px type, 16px).
+   is shown, reaches the capital of 24px type, 16px; a film's thumbnail at
+   that size fails on its own, wherever it sits).
 5. **Theta falls back.** Neither Bricolage Grotesque nor Martian Mono has
    Greek, so the θ in `r = cos(kθ)` renders from the system mono stack. One
    glyph, and the same thing the uploaded PDFs already did. Alternatives
@@ -218,19 +219,30 @@ exclamation in a heading, no emoji, no sentence "Aedificare is", none of
 the banned self-praise adjectives. `tools/check-contents.cjs` keeps every
 contents list true to the built edition, drafts included and every published
 page's meta description within 100 to 200 characters. `tools/films.mjs --check`,
-the build's first step, holds `src/lib/films.json` to the published editions
-and the thumbnails on disk. `tools/verify.cjs` adds
-the computed-style rules: contrast, Acid once per surface, the brand faces
-actually loaded, every rose field live, every field's reduced-motion still,
-and no request to any host but the page's own.
+the build's first step, holds `src/lib/films.json` to the published editions,
+each entry to its own edition's release and the thumbnails on disk, and
+`tools/films.mjs --check --online` in `verify.yml` holds each link to what its
+release files now. `tools/verify.cjs` adds
+the computed-style rules: contrast, Acid once per surface and never at scale
+in a film's thumbnail, the brand faces actually loaded, every rose field
+live, every field's reduced-motion still, and no request to any host but the
+page's own.
 
 **Human duties** (cannot fail a build; review by eye on every PR): one loud
 move per surface; never explain what the entity does; twelve words maximum
 in display copy; the dove once per *sequence* (the sweep can count doves per
 page, "sequence" is editorial); no building pun; no tagline; no call to
 action; every source of a ported edition opened before `draft` is
-flipped; and, after `npm run og`, every card whose content did not change
-restored to its committed bytes (see Discoverability). The kit says no tagline and the site has none; the owner has asked
+flipped; after `npm run og`, every card whose content did not change
+restored to its committed bytes (see Discoverability); and a linked film
+kept public and current: the day a film the site links is withdrawn, held,
+retired or replaced, `node tools/films.mjs --drop <slug>` (or the
+replacement's id, once it is public) and a commit. Only the channel can say
+what is public, so no build can fail on it: `tools/youtube-channel.mjs`
+names a wrong link on every run (its `list` exits non-zero), withdraw,
+retire and `upload --replace` say so when they touch a linked film, and
+`verify.yml` fails a link whose release now files another video (Decisions
+log, 21 Oct 2026). The kit says no tagline and the site has none; the owner has asked
 for a shortlist for bios and cards, which is a separate deliverable.
 
 ## Stack
@@ -308,14 +320,24 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `draft: true` hides an edition everywhere but the build.
 - `src/lib/films.mjs` and `src/lib/films.json`: the films the site links
   (Decisions log, 21 Oct 2026), keyed by edition: the video id, the length
-  in seconds, the thumbnail's two files, size and alt text, and the release
-  asset it was reduced from with that asset's sha256. The JSON is written
-  only by `tools/films.mjs`. The module checks it on first use, so the build
-  stops on an entry for an edition that is not published, an id that is not
-  eleven characters, a thumbnail missing, the wrong size or not the bytes
-  its hashed name says, or a file under `public/film/` that nothing links.
+  the link shows, the film file it was measured from (its release, name,
+  size, filing time and length in seconds), the thumbnail's two files, size
+  and alt text, and the release asset it was reduced from with that asset's
+  sha256. The JSON is written only by `tools/films.mjs`. The module holds
+  the thumbnail's size (`THUMB`, 112 by 63, and why) and the length rule
+  (`lengthOf`: the file's own length rounded UP, as YouTube shows it; the
+  rounded length in `meta.json` read 18:15 and 13:38 where YouTube shows
+  18:16 and 13:39). It checks the JSON on first use with no network, so the
+  build stops on an entry for an edition that is not published, an id that
+  is not eleven characters or is linked twice, a length that is not the
+  measured one rounded up, a film or thumbnail source that is not the
+  edition's own release, a thumbnail not named for its edition, missing,
+  not 112 by 63 or not the bytes its hashed name says, or a file under
+  `public/film/` that nothing links.
   `src/components/FilmLink.astro` renders the link at the edition's end
-  and in its entry on the home; `src/pages/index.json.ts`,
+  and in its entry on the home: the record first ("Film · 18:16 ·
+  YouTube", the length a `<time>` duration), on the baseline of the links
+  beside it, the thumbnail hanging after it; `src/pages/index.json.ts`,
   `src/pages/llms.txt.ts` and `tools/generate-llms-full.cjs` carry its URL.
 - `src/lib/rose.mjs`: `rhodonea()`, the house configuration, the mark seed,
   the dove outline, and `drift()`, the clock a live field's k follows (a
@@ -377,16 +399,23 @@ for a shortlist for bios and cards, which is a separate deliverable.
   links, 21 Oct 2026: given the ids that are public, which nothing here can
   read without the channel's secrets, it matches each to the release whose
   `youtube.json` files it as the edition's film, so an earlier cut or a
-  Short is refused, reads the length and the thumbnail's name from that
-  release's `meta.json` and the alt text's word from its `script.json` by
-  the rule `generate-film.mjs` uses, checked against the thumbnail's own
-  ground; reduces the thumbnail by an area average in linear light with
-  its own PNG codec, no library; hashes and writes it and
-  `src/lib/films.json`, keeping an entry whose id, length, source bytes
-  and size have not changed; `--drop <slug>` takes a film off; `--check` runs first
-  in `npm run build`. A ledger's `privacy` and `publishAt` are what the
-  upload sent, not what is true now (The Fourth Axis's still reads private,
-  publishing 22 Oct, while the film is public), so it reads only the id),
+  Short is refused; reads the film's length from the movie header of the
+  MP4 on the release by range requests (the moov box only, never the
+  gigabyte) and rounds it up, refuses a film file filed after the upload
+  the ledger records (a later render is not that video) or more than a
+  second from `meta.json`'s length; takes the thumbnail's name from
+  `meta.json` and the alt text's word from `script.json` by the rule
+  `generate-film.mjs` uses, checked against the thumbnail's own ground;
+  reduces the thumbnail by an area average in linear light with its own
+  PNG codec, no library; hashes and writes it and `src/lib/films.json`,
+  keeping an entry whose id, film file, thumbnail bytes and size have not
+  changed; `--drop <slug>` takes a film off; `--check` runs first in `npm
+  run build`, and `--check --online`, in `verify.yml`, fails a link whose
+  release now files another video, or whose film file or thumbnail has
+  been filed again or does not measure what the entry says. A ledger's
+  `privacy` and `publishAt` are what the upload sent, not what is true now
+  (The Fourth Axis's still reads private, publishing 22 Oct, while the
+  film is public), so it reads only the id and the time),
   `generate-llms-full.cjs`,
   `generate-og.mjs`, `generate-marks.mjs`, `generate-social.mjs`,
   `generate-video.mjs` (the silent films), `generate-film.mjs` (the
@@ -474,7 +503,15 @@ for a shortlist for bios and cards, which is a separate deliverable.
   words sends only the words to the video its release's ledger names (a
   hand upload keeps the full update, since nothing records whether its
   captions went up), and prints every title and description change line
-  by line, so its dry run is the before and after),
+  by line, so its dry run is the before and after; and on every run it
+  judges the site's film links, `src/lib/films.json`, against the channel,
+  the one place public can be read: each linked video on the channel,
+  public, the film its release files and as long as the link says, or a
+  `SITE LINK WRONG` line naming the `films.mjs` command that sets it right,
+  and `list` exits non-zero; a current film that is public and not linked
+  yet is named with the command that links it; `withdraw`, `retire` and
+  `upload --replace` say so when they take down or supersede a linked film;
+  tried on a mocked channel, 21 Oct 2026, and it writes no link itself),
   `generate-design-system.mjs` (the claude.ai/design bundle, below),
   `episode.mjs` (the news films, override 8: `check`, `sheet`, `narrate`,
   `render`; quote cards with a highlighter, maps from Natural Earth,
@@ -1081,8 +1118,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - `.github/workflows/verify.yml`: build (with the three checkers), the
   audit through `tools/check-audit.cjs`, actionlint over every workflow
   (pinned by checksum; the film workflows run unattended and no longer
-  prove themselves on a push), `tools/film-meta.mjs --test`, sweep, on
-  every PR and push to `main`.
+  prove themselves on a push), `tools/film-meta.mjs --test`, sweep, and
+  `tools/films.mjs --check --online` (the site's film links against their
+  releases now), on every PR and push to `main`.
 - `.github/workflows/film.yml`: manual dispatch, `slug` and `format`
   inputs, and callable (`film-queue.yml`). Renders a narrated film on a
   clean runner (build, Playwright, ffmpeg, espeak-ng, `uv`) and keeps
@@ -1274,7 +1312,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   cannot be checked against the edition, and the ledes already exist. The
   brand rules hold: no Acid on the edition surfaces, block links only,
   small Malachite never on Bottle (the Bottle block's numbers and aside go
-  Flash), nothing explains what the entity does.
+  Flash), nothing explains what the entity does. (Since 21 Oct 2026 an
+  edition with a public film carries its thumbnail there, whose one word
+  or figure is Acid below the probe's "at scale"; whether that still keeps
+  this rule is the owner's to judge by eye. Decisions log.)
 
 - **The code is the date** (owner, 2026-09-16: "I really hate having to
   keep a series going with the numbers that get fucked up instead of just
@@ -1968,8 +2009,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   Bytespider and the rest). Most sites block these; this one does the
   opposite on purpose. Do not "tighten" it. Drafts are the only exclusion.
 - `src/pages/llms.txt.ts` is generated from the editions list, llmstxt.org
-  shape, and states only what does not change; an edition's film follows
-  its PDF there once it is out, as it does in `/llms-full.txt`. `tools/generate-llms-full.cjs`
+  shape, and states what an edition is, which does not change once it is
+  issued; an edition's film follows its PDF there once it is out, as it
+  does in `/llms-full.txt`, and that URL does change (a corrected film is a
+  new video, a withdrawn one is dropped), with the commit that changes
+  `src/lib/films.json`. `tools/generate-llms-full.cjs`
   builds `/llms-full.txt` **from the built HTML** as a post-build step, so
   it cannot drift from what is published. Both are wired into `npm run
   build`, so Vercel produces them.
@@ -2208,44 +2252,74 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   `.claude/skills/youtube/SKILL.md`.
 
 - **2026-10-21 · An edition links its film, and nothing is embedded.**
-  The owner asked in chat: "Shouldn't we have these LinkedIn maybe even
-  embedded in the website?"; the answer settled there was a link with a
-  thumbnail and no embed. Each edition whose current film is public
-  carries a block link to the film's YouTube watch page where its PDF is
-  linked (beside it, or in its place where there is none), at the
-  edition's end and in its entry on the home, set as a record ("Film ·
-  14:25 · YouTube": the length and the platform named, never "Watch"),
-  with the film's own thumbnail, the PNG filed on its release, reduced and
-  served from this origin with width, height, lazy loading and alt text.
-  Nothing is embedded, for four reasons. Google gives video features only
-  to a watch page whose main content is the video, so an embed, or
-  VideoObject markup (also left out), would claim an edition page is what
-  it is not. An embed asks YouTube and Google for things the moment a page
-  loads, and no page here asks anyone else for anything; the sweep now
-  counts any request off the origin, which it used to answer 204 unseen.
-  YouTube's player is far more JavaScript than the whole site's 5 kB
-  budget. And its chrome (red, rounded, shadowed, its own typeface) breaks
-  the kit on the surface it sits on. The link is the only way out.
-  **Small on purpose.** Each thumbnail sets one word or figure in Acid; at
-  112 by 63 its tallest band of Acid ink is at most 14 px, under the 16 px
-  capital of 24 px type where the Acid probe starts counting "at scale",
-  so it is not a second loud move on the home's edition surface, whose
-  loud move is its title and which spends no Acid, nor at the edition's
-  end, where the dove stays the resolve. At 128 by 72 The Supply Cabinet's
-  1,200 reached 16 px with its comma, so the size came down. A surface of
-  the film's own, the other form, would have put a loud move after the
-  dove. The probe now measures images by their pixels and fails a large
-  thumbnail on a surface that already spends its Acid (tried on The Fourth
-  Axis's cover). **Only the current film, never a Short, and only once it
-  is public**: what is public cannot be read without the channel's
-  secrets, so it is the input, one `node tools/films.mjs <id>` and a commit
-  the morning a film publishes, and each id must be the one its release's
-  `youtube.json` files, so the old Tilt Gap cut (`C7PgSaHZeiA`), public but
-  superseded by `mCq1v6d3GVs`, is refused. First linked, as the films
+  What the owner wrote in chat, the only words of theirs on record here:
+  "Shouldn't we have these LinkedIn maybe even embedded in the website?".
+  "These" can only be the films, and "LinkedIn" there reads as "linked
+  in", dictated: link the films, maybe even embed them. The session's brief
+  that day asked for the first half, a link with a thumbnail and no embed,
+  and that is what was built; nothing about LinkedIn the network is open
+  here, and if the owner meant it, it is theirs to raise. Each edition
+  whose current film is public carries a block link to the film's YouTube
+  watch page where its PDF is linked (beside it, or in its place where
+  there is none), at the edition's end and in its entry on the home, set
+  as a record ("Film · 18:16 · YouTube": the length and the platform
+  named, never "Watch"), with the film's own thumbnail, the PNG filed on
+  its release, reduced and served from this origin with width, height,
+  lazy loading and alt text. The record comes first, in the reading order
+  too, so the link's name starts with what it says, and it sits on the
+  baseline of the links beside it with the thumbnail hanging after it;
+  the length is a `<time>` duration, so a screen reader does not take
+  18:16 for a time of day. On the home, where a film makes the row too
+  wide for the edition's own record ("12 sections · seed 7C21"), that
+  record drops to a line of its own at the left, as on a phone, not
+  under the film at the right. **The length** is the film file's own,
+  read from its MP4 header and rounded UP, because that is what YouTube
+  shows: the first cut copied `meta.json`'s rounded 1,095 and 818 s and
+  read 18:15 and 13:38 where YouTube shows 18:16 and 13:39 (the files run
+  1,095.375 and 818.125 s; The Fourth Axis's 864.959 s is 14:25 either
+  way). **Why no embed.** An embed that loads with the page asks YouTube
+  and Google for things the moment the page opens, and no page here asks
+  anyone else for anything (the sweep now counts any request off the
+  origin, which it used to answer 204 unseen); YouTube's player is far
+  more JavaScript than the whole site's 5 kB budget; and its chrome (red,
+  rounded, shadowed, its own typeface) breaks the kit on the surface it
+  sits on. Separately, Google gives video features only to a page whose
+  main content is the video, which an edition page is not, so it carries
+  no VideoObject markup either. Those reasons do not all rule out a
+  click-to-play facade (this thumbnail, with the player loaded only after
+  the reader's click): it asks nobody for anything on load and needs a few
+  hundred bytes of script, though YouTube's chrome would still arrive with
+  the click. **Whether a film plays on the page after a click is the
+  owner's call**, not settled here. **Small on purpose.** Each thumbnail
+  sets one word or figure in Acid; at 112 by 63 its tallest band of Acid
+  ink, as the probe reads it where it is shown, is 14 px (The Supply
+  Cabinet's 1,200), 12 (SUBTRACTION) and 11 (69), under the 16 px capital
+  of 24 px type where the probe starts counting "at scale". At 128 by 72
+  the 1,200 reached 16 px with its comma, so the size came down. A surface
+  of the film's own, the other form, would have put a loud move after the
+  dove. The sweep fails any film thumbnail at scale on its own, wherever
+  it sits (drawn at 224 by 126 all six failed), and the build holds every
+  entry to 112 by 63. **Whether the small Acid word is still a second loud
+  move is the owner's to judge by eye**: it sits under a Flash title on
+  the home's edition surfaces, which "The home is a contents page" says
+  carry no Acid, and in the nav after the dove; no machine can settle
+  that. **Only the current film, never a Short, and only once it is
+  public**: what is public cannot be read without the channel's secrets,
+  so it is the input, one `node tools/films.mjs <id>` and a commit the
+  morning a film publishes (`youtube-channel.mjs` names a public current
+  film the site does not link yet), and each id must be the one its
+  release's `youtube.json` files, so the old Tilt Gap cut
+  (`C7PgSaHZeiA`), public but superseded by `mCq1v6d3GVs`, is refused.
+  **Kept true after the day it is written**, a human duty with three nets
+  (none can make a build fail on what is public): `youtube-channel.mjs`
+  judges every link against the channel on every run and fails `list` on
+  a wrong one; withdraw, retire and `upload --replace` name the command
+  when they touch a linked film; and `verify.yml` runs `films.mjs --check
+  --online`, which fails a link whose release now files another video or
+  whose film or thumbnail has been filed again. First linked, as the films
   public at 15:23 UTC on 20 Oct, each id checked against its ledger: The
   Fourth Axis (`9joaycmFqsU`), The Subtraction (`00hUzMPhGsY`) and The
-  Supply Cabinet (`yGdOAIj1Wa8`). The question also named LinkedIn;
-  nothing here touches it, and it is left for later.
+  Supply Cabinet (`yGdOAIj1Wa8`).
 
 ## Open
 
@@ -2332,8 +2406,9 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    goes into `humans.txt` and the JSON-LD `sameAs`, both in this repo, and
    nowhere else on a surface. (Amended 21 Oct 2026: each edition now links
    its own film's watch page, once the film is public, at its end and on
-   the home; the channel URL itself is still written only in those two
-   places. Decisions log.) Still open: **music** (the owner wanted soft
+   the home, never embedded; the channel URL itself is still written only
+   in those two places. Whether a film may play on the page after a click
+   is still the owner's call. Decisions log.) Still open: **music** (the owner wanted soft
    piano; the pipeline mixes a file the owner downloads from the YouTube
    Audio Library under the voice with `--music`, credit line in the
    description if the track asks for one; a bed computed from the

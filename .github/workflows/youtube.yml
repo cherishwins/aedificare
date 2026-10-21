@@ -6,7 +6,9 @@
 #   action=probe   uploads a three-second clip as unlisted, reports whether
 #                  YouTube locked it private (the unaudited-project lock),
 #                  deletes it; run once before the first real upload
-#   action=list    what is on the channel, what is rendered and not yet there
+#   action=list    what is on the channel, what is rendered and not yet there,
+#                  and the site's film links judged against it (every action
+#                  prints that; list fails on a wrong link, src/lib/films.json)
 #   action=upload  each render on Releases that is not on the channel yet,
 #                  oldest first, at most `max` a run, private by default;
 #                  refuses drafts whose shots.md still lists missing shots;

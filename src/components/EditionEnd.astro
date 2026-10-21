@@ -42,7 +42,9 @@ const { newer, older } = neighbours(slug);
   .close { max-width: 46ch; }
   .close:empty { display: none; }
   .end { padding-top: clamp(80px, 14vh, 200px); }
-  nav .block-link { padding-block: 10px; }
-  /* The film's thumbnail makes its row taller; the PDF beside it sits level with the film's record, not above it. */
-  nav .grid { align-items: center; }
+  /* Global so the film's link, which FilmLink renders, takes the same padding as the links typed here. */
+  nav :global(.block-link) { padding-block: 10px; }
+  /* Each row's links share a baseline: the PDF sits on the line of the film's record beside it, whose thumbnail hangs
+     below, and a link that wraps to two lines keeps its first on the line of the link beside it. */
+  nav .grid { align-items: baseline; }
 </style>

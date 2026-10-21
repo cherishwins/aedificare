@@ -64,12 +64,23 @@ jobs:
       - name: Audit dependencies
         run: node tools/check-audit.cjs
 
-      # 5 pages × 10 viewports: overflow, console errors, tap targets,
-      # contrast, broken references, og:image:alt, no service worker,
-      # axe-core, Acid once per surface, fonts and rose fields rendered,
-      # reduced-motion stills. Exits non-zero on any of the eleven.
+      # Every page × 10 viewports: overflow, text cut off, console errors,
+      # tap targets, contrast, pages served, og:image:alt, broken references,
+      # requests off the origin, no service worker, axe-core, Acid once per
+      # surface and never at scale in a film's thumbnail, fonts and rose
+      # fields rendered, reduced-motion stills. Exits non-zero on any of the
+      # thirteen.
       - name: Sweep
         run: node tools/verify.cjs
+
+      # The films the site links (src/lib/films.json) against their releases as they are now, which only the network
+      # can read: each id still the film its release's youtube.json files (a corrected render uploaded beside it files a
+      # new one), the film file and the thumbnail still the bytes the link was measured and reduced from. Whether each
+      # is still public needs the channel's secrets: tools/youtube-channel.mjs judges that on every youtube.yml run.
+      - name: Film links
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/films.mjs --check --online
 
       - name: Upload build on failure
         if: failure()

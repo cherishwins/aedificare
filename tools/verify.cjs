@@ -9,7 +9,8 @@
  * the origin; once at 1280 for WCAG AA contrast against
  * the nearest opaque ancestor, a full axe-core pass, og:image:alt, that the
  * brand faces actually loaded, that Acid appears at scale at most once per
- * surface, and that every rose field runs live; then once under
+ * surface and never in a film's thumbnail, and that every rose field runs
+ * live; then once under
  * prefers-reduced-motion to prove the still exists. Exits non-zero.
  *
  *   node tools/verify.cjs [dist]                 sweep the local build
@@ -175,7 +176,9 @@ const TAP_PROBE = () => {
  * in Acid): drawn at the size it is shown, its tallest unbroken band of Acid
  * ink must stay under a capital of 24px type in the brand face, or it is a
  * loud move like any other. A lazy image is loaded first, so the one below
- * the fold is measured too.
+ * the fold is measured too. A film's thumbnail (an image in a .film link)
+ * is never to be a loud move at all (CLAUDE.md, Decisions log, 21 Oct 2026),
+ * so one at scale fails on its own, whatever else its surface spends.
  */
 const ACID_PROBE = async () => {
   const ACID = 'rgb(204, 255, 0)';
@@ -201,7 +204,14 @@ const ACID_PROBE = async () => {
   const out = [];
   for (const [i, s] of [...document.querySelectorAll('.surface')].entries()) {
     const hits = [];
-    for (const img of s.querySelectorAll('img')) if (img.closest('.surface') === s && (await acidInk(img)) >= CAP) hits.push(`[image ${img.getAttribute('src')}]`);
+    const label = () => s.getAttribute('aria-label') || s.getAttribute('aria-labelledby') || `#${i + 1}`;
+    for (const img of s.querySelectorAll('img')) {
+      if (img.closest('.surface') !== s) continue;
+      const ink = await acidInk(img);
+      if (ink < CAP) continue;
+      hits.push(`[image ${img.getAttribute('src')}]`);
+      if (img.closest('.film')) out.push({ surface: label(), hits: [`[film thumbnail ${img.getAttribute('src')}: ${ink}px of Acid ink, at or over the ${CAP.toFixed(1)}px capital]`], film: true });
+    }
     for (const el of s.querySelectorAll('*')) {
       if (el.closest('.surface') !== s) continue;
       const cs = getComputedStyle(el);
@@ -214,7 +224,7 @@ const ACID_PROBE = async () => {
         if (!hits.includes('[rose]')) hits.push(svg?.dataset.dove !== undefined ? '[dove]' : '[rose]');
       }
     }
-    if (hits.length > 1) out.push({ surface: (s.getAttribute('aria-label') || s.getAttribute('aria-labelledby') || `#${i + 1}`), hits });
+    if (hits.length > 1) out.push({ surface: label(), hits });
   }
   return out;
 };
@@ -274,7 +284,7 @@ const RENDER_PROBE = () => ({
 
       if (width === 1280) {
         for (const c of await page.evaluate(CONTRAST_PROBE)) { contrast++; report.push(`  CONTRAST  ${p}  ${c.ratio}:1 (needs ${c.need}) ${c.px}px  "${c.text}"`); }
-        for (const a of await page.evaluate(ACID_PROBE)) { acid++; report.push(`  ACID      ${p}  surface ${a.surface}: ${a.hits.length} at scale: ${a.hits.join(' | ')}`); }
+        for (const a of await page.evaluate(ACID_PROBE)) { acid++; report.push(`  ACID      ${p}  surface ${a.surface}: ${a.film ? 'a film thumbnail is a loud move' : `${a.hits.length} at scale`}: ${a.hits.join(' | ')}`); }
         const r = await page.evaluate(RENDER_PROBE);
         if (!r.bricolage || !r.martian) { render++; report.push(`  FONTS     ${p}  bricolage=${r.bricolage} martian=${r.martian}`); }
         for (const rose of r.roses) if (rose.motion !== 'live' || rose.paths < 1) { render++; report.push(`  ROSE      ${p}  motion=${rose.motion} paths=${rose.paths}`); }
@@ -325,7 +335,7 @@ const RENDER_PROBE = () => ({
   console.log(`  requests off the origin  ${offOrigin}`);
   console.log(`  service-worker problems  ${swProblems.length}`);
   console.log(`  axe-core violations      ${axeFails}`);
-  console.log(`  Acid twice on a surface  ${acid}`);
+  console.log(`  Acid beyond its rule     ${acid}`);  // twice at scale on a surface, or a film thumbnail at scale
   console.log(`  render (fonts/rose/dove) ${render}`);
   const bad = overflow + clipped + jsErrors + taps + contrast + missing + altMissing + broken + offOrigin + swProblems.length + axeFails + acid + render;
   console.log(bad ? `\nverify: ${bad} issue(s)` : '\nverify: clean');
