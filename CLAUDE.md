@@ -239,7 +239,7 @@ kept public and current: the day a film the site links is withdrawn, held,
 retired or replaced, `node tools/films.mjs --drop <slug>` (or the
 replacement's id, once it is public) and a commit. Only the channel can say
 what is public, so no build can fail on it: `tools/youtube-channel.mjs`
-names a wrong link on every run (its `list` exits non-zero), withdraw,
+names a wrong link on every command but `probe` (its `list` exits non-zero), withdraw,
 retire and `upload --replace` say so when they touch a linked film, and
 `verify.yml` fails a link whose release now files another video (Decisions
 log, 21 Oct 2026). The kit says no tagline and the site has none; the owner has asked
@@ -503,8 +503,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   words sends only the words to the video its release's ledger names (a
   hand upload keeps the full update, since nothing records whether its
   captions went up), and prints every title and description change line
-  by line, so its dry run is the before and after; and on every run it
-  judges the site's film links, `src/lib/films.json`, against the channel,
+  by line, so its dry run is the before and after; and on every command
+  but `probe` it judges the site's film links, `src/lib/films.json`, against the channel,
   the one place public can be read: each linked video on the channel,
   public, the film its release files and as long as the link says, or a
   `SITE LINK WRONG` line naming the `films.mjs` command that sets it right,
@@ -2252,20 +2252,24 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   `.claude/skills/youtube/SKILL.md`.
 
 - **2026-10-21 · An edition links its film, and nothing is embedded.**
-  What the owner wrote in chat, the only words of theirs on record here:
-  "Shouldn't we have these LinkedIn maybe even embedded in the website?".
-  "These" can only be the films, and "LinkedIn" there reads as "linked
-  in", dictated: link the films, maybe even embed them. The session's brief
-  that day asked for the first half, a link with a thumbnail and no embed,
-  and that is what was built; nothing about LinkedIn the network is open
-  here, and if the owner meant it, it is theirs to raise. Each edition
+  The owner asked in chat: "Shouldn't we have these LinkedIn maybe even
+  embedded in the website?" (the films). The builder answered with the
+  trade-offs below and put two questions with options; the owner chose,
+  for the site, "Link with thumbnail" over click-to-play, a full embed and
+  not yet, and, for LinkedIn, "Not now" over posting from their own
+  profile, from an Aedificare page, or an automated post (LinkedIn later
+  starts with the Shorts posted natively: most guides put its uploads at
+  ten minutes, and the films run eight to eighteen). Each edition
   whose current film is public carries a block link to the film's YouTube
   watch page where its PDF is linked (beside it, or in its place where
   there is none), at the edition's end and in its entry on the home, set
   as a record ("Film · 18:16 · YouTube": the length and the platform
   named, never "Watch"), with the film's own thumbnail, the PNG filed on
   its release, reduced and served from this origin with width, height,
-  lazy loading and alt text. The record comes first, in the reading order
+  lazy loading and alt text, in a 6 px colour field (Void on Bottle,
+  Bottle on Void) rather than a border, which the kit does not draw: on
+  its Bottle home entry, The Supply Cabinet's Bottle thumbnail otherwise
+  left its "1,200" floating like loose type. The record comes first, in the reading order
   too, so the link's name starts with what it says, and it sits on the
   baseline of the links beside it with the thumbnail hanging after it;
   the length is a `<time>` duration, so a screen reader does not take
@@ -2289,11 +2293,12 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   click-to-play facade (this thumbnail, with the player loaded only after
   the reader's click): it asks nobody for anything on load and needs a few
   hundred bytes of script, though YouTube's chrome would still arrive with
-  the click. **Whether a film plays on the page after a click is the
-  owner's call**, not settled here. **Small on purpose.** Each thumbnail
+  the click; it was offered, and the owner chose the plain link.
+  **Small on purpose.** Each thumbnail
   sets one word or figure in Acid; at 112 by 63 its tallest band of Acid
   ink, as the probe reads it where it is shown, is 14 px (The Supply
-  Cabinet's 1,200), 12 (SUBTRACTION) and 11 (69), under the 16 px capital
+  Cabinet's 1,200), 12 (SUBTRACTION) and 11 (69), and The Markup's
+  $18,214, not linked yet, reads 15, all under the 16 px capital
   of 24 px type where the probe starts counting "at scale". At 128 by 72
   the 1,200 reached 16 px with its comma, so the size came down. A surface
   of the film's own, the other form, would have put a loud move after the
@@ -2312,11 +2317,14 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   (`C7PgSaHZeiA`), public but superseded by `mCq1v6d3GVs`, is refused.
   **Kept true after the day it is written**, a human duty with three nets
   (none can make a build fail on what is public): `youtube-channel.mjs`
-  judges every link against the channel on every run and fails `list` on
-  a wrong one; withdraw, retire and `upload --replace` name the command
-  when they touch a linked film; and `verify.yml` runs `films.mjs --check
-  --online`, which fails a link whose release now files another video or
-  whose film or thumbnail has been filed again. First linked, as the films
+  judges every link against the channel on every command but `probe` and
+  fails `list` on a wrong one; withdraw, retire and `upload --replace`
+  name the command when they touch a linked film; and `verify.yml` runs
+  `films.mjs --check --online`, which fails a link whose release's ledger
+  now names another video, and only warns when a render or re-cut has
+  been filed onto the release since (the video, and so the link, is
+  unchanged until the new render goes up as its own video; failing it
+  would have turned every PR red until a correct link was dropped). First linked, as the films
   public at 15:23 UTC on 20 Oct, each id checked against its ledger: The
   Fourth Axis (`9joaycmFqsU`), The Subtraction (`00hUzMPhGsY`) and The
   Supply Cabinet (`yGdOAIj1Wa8`).
@@ -2407,8 +2415,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    nowhere else on a surface. (Amended 21 Oct 2026: each edition now links
    its own film's watch page, once the film is public, at its end and on
    the home, never embedded; the channel URL itself is still written only
-   in those two places. Whether a film may play on the page after a click
-   is still the owner's call. Decisions log.) Still open: **music** (the owner wanted soft
+   in those two places. The owner chose the plain link over click-to-play.
+   Decisions log.) Still open: **music** (the owner wanted soft
    piano; the pipeline mixes a file the owner downloads from the YouTube
    Audio Library under the voice with `--music`, credit line in the
    description if the track asks for one; a bed computed from the

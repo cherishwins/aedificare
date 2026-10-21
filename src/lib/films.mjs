@@ -32,9 +32,9 @@ export const FILMS_FILE = 'src/lib/films.json';
 export const FILMS_DIR = 'public/film';
 /**
  * The thumbnail is shown at 112 by 63. Every thumbnail so far sets one word or
- * figure in Acid at most about 0.22 of its height tall (1,200 with its
- * comma's tail); at 63 px that is 14 px of ink by the Acid probe's own
- * reading, under the 16 px capital of 24 px type, which is where
+ * figure in Acid; at 63 px the tallest is 15 px of ink by the Acid probe's own
+ * reading (The Markup's $18,214; the linked films' 1,200 with its comma's tail
+ * reads 14), under the 16 px capital of 24 px type, which is where
  * tools/verify.cjs starts counting Acid "at scale". At 128 by 72 the comma
  * took 1,200 to 16 px, level with the capital, so the size came down. The
  * check below holds every entry to this size, and the sweep fails any film

@@ -137,23 +137,28 @@ if (argv[0] === '--check') {
     console.log(`check-films: ${all.length} film(s) linked (${names}), every entry bound to its edition and its release, every thumbnail present, its size and its hash`);
     process.exit(0);
   }
-  const raw = readFilms(), rels = releases(), bad = [];
+  // A link describes the VIDEO its release's ledger names, so only a ledger that now names another video makes it
+  // wrong. A render or re-cut filed onto the release afterwards changes the files, not the video: the link stays true,
+  // and failing it would turn verify.yml red on every PR until a correct link was dropped (review, 21 Oct 2026), so
+  // that is a warning, and the relink comes when the new render goes up as its own video.
+  const raw = readFilms(), rels = releases(), bad = [], warn = [];
   for (const [slug, f] of Object.entries(raw)) {
     const rel = rels.get(`film-${slug}`);
     if (!rel) { bad.push(`${slug}: there is no release film-${slug}`); continue; }
     const ledger = ledgerOf(rel);
     if (ledger?.id !== f.id) bad.push(`${slug}: film-${slug} now files ${ledger?.id ?? 'no video'} as its film, not the linked ${f.id} (a corrected render went up beside it?). Once that video is public, node tools/films.mjs ${ledger?.id ?? '<its id>'} relinks the edition; until then node tools/films.mjs --drop ${slug}`);
     const meta = json(rel, 'meta.json');
-    if (meta?.file !== f.source.asset || meta?.thumbnail !== f.thumb.source.asset) bad.push(`${slug}: film-${slug}/meta.json names ${meta?.file} and ${meta?.thumbnail}, not the ${f.source.asset} and ${f.thumb.source.asset} the link was made from; node tools/films.mjs ${f.id}`);
+    if (meta?.file !== f.source.asset || meta?.thumbnail !== f.thumb.source.asset) warn.push(`${slug}: film-${slug}/meta.json now names ${meta?.file} and ${meta?.thumbnail}, not the ${f.source.asset} and ${f.thumb.source.asset} the link was made from; the link still describes ${f.id}`);
     const fa = assetOf(rel, f.source.asset);
-    if (!fa || fa.size !== f.source.bytes || fa.updated_at !== f.source.updated) bad.push(`${slug}: film-${slug}/${f.source.asset} has been filed again since it was measured (${fa ? `${fa.size} B, ${fa.updated_at}` : 'gone'}; measured ${f.source.bytes} B, ${f.source.updated}); node tools/films.mjs ${f.id} measures it again, or refuses it if it is a later render than the video`);
-    // Measured again, so a length typed into the file is caught as well as a file filed again.
+    if (!fa || fa.size !== f.source.bytes || fa.updated_at !== f.source.updated) warn.push(`${slug}: film-${slug}/${f.source.asset} has been filed again since it was measured (${fa ? `${fa.size} B, ${fa.updated_at}` : 'gone'}; measured ${f.source.bytes} B, ${f.source.updated}); the video ${f.id} is unchanged, so the link stands until the new render goes up as its own video and is linked`);
+    // The same bytes measured again, so a length typed into the file is caught.
     else { const s = filmSeconds(fa); if (s !== f.source.seconds) bad.push(`${slug}: ${f.source.asset} runs ${s} s, not the ${f.source.seconds} s films.json says; node tools/films.mjs ${f.id}`); }
     const ta = assetOf(rel, f.thumb.source.asset);
-    if (!ta || digestOf(ta) !== f.thumb.source.sha256) bad.push(`${slug}: film-${slug}/${f.thumb.source.asset} is ${ta ? 'no longer the bytes the thumbnail was reduced from' : 'gone'}; node tools/films.mjs ${f.id}`);
+    if (!ta || digestOf(ta) !== f.thumb.source.sha256) warn.push(`${slug}: film-${slug}/${f.thumb.source.asset} is ${ta ? 'no longer the bytes the thumbnail was reduced from' : 'gone'}; the site keeps the thumbnail the video went up with`);
   }
+  for (const w of warn) console.log(`${process.env.GITHUB_ACTIONS ? '::warning::' : 'check-films --online: warning: '}${w}`);
   if (bad.length) { console.error(`check-films --online: ${bad.length} link(s) no longer what their releases file:\n  ${bad.join('\n  ')}`); process.exit(1); }
-  console.log(`check-films --online: ${all.length} film(s) linked (${names}), each still the film its release files, measured from the bytes still filed. Whether each is still public, tools/youtube-channel.mjs says on every run`);
+  console.log(`check-films --online: ${all.length} film(s) linked (${names}), each still the film its release's ledger names${warn.length ? `, ${warn.length} warning(s)` : ', measured from the bytes still filed'}. Whether each is still public, tools/youtube-channel.mjs list says`);
   process.exit(0);
 }
 

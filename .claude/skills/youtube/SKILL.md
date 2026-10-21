@@ -153,7 +153,7 @@ its time.
 
 ## The site's film links
 
-The owner's rule (21 Oct 2026, CLAUDE.md Decisions log): each edition page
+The owner's choice (21 Oct 2026, in chat, from options; CLAUDE.md Decisions log): each edition page
 links its **current** film (the long one, never a Short or an earlier cut)
 with its thumbnail, **once it is public**, and nothing is embedded. Public
 is known only from the channel, so:
@@ -164,14 +164,15 @@ is known only from the channel, so:
   length from the MP4 on the release, rounded up as YouTube shows it, and
   reduces the thumbnail), build, and commit `src/lib/films.json` and
   `public/film/`.
-- `list` judges every link on every run: on the channel, public, the film
+- `list` (and every command but `probe`) judges every link: on the channel, public, the film
   its release files, as long as the link says. A `SITE LINK WRONG` line
   names the command that sets it right; do it the same day.
 - `verify.yml` runs `node tools/films.mjs --check --online`, which fails a
-  link whose release now files another video or whose files were filed
-  again since the link was made.
-- Whether a film may play on the page after a click (a facade) is the
-  owner's call and not built; do not add an embed.
+  link whose release's ledger now names another video, and warns when a
+  render or re-cut has been filed onto the release since (the video, and
+  the link, are unchanged until the new render goes up and is linked).
+- The owner chose the plain link over a click-to-play facade and a full
+  embed; do not add either without their say.
 
 ## Titles, descriptions, and one public cut per edition
 

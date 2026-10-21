@@ -304,7 +304,7 @@ if (missing.length) {
 
 /* ---- the site's film links ---------------------------------------------------- */
 // src/lib/films.json links each published edition's current film once it is public; only this tool can see what is
-// public, so each link is judged here on every run (the header says what holds). The link is never written from here.
+// public, so each link is judged here on every command but probe, which has exited (the header says what holds). The link is never written from here.
 const { readFilms: readSiteFilms, clock: siteClock } = await import(new URL('../src/lib/films.mjs', import.meta.url).href);
 const { PUBLISHED } = await import(new URL('../src/lib/editions.mjs', import.meta.url).href);
 const LINKED = readSiteFilms();
