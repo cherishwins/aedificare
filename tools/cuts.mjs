@@ -48,8 +48,8 @@
  *
  * CHECK holds, before any frame, what the spec holds (2.2, 2.5, 3.4.4): the pins; every anchor said once; every
  * number on a computed surface present in the built page's text (spelled numbers read as numbers, the page's SVG left
- * out, so "forty-four" counts and a path's 44.27 does not), a pop's words too; every page shot captured, its words
- * found and its source number in the edition's list, a picture touching its words turning it into its quote card (and
+ * out, so "forty-four" counts and a path's 44.27 does not), a pop's words too; every page shot captured (our own page
+ * with grey text), its words found and its source number in the edition's list, a picture touching its words turning it into its quote card (and
  * leaving it out of the Short), and so a block too wide to read whole at the frame's smallest type or a sliver of its
  * page at its largest (pageCrop in tools/lib/shots.mjs, said as a note), an author the page gives and no credit names
  * said; the owner's footage credited in footage/credits.txt or refused; quotes found on their source with --online;
@@ -65,7 +65,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { browser, openContext, findFfmpeg } from './lib/film.mjs';
+import { browser, openContext, findFfmpeg, GREY_TEXT } from './lib/film.mjs';
 import { FPS, KINDS, OVERLAYS, OWNER, shotContext, parseTag, chartHtml, chartLand, sweepPlan, pageSource, pageView, namesAuthor, popEnd, overEnd, footageFile, renderSegment, renderPop, renderOverlay, ff } from './lib/shots.mjs';
 import { CHART_TYPES } from './lib/chart.mjs';
 import { parsePage, shotName, sourcesOf, neverFetched, UA } from './capture.mjs';
@@ -582,6 +582,9 @@ function checkPage(X, e, out) {
     const f = path.join('dist', edition(rec.page).path.replace(/^\//, ''), 'index.html');
     if (fs.existsSync(f) && 'sha256:' + rec.built.sha256 !== sha256(fs.readFileSync(f))) out.warnings.push(`${where}: our page ${rec.page} changed since its capture (${rec.readAt.slice(0, 10)}); capture it again so the shot shows the page as built`);
   }
+  // Our own page is our type: a capture shot before tools/capture.mjs drew text grey (GREY_TEXT) carries Chromium's
+  // blue and orange fringes on every glyph, colours the kit does not have. `pages` lists it to be shot again.
+  if (rec.self && !rec.greyText) out.issues.push(`${where}: our page ${rec.page}'s capture (${rec.readAt.slice(0, 10)}) predates grey text, so its type carries colours the kit does not have; capture it again (node tools/cuts.mjs pages ${X.L.file} lists it)`);
 }
 
 async function checkQuoteOnline(X, e, out) {
@@ -781,8 +784,9 @@ async function render(L) {
   const brandDir = path.join(work, 'brand'); fs.mkdirSync(brandDir);
   const t0 = Date.now();
 
-  // Each insert to its own segment of exactly its frames (tools/lib/shots.mjs), on the film's clock.
-  const b = await browser();
+  // Each insert to its own segment of exactly its frames (tools/lib/shots.mjs), on the film's clock, its type grey
+  // antialiased so no glyph's edge carries a colour the kit does not have (GREY_TEXT, tools/lib/film.mjs).
+  const b = await browser({ args: [GREY_TEXT] });
   const { ctx, page: pg, show, shot } = await openContext(b, C.F, { frame: 'png' });
   const RS = { work, brandDir, words: X.words, pg, show, shot, missing: new Set(), lastChart: null };
   const placed = Q.placed.filter((p) => p.a < T).map((p) => ({ ...p, b: Math.min(p.b, T) }));
@@ -882,7 +886,8 @@ function pages(L) {
   for (const e of L.entries.filter((x) => x.kind === 'page')) {
     const r = pageCapture(X, e);
     if (r.error) { console.error(`cuts: line ${e.line}: ${r.error}`); continue; }
-    if (r.rec && (r.rec.ok || r.rec.refused)) continue;
+    // A capture of our own page from before grey text is shot again (checkPage says why).
+    if (r.rec && (r.rec.ok || r.rec.refused) && !(r.rec.self && !r.rec.greyText)) continue;
     // The URL travels with the tag, so capture.mjs needs no cut list; it names the same file either way.
     const url = !r.shot.self && !/\|\s*url\s*:/.test(e.tag.body) ? ` | url: ${urls[r.shot.src]}` : '';
     console.log(`${e.tag.body}${url}`);
