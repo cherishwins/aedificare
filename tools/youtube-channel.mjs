@@ -154,11 +154,23 @@ if (!YT_CLIENT_ID || !YT_CLIENT_SECRET || !YT_REFRESH_TOKEN) { console.error('yo
 const ghToken = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
 const ghAuth = ghToken ? ['-H', `authorization: Bearer ${ghToken}`] : [];
 const curl = (url, accept) => execFileSync('curl', ['-sSLf', '-H', `accept: ${accept}`, ...ghAuth, url], { maxBuffer: 1 << 26 });
+// The listing answered HTTP 200 with an empty page, GitHub's own request id on it, about one call in five on 22 Oct
+// 2026 (tools/films.mjs looks its few releases up by tag instead; this needs every film release, episodes too). Read
+// as true it shows every video as "no render" and every site link wrong. This repository always has film releases,
+// so a listing with none is asked again, and five such answers stop the run. An empty page after a full one (past 100
+// releases) is not caught.
 const releases = [];
-for (let page = 1; ; page++) {
-  const batch = JSON.parse(curl(`https://api.github.com/repos/${REPO}/releases?per_page=100&page=${page}`, 'application/vnd.github+json'));
-  releases.push(...batch.filter((r) => r.tag_name.startsWith('film-') && (!ONLY || r.tag_name === ONLY)));
-  if (batch.length < 100) break;
+for (let attempt = 1; ; attempt++) {
+  const all = [];
+  for (let page = 1; ; page++) {
+    const batch = JSON.parse(curl(`https://api.github.com/repos/${REPO}/releases?per_page=100&page=${page}`, 'application/vnd.github+json'));
+    all.push(...batch);
+    if (batch.length < 100) break;
+  }
+  const films = all.filter((r) => r.tag_name.startsWith('film-'));
+  if (films.length) { releases.push(...films.filter((r) => !ONLY || r.tag_name === ONLY)); break; }
+  if (attempt === 5) { console.error('youtube-channel: GitHub listed no film releases five times running; it answers an empty page now and then, so run it again'); process.exit(1); }
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, attempt * 2000);
 }
 const asset = (rel, name) => rel.assets.find((a) => a.name === name);
 const fetchAsset = (rel, name) => curl(asset(rel, name).url, 'application/octet-stream');

@@ -399,7 +399,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   links, 21 Oct 2026: given the ids that are public, which nothing here can
   read without the channel's secrets, it matches each to the release whose
   `youtube.json` files it as the edition's film, so an earlier cut or a
-  Short is refused; reads the film's length from the movie header of the
+  Short is refused, each release looked up by its tag and never through
+  GitHub's listing, which on 22 Oct 2026 answered HTTP 200 with an empty
+  page about one call in five (one link refused, and every link would
+  have read wrong to `--online`) where 25 lookups by tag came back whole,
+  and a refusal names what each edition's release files; reads the film's length from the movie header of the
   MP4 on the release by range requests (the moov box only, never the
   gigabyte) and rounds it up, refuses a film file filed after the upload
   the ledger records (a later render is not that video) or more than a
@@ -472,7 +476,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   as a report: views, watch time, average view duration, subscribers,
   traffic sources, retention curves; impressions and CTR are not in the
   API and stay in Studio), `youtube-channel.mjs` (the channel against
-  the Releases: `list` shows every upload with the render it came from,
+  the Releases (a listing with no film release, that same empty page, is
+  asked again, and five stop the run, rather than read every video as
+  "no render"): `list` shows every upload with the render it came from,
   matched by the uploaded file's name, and the renders not yet up; `sync`
   sets each matched video's generated metadata through
   `upload-youtube.mjs --update`, so a hand upload needs no video id
@@ -2297,8 +2303,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   **Small on purpose.** Each thumbnail
   sets one word or figure in Acid; at 112 by 63 its tallest band of Acid
   ink, as the probe reads it where it is shown, is 14 px (The Supply
-  Cabinet's 1,200 and The Countersign's 9,000+), 12 (SUBTRACTION) and
-  11 (69), and The Markup's
+  Cabinet's 1,200 and The Countersign's 9,000+), 12 (SUBTRACTION and
+  The Tilt Gap's GAP) and 11 (69), and The Markup's
   $18,214, not linked yet, reads 15, all under the 16 px capital
   of 24 px type where the probe starts counting "at scale". At 128 by 72
   the 1,200 reached 16 px with its comma, so the size came down. A surface
@@ -2329,7 +2335,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   public at 15:23 UTC on 20 Oct, each id checked against its ledger: The
   Fourth Axis (`9joaycmFqsU`), The Subtraction (`00hUzMPhGsY`) and The
   Supply Cabinet (`yGdOAIj1Wa8`); then The Countersign (`6j4BfaF8ZvM`),
-  public at 15:00 UTC on 21 Oct.
+  public at 15:00 UTC on 21 Oct, and The Tilt Gap (`mCq1v6d3GVs`) at
+  15:00 UTC on 22 Oct.
 
 ## Open
 
