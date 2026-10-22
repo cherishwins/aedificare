@@ -7,7 +7,7 @@ import Rail from '../components/Rail.astro';
 import Stats from '../components/Stats.astro';
 import EditionEnd from '../components/EditionEnd.astro';
 import { HOUSE } from '../lib/rose.mjs';
-import { edition, LICENCE, describe, seedDrift } from '../lib/editions.mjs';
+import { edition, LICENCE, describe } from '../lib/editions.mjs';
 import { SITE, abs } from '../config.mjs';
 
 // Edition 10, ported from the print of 22 Oct 2026 with the prose verbatim.
@@ -24,6 +24,12 @@ const ed = edition('the-grade');
 // the k the colophon gives, which is the house configuration itself
 // (5, 7, 3). Malachite only; Acid on this surface is spent on one word of
 // the title.
+//
+// The fields are drawn at drift 0, not seedDrift(seed). A dated seed drifts
+// k by about 1; a HEX seed drifts it by anything up to 10, and this one
+// (2A5F1E) resolves to 6.862, which would draw the cover at k 11.86 while
+// the colophon, the divider foot and the OG card all say 5, 7 and 3.
+// Edition 01, the only other hex-seeded edition, passes 0 for this reason.
 const cover = HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
 
 const article = {
@@ -46,7 +52,7 @@ const ladder = [
   ['L1', 'Response', false],
   ['L2', 'Tool', false],
   ['L3', 'Assistant', true],
-  ['L4', 'TBD', false],
+  ['L4', 'Collaborative', false],
 ];
 
 // The first batch, by category. The print gives both splits; they are two
@@ -104,10 +110,10 @@ const sources = [
     'Launch and first batch only. No English coverage found of the October count, the Lenovo share, or the subsidy link'],
 ];
 ---
-<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date} noindex={ed.draft}>
   <main id="main">
     <section class="surface cover" aria-label="Cover">
-      <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
+      <RoseField layers={cover} seed={0} class="rose cover-rose" />
       <Masthead />
       <div class="grid cover-grid">
         <p class="c-full mono cover-std">GB/Z 177-2026</p>
@@ -129,9 +135,9 @@ const sources = [
       </div>
       <Rail items={[
         ['How to read', 'Written for the person deciding what an AI device has to prove before a state will pay for it.'],
-        ['Measured', 'Text carrying a bracketed number points to a source in section 08.'],
-        ['As reported', 'Most sources here are Chinese-language press. What each is cited for is printed beside it, so a reader can see which outlet carries which claim.'],
-        ['Position', 'Set condensed and bold. It is mine, stated without hedging, owned by name.'],
+        ['Sourced', 'A bracketed number points to a row in section 08, and that row prints what the outlet is cited for. A sentence with no bracket has no row yet; section 08 lists which ones.'],
+        ['As reported', 'Most sources here are Chinese-language press, several of them covering the same two briefings. Agreement between those rows is not corroboration.'],
+        ['Position', 'Set condensed and bold. It is the author\u2019s, stated without hedging, and it is the only register this edition marks.'],
       ]} />
     </Section>
 
@@ -146,10 +152,10 @@ const sources = [
             </div>
           ))}
         </dl>
-        <p class="mono note">L3 is the rung the first batch was certified at. L4 has a name, Collaborative, and no test.</p>
+        <p class="mono note">L3 is the rung the first batch was certified at. L4 is named and has no test: the mobile standard marks its requirements TBD.</p>
       </figure>
       <div class="c-a prose">
-        <p>GB/Z 177-2026 went live on 8 May. Three ministries signed it: industry, commerce, market regulation. Seven product classes sat the first exam, from handsets to car cockpits to earbuds. <span class="cite">[02]</span></p>
+        <p>GB/Z 177-2026 went live on 8 May. Three ministries signed it: industry, commerce, market regulation. Seven product classes sat the first exam, from handsets to car cockpits to earbuds.</p>
         <p>L4 has a name, Collaborative. It has no test. The mobile standard marks its requirements TBD. <span class="cite">[07]</span></p>
       </div>
     </Section>
@@ -187,33 +193,33 @@ const sources = [
         <p>Of the 66, 41 were computers and 9 were televisions. Nine were phones. One pair of glasses. One speaker.</p>
         <p class="beat">The most certified intelligent object in China is a ThinkPad.</p>
       </div>
-      <figure class="c-full field bars" aria-label="The first batch by category, and Lenovo's share of it">
+      <figure class="c-full field bars" aria-label="The first batch of 66 products, by product class">
         <figcaption class="mono">The first batch by product class, of {batchTotal} <span class="cite">[06]</span></figcaption>
         {batch.map(([l, v]) => (
           <div class="bar">
             <span class="mono lbl">{l}</span>
-            <span class="track"><span class:list={['fill', l === 'Computers' && 'hot']} style={`width:${((v / batchTotal) * 100).toFixed(1)}%`}></span></span>
+            <span class="track"><span class="fill" style={`width:${((v / batchTotal) * 100).toFixed(1)}%`}></span></span>
             <span class="num val">{v}</span>
           </div>
         ))}
-        <p class="mono note">Two cuts of the same 66 are printed in the sources, one by class and one by maker. They are never added together.</p>
+        <p class="mono note">Mobile is phones and tablets together, which is how the prose’s nine phones and the source’s eleven mobile are one count. Two cuts of these 66 are published, one by class and one by maker; they are never added together.</p>
       </figure>
       <Stats class="c-b" items={lenovo.map(([l, v]) => [String(v), `${l}, of Lenovo’s 42 [06]`])} />
     </Section>
 
-    <Section n="02" title="Who wrote the exam" id="exam">
+    <Section n="02" title="Who wrote the exam" ground="bottle" id="exam">
       <div class="c-full">
         <p class="display slap-in" data-flex="cursor">Lenovo helped<br>write the exam.</p>
       </div>
       <div class="c-a prose">
         <p>People’s Daily records it. Lenovo began drafting an AI PC standard in 2023, turned it into a group standard in 2024, and folded that work into the national series. <span class="cite">[02]</span></p>
-        <p>The first batch was not a survey of the market. Makers chose to submit, and chose which devices. Certificates attach to one model on one software build. <span class="cite">[07]</span></p>
+        <p>The first batch was not a survey of the market. Makers chose to submit, and chose which devices. Certificates attach to one model on one software build.</p>
         <p class="mono reg">Position</p>
         <p class="beat">The 42 is a measure of readiness, not of the market.</p>
       </div>
     </Section>
 
-    <Section n="03" title="Judged by hand" ground="bottle" id="soft">
+    <Section n="03" title="Judged by hand" id="soft">
       <div class="c-a prose">
         <p>Speech accuracy and generation speed have numbers. Emotion perception, health perception and complex reasoning do not. They run as scenario tests, and a professional decides whether the result is reasonable. <span class="cite">[08]</span></p>
         <p>A standards explainer published in August says it plainly: a device can clear every hard metric, land flat on the soft ones, and still take the grade. <span class="cite">[08]</span></p>
@@ -232,14 +238,14 @@ const sources = [
     </Section>
 
     <section class="surface divider" aria-label="Divider">
-      <RoseField layers={HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.5, 0.3, 0.18][i] }))} seed={seedDrift(ed.seed)} class="rose div-rose" />
+      <RoseField layers={HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.5, 0.3, 0.18][i] }))} seed={0} class="rose div-rose" />
       <div class="foot mono div-foot">
         <span>k {ed.k.map((n) => n.toFixed(2)).join(' · ')}</span>
         <span>seed {ed.seed}</span>
       </div>
     </section>
 
-    <Section n="04" title="The door" id="door">
+    <Section n="04" title="The door" ground="bottle" id="door">
       <div class="c-full">
         <p class="display slap-in" data-flex="cursor">The grade is a<br><span class="acid">door.</span></p>
       </div>
@@ -259,11 +265,11 @@ const sources = [
       </div>
     </section>
 
-    <Section n="05" title="The advert" ground="bottle" id="advert">
+    <Section n="05" title="The advert" id="advert">
       <div class="c-a prose">
         <p class="mono reg">18 July 2026</p>
         <p>Huawei claimed the first certificate. Xiaomi claimed national level. vivo called L3 the highest rating available. OriginOS followed the next day. <span class="cite">[07]</span></p>
-        <p>StepFun’s STEPX Neo, a first-batch phone, went on sale on 16 October at 3,999 yuan with twelve months of model credits bundled. The ministry’s own progress note named it. <span class="cite">[10]</span></p>
+        <p>StepFun’s STEPX Neo, a first-batch phone, went on sale on 16 October at 3,999 yuan with twelve months of model credits bundled. <span class="cite">[10]</span> The ministry’s own progress note named it.</p>
         <p class="mono reg">Position</p>
         <p class="beat">No lab benchmark has ever sold a handset. A certificate from the state does.</p>
       </div>
@@ -275,7 +281,7 @@ const sources = [
         <p class="mono fig-sub">smart terminals shipped in China, first half of 2026 <span class="cite">[11]</span></p>
       </div>
       <div class="c-a prose">
-        <p>By MIIT’s count. The ministry expects AI devices to outsell non-AI devices this year for the first time. <span class="cite">[11]</span></p>
+        <p>By MIIT’s count. The ministry expects AI devices to outsell non-AI devices this year for the first time.</p>
         <p>In July a second batch of standards opened: wrist wearables, learning tablets, smart toys, whiteboards, projectors, industrial computers, lighting, robot vacuums, smart locks, translation pens.</p>
         <p class="beat">The ladder is being bolted to every socket in the house.</p>
       </div>
@@ -293,7 +299,7 @@ const sources = [
       </div>
     </Section>
 
-    <Section n="07" title="Risk and ability" id="west">
+    <Section n="07" title="Risk and ability" ground="bottle" id="west">
       <div class="c-a prose">
         <p class="mono reg">Position</p>
         <p class="beat">The West grades risk. China graded ability.</p>
@@ -329,7 +335,9 @@ const sources = [
       </ol>
       <div class="c-a prose">
         <p class="mono reg">Where it is wrong</p>
-        <p>Figures are as published. Counts conflict in one secondary source, which gives 63 products at L3; the three testing bodies and Lenovo all state 66, and the page carries 66. No L4 test exists at the time of writing, so nothing here describes one. The sources are overwhelmingly Chinese-language press reporting the same launch and the same briefings, which means a single error at the source would appear in several of these rows at once.</p>
+        <p>Figures are as published. Counts conflict in one secondary source, which gives 63 products at L3 where the testing bodies and Lenovo state 66; the page carries 66, and neither that secondary source nor the full set of testing bodies is in the list below, so that conflict is the one claim here a reader cannot yet trace. No L4 test exists at the time of writing, so nothing here describes one. The sources are overwhelmingly Chinese-language press reporting the same launch and the same briefings, which means a single error at the source would appear in several of these rows at once.</p>
+        <p class="mono reg">Not yet sourced</p>
+        <p>Four claims above carry no bracket because no row below settles them: the seven product classes and the earbuds in section 01; that makers chose which devices to submit, and that certificates attach to one model on one software build, in section 02; that the ministry expects AI devices to outsell non-AI devices this year, in section 06; and the ten categories of the second batch of standards, also in section 06. They are printed as the edition prints them and are marked here so the check that precedes publication has a list to work from.</p>
         <p class="mono reg">Colophon</p>
         <p>Set in Bricolage Grotesque and Martian Mono. The roses are computed from r = cos(kθ) and never drawn: still No. 10, seed {ed.seed}, at the house configuration k = 5, 7 and 3. Screen edition. Acid does not survive CMYK.</p>
       </div>

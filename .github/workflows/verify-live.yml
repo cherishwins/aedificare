@@ -42,8 +42,12 @@ jobs:
           done
           echo "--- headers on /"; curl -sSI "$U/" | grep -iE "^(server|link|x-content-type-options|referrer-policy):"
           echo "--- canonical on /ns-02"; curl -sS "$U/ns-02" | grep -oE 'rel="canonical" href="[^"]*"'
-          echo "--- draft hidden"; curl -sS "$U/edition-02" | grep -oE 'name="robots" content="[^"]*"'
-          test "$(curl -sS "$U/sitemap-0.xml" | grep -c edition-02)" = "0"
+          echo "--- drafts hidden"
+          for d in $(node -e "const {EDITIONS}=await import('./src/lib/editions.mjs');console.log(EDITIONS.filter(e=>e.draft).map(e=>e.path).join(' '))" --input-type=module); do
+            echo "$d $(curl -sS "$U$d" | grep -oE 'name="robots" content="[^"]*"')"
+            curl -sS "$U$d" | grep -q 'content="noindex' || { echo "NOT noindex: $d"; exit 1; }
+            test "$(curl -sS "$U/sitemap-0.xml" | grep -c "$d/")" = "0"
+          done
       - name: Which commit is live
         run: |
           set -e

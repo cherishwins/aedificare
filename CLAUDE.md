@@ -1800,7 +1800,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
    trust", with no source. The builder is an Anthropic model, and an
    opinion about Anthropic is not its to soften or sharpen (Decisions log).
 
-0h. **Edition 10 · The Grade arrived as a finished print (2026-10-22)
+0i. **Edition 10 · The Grade arrived as a finished print (2026-10-22)
    with its render source**, eighteen slides, fourteen sources, on China's
    GB/Z 177-2026: the state's L1 to L4 capability grade for AI devices,
    and the trade-in subsidy wired to it. Ported to
