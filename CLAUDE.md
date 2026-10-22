@@ -27,6 +27,7 @@ Shipped (2026-09-15):
 | Route | What | State |
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
+| `/the-grade` | 22 Oct 2026 · *The Grade* (printed as Edition 10), twelve sections, fourteen sources | **draft**: ported and swept, every source still to be opened |
 | `/the-countersign` | 16 Oct 2026 · *The Countersign* (printed as Edition 09), fifteen sections, twenty-two sources, three registers | live |
 | `/the-supply-cabinet` | 8 Oct 2026 · *The Supply Cabinet* (printed as Edition 06), eleven sections, twelve sources (ten cited) | live (2026-10-17, every source opened, 98 claims corrected) |
 | `/the-fourth-axis` | 6 Oct 2026 · *The Fourth Axis* (printed as Edition 05), twelve sections, thirty-eight sources, three registers | live |
@@ -42,7 +43,7 @@ Shipped (2026-09-15):
 | `/privacy.txt` | the YouTube uploader's privacy statement, which Google's consent screen needs before the app can leave Testing (2026-10-17); plain text like `humans.txt`, not a page | static |
 | `/index.json` `/og/desk.png` | the index as JSON and the desk's card, for apt.grok.me to fetch and hotlink | generated |
 | `/film/*.png` | each linked film's own thumbnail, reduced and content-hashed, beside a link to its YouTube watch page at the edition's end and on the home (Decisions log, 21 Oct 2026) | generated |
-| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-09.pdf` | the print editions as uploaded | as uploaded |
+| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-09.pdf` `/pdf/edition-10.pdf` | the print editions as uploaded | as uploaded |
 
 ## Brand — source of truth, and the overrides
 
@@ -354,7 +355,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   discoverability links, JSON-LD, skip link, the script.
 - `src/components/`: `Mark`, `RoseField`, `Dove`, `Masthead`, `Section`,
   `Rail`, `Pull`, `Stats`, `EditionEnd`, `FilmLink`.
-- `src/pages/`: `index`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
+- `src/pages/`: `index`, `the-grade`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
   `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `404`, and the generated `feed.xml.ts`,
   `llms.txt.ts`, `robots.txt.ts`, `index.json.ts` (the index as JSON for
   the desk and any companion; `vercel.json` sends it with
@@ -1800,6 +1801,31 @@ for a shortlist for bios and cards, which is a separate deliverable.
    trust", with no source. The builder is an Anthropic model, and an
    opinion about Anthropic is not its to soften or sharpen (Decisions log).
 
+0i. **Edition 10 · The Grade arrived as a finished print (2026-10-22)
+   with its render source**, eighteen slides, fourteen sources, on China's
+   GB/Z 177-2026: the state's L1 to L4 capability grade for AI devices,
+   and the trade-in subsidy wired to it. Ported to
+   `src/pages/the-grade.astro` from the HTML the print was rendered from
+   rather than the PDF, because the source carries the prose as text and
+   the PDF carries it as pictures; the slides' own grounds (Void, Bottle,
+   Flash) were kept as the page's surfaces. Figures computed: the four
+   grades as a field with the certified rung set apart, the first batch by
+   product class as bars of 66, Lenovo's 42 as three stats. The print's
+   rose divider between the exam and the money is kept as its own surface.
+   Seed `2A5F1E` is hexadecimal, like Edition 01's, and k is the house
+   configuration (5, 7, 3), both from the colophon.
+   **It ships as a draft**, under the standing duty: no verification pass
+   came with it, and the record on prints that skipped one is brutal (98
+   claims corrected on Edition 06, 80 on Edition 02). **This one is harder
+   than its predecessors and the reason should be stated before anyone
+   starts**: the sources are almost entirely Chinese-language press, so
+   checking them needs translation as well as fetching; several of the
+   rows are different outlets reporting the same two briefings, so one
+   error at the source would appear in several rows at once and agreement
+   between them is not corroboration; and the print already flags a live
+   conflict, one secondary source giving 63 products where the testing
+   bodies and Lenovo give 66. The page carries 66 and says why.
+
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text
    as the owner's Markdown. Ported to `src/pages/edition-03.astro` with
@@ -2402,6 +2428,22 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    the budget accounting for the external script; drop it, and the first
    mirror push resets the fork. Until one of those happens the fork and
    this repo disagree and the mirror push would fail by design.
+10. **Two skills now cover the channel, and they disagree about scope.**
+   `.claude/skills/youtube/SKILL.md` lives in this repo and is operations:
+   credentials, `list` and `sync`, the private lock, quota, failures. An
+   `aedificare-film` skill is synced at the account level (Anthropic
+   skills) and is craft: titles, thumbnails, the opening, the Cool Worlds
+   visual rule, a sceptic-voice experiment, monetization thresholds. They
+   are complementary today and neither restates the other, which is the
+   only reason this is not already a problem. It becomes one the first
+   time a fact lives in both: this file's own rule is that a restated
+   value drifts. The owner's call, and the options are to keep both with
+   the split written into each one's header (craft in the account skill,
+   operations in the repo skill, neither repeating the other), or to fold
+   the craft guidance into the repo so one file governs and
+   `tools/check-docs.cjs` can see it. Nothing was copied into the repo
+   pending that decision (2026-10-22).
+
 8. **The Navigator**, drafted in chat on 2026-09-16 from Tom's Hardware's
    story on Rik Arends' 3D codebase explorer (12 Sep 2026): the fsn scene
    in Jurassic Park, SGI's 1993 patent US 5,528,735 now held by RPX and
