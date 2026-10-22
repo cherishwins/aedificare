@@ -67,17 +67,32 @@ const fail = (msg) => { console.error(`films: ${msg}`); process.exit(1); };
 const ghToken = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
 const curl = (args, max = 1 << 26) => execFileSync('curl', ['-sSLf', '--retry', '2', ...args], { maxBuffer: max, stdio: ['ignore', 'pipe', 'pipe'] });
 const why = (err) => String(err.stderr || err.message).trim();
-/** Every film-<slug> release with its assets (name, size, updated_at, digest, download URL), from one or two API calls. */
-const releases = () => {
-  const all = [];
-  for (let page = 1; ; page++) {
-    let batch;
-    try { batch = JSON.parse(curl(['-H', 'accept: application/vnd.github+json', ...(ghToken ? ['-H', `authorization: Bearer ${ghToken}`] : []), `https://api.github.com/repos/${REPO}/releases?per_page=100&page=${page}`])); }
-    catch (err) { fail(`could not list the releases: ${why(err)}`); }
-    all.push(...batch);
-    if (batch.length < 100) break;
+/**
+ * The film-<slug> releases of these editions with their assets (name, size, updated_at, digest, download URL), one
+ * lookup by tag each; an edition with no release is left out. Never the listing (/releases): on 22 Oct 2026 it answered
+ * HTTP 200 with an empty page, GitHub's own request id on it, about one call in five, which read as "no release" for
+ * every edition (a link refused, and every link wrong to --online), while 25 lookups by tag in a row came back whole.
+ */
+const releases = (slugs) => {
+  const out = new Map();
+  for (const slug of slugs) {
+    const tag = `film-${slug}`;
+    // -f writes no body for a failed attempt, so a 503 that --retry recovers from leaves only the 200's body (without
+    // it the two bodies ran together and the parse threw, review of 22 Oct); -w still prints the code, so a 404, which
+    // is not retried, reads as no release.
+    let res;
+    try { res = execFileSync('curl', ['-sSLf', '--retry', '2', '-w', '\n%{http_code}', '-H', 'accept: application/vnd.github+json', ...(ghToken ? ['-H', `authorization: Bearer ${ghToken}`] : []), `https://api.github.com/repos/${REPO}/releases/tags/${tag}`], { maxBuffer: 1 << 26, stdio: ['ignore', 'pipe', 'pipe'] }).toString('utf8'); }
+    catch (err) {
+      if (err.status === 22 && String(err.stdout).endsWith('\n404')) continue;
+      fail(`could not look up the release ${tag}: ${why(err)}`);
+    }
+    const body = res.slice(0, res.lastIndexOf('\n'));
+    let rel;
+    try { rel = JSON.parse(body); } catch { rel = null; }
+    if (rel?.tag_name !== tag || !Array.isArray(rel.assets)) fail(`GitHub's answer for the release ${tag} is not that release: ${body.slice(0, 120).replace(/\s+/g, ' ') || '(empty)'}`);
+    out.set(tag, rel);
   }
-  return new Map(all.filter((r) => r.tag_name.startsWith('film-')).map((r) => [r.tag_name, r]));
+  return out;
 };
 const assetOf = (rel, name) => rel?.assets.find((a) => a.name === name);
 const download = (a) => {
@@ -141,7 +156,7 @@ if (argv[0] === '--check') {
   // wrong. A render or re-cut filed onto the release afterwards changes the files, not the video: the link stays true,
   // and failing it would turn verify.yml red on every PR until a correct link was dropped (review, 21 Oct 2026), so
   // that is a warning, and the relink comes when the new render goes up as its own video.
-  const raw = readFilms(), rels = releases(), bad = [], warn = [];
+  const raw = readFilms(), rels = releases(Object.keys(raw)), bad = [], warn = [];
   for (const [slug, f] of Object.entries(raw)) {
     const rel = rels.get(`film-${slug}`);
     if (!rel) { bad.push(`${slug}: there is no release film-${slug}`); continue; }
@@ -178,16 +193,22 @@ if (argv[0] === '--drop') {
   /* ---- link: match each id to the ledger that names it ---------------------- */
   const ids = argv;
   for (const id of ids) if (!/^[A-Za-z0-9_-]{11}$/.test(id)) fail(`${id} is not an eleven-character YouTube id`);
-  const rels = releases();
-  const ledgers = new Map();
+  const rels = releases(PUBLISHED.map((e) => e.slug));
+  const ledgers = new Map(), filed = new Map();
   for (const e of PUBLISHED) {
     const rel = rels.get(`film-${e.slug}`);
     const l = rel && ledgerOf(rel);
-    if (l?.id) ledgers.set(l.id, { e, rel, ledger: l });
+    if (l?.id) { ledgers.set(l.id, { e, rel, ledger: l }); filed.set(e.slug, l.id); }
   }
+  // What was read goes into a refusal: on 22 Oct the listing's empty page refused The Tilt Gap's own film, and the
+  // message blamed the id.
+  const read = () => PUBLISHED.map((e) => {
+    const rel = rels.get(`film-${e.slug}`);
+    return `${e.slug} ${!rel ? 'no release' : filed.get(e.slug) ?? `no ledger id among its ${rel.assets.length} assets`}`;
+  }).join(', ');
   for (const id of ids) {
     const hit = ledgers.get(id);
-    if (!hit) fail(`${id} is not the film any published edition's release files in its youtube.json; an earlier cut, a Short or another channel's video gets no link`);
+    if (!hit) fail(`${id} is not the film any published edition's release files in its youtube.json; an earlier cut, a Short or another channel's video gets no link (read: ${read()})`);
     const { e, rel, ledger } = hit;
     const meta = json(rel, 'meta.json');
     if (!meta || meta.kind !== 'film' || meta.slug !== e.slug) fail(`film-${e.slug}/meta.json is missing or not this edition's film`);
