@@ -89,7 +89,7 @@ const releases = (slugs) => {
     const body = res.slice(0, res.lastIndexOf('\n'));
     let rel;
     try { rel = JSON.parse(body); } catch { rel = null; }
-    if (rel?.tag_name !== tag || !Array.isArray(rel.assets)) fail(`GitHub's answer for the release ${tag} is not that release: ${body.slice(0, 120).replace(/\s+/g, ' ') || '(empty)'}`);
+    if (rel?.tag_name !== tag || !Array.isArray(rel.assets)) fail(`GitHub's answer for the release ${tag} is ${rel?.tag_name ? `the release ${rel.tag_name}` : `not a release: ${body.slice(0, 120).replace(/\s+/g, ' ') || '(empty)'}`}`);
     out.set(tag, rel);
   }
   return out;
