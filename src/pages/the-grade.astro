@@ -1,0 +1,390 @@
+---
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import Section from '../components/Section.astro';
+import Rail from '../components/Rail.astro';
+import Stats from '../components/Stats.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, LICENCE, describe, seedDrift } from '../lib/editions.mjs';
+import { SITE, abs } from '../config.mjs';
+
+// Edition 10, ported from the print of 22 Oct 2026 with the prose verbatim.
+// Citation marks, [01] style, point into the sources list in section 08.
+//
+// The print's bibliography is grouped by publication date rather than by
+// claim, because most of these sources are Chinese-language press reporting
+// the same launch, and the date is what tells two reports of one event
+// apart. The page keeps that grouping: a source row is a date, an outlet
+// and what that outlet is cited for.
+const ed = edition('the-grade');
+
+// The cover rose is the print's still No. 10: the house layers frozen at
+// the k the colophon gives, which is the house configuration itself
+// (5, 7, 3). Malachite only; Acid on this surface is spent on one word of
+// the title.
+const cover = HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: 'The Grade',
+  alternativeHeadline: `Printed as ${ed.print}`,
+  datePublished: ed.date,
+  author: { '@type': 'Person', name: 'Jesse James' },
+  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
+  url: abs(ed.path),
+  mainEntityOfPage: abs(ed.path),
+  license: LICENCE.url,
+  isAccessibleForFree: true,
+  description: ed.lede,
+};
+
+// The ladder, as GB/Z 177-2026 sets it. L4 is named and has no test.
+const ladder = [
+  ['L1', 'Response', false],
+  ['L2', 'Tool', false],
+  ['L3', 'Assistant', true],
+  ['L4', 'TBD', false],
+];
+
+// The first batch, by category. The print gives both splits; they are two
+// cuts of the same 66 and are never added together.
+const batch = [
+  ['Computers', 41],
+  ['Mobile', 11],
+  ['Televisions', 9],
+  ['Cockpits', 3],
+  ['Glasses', 1],
+  ['Speaker', 1],
+];
+const batchTotal = batch.reduce((s, [, v]) => s + v, 0);
+
+// Lenovo's own 42, as Lenovo disclosed it.
+const lenovo = [
+  ['Laptops and desktops', 37],
+  ['Phones', 3],
+  ['Tablets', 2],
+];
+
+// What the standard measures with a number, and what a person decides.
+const measured = ['Speech accuracy', 'Generation speed'];
+const judged = ['Emotion perception', 'Health perception', 'Complex reasoning'];
+
+// The sources, as the print groups them: date, outlet, what it is cited for.
+const sources = [
+  ['2026.04.30', 'Standardization Administration of China',
+    'GB/Z 177.1-2026 Reference framework; GB/Z 177.2-2026 General requirements. std.samr.gov.cn'],
+  ['2026.05.09', 'People’s Daily (Overseas)',
+    'Series launched 8 May by MIIT, MOFCOM, SAMR. Lenovo’s 2023 pre-research and 2024 group standard folded into the series'],
+  ['2026.05.09', 'Science and Technology Daily via Xinhua',
+    'CESI’s Yu Xiuming: high-ownership devices are generally L1 and L2'],
+  ['2026.05.12', 'Xinhua / People’s Posts and Telecom News',
+    'Launch meeting, Vice Minister Xiong Jijun. Task three: trade-in implementation and an AI terminal product catalogue'],
+  ['2026.07.17', 'The Paper (Pengpai)',
+    'CAICT’s Ao Li announces first batch: 66 products, 17 companies, L3'],
+  ['2026.07.21', 'Sina Tech / Kuai Keji; Lenovo disclosure',
+    'Lenovo 42 of 66: 37 PCs, 3 phones, 2 tablets. Category split 41 PCs, 11 mobile, 9 TVs, 3 cockpits, 1 glasses, 1 speaker'],
+  ['2026.08.06', 'Geek Park via Huxiu and 36Kr',
+    'GB/Z is a guiding technical document, not mandatory. 80 percent pass mark. GB/Z 177.3-2026 marks L4 TBD. Vendor claims of 18 to 19 July'],
+  ['2026.08', 'Standards explainer (Sohu)',
+    'Soft metrics run as scenario tests judged reasonable by professionals'],
+  ['2026.10.12', 'Pingwest',
+    '2026 trade-in policy: subsidy categories set with reference to the grading standard and grade certification'],
+  ['2026.10.13', 'QbitAI; Jiemian; IT Home',
+    'STEPX Neo Pioneer Edition, 3,999 yuan full-stack price, twelve-month credit plan, on sale 16 October'],
+  ['2026.10.19', 'China Electronics News; SCIO briefing',
+    'MIIT’s Wei Wei: 100+ products at L3; 100 million terminals shipped H1; trade-in channel for AI PCs and phones'],
+  ['2026.10.20', 'Beijing News; Southern Metropolis Daily; Sina',
+    'MIIT spokesman Xie Cun at SCIO: 100+ L3 products across phones, PCs, TVs, glasses, cockpits, earbuds'],
+  ['2025.12', 'NDRC 2026 consumer trade-in terms, as reported',
+    '15 percent subsidy, 500 yuan cap, items under 6,000 yuan; computers in the appliance scheme'],
+  ['Prior English', 'CGTN 05.08; Trivium China 05.14; Caixin Global 07.18',
+    'Launch and first batch only. No English coverage found of the October count, the Lenovo share, or the subsidy link'],
+];
+---
+<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
+      <Masthead />
+      <div class="grid cover-grid">
+        <p class="c-full mono cover-std">GB/Z 177-2026</p>
+        <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Grade</span></h1>
+        <p class="c-a lede">{ed.lede}</p>
+      </div>
+      <div class="foot mono cover-foot">
+        <span>{ed.dateLabel} · {SITE.author}</span>
+        <span>r = cos(kθ) · seed {ed.seed}</span>
+      </div>
+    </section>
+
+    <Section n="00" title="One number" id="number">
+      <div class="c-a prose">
+        <p class="mono reg">20 October 2026 · Beijing</p>
+        <p>Xie Cun, spokesman for the Ministry of Industry and Information Technology, took a question at the State Council press office. More than one hundred AI devices, he said, now meet the requirements of L3. <span class="cite">[12]</span></p>
+        <p>Phones. Laptops. Televisions. Glasses. Car cockpits. He called them assistants, able to read a complex intent and act before being asked.</p>
+        <p>Nobody in the room asked what an L3 is. Everybody already knew. That is the story.</p>
+      </div>
+      <Rail items={[
+        ['How to read', 'Written for the person deciding what an AI device has to prove before a state will pay for it.'],
+        ['Measured', 'Text carrying a bracketed number points to a source in section 08.'],
+        ['As reported', 'Most sources here are Chinese-language press. What each is cited for is printed beside it, so a reader can see which outlet carries which claim.'],
+        ['Position', 'Set condensed and bold. It is mine, stated without hedging, owned by name.'],
+      ]} />
+    </Section>
+
+    <Section n="01" title="The ladder" ground="bottle" id="ladder">
+      <figure class="c-full field ladder" aria-label="The four grades of GB/Z 177-2026">
+        <figcaption class="mono">GB/Z 177-2026, the four grades <span class="cite">[01]</span></figcaption>
+        <dl>
+          {ladder.map(([n, name, here]) => (
+            <div class:list={[here && 'here']}>
+              <dt class:list={['mono', here && 'acid']}>{n}</dt>
+              <dd class="display">{name}</dd>
+            </div>
+          ))}
+        </dl>
+        <p class="mono note">L3 is the rung the first batch was certified at. L4 has a name, Collaborative, and no test.</p>
+      </figure>
+      <div class="c-a prose">
+        <p>GB/Z 177-2026 went live on 8 May. Three ministries signed it: industry, commerce, market regulation. Seven product classes sat the first exam, from handsets to car cockpits to earbuds. <span class="cite">[02]</span></p>
+        <p>L4 has a name, Collaborative. It has no test. The mobile standard marks its requirements TBD. <span class="cite">[07]</span></p>
+      </div>
+    </Section>
+
+    <Section n="01" title="Not a driving level" id="driving">
+      <div class="c-full">
+        <p class="display slap-in" data-flex="cursor">This is <span class="acid">not</span><br>a driving level.</p>
+      </div>
+      <div class="c-a prose">
+        <p>SAE levels divide who is liable when a car crashes. This ladder scores what a device can finish on its own.</p>
+        <p>L3 means the phone asks a follow-up when the brief is thin, splits the task, calls the right apps, and remembers you between tasks. Pass mark: 80 percent success across typical scenarios. <span class="cite">[07]</span></p>
+      </div>
+      <div class="c-a prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">The model does not sit the exam. The phone does.</p>
+        <p>Model, operating system, apps and permissions, marked as one candidate.</p>
+      </div>
+    </Section>
+
+    <section class="surface flash" aria-label="The first batch">
+      <div class="grid">
+        <p class="c-full display slap" data-flex="cursor">66</p>
+        <p class="c-a">Products certified L3 in the first batch. 17 July 2026, World AI Conference, Shanghai. Seventeen companies. The standard was ten weeks old.</p>
+        <p class="c-full mono-b">The Paper (Pengpai), CAICT [05]</p>
+      </div>
+    </section>
+
+    <Section n="02" title="Forty-two were Lenovo" id="lenovo">
+      <div class="c-a">
+        <p class="num acid figure fig-s" aria-hidden="true">42</p>
+        <p class="mono fig-sub">of the 66, from one maker <span class="cite">[06]</span></p>
+      </div>
+      <div class="c-a prose">
+        <p>Thirty-seven laptops and desktops. Three phones. Two tablets.</p>
+        <p>Of the 66, 41 were computers and 9 were televisions. Nine were phones. One pair of glasses. One speaker.</p>
+        <p class="beat">The most certified intelligent object in China is a ThinkPad.</p>
+      </div>
+      <figure class="c-full field bars" aria-label="The first batch by category, and Lenovo's share of it">
+        <figcaption class="mono">The first batch by product class, of {batchTotal} <span class="cite">[06]</span></figcaption>
+        {batch.map(([l, v]) => (
+          <div class="bar">
+            <span class="mono lbl">{l}</span>
+            <span class="track"><span class:list={['fill', l === 'Computers' && 'hot']} style={`width:${((v / batchTotal) * 100).toFixed(1)}%`}></span></span>
+            <span class="num val">{v}</span>
+          </div>
+        ))}
+        <p class="mono note">Two cuts of the same 66 are printed in the sources, one by class and one by maker. They are never added together.</p>
+      </figure>
+      <Stats class="c-b" items={lenovo.map(([l, v]) => [String(v), `${l}, of Lenovo’s 42 [06]`])} />
+    </Section>
+
+    <Section n="02" title="Who wrote the exam" id="exam">
+      <div class="c-full">
+        <p class="display slap-in" data-flex="cursor">Lenovo helped<br>write the exam.</p>
+      </div>
+      <div class="c-a prose">
+        <p>People’s Daily records it. Lenovo began drafting an AI PC standard in 2023, turned it into a group standard in 2024, and folded that work into the national series. <span class="cite">[02]</span></p>
+        <p>The first batch was not a survey of the market. Makers chose to submit, and chose which devices. Certificates attach to one model on one software build. <span class="cite">[07]</span></p>
+        <p class="mono reg">Position</p>
+        <p class="beat">The 42 is a measure of readiness, not of the market.</p>
+      </div>
+    </Section>
+
+    <Section n="03" title="Judged by hand" ground="bottle" id="soft">
+      <div class="c-a prose">
+        <p>Speech accuracy and generation speed have numbers. Emotion perception, health perception and complex reasoning do not. They run as scenario tests, and a professional decides whether the result is reasonable. <span class="cite">[08]</span></p>
+        <p>A standards explainer published in August says it plainly: a device can clear every hard metric, land flat on the soft ones, and still take the grade. <span class="cite">[08]</span></p>
+      </div>
+      <figure class="c-a field two-cols" aria-label="What the standard measures and what a person decides">
+        <div>
+          <p class="mono-b head">Measured</p>
+          <ul class="plain">{measured.map((m) => (<li>{m}</li>))}</ul>
+        </div>
+        <div>
+          <p class="mono-b head">Judged</p>
+          <ul class="plain">{judged.map((m) => (<li>{m}</li>))}</ul>
+        </div>
+        <p class="mono note">The hard column has thresholds. The soft column has a professional’s opinion of whether the result is reasonable.</p>
+      </figure>
+    </Section>
+
+    <section class="surface divider" aria-label="Divider">
+      <RoseField layers={HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.5, 0.3, 0.18][i] }))} seed={seedDrift(ed.seed)} class="rose div-rose" />
+      <div class="foot mono div-foot">
+        <span>k {ed.k.map((n) => n.toFixed(2)).join(' · ')}</span>
+        <span>seed {ed.seed}</span>
+      </div>
+    </section>
+
+    <Section n="04" title="The door" id="door">
+      <div class="c-full">
+        <p class="display slap-in" data-flex="cursor">The grade is a<br><span class="acid">door.</span></p>
+      </div>
+      <div class="c-a prose">
+        <p>On 8 May, the day the standard launched, the ministry listed its third task. Carry the standard into the 2026 consumer trade-in programme. Build a catalogue of AI terminal products to guide what the public buys. <span class="cite">[04]</span></p>
+        <p>The 2026 trade-in policy answers in kind. Subsidy categories are to be set with reference to the grading standard and to grade certification. <span class="cite">[09]</span></p>
+        <p>Call it the Catalogue.</p>
+      </div>
+    </Section>
+
+    <section class="surface flash" aria-label="The subsidy">
+      <div class="grid">
+        <p class="c-full display slap" data-flex="cursor">15% off.<br>500 yuan cap.</p>
+        <p class="c-a">Phones, tablets, watches and glasses under 6,000 yuan. Computers inside the appliance scheme. One item per person per class, paid by the state.</p>
+        <p class="c-a">On 19 October, MIIT’s Wei Wei said the trade-in channel would be used to speed adoption of AI computers and phones.</p>
+        <p class="c-full mono-b">NDRC 2026 trade-in terms, as reported [13] · MIIT [11]</p>
+      </div>
+    </section>
+
+    <Section n="05" title="The advert" ground="bottle" id="advert">
+      <div class="c-a prose">
+        <p class="mono reg">18 July 2026</p>
+        <p>Huawei claimed the first certificate. Xiaomi claimed national level. vivo called L3 the highest rating available. OriginOS followed the next day. <span class="cite">[07]</span></p>
+        <p>StepFun’s STEPX Neo, a first-batch phone, went on sale on 16 October at 3,999 yuan with twelve months of model credits bundled. The ministry’s own progress note named it. <span class="cite">[10]</span></p>
+        <p class="mono reg">Position</p>
+        <p class="beat">No lab benchmark has ever sold a handset. A certificate from the state does.</p>
+      </div>
+    </Section>
+
+    <Section n="06" title="A hundred million" ground="bottle" id="shipped">
+      <div class="c-a">
+        <p class="num acid figure fig-l" aria-hidden="true">100,000,000</p>
+        <p class="mono fig-sub">smart terminals shipped in China, first half of 2026 <span class="cite">[11]</span></p>
+      </div>
+      <div class="c-a prose">
+        <p>By MIIT’s count. The ministry expects AI devices to outsell non-AI devices this year for the first time. <span class="cite">[11]</span></p>
+        <p>In July a second batch of standards opened: wrist wearables, learning tablets, smart toys, whiteboards, projectors, industrial computers, lighting, robot vacuums, smart locks, translation pens.</p>
+        <p class="beat">The ladder is being bolted to every socket in the house.</p>
+      </div>
+    </Section>
+
+    <Section n="06" title="Most of it is L1" id="l1">
+      <div class="c-full">
+        <p class="display slap-in" data-flex="cursor">Most of what China owns is<br><span class="acid">L1.</span></p>
+      </div>
+      <div class="c-a prose">
+        <p>At the launch, CESI’s Yu Xiuming said the devices people hold are generally L1 and L2. Some new products reach L3. <span class="cite">[03]</span></p>
+        <p class="mono reg">Position</p>
+        <p class="beat">The distance between the grade in your pocket and the grade in the Catalogue is the replacement cycle.</p>
+        <p>It was drawn by a label, not by a chip.</p>
+      </div>
+    </Section>
+
+    <Section n="07" title="Risk and ability" id="west">
+      <div class="c-a prose">
+        <p class="mono reg">Position</p>
+        <p class="beat">The West grades risk. China graded ability.</p>
+        <p>The EU AI Act sorts systems by harm. Washington has no label at all. In the West, AI PC means whatever a chip vendor’s NPU floor says it means.</p>
+        <p>Beijing wrote a capability ladder, had the makers help write it, let them pick their exam day, judged the hard parts with numbers and the soft parts by eye, and wired the top rung to the till.</p>
+      </div>
+    </Section>
+
+    <section class="surface flash" aria-label="Position">
+      <div class="grid">
+        <p class="c-full mono-b">Position</p>
+        <p class="c-full display slap" data-flex="cursor">Define the agent.<br>Then subsidise it.</p>
+        <p class="c-a">That is the order of operations. The state said what an assistant is before the market settled it, and attached a price.</p>
+        <p class="c-a">Everyone in the first batch sells a certificate now. In twelve months they will sell a higher grade. L4 is still a blank line in the standard. The Catalogue decides when it fills.</p>
+      </div>
+    </section>
+
+    <Section n="08" title="Sources" id="sources">
+      <div class="c-full">
+        <p class="mono">Grouped by publication date, as the print groups them</p>
+      </div>
+      <ol class="c-full sources src-dated">
+        {sources.map(([when, who, what], i) => (
+          <li>
+            <span class="mono-b n">{String(i + 1).padStart(2, '0')}</span>
+            <span>
+              <span class="mono when">{when}</span>
+              <span class="who mono-b">{who}</span>
+              <span class="what">{what}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <div class="c-a prose">
+        <p class="mono reg">Where it is wrong</p>
+        <p>Figures are as published. Counts conflict in one secondary source, which gives 63 products at L3; the three testing bodies and Lenovo all state 66, and the page carries 66. No L4 test exists at the time of writing, so nothing here describes one. The sources are overwhelmingly Chinese-language press reporting the same launch and the same briefings, which means a single error at the source would appear in several of these rows at once.</p>
+        <p class="mono reg">Colophon</p>
+        <p>Set in Bricolage Grotesque and Martian Mono. The roses are computed from r = cos(kθ) and never drawn: still No. 10, seed {ed.seed}, at the house configuration k = 5, 7 and 3. Screen edition. Acid does not survive CMYK.</p>
+      </div>
+    </Section>
+
+    <EditionEnd slug={ed.slug}>
+      Define the agent.<br>Then subsidise it.
+    </EditionEnd>
+  </main>
+</Base>
+
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -20%; right: -14%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 24px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover-std { color: var(--malachite); }
+  .cover-foot { border-top-color: transparent; }
+  /* Registers. Malachite on Void; Flash on Bottle, where small Malachite fails AA. */
+  .reg { color: var(--malachite); margin-bottom: 6px; }
+  .bottle .reg { color: var(--flash); }
+  .prose .reg { margin-top: 1.4em; }
+  /* Citation marks: mono, small, Malachite; Flash on Bottle and in a field. */
+  .cite { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 500; font-size: 12px; letter-spacing: .04em; color: var(--malachite); white-space: nowrap; }
+  .bottle .cite, .field .cite { color: var(--flash); }
+  .note { margin-top: 14px; max-width: 80ch; }
+  .fig-sub { margin-top: -6px; max-width: 32ch; }
+  .fig-s { font-size: clamp(72px, 14vw, 180px); }
+  /* A display line set inside a section, not on its own Flash surface. */
+  .slap-in { font-size: clamp(38px, 7vw, 112px); line-height: .98; margin: 0 0 28px; max-width: 16ch; }
+  /* The four grades. The rung the batch was certified at is set apart. */
+  .ladder dl { margin: 14px 0 0; display: grid; row-gap: 0; }
+  .ladder dl > div { display: grid; grid-template-columns: 5em minmax(0, 1fr); column-gap: 24px; align-items: baseline; padding-block: 14px; border-top: 1px solid rgba(255, 255, 255, .16); }
+  .ladder dt { color: var(--flash); letter-spacing: .1em; }
+  .ladder dt.acid { color: var(--acid); }
+  .ladder dd { margin: 0; font-size: clamp(26px, 4vw, 52px); line-height: 1; }
+  .ladder dl > div.here dd { font-variation-settings: 'wdth' 75, 'wght' 800; }
+  /* Measured against judged. */
+  .two-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 4vw, 56px); margin-top: 14px; }
+  .two-cols .head { margin-bottom: 10px; letter-spacing: .1em; text-transform: uppercase; }
+  .two-cols .note { grid-column: 1 / -1; }
+  ul.plain { list-style: none; margin: 0; padding: 0; display: grid; row-gap: 6px; }
+  ul.plain li { font-variation-settings: 'wdth' 82, 'wght' 700; font-size: 17px; }
+  /* The rose divider the print sets between the exam and the money. */
+  .divider { min-height: 60svh; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
+  .div-rose { width: max(80vw, 80vh); height: max(80vw, 80vh); top: 50%; left: 50%; transform: translate(-50%, -50%); }
+  .div-foot { position: relative; z-index: 2; border-top-color: transparent; }
+  /* Sources grouped by date: the date and the outlet lead, the claim follows. */
+  .src-dated .when { display: block; color: var(--malachite); }
+  .src-dated .who { display: block; margin-block: 2px 4px; }
+  .src-dated .what { display: block; font-size: 15px; line-height: 1.5; }
+  @media (max-width: 760px) {
+    .two-cols { grid-template-columns: 1fr; }
+    .ladder dl > div { grid-template-columns: 1fr; row-gap: 4px; }
+    .slap-in { max-width: none; }
+  }
+</style>

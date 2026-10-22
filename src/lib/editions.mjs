@@ -35,6 +35,34 @@ import { HOUSE } from './rose.mjs';
 
 const RAW = [
   {
+    slug: 'the-grade', path: '/the-grade', print: 'Edition 10',
+    title: 'The Grade', acid: 'Grade',
+    lede: 'China put an IQ grade on every phone and laptop. Then it wired the grade to the till.',
+    date: '2026-10-22', dateLabel: '22 Oct 2026',
+    seed: '2A5F1E', k: [5, 7, 3], pdf: '/pdf/edition-10.pdf',
+    // A draft until its fourteen sources have been opened. Every ported
+    // edition that skipped that step was wrong in ways that mattered:
+    // 98 claims on Edition 06, 80 on Edition 02. These sources are almost
+    // all Chinese-language press, so the check needs translation as well
+    // as fetching, and several outlets report the same briefing, which
+    // means one error at the source would appear in several rows at once.
+    draft: true,
+    contents: [
+      { n: '00', t: 'One number', id: 'number' },
+      { n: '01', t: 'The ladder', id: 'ladder' },
+      { n: '01', t: 'Not a driving level', id: 'driving' },
+      { n: '02', t: 'Forty-two were Lenovo', id: 'lenovo' },
+      { n: '02', t: 'Who wrote the exam', id: 'exam' },
+      { n: '03', t: 'Judged by hand', id: 'soft' },
+      { n: '04', t: 'The door', id: 'door' },
+      { n: '05', t: 'The advert', id: 'advert' },
+      { n: '06', t: 'A hundred million', id: 'shipped' },
+      { n: '06', t: 'Most of it is L1', id: 'l1' },
+      { n: '07', t: 'Risk and ability', id: 'west' },
+      { n: '08', t: 'Sources', id: 'sources' },
+    ],
+  },
+  {
     slug: 'the-floor', path: '/the-floor',
     title: 'The Floor', acid: 'Floor',
     lede: 'The Markup quoted the datasheet. The builder had measured the first Haven a year before.',
