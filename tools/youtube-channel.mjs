@@ -153,12 +153,13 @@ if (!YT_CLIENT_ID || !YT_CLIENT_SECRET || !YT_REFRESH_TOKEN) { console.error('yo
 /* ---- GitHub: the renders on Releases ---------------------------------------- */
 const ghToken = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
 const ghAuth = ghToken ? ['-H', `authorization: Bearer ${ghToken}`] : [];
-const curl = (url, accept) => execFileSync('curl', ['-sSLf', '-H', `accept: ${accept}`, ...ghAuth, url], { maxBuffer: 1 << 26 });
+// -f writes no body for a failed attempt, so --retry recovers a 503 or a 429 cleanly.
+const curl = (url, accept) => execFileSync('curl', ['-sSLf', '--retry', '2', '-H', `accept: ${accept}`, ...ghAuth, url], { maxBuffer: 1 << 26 });
 // The listing answered HTTP 200 with an empty page, GitHub's own request id on it, about one call in five on 22 Oct
 // 2026 (tools/films.mjs looks its few releases up by tag instead; this needs every film release, episodes too). Read
 // as true it showed every video as "no render" and judged no site link at all, so a broken run read as a clean one
 // (review, 22 Oct). This repository always has film releases, so a listing with none is asked again, and five such
-// answers stop the run; probe reads no release and takes what it gets.
+// answers stop the run; probe uses none of them and takes what it gets.
 const { PUBLISHED } = await import(new URL('../src/lib/editions.mjs', import.meta.url).href);
 const releases = [];
 for (let attempt = 1; ; attempt++) {
@@ -175,16 +176,29 @@ for (let attempt = 1; ; attempt++) {
 }
 // A listing that holds some film releases but not every edition's (never seen in 102 samples; an empty page after a
 // full one, past 100 releases, would do it) would leave that edition's site link unjudged and let withdraw take its
-// own film for an earlier cut (review, 22 Oct), so an edition's release the listing left out is looked up by its
-// tag: no call at all when the listing is whole, and a 404 means the edition has no release yet.
-for (const e of CMD === 'probe' ? [] : PUBLISHED) {
-  const tag = `film-${e.slug}`;
-  if ((ONLY && ONLY !== tag) || releases.some((r) => r.tag_name === tag)) continue;
+// own film for an earlier cut (review, 22 Oct), so an edition's release the listing left out, and the film release
+// --only names, episode or edition, is looked up by its tag: no call at all when the listing is whole, and a 404
+// means there is no such release yet, said by nothing (a published edition waits for its render on every run).
+// Other episodes are not filled: that would take a call per unreleased script on every run, and the hole it leaves
+// (withdraw taking an episode's own video for an earlier cut) needs a partial listing, never seen, and a withdraw by
+// that video's id (review of 57d03fc, 22 Oct).
+const releaseByTag = (tag) => {
+  let out;
+  try { out = execFileSync('curl', ['-sSLf', '--retry', '2', '-H', 'accept: application/vnd.github+json', ...ghAuth, `https://api.github.com/repos/${REPO}/releases/tags/${tag}`], { maxBuffer: 1 << 26, stdio: ['ignore', 'pipe', 'pipe'] }).toString('utf8'); }
+  catch (err) {
+    if (err.status === 22 && /\b404\b/.test(String(err.stderr))) return null;
+    console.error(`youtube-channel: could not look up the release ${tag}: ${String(err.stderr || err.message).trim().split('\n').pop()}`); process.exit(1);
+  }
   let rel;
-  try { rel = JSON.parse(curl(`https://api.github.com/repos/${REPO}/releases/tags/${tag}`, 'application/vnd.github+json')); }
-  catch (err) { if (err.status === 22 && /\b404\b/.test(String(err.stderr))) continue; throw err; }
-  if (rel?.tag_name !== tag || !Array.isArray(rel.assets)) { console.error(`youtube-channel: GitHub's answer for the release ${tag} is not that release`); process.exit(1); }
-  releases.push(rel);
+  try { rel = JSON.parse(out); } catch { rel = null; }
+  if (rel?.tag_name !== tag || !Array.isArray(rel.assets)) { console.error(`youtube-channel: GitHub's answer for the release ${tag} is ${rel?.tag_name ? `the release ${rel.tag_name}` : `not a release: ${out.slice(0, 120).replace(/\s+/g, ' ') || '(empty)'}`}`); process.exit(1); }
+  return rel;
+};
+const wanted = CMD === 'probe' ? [] : ONLY ? (ONLY.startsWith('film-') ? [ONLY] : []) : PUBLISHED.map((e) => `film-${e.slug}`);
+for (const tag of wanted) {
+  if (releases.some((r) => r.tag_name === tag)) continue;
+  const rel = releaseByTag(tag);
+  if (rel) releases.push(rel);
 }
 const asset = (rel, name) => rel.assets.find((a) => a.name === name);
 const fetchAsset = (rel, name) => curl(asset(rel, name).url, 'application/octet-stream');
