@@ -156,9 +156,10 @@ const ghAuth = ghToken ? ['-H', `authorization: Bearer ${ghToken}`] : [];
 const curl = (url, accept) => execFileSync('curl', ['-sSLf', '-H', `accept: ${accept}`, ...ghAuth, url], { maxBuffer: 1 << 26 });
 // The listing answered HTTP 200 with an empty page, GitHub's own request id on it, about one call in five on 22 Oct
 // 2026 (tools/films.mjs looks its few releases up by tag instead; this needs every film release, episodes too). Read
-// as true it shows every video as "no render" and every site link wrong. This repository always has film releases,
-// so a listing with none is asked again, and five such answers stop the run. An empty page after a full one (past 100
-// releases) is not caught.
+// as true it showed every video as "no render" and judged no site link at all, so a broken run read as a clean one
+// (review, 22 Oct). This repository always has film releases, so a listing with none is asked again, and five such
+// answers stop the run; probe reads no release and takes what it gets.
+const { PUBLISHED } = await import(new URL('../src/lib/editions.mjs', import.meta.url).href);
 const releases = [];
 for (let attempt = 1; ; attempt++) {
   const all = [];
@@ -168,9 +169,22 @@ for (let attempt = 1; ; attempt++) {
     if (batch.length < 100) break;
   }
   const films = all.filter((r) => r.tag_name.startsWith('film-'));
-  if (films.length) { releases.push(...films.filter((r) => !ONLY || r.tag_name === ONLY)); break; }
+  if (films.length || CMD === 'probe') { releases.push(...films.filter((r) => !ONLY || r.tag_name === ONLY)); break; }
   if (attempt === 5) { console.error('youtube-channel: GitHub listed no film releases five times running; it answers an empty page now and then, so run it again'); process.exit(1); }
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, attempt * 2000);
+}
+// A listing that holds some film releases but not every edition's (never seen in 102 samples; an empty page after a
+// full one, past 100 releases, would do it) would leave that edition's site link unjudged and let withdraw take its
+// own film for an earlier cut (review, 22 Oct), so an edition's release the listing left out is looked up by its
+// tag: no call at all when the listing is whole, and a 404 means the edition has no release yet.
+for (const e of CMD === 'probe' ? [] : PUBLISHED) {
+  const tag = `film-${e.slug}`;
+  if ((ONLY && ONLY !== tag) || releases.some((r) => r.tag_name === tag)) continue;
+  let rel;
+  try { rel = JSON.parse(curl(`https://api.github.com/repos/${REPO}/releases/tags/${tag}`, 'application/vnd.github+json')); }
+  catch (err) { if (err.status === 22 && /\b404\b/.test(String(err.stderr))) continue; throw err; }
+  if (rel?.tag_name !== tag || !Array.isArray(rel.assets)) { console.error(`youtube-channel: GitHub's answer for the release ${tag} is not that release`); process.exit(1); }
+  releases.push(rel);
 }
 const asset = (rel, name) => rel.assets.find((a) => a.name === name);
 const fetchAsset = (rel, name) => curl(asset(rel, name).url, 'application/octet-stream');
@@ -318,15 +332,17 @@ if (missing.length) {
 // src/lib/films.json links each published edition's current film once it is public; only this tool can see what is
 // public, so each link is judged here on every command but probe, which has exited (the header says what holds). The link is never written from here.
 const { readFilms: readSiteFilms, clock: siteClock } = await import(new URL('../src/lib/films.mjs', import.meta.url).href);
-const { PUBLISHED } = await import(new URL('../src/lib/editions.mjs', import.meta.url).href);
 const LINKED = readSiteFilms();
 const linkedAs = (id) => Object.keys(LINKED).find((slug) => LINKED[slug].id === id);
 const flag = (msg) => console.log(`${process.env.GITHUB_ACTIONS ? '::warning::' : '  '}${msg}`);
 const rowOf = (id) => rows.find((x) => x.v.id === id);
 const filedFilm = (slug) => renders.find((r) => r.tag === `film-${slug}` && r.metaName === 'meta.json')?.ledgerId || null;
-const siteLinks = Object.entries(LINKED).filter(([slug]) => releases.some((r) => r.tag_name === `film-${slug}`)).map(([slug, f]) => {
+// Every link is judged (but those --only leaves out): one whose release is gone reads wrong, where it used to be
+// skipped, and an empty listing skipped them all.
+const siteLinks = Object.entries(LINKED).filter(([slug]) => !ONLY || ONLY === `film-${slug}`).map(([slug, f]) => {
   const x = rowOf(f.id), current = filedFilm(slug), next = current && current !== f.id ? rowOf(current) : null;
-  const wrong = !x ? 'is not on the channel'
+  const wrong = !releases.some((r) => r.tag_name === `film-${slug}`) ? `has no release film-${slug} to file it`
+    : !x ? 'is not on the channel'
     : x.v.status.privacyStatus !== 'public' ? `is ${x.v.status.privacyStatus}`
     : current !== f.id ? `is not the film film-${slug} files (${current || 'none'})`
     : secs(x.v.contentDetails.duration) !== f.duration ? `runs ${dur(x.v.contentDetails.duration)} on YouTube where the site says ${siteClock(f.duration)}`

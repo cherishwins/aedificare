@@ -77,13 +77,20 @@ const releases = (slugs) => {
   const out = new Map();
   for (const slug of slugs) {
     const tag = `film-${slug}`;
+    // -f writes no body for a failed attempt, so a 503 that --retry recovers from leaves only the 200's body (without
+    // it the two bodies ran together and the parse threw, review of 22 Oct); -w still prints the code, so a 404, which
+    // is not retried, reads as no release.
     let res;
-    try { res = execFileSync('curl', ['-sSL', '--retry', '2', '-w', '\n%{http_code}', '-H', 'accept: application/vnd.github+json', ...(ghToken ? ['-H', `authorization: Bearer ${ghToken}`] : []), `https://api.github.com/repos/${REPO}/releases/tags/${tag}`], { maxBuffer: 1 << 26, stdio: ['ignore', 'pipe', 'pipe'] }).toString('utf8'); }
-    catch (err) { fail(`could not look up the release ${tag}: ${why(err)}`); }
-    const cut = res.lastIndexOf('\n'), code = res.slice(cut + 1);
-    if (code === '404') continue;
-    if (code !== '200') fail(`GitHub answered ${code} for the release ${tag}`);
-    out.set(tag, JSON.parse(res.slice(0, cut)));
+    try { res = execFileSync('curl', ['-sSLf', '--retry', '2', '-w', '\n%{http_code}', '-H', 'accept: application/vnd.github+json', ...(ghToken ? ['-H', `authorization: Bearer ${ghToken}`] : []), `https://api.github.com/repos/${REPO}/releases/tags/${tag}`], { maxBuffer: 1 << 26, stdio: ['ignore', 'pipe', 'pipe'] }).toString('utf8'); }
+    catch (err) {
+      if (err.status === 22 && String(err.stdout).endsWith('\n404')) continue;
+      fail(`could not look up the release ${tag}: ${why(err)}`);
+    }
+    const body = res.slice(0, res.lastIndexOf('\n'));
+    let rel;
+    try { rel = JSON.parse(body); } catch { rel = null; }
+    if (rel?.tag_name !== tag || !Array.isArray(rel.assets)) fail(`GitHub's answer for the release ${tag} is not that release: ${body.slice(0, 120).replace(/\s+/g, ' ') || '(empty)'}`);
+    out.set(tag, rel);
   }
   return out;
 };
@@ -187,18 +194,17 @@ if (argv[0] === '--drop') {
   const ids = argv;
   for (const id of ids) if (!/^[A-Za-z0-9_-]{11}$/.test(id)) fail(`${id} is not an eleven-character YouTube id`);
   const rels = releases(PUBLISHED.map((e) => e.slug));
-  const ledgers = new Map();
+  const ledgers = new Map(), filed = new Map();
   for (const e of PUBLISHED) {
     const rel = rels.get(`film-${e.slug}`);
     const l = rel && ledgerOf(rel);
-    if (l?.id) ledgers.set(l.id, { e, rel, ledger: l });
+    if (l?.id) { ledgers.set(l.id, { e, rel, ledger: l }); filed.set(e.slug, l.id); }
   }
   // What was read goes into a refusal: on 22 Oct the listing's empty page refused The Tilt Gap's own film, and the
   // message blamed the id.
   const read = () => PUBLISHED.map((e) => {
     const rel = rels.get(`film-${e.slug}`);
-    const id = [...ledgers].find(([, v]) => v.e === e)?.[0];
-    return `${e.slug} ${!rel ? 'no release' : id ?? `no ledger among its ${rel.assets.length} assets`}`;
+    return `${e.slug} ${!rel ? 'no release' : filed.get(e.slug) ?? `no ledger id among its ${rel.assets.length} assets`}`;
   }).join(', ');
   for (const id of ids) {
     const hit = ledgers.get(id);

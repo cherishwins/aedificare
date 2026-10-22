@@ -478,7 +478,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   API and stay in Studio), `youtube-channel.mjs` (the channel against
   the Releases (a listing with no film release, that same empty page, is
   asked again, and five stop the run, rather than read every video as
-  "no render"): `list` shows every upload with the render it came from,
+  "no render" and judge no site link, a false green; an edition's release
+  a listing leaves out is looked up by its tag): `list` shows every upload with the render it came from,
   matched by the uploaded file's name, and the renders not yet up; `sync`
   sets each matched video's generated metadata through
   `upload-youtube.mjs --update`, so a hand upload needs no video id
