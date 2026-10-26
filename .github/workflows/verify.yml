@@ -59,6 +59,11 @@ jobs:
       - name: Film descriptions
         run: node tools/film-meta.mjs --test
 
+      # The narrator's number normaliser, on every money and unit form the pages print (tools/test-narrate.py): "$1
+      # billion" reached three released films as "1 dollars billion" before this ran anywhere (26 Oct 2026).
+      - name: Narrator forms
+        run: python3 -I tools/test-narrate.py
+
       # High and critical advisories fail the build unless tools/audit-allowlist.json names them, with a reason and
       # an expiry (tools/check-audit.cjs); an advisory with no patched release anywhere is the case it exists for.
       - name: Audit dependencies
