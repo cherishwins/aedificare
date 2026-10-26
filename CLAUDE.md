@@ -2337,10 +2337,10 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   the click; it was offered, and the owner chose the plain link.
   **Small on purpose.** Each thumbnail
   sets one word or figure in Acid; at 112 by 63 its tallest band of Acid
-  ink, as the probe reads it where it is shown, is 14 px (The Supply
-  Cabinet's 1,200 and The Countersign's 9,000+), 12 (SUBTRACTION and
-  The Tilt Gap's GAP) and 11 (69), and The Markup's
-  $18,214, not linked yet, reads 15, all under the 16 px capital
+  ink, as the probe reads it where it is shown, is 15 px (The Markup's
+  $18,214), 14 (the 1,200 of The Supply Cabinet and of The Snapshot
+  Problem, and The Countersign's 9,000+), 12 (SUBTRACTION, The Tilt
+  Gap's GAP and The Floor's 15) and 11 (69), all under the 16 px capital
   of 24 px type where the probe starts counting "at scale". At 128 by 72
   the 1,200 reached 16 px with its comma, so the size came down. A surface
   of the film's own, the other form, would have put a loud move after the
@@ -2371,7 +2371,9 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   Fourth Axis (`9joaycmFqsU`), The Subtraction (`00hUzMPhGsY`) and The
   Supply Cabinet (`yGdOAIj1Wa8`); then The Countersign (`6j4BfaF8ZvM`),
   public at 15:00 UTC on 21 Oct, and The Tilt Gap (`mCq1v6d3GVs`) at
-  15:00 UTC on 22 Oct.
+  15:00 UTC on 22 Oct; then, read public by `list` at 18:05 UTC on 26
+  Oct, The Snapshot Problem (`pJkE2cNBWvs`, 23 Oct), The Markup
+  (`DFPTdSYPNkE`, 24 Oct) and The Floor (`5VFA1JW5HJk`, 26 Oct).
 
 ## Open
 

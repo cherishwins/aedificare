@@ -1,4 +1,27 @@
 {
+  "the-floor": {
+    "id": "5VFA1JW5HJk",
+    "duration": 824,
+    "source": {
+      "release": "film-the-floor",
+      "asset": "the-floor-film-1920x1080.mp4",
+      "bytes": 658089939,
+      "updated": "2026-10-18T20:24:28Z",
+      "seconds": 823.667
+    },
+    "thumb": {
+      "src": "/film/the-floor.cda3e5cf.png",
+      "src2x": "/film/the-floor-2x.f7eab137.png",
+      "width": 112,
+      "height": 63,
+      "alt": "Thumbnail: 15 in acid green on black",
+      "source": {
+        "release": "film-the-floor",
+        "asset": "the-floor-thumb-1280x720.png",
+        "sha256": "1a94908e253e2912020472a9d0cba361c6b6424f126bacd6fea1f3062416da6a"
+      }
+    }
+  },
   "edition-02": {
     "id": "00hUzMPhGsY",
     "duration": 1096,
@@ -111,6 +134,52 @@
         "release": "film-the-tilt-gap",
         "asset": "the-tilt-gap-thumb-1280x720.png",
         "sha256": "46b193d89cbfdf9eeab908cf4a2d2829de54a6ce0448ed08efd75b047478f27b"
+      }
+    }
+  },
+  "edition-03": {
+    "id": "DFPTdSYPNkE",
+    "duration": 910,
+    "source": {
+      "release": "film-edition-03",
+      "asset": "edition-03-film-1920x1080.mp4",
+      "bytes": 736988700,
+      "updated": "2026-10-18T20:22:34Z",
+      "seconds": 909.584
+    },
+    "thumb": {
+      "src": "/film/edition-03.0b54eaeb.png",
+      "src2x": "/film/edition-03-2x.58d74219.png",
+      "width": 112,
+      "height": 63,
+      "alt": "Thumbnail: $18,214 in acid green on black",
+      "source": {
+        "release": "film-edition-03",
+        "asset": "edition-03-thumb-1280x720.png",
+        "sha256": "0ab8c88f3450984eeb5bc099230bbfac68ebbd87551c40dd5314988cf49d435a"
+      }
+    }
+  },
+  "edition-01": {
+    "id": "pJkE2cNBWvs",
+    "duration": 974,
+    "source": {
+      "release": "film-edition-01",
+      "asset": "edition-01-film-1920x1080.mp4",
+      "bytes": 916701755,
+      "updated": "2026-10-18T20:52:01Z",
+      "seconds": 974
+    },
+    "thumb": {
+      "src": "/film/edition-01.fc691a45.png",
+      "src2x": "/film/edition-01-2x.8144538b.png",
+      "width": 112,
+      "height": 63,
+      "alt": "Thumbnail: 1,200 in acid green on black",
+      "source": {
+        "release": "film-edition-01",
+        "asset": "edition-01-thumb-1280x720.png",
+        "sha256": "30e1fae187ba8d44e98102579a003cec07fc420067c9a9e80fcb91a95924da8d"
       }
     }
   }
