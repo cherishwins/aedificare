@@ -67,7 +67,9 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { browser, openContext, findFfmpeg, GREY_TEXT } from './lib/film.mjs';
 import { FPS, KINDS, OVERLAYS, OWNER, shotContext, parseTag, chartHtml, chartLand, sweepPlan, pageSource, pageView, namesAuthor, popEnd, overEnd, footageFile, renderSegment, renderPop, renderOverlay, ff } from './lib/shots.mjs';
-import { CHART_TYPES } from './lib/chart.mjs';
+// Facts are not free: the page's numbers, and what each computed shot puts on screen, read by tools/lib/facts.mjs
+// (lifted from here on 2026-10-26 so the episodes' edition films are held to the same reading).
+import { pageFacts, facts } from './lib/facts.mjs';
 import { parsePage, shotName, sourcesOf, neverFetched, UA } from './capture.mjs';
 import { edition } from '../src/lib/editions.mjs';
 import { NARRATOR } from '../src/config.mjs';
@@ -422,114 +424,6 @@ function grammar(X, Q, C, untilF) {
     warnings, fails,
     metrics: { seconds: T / FPS, rose: share, hook: ch.filter((f) => f > 0 && f < B0).length, changesPerMin: per(inBody(ch), B0, B1), scenesPerMin: per(inBody(sc), B0, B1), longestRose: longest / FPS, longestRoseAt: longestAt / FPS, noScene: noScene / FPS, noSceneAt: noSceneAt / FPS },
   };
-}
-
-/* ---- facts: every number shown is on the page ------------------------------------ */
-const UNITS = Object.fromEntries('zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen'.split(' ').map((w, i) => [w, i]));
-const TENS = Object.fromEntries('twenty thirty forty fifty sixty seventy eighty ninety'.split(' ').map((w, i) => [w, 20 + 10 * i]));
-const SCALES = { hundred: 100, thousand: 1e3, million: 1e6, billion: 1e9, trillion: 1e12 };
-const isNumWord = (t) => t.split('-').every((p) => p in UNITS || p in TENS);
-/** The numbers in a text, written or spelled ("forty-four" is 44, "one hundred and six" 106); `scaled` adds "8.9 million" as 8,900,000. */
-function numbersIn(text) {
-  const primary = [], scaled = [];
-  const toks = String(text).toLowerCase().replace(/[\u2013\u2014]/g, ' ').match(/\d[\d,]*(?:\.\d+)?|[a-z]+(?:-[a-z]+)*/g) || [];
-  for (let i = 0; i < toks.length; i++) {
-    const t = toks[i];
-    if (/\d/.test(t)) {
-      const v = +t.replace(/,/g, '').replace(/\.$/, '');
-      if (Number.isFinite(v)) { primary.push(v); const sc = SCALES[toks[i + 1]]; if (sc >= 1e3) scaled.push(v * sc); }
-      continue;
-    }
-    let j = i, total = 0, cur = 0, any = false;
-    while (j < toks.length) {
-      if (isNumWord(toks[j])) { for (const p of toks[j].split('-')) cur += UNITS[p] ?? TENS[p]; any = true; j++; }
-      else if (any && toks[j] in SCALES) { if (SCALES[toks[j]] === 100) cur *= 100; else { total += cur * SCALES[toks[j]]; cur = 0; } j++; }
-      else if (any && toks[j] === 'and' && toks[j + 1] && isNumWord(toks[j + 1])) j++;
-      else break;
-    }
-    if (any) { primary.push(total + cur); i = j - 1; }
-  }
-  return { primary, scaled };
-}
-const STOPWORDS = new Set('the and for but not nor with from into onto over under this that these those its his her our are was were has had have than then what when who all any per via off out one'.split(' '));
-const contentWords = (text) => (String(text).toLowerCase().match(/[a-z]+/g) || []).filter((w) => w.length >= 3 && !STOPWORDS.has(w) && !isNumWord(w) && !(w in SCALES));
-const decode = (s) => s.replace(/&(#x?[0-9a-f]+|amp|lt|gt|quot|apos|nbsp);/gi, (_, e) => (e[0] === '#' ? String.fromCodePoint(e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : +e.slice(1)) : { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }[e.toLowerCase()]));
-
-/** The built page as a reader reads it: <main>, without its SVG (path coordinates are not facts), scripts, styles or nav. */
-function pageFacts(E) {
-  const file = path.join('dist', E.path.replace(/^\//, ''), 'index.html');
-  if (!fs.existsSync(file)) return null;
-  let h = fs.readFileSync(file, 'utf8');
-  const m = /<main\b[\s\S]*<\/main>/i.exec(h);
-  if (m) h = m[0];
-  const text = decode(h.replace(/<(svg|script|style|template|nav)\b[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
-  const n = numbersIn(text);
-  const words = new Set(text.toLowerCase().match(/[a-z]+/g) || []);
-  return { text, lower: text.toLowerCase(), nums: [...n.primary, ...n.scaled], words };
-}
-const has = (facts, v) => facts.nums.some((x) => Math.abs(x - v) <= 1e-9 * Math.max(1, Math.abs(v)));
-const ONE_SURFACE = new Set(['card', 'fig', 'over', 'title', 'pop']); // the kinds whose fields are one surface of type
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-/**
- * What a computed insert puts on screen as type: [text, the words it must have on the page (true) or should (false)].
- * A title card shows the edition's own title and date, whatever its tag says (titleHtml), so those are what it shows.
- */
-function displayed(tag, E) {
-  const k = tag.kind;
-  if (k === 'pop') return [[tag.text, true]];
-  if (k === 'fig' || k === 'over') return [[tag.value, false], [tag.label, false]];
-  if (k === 'card') return [[tag.text, false], [tag.label, false]];
-  if (k === 'title') return E ? [[E.title, false], [E.dateLabel, false]] : [];
-  if (k === 'map') return [[tag.label, false], ...(tag.stops || []).filter(Boolean).map((s) => [s.name, false])];
-  if (k === 'chart') {
-    const out = [[tag.title, false], [tag.sub, false], [tag.note, false], [tag.ref, false]];
-    for (const r of tag.rows || []) {
-      if (tag.type === 'timeline' || tag.type === 'flow') out.push([r.text, false], ...(tag.type === 'flow' ? [[r.from, false], [r.to, false]] : []));
-      else out.push([[r.ra, r.rb].filter((x) => x !== null && x !== undefined).join(' '), false], [r.show, false], ...(tag.type === 'line' ? [] : [[r.label, false]]));
-    }
-    return out;
-  }
-  return [];
-}
-
-function facts(X, e, out) {
-  const page = X.facts;
-  if (!page) { out.issues.push(`dist/${X.E.slug}/index.html is not built: run npm run build`); return; }
-  const where = `line ${e.line}: ${e.kind}`;
-  const count = (text) => String(text || '').split(/\s+/).filter((w) => /[a-z0-9$]/i.test(w)).length;
-  const shown = displayed(e.tag, X.E);
-  // Twelve words on a card means the card: its words and its label are read as one surface, so they are counted
-  // together. A chart's or a map's labels are data, each read on its own, and keep the count per label.
-  if (ONE_SURFACE.has(e.kind)) {
-    const n = shown.reduce((a, [text]) => a + count(text), 0);
-    if (n > 12) out.issues.push(`${where}: ${n} words of display copy on one card ("${shown.map(([t]) => t).filter(Boolean).join(' | ').slice(0, 60)}..."); twelve at most, label included`);
-  }
-  for (const [text, must] of shown) {
-    if (!text) continue;
-    if (e.kind !== 'pop' && /!/.test(text)) out.issues.push(`${where}: no exclamation on a card ("${text}")`);
-    const n = count(text);
-    if (n > 12 && !ONE_SURFACE.has(e.kind)) out.issues.push(`${where}: ${n} words of display copy ("${text.slice(0, 50)}..."); twelve at most`);
-    for (const v of numbersIn(text).primary) if (!has(page, v)) out.issues.push(`${where}: ${v} is not on the built page ("${text}"); facts are not free`);
-    const missing = contentWords(text).filter((w) => !page.words.has(w) && !page.words.has(w.replace(/s$/, '')) && !page.words.has(`${w}s`));
-    if (missing.length) (must ? out.issues : out.warnings).push(`${where}: "${missing.join('", "')}" ${missing.length > 1 ? 'are' : 'is'} not on the built page ("${text}")${must ? '; a pop is a word the page says' : ''}`);
-  }
-  if (e.kind === 'pop') for (const x of e.tag.errors || []) out.issues.push(`line ${e.line}: ${x}`);
-  if (e.kind === 'chart') {
-    if (!CHART_TYPES.includes(e.tag.type)) out.issues.push(`${where}: type "${e.tag.type}" is not one of ${CHART_TYPES.join(', ')}`);
-    for (const x of e.tag.errors || []) out.issues.push(`${where}: ${x}`);
-    if (!e.tag.srcs.length) out.issues.push(`${where}: it cites no source (src: NN); a chart carries its own citation on screen`);
-    // The Acid ledger counts a chart's stars: chartBody draws every starred row in Acid, so two stars are two Acid
-    // marks in one shot (sync rule 3). A line's Acid is its series, whatever is starred.
-    const stars = e.tag.type === 'line' ? 0 : (e.tag.rows || []).filter((r) => r.hot).length;
-    if (stars > 1) out.issues.push(`${where}: ${stars} rows starred, each drawn in Acid; one Acid at a time (sync rule 3): star the one row the shot is for`);
-    // A timeline's dates are facts too, and a date is checked as the page writes one, not as three numbers.
-    if (e.tag.type === 'timeline') for (const r of e.tag.rows) {
-      const d = new Date(r.t), y = d.getUTCFullYear(), M = MONTHS[d.getUTCMonth()], day = d.getUTCDate();
-      const forms = [`${day} ${M} ${y}`, `${day} ${M.slice(0, 3)} ${y}`, `${M} ${day}, ${y}`, `${M} ${y}`, `${M.slice(0, 3)} ${y}`].map((x) => x.toLowerCase());
-      if (!forms.some((x) => page.lower.includes(x))) out.issues.push(`${where}: the date ${r.date} is not on the built page`);
-    }
-  }
 }
 
 /* ---- sources, pages and quotes ------------------------------------------------------ */

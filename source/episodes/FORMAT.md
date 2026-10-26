@@ -47,8 +47,31 @@ title2: …                          # optional: up to three titles and three th
 title3: …                          # Test & Compare; thumb2/thumbframe2 and thumb3/thumbframe3 render
 thumb2: … / …                      # thumb-b.png and thumb-c.png (a variant without its own frame uses
 thumbframe2: …                     # the first one's); sheet.txt lists every variant
+edition: the-countersign           # optional: a film written FROM that edition; see below
 ---
 ```
+
+## An edition film
+
+`edition: <slug>` names the edition a script is written from, in the film
+voice (`source/film/voice.md`). Wording is free; facts are not (CLAUDE.md,
+override 7): `check` reads the built page (`dist/<slug>/index.html`, its
+text as a reader reads it, the SVG left out, spelled numbers read as
+numbers) and fails on any number it does not carry, spoken or on a computed
+surface (a figure, a card, an overlay, a chart's display text and its
+timeline's dates, a quote card's words and source line, the title), naming
+the line. So the site is built first (`npm run build`). A number at a scale
+is found either way: "600 thousand dollars" is on a page that prints
+$600,000, and `$50K` on one that prints $50,000. The same reading holds the
+kit's twelve words on a card (its label counted with it) and on each label
+of a chart. Sources still work as above, and for an edition film they are
+the edition's own sections, each citing the primary sources it names.
+
+The film then ends as an edition film ends: the record line (title, date,
+the section count from `src/lib/editions.mjs`, the source count from the
+page's own list, the licence) read aloud over the record on Flash, then the
+dove in silence, in place of the end card; the Short ends the same way. The
+record is one more narrated block, so it costs voice like any paragraph.
 
 ## Sources
 

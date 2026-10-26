@@ -16,7 +16,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { css, esc, FORMATS, ACID, MAL, BOTTLE, VOID, FLASH } from './film.mjs';
+import { css, esc, FORMATS, ACID, MAL, BOTTLE, VOID, FLASH, recordHtml, seedLine, doveHtml } from './film.mjs';
 import { markPath } from '../../src/lib/rose.mjs';
 import { SITE } from '../../src/config.mjs';
 import { edition } from '../../src/lib/editions.mjs';
@@ -291,6 +291,14 @@ export const titleHtml = (C) => ({ html: page(C, `<div class="stmt" style="font-
 export const slateHtml = (C, tag) => ({ html: page(C, `<div class="slate"><div class="k mono">${tag.kind === 'clip' ? 'Clip needed' : tag.kind === 'gag' ? 'Gag needed' : 'Footage needed'} · ${esc(tag.id)}</div><div class="d">${esc(tag.desc)}</div>${tag.say ? `<div class="f mono">Says: ${esc(tag.say)}</div>` : ''}${tag.find ? `<div class="f mono">Find: ${esc(tag.find)}</div>` : ''}</div>`, BOTTLE) });
 export const endHtml = (C) => ({ html: page(C, `<div class="stmt" style="font-size:${C.TY.end}px;text-transform:none">${esc(new URL(SITE.origin).host)}</div><div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`) });
 export const overHtml = (C, tag) => page(C, `${tag.value ? `<div class="big" style="font-size:${fit(C, tag.value, tag.value.length > 9 ? 200 : 300)}px;color:${ACID}">${esc(tag.value)}</div>` : ''}${tag.label ? `<div class="sub mono" style="color:${FLASH}">${esc(tag.label)}</div>` : ''}`, 'transparent');
+/**
+ * The edition close (tools/episode.mjs, `edition:`, 2026-10-26): the record on Flash as the edition film draws it
+ * (tools/lib/film.mjs recordHtml, with the seed line in Bottle; the ink is Void, which page() sets Flash), and then
+ * the dove on Void, built by the site's own client script loaded into the frame unchanged, which show() waits for
+ * (`dove`). The record tag carries the edition and its two counts. Neither is a tag a script can write.
+ */
+export const recordShotHtml = (C, tag) => ({ html: page(C, recordHtml(tag.E, tag.sections, tag.sources) + `<div class="seed mono" style="color:${BOTTLE}">${seedLine(tag.E)}</div>`, FLASH, `body{color:${VOID}}`) });
+export const doveShotHtml = (C) => ({ html: page(C, doveHtml()), dove: true });
 
 /* ---- page: a cited source as served, its words swept in Acid -------------------- */
 const die = (m) => { console.error(m); process.exit(1); };
@@ -1624,6 +1632,8 @@ export async function shotHtml(C, s, landMs = null, held = [], opts = {}) {
   if (k === 'card') return cardHtml(C, s.tag);
   if (k === 'title') return titleHtml(C);
   if (k === 'end') return endHtml(C);
+  if (k === 'record') return recordShotHtml(C, s.tag);
+  if (k === 'dove') return doveShotHtml(C);
   if (k === 'blank') return { html: page(C, '') };
   return slateHtml(C, s.tag);
 }
@@ -1747,7 +1757,7 @@ export async function renderSegment(C, R, s, i) {
     if (s.tag.kind === 'quote' || h.card) R.lastCard = { f: Math.round(s.end * FPS), ground: h.ground || VOID };
     // What check-brand reads: our own type only. A page shot's capture and a quote's words are someone else's.
     fs.writeFileSync(path.join(brandDir, `${i}.html`), h.brand ?? (s.tag.kind === 'quote' ? h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>') : h.html));
-    await show({ id: `${i}`, html: h.html, live: h.live });
+    await show({ id: `${i}`, html: h.html, live: h.live, dove: h.dove });
     const fdir = path.join(work, `f${i}`); fs.mkdirSync(fdir);
     // A build longer than the shot is compressed to finish inside 80 percent of it, so the point always lands on screen.
     // A chart landed on its word was already fitted inside the shot (chartLand), so it keeps the voice's own pace; the
