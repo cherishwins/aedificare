@@ -129,17 +129,38 @@ def norm_token(tok, prev):
     return words
 
 
+SCALE_WORD = re.compile(r'^(thousand|million|billion|trillion)([\)\]"”’.,;:!?]*)$')
+
+
 def normalise(text):
-    """Returns (spoken text, [(original token, first spoken index, last spoken index)])."""
+    """Returns (spoken text, [(original token, first spoken index, last spoken index)]).
+
+    "$1 billion" is two tokens, so the dollars wait for the scale word: "1 billion dollars",
+    one span per original token still ("$1" -> "1", "billion" -> "billion dollars"). Until
+    26 Oct 2026 it read "1 dollars billion", and three released films were voiced that way
+    (The Countersign seven times, The Markup four, The Subtraction once)."""
     toks = text.split()
     spoken, spans, prev = [], [], None
-    for t in toks:
+    i = 0
+    while i < len(toks):
+        t = toks[i]
         ws = norm_token(t, prev)
         if not ws:
+            i += 1
+            continue
+        m = SCALE_WORD.match(toks[i + 1]) if len(ws) == 2 and ws[1] == 'dollars' and i + 1 < len(toks) else None
+        if m:
+            spans.append((t, len(spoken), len(spoken)))
+            spoken.append(ws[0])
+            spans.append((toks[i + 1], len(spoken), len(spoken) + 1))
+            spoken.extend([m.group(1), 'dollars' + m.group(2)])
+            prev = toks[i + 1]
+            i += 2
             continue
         spans.append((t, len(spoken), len(spoken) + len(ws) - 1))
         spoken.extend(ws)
         prev = t
+        i += 1
     return ' '.join(spoken), spans
 
 

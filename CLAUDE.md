@@ -1145,7 +1145,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - `.github/workflows/verify.yml`: build (with the three checkers), the
   audit through `tools/check-audit.cjs`, actionlint over every workflow
   (pinned by checksum; the film workflows run unattended and no longer
-  prove themselves on a push), `tools/film-meta.mjs --test`, sweep, and
+  prove themselves on a push), `tools/film-meta.mjs --test`,
+  `tools/test-narrate.py` (the narrator's number normaliser on every money
+  and unit form the pages print, added 2026-10-26 when "$1 billion" was
+  found to have reached three released films as "1 dollars billion": The
+  Countersign seven times, The Markup four, The Subtraction once; the
+  normaliser now lets the dollars wait for a scale word that follows as
+  its own token; the released audio is unchanged until those films are
+  rendered again, the owner's call by credits), sweep, and
   `tools/films.mjs --check --online` (the site's film links against their
   releases now), on every PR and push to `main`.
 - `.github/workflows/film.yml`: manual dispatch, `slug` and `format`
