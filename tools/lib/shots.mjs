@@ -30,6 +30,9 @@ export const KINDS = ['footage', 'gag', 'clip', 'quote', 'map', 'chart', 'fig', 
 export const OVERLAYS = ['over', 'pop'];
 export const CUTS = KINDS.filter((k) => !OVERLAYS.includes(k));
 export const OWNER = ['footage', 'gag', 'clip']; // shots the owner supplies
+// The kinds that spend a shot's one Acid (a quote card spends it when it highlights; a slate's key line is Acid too):
+// a pop over one of them is Flash (tools/cuts.mjs place, tools/episode.mjs).
+export const ACID_KINDS = new Set(['page', 'chart', 'fig', 'over', 'map']);
 // The grade that makes footage from six decades read as one film: most of the colour out, contrast up, pushed toward Void.
 export const GRADE = 'hue=s=0.18,eq=contrast=1.22:brightness=-0.07:gamma=0.92,'
   + 'colorbalance=rs=-0.10:gs=0.03:bs=-0.08:rm=-0.07:gm=0.03:bm=-0.06:rh=-0.04:bh=-0.04,'
@@ -39,13 +42,15 @@ const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' '
 /**
  * The context every shot is built in. `S` is the parsed script (its meta and sources), `short` the tall frame for
  * the Shorts feed (1080x1920), `dir` the work directory whose footage/ folder holds the owner's files. `slug` and
- * `pages` say where tools/capture.mjs wrote a page shot's PNG and JSON (brand/youtube/<slug>/pages/ by default).
+ * `pages` say where tools/capture.mjs wrote a page shot's PNG and JSON (brand/youtube/<slug>/pages/ by default);
+ * `capture` is what tools/capture.mjs is given to shoot them (the edition's slug, or an episode's script), for the
+ * message that names a capture still to make.
  */
-export function shotContext({ S, short = false, dir, slug = S?.meta?.slug, pages = path.join(dir, 'pages') }) {
+export function shotContext({ S, short = false, dir, slug = S?.meta?.slug, pages = path.join(dir, 'pages'), capture = slug }) {
   const F = short ? FORMATS.tall : FORMATS.wide, W = F.W, H = F.H, M = short ? 64 : 120;
   // Type sized to the frame: tall frames are narrower, and the bottom third of a Short sits under YouTube's own controls.
   const TY = short ? { quote: 62, stmt: 170, title: 190, end: 130, slate: 44, low: Math.round(H * 0.3) } : { quote: 84, stmt: 170, title: 200, end: 150, slate: 56, low: M + 150 };
-  return { S, SHORT: short, F, W, H, M, TY, DIR: dir, FOOT: path.join(dir, 'footage'), SLUG: slug, PAGES: pages };
+  return { S, SHORT: short, F, W, H, M, TY, DIR: dir, FOOT: path.join(dir, 'footage'), SLUG: slug, PAGES: pages, CAPTURE: capture };
 }
 /** A figure's size: its base, or smaller if the string would not fit between the margins (condensed digits run about half an em). */
 export const fit = (C, value, base) => Math.min(base, Math.floor((C.W - 2 * C.M) / (Math.max(1, value.length) * 0.5)));
@@ -80,10 +85,11 @@ export function parseTag(inner) {
     tag.errors = [...(n < 1 || n > 3 ? [`pop "${tag.text}": one to three words, not ${n}`] : []), ...(tag.text.includes('!') ? [`pop "${tag.text}": no exclamation`] : [])];
   }
   if (tag.kind === 'page') {
-    // Kept whole for capture.mjs's parser; `hls` are the phrases in order (one picture, its related steps).
+    // Kept whole for capture.mjs's parser; `hls` are the phrases in order (one picture, its related steps). The
+    // source is a cut list's number (07) or an episode's id (s3); `by:` names the author the label credits.
     tag.body = m[3].trim();
     tag.hls = parts.filter((p) => /^hl\s*:/.test(p)).map((p) => p.replace(/^hl\s*:\s*/, '').replace(/^["“](.*)["”]$/, '$1'));
-    tag.src = /^\d{1,3}$/.test(args[0] || '') ? args[0].padStart(2, '0') : null;
+    tag.src = /^\d{1,3}$/.test(args[0] || '') ? args[0].padStart(2, '0') : /^s\d+$/.test(args[0] || '') ? args[0] : null;
   }
   return tag;
 }
@@ -1358,6 +1364,16 @@ export function namesAuthor(text, author) {
 }
 
 /**
+ * An episode's source date as its line writes it (YYYY, YYYY-MM or YYYY-MM-DD; FORMAT.md) set as the editions set a
+ * date ("8 Feb 2024", "Feb 2024", "2024"); anything else (a cut list's "2 Sep 2026") is given back as it is.
+ */
+function givenDate(v) {
+  const m = /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$/.exec(String(v || '').trim());
+  if (!m) return v;
+  return m[3] ? dayLabel(v) : m[2] ? `${MON[+m[2] - 1]} ${m[1]}` : m[1];
+}
+
+/**
  * Who wrote a captured page, who published it and when, as its shot's label names them and a description credits
  * them (tools/cuts.mjs): the cut list's own `by:`, `pub:` and `date:` for the source first, then what the capture read.
  * The author is named because fair dealing for criticism and news reporting names the source and, where the source
@@ -1365,20 +1381,24 @@ export function namesAuthor(text, author) {
  * paper's authors in the cut list's pub:) is not named twice. `author` is the capture's own byline, whatever `by` says,
  * so the check can say when a credit leaves it out. Our own pages are named by edition. A refused capture is named by
  * its host and the day the edition read it, because the wall's title says nothing about the source.
+ * An episode's source (s3: its publisher and date on its `# Sources` line) is numbered as the description numbers
+ * it, by its place in the list; `tagBy` is the page tag's own `by:`, which names the author where the line cannot.
  */
-export function pageSource(C, rec) {
+export function pageSource(C, rec, tagBy = null) {
   const src = rec.src ? C.S.sources?.[rec.src] : null;
   const given = src && typeof src === 'object' ? src : {};
+  const n = /^s\d+$/.test(rec.src || '') ? String(Object.keys(C.S.sources || {}).indexOf(rec.src) + 1) : rec.src;
+  const gDate = given.date ? givenDate(given.date) : null;
   if (rec.refused) {
     const read = rec.source && /\bread (\d{1,2} [A-Z][a-z]{2} \d{4})/.exec(rec.source.text || '');
-    return { n: rec.src, pub: given.pub || new URL(rec.url).hostname.replace(/^www\./, ''), date: given.date || (read ? `read ${read[1]}` : ''), by: given.by || null, author: null, own: null };
+    return { n, pub: given.pub || new URL(rec.url).hostname.replace(/^www\./, ''), date: gDate || (read ? `read ${read[1]}` : ''), by: given.by || tagBy || null, author: null, own: null };
   }
   const ed = rec.self ? edition(rec.page) : null;
   const pub = ed ? `${SITE.name} · ${ed.title}` : given.pub || rec.publisher || new URL(rec.finalUrl || rec.url).hostname.replace(/^www\./, '');
-  const date = ed ? ed.dateLabel : given.date || dayLabel(rec.published) || `read ${dayLabel(rec.readAt)}`;
+  const date = ed ? ed.dateLabel : gDate || dayLabel(rec.published) || `read ${dayLabel(rec.readAt)}`;
   const author = ed ? null : cleanAuthor(rec.author);
-  const by = ed ? null : given.by || (author && !namesAuthor(pub, author) ? author : null);
-  return { n: rec.src, pub, date, by, author, own: ed ? ed.title : null };
+  const by = ed ? null : given.by || tagBy || (author && !namesAuthor(pub, author) ? author : null);
+  return { n, pub, date, by, author, own: ed ? ed.title : null };
 }
 /** A page shot's source as its label sets it: "[02] Julian Horsey, Geeky Gadgets". */
 const pageCredit = (ps) => `${ps.n ? `[${ps.n}] ` : ''}${ps.by ? `${ps.by}, ` : ''}${ps.pub}`;
@@ -1433,7 +1453,7 @@ export function pageRecord(C, tag) {
   try { shot = parsePage(tag.body, urls); } catch (e) { die(`shots: [[page: ${tag.body}]]: ${e.message}`); }
   const name = shotName(C.SLUG, shot);
   const file = path.join(C.PAGES, `${name}.json`);
-  if (!fs.existsSync(file)) die(`shots: no capture for [[page: ${tag.body}]] (${path.join(C.PAGES, name)}.json); run node tools/capture.mjs ${C.SLUG} --page "${tag.body}"`);
+  if (!fs.existsSync(file)) die(`shots: no capture for [[page: ${tag.body}]] (${path.join(C.PAGES, name)}.json); run node tools/capture.mjs ${C.CAPTURE} --page "${tag.body}"`);
   return { shot, rec: JSON.parse(fs.readFileSync(file, 'utf8')), file };
 }
 
@@ -1460,7 +1480,7 @@ export function pageRecord(C, tag) {
  */
 export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
   const { shot, rec } = pageRecord(C, s.tag);
-  const ps = pageSource(C, rec);
+  const ps = pageSource(C, rec, s.tag.by || null);
   const v = pageView(C, rec, shot);
   if (v.card) {
     // The edition's own source line says when it was read; the wall's title says nothing about the source.

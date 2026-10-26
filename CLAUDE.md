@@ -921,10 +921,51 @@ for a shortlist for bios and cards, which is a separate deliverable.
   and Meshtastic's Long Fast row became cards; whether those joins want
   the other ground is the owner's call. Every tag and builder of the six
   episode scripts still parses and builds byte for byte as before, and
-  short-onegov renders to the same 284 hashes. An episode script's
-  `check` refuses both kinds: its timeline places no pop, and capture
-  shoots only an edition's sources. The cut lists (spec step 2) place
-  them.
+  short-onegov renders to the same 284 hashes. The cut lists (spec step
+  2) place them, and so, since 26 Oct 2026, does an episode script
+  (`source/episodes/FORMAT.md`), which refused both until then. A
+  `[[pop: WORD]]` in a paragraph lands on its next word, as every
+  episode tag does (no 0.15 s lead, which is the re-cut's rule for cuts
+  into a finished film), leaves by `popEnd`, is Flash where the shot
+  beneath it or an overlay spends Acid (`ACID_KINDS`, exported from
+  `tools/lib/shots.mjs` and read by the re-cut and the episodes alike; a
+  slate's key line counts, so a pop over a slate turns Acid once the
+  footage arrives) and Acid otherwise, and is composed as one sparse
+  ffconcat layer of its four stills over the `over` chain, as the re-cut
+  composes its pops, because a looped PNG input is decoded again for
+  every frame of the film and four of them a pop would have cost a
+  ten-minute film an hour; two pops on one word fail the check, and a
+  pop left under half a second before the next tag (which ends it, as
+  it ends every overlay) stops the render before its first frame, as
+  the re-cut refuses one. A `[[page: s3 | hl: words | by: Author]]` is cut through
+  `pageHtml` like a cut list's, so each frame shows the page or its
+  quote card by `pageView` (the Short's narrower panel turns a wide
+  paragraph into the card, as it does in a re-cut); its source is the
+  script's `# Sources` line (the label numbers it as the description
+  does, by its place in the list, and sets its ISO date as the editions
+  set one), `by:` on the tag names the author where the line cannot
+  (`parsePage` carries it and does not shoot it, so a credit changed is
+  not a page captured again), and `check` reads the capture without
+  stopping: a tag with no capture yet is named with the command that
+  shoots it, a refused one is a warning (the shot is its quote card), a
+  failed one or an unboxed phrase an issue, a byline the credit leaves
+  out a warning, and each frame's card verdict a warning, so a person
+  knows what the film will show before it renders. The description is
+  unchanged: the sources list already carries the page's publisher,
+  title, date and URL, and whether it should also name the page's
+  author, as a re-cut's does, is open. `episode.yml` has no capture step
+  yet, so a page tag renders only where someone has run
+  `tools/capture.mjs` on the script first (locally, or a step to add
+  that files the pages as `recut.yml` does). Tried on a scratch script
+  with one page tag on a Wikipedia article (its robots.txt allows the
+  agent; four pictures painted out) and two pops: `check` named the
+  missing capture, then passed with the two warnings above; built and
+  rendered in both frames through the segment renderer (the film shows
+  the page at zoom 2.38, the Short its card), `check-brand` clean on
+  both; and the whole render composed through `episode.mjs render`
+  with a synthetic narration cache and `uv` off the PATH, so nothing
+  could speak. The six scripts still build byte for byte (611 HTML
+  hashes) and short-onegov's shots render to the same 196 hashes.
   **`tools/capture.mjs` shoots the pages a film shows** (2026-10-20), the
   capture half of the `page` shot: a cited source in Chromium, 1440 CSS px
   wide at twice the pixel density, under the honest agent
@@ -980,6 +1021,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   them), because that PNG is what the film is cut from and what
   `recut.yml` files on a public release: no copy of a third-party
   photograph exists to publish (review, 20 Oct; spec 2.3, row 5).
+  Given an episode's script instead of an edition's slug (26 Oct 2026),
+  it reads the script's `# Sources` lines for the URLs (a source is
+  `s3`, not a number), shoots every `[[page: ...]]` tag in it (or the
+  ones `--page` names) under the same refusals into
+  `brand/youtube/ep-<slug>/pages/`, checks no source number against an
+  edition's list, because an episode has none, and takes `self` only
+  as one of our pages named whole (`self edition-03#ledger`).
   **`tools/cuts.mjs` re-cuts an edition film without a word spoken
   again** (2026-10-20, spec step 2). A cut list,
   `source/film/<slug>.cuts.md` (its format is the tool's header), names a

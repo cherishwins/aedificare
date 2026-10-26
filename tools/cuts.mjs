@@ -66,7 +66,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { browser, openContext, findFfmpeg, GREY_TEXT } from './lib/film.mjs';
-import { FPS, KINDS, OVERLAYS, OWNER, shotContext, parseTag, chartHtml, chartLand, sweepPlan, pageSource, pageView, namesAuthor, popEnd, overEnd, footageFile, renderSegment, renderPop, renderOverlay, ff } from './lib/shots.mjs';
+import { FPS, KINDS, OVERLAYS, OWNER, ACID_KINDS, shotContext, parseTag, chartHtml, chartLand, sweepPlan, pageSource, pageView, namesAuthor, popEnd, overEnd, footageFile, renderSegment, renderPop, renderOverlay, ff } from './lib/shots.mjs';
 import { CHART_TYPES } from './lib/chart.mjs';
 import { parsePage, shotName, sourcesOf, neverFetched, UA } from './capture.mjs';
 import { edition } from '../src/lib/editions.mjs';
@@ -88,7 +88,6 @@ const FORBIDDEN = (id) => id === 'field' || id === 'record' || id === 'dove' || 
 const ALLOWED = KINDS.filter((k) => k !== 'clip');
 // The Short rule (spec 2.3): no footage, archive film or third-party still in a Short, where any claim blocks it.
 const IN_SHORT = (k) => !OWNER.includes(k);
-const ACID_KINDS = new Set(['page', 'chart', 'fig', 'over', 'map']); // a quote card spends Acid when it highlights
 const FORMAT = { film: { size: '1920x1080' }, short: { size: '1080x1920' } };
 const usualName = (slug, fmt) => `${slug}-${fmt}-${FORMAT[fmt].size}.mp4`;
 const baseName = (slug, fmt) => `${slug}-${fmt}-base-${FORMAT[fmt].size}.mp4`;

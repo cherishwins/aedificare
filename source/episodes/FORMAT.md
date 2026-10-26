@@ -88,6 +88,8 @@ narration resumes after it, which is how a title drops.
 | `[[card: SAME PHYSICS.]]` | a statement card | computed |
 | `[[title: The $18,214 Radio]]` | the title card with the mark | computed |
 | `[[over: $5.1M \| USAF · FEB 2024]]` | type over the current shot, no cut, until the voice has said it: the end of the sentence that says its last number (or the sentence it lands in), at least 3.6 s, never past the next tag | computed |
+| `[[pop: THREE WORDS]]` | one to three words, no exclamation mark, landing on the word in 120 ms over the current shot, no cut; Flash over a shot that spends Acid (a figure, a chart, a page, a highlighted quote, a slate) or under an `over`, Acid over one that spends none; leaves once its words are said and read (0.9 s at least, `hold: 2` overrides), never past the next tag; two on one word fail `check`, and one left under half a second before the next tag stops the render | computed |
+| `[[page: s3 \| hl: the quoted words \| by: Author]]` | the cited source as served, cropped to the words' block, the words swept in Acid on the word that says them, a label naming the author, publisher and date; shot first by `node tools/capture.mjs source/episodes/<slug>.md` (every page tag, or `--page "<tag>"`), into `brand/youtube/ep-<slug>/pages/`; a capture refused (YouTube and streaming never fetched, a wall, a robots.txt) or a frame that cannot show the words whole makes the shot its quote card; `hl:` may repeat; `check` names a page tag with no capture yet | computed |
 
 ## Charts
 
