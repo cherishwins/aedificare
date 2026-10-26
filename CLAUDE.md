@@ -561,20 +561,37 @@ for a shortlist for bios and cards, which is a separate deliverable.
   the picture gives the point away before the voice), a chart that
   comes back holding the rows it already showed, and, since 26 Oct 2026,
   every other row landing on its own word too (its label, or the
-  `@ phrase` its tag names, said while the chart is up: at least half
-  the label's meaningful words in order, so two rows sharing a first
-  word do not land together, and a point with no number landing on its
-  words, "SIGN-OFF*" on "sign-off"), a flow keeping its places across
-  the script's flows (a party keeps the angle its first flow gave it,
-  carried in the render's `flowRing`; a newcomer takes the widest gap
-  beside a party it joins, so a loop that returns with a stranger is the
-  same picture with one new box, where 2π·i/n had moved every box), and
+  `@ phrase` its tag names, said while the chart is up: the label's
+  first meaningful word, then at least half of them in order, so two
+  rows sharing a first word do not land together, and a point with no
+  number landing on its words, "SIGN-OFF*" on "sign-off"; a timeline's
+  row waits for its axis to reach its mark; `check` warns of an
+  `@ phrase` nobody says; a label of numbers alone, "2025/26", still
+  lands on "mid-2025", and whether a year said in passing should place
+  a row is the owner's call), a flow keeping its places across the
+  script's flows (a party keeps the angle its earlier flows gave it,
+  carried in the render's `flowRing`; a newcomer takes the widest gap,
+  among every angle the ring holds, beside a party it joins, so a loop
+  that returns with a stranger is the same picture with one new box,
+  where 2π·i/n had moved every box; the ring holds one diagram, and a
+  flow sharing no party with it starts the ring again, so no two
+  parties of a flow can hold one angle, which the first version let
+  happen (review, 26 Oct); where two boxes would still meet at their
+  places, as a sixth party 36° from its neighbour does on the Short's
+  narrow ellipse, that flow is laid out evenly in the ring's order and
+  `check` and the render name the frame and the pair; a label wider than
+  its edge breaks onto two lines, as the stranger's "THE COIN, 66 MIN"
+  on its short edge to X had stood 400 px off it; labels are still
+  placed edge by edge, so two can meet, as before), and
   a timeline keyed to the minute (`2024-10-10 22:11=The joke`) spreading
   a day's rows by the clock and labelling them as times, where the same
   day twice had stacked them 90 px apart beside an empty axis, a text
   too wide for its room breaking onto two lines before it shrinks so the
-  point keeps its size (which also changed softbank-975's payments
-  timeline, whose hot row had been shrinking to fit), every
+  point keeps its size, the room read in the face's own advances
+  (`LABEL_ADV`, measured in Chromium: one constant per character wrapped
+  text that fit; this changed softbank-975's payments timeline in the
+  film, whose hot row had been shrinking to fit, and left the Short's as
+  it was), every
   chart citing its sources on screen, type sized for a phone and a TV
   (16:9 labels 40 px, Shorts clear of the right 120 px and the lower
   quarter), designed with the dataviz skill's method and its palette

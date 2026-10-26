@@ -282,8 +282,8 @@ export function chartHtml(C, tag, landMs = null, held = [], { spoken = [], ring 
   const fmt = (v) => `${tag.prefix || ''}${typeof v === 'string' ? v : num(v)}${tag.unit || ''}`;
   const sourceLine = 'SOURCE: ' + tag.srcs.map((id) => C.S.sources[id]).filter(Boolean).map((s) => `${s.pub}, ${s.date}`).join(' · ');
   const ref = tag.ref ? (() => { const m = /^(-?[\d.]+)\s*(.*)$/.exec(tag.ref); return m ? { v: +m[1], r: m[1], label: m[2] } : null; })() : null;
-  const { body, animMs, landed, ring: placed } = chartBody({ type: tag.type, title: tag.title, sub: tag.sub, note: tag.note, sourceLine, rows: tag.rows, fmt, W, H, M, ref, landMs, held, spoken, ring });
-  return { html: page(C, body, VOID, chartCss(W, H, M)), anim: true, live: true, animMs, landMs: landed ? landMs : null, ring: placed };
+  const { body, animMs, landed, ring: placed, overlap } = chartBody({ type: tag.type, title: tag.title, sub: tag.sub, note: tag.note, sourceLine, rows: tag.rows, fmt, W, H, M, ref, landMs, held, spoken, ring });
+  return { html: page(C, body, VOID, chartCss(W, H, M)), anim: true, live: true, animMs, landMs: landed ? landMs : null, ring: placed, overlap };
 }
 
 export const figHtml = (C, tag) => ({ html: page(C, `<div class="big" style="font-size:${fit(C, tag.value, tag.value.length > 8 ? 260 : 360)}px;color:${ACID}">${esc(tag.value)}</div>${tag.label ? `<div class="sub mono" style="color:${MAL}">${esc(tag.label)}</div>` : ''}`) });
@@ -1765,6 +1765,8 @@ export async function renderSegment(C, R, s, i) {
     if (s.tag.kind === 'chart') R.lastChart = s.tag;
     const h = await shotHtml(C, s, land ? land.ms : null, held, { d, words: R.words, work, ground: follows === VOID ? BOTTLE : VOID, spoken: rows.map((x) => x && x.ms), ring: R.flowRing });
     if (h.ring) R.flowRing = h.ring;
+    // Two boxes met at the places the earlier flows gave them, so this flow was laid out evenly (chart.mjs, overlap).
+    for (const [a, b] of h.overlap || []) console.warn(`episode: flow "${s.tag.title}": ${a} and ${b} would overlap at the places the earlier flows gave them, so it is laid out evenly, not as the flow before it; rename, reorder or split`);
     if (!h.landMs) land = null;
     if (s.tag.kind === 'quote' || h.card) R.lastCard = { f: Math.round(s.end * FPS), ground: h.ground || VOID };
     // What check-brand reads: our own type only. A page shot's capture and a quote's words are someone else's.

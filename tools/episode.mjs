@@ -36,10 +36,10 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { browser, findFfmpeg, openContext, esc, ACID, VOID, FLASH } from './lib/film.mjs';
 import { NARRATOR, SITE } from '../src/config.mjs';
-import { CHART_TYPES, findPoint, hasPoint } from './lib/chart.mjs';
+import { CHART_TYPES, findPoint, hasPoint, findSaid, rowPhrase } from './lib/chart.mjs';
 // The shots themselves (the tag, the computed cards, the footage cut, one shot to one segment) live in
 // tools/lib/shots.mjs, so the edition films' cut lists build them the same way.
-import { FPS, CUTS, OWNER, GRADE, shotContext, fit, parseTag, page, footageFile, hasAudio, overEnd, ff, warnOnce, renderSegment, renderOverlay } from './lib/shots.mjs';
+import { FPS, CUTS, OWNER, GRADE, shotContext, fit, parseTag, page, footageFile, hasAudio, overEnd, ff, warnOnce, renderSegment, renderOverlay, chartHtml } from './lib/shots.mjs';
 
 const [STEP, FILE] = process.argv.slice(2);
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
@@ -117,6 +117,9 @@ async function check(S, { quiet = false } = {}) {
     if (!/^\d{4}(-\d{2}){0,2}$/.test(s.date || '')) issues.push(`${s.id}: date must be YYYY, YYYY-MM or YYYY-MM-DD, got "${s.date}"`);
   }
   const used = new Set();
+  // The script's flows walked in both frames as the render walks them, each party keeping its place (chart.mjs,
+  // flowRing), to say where two boxes would meet at those places and the flow is laid out evenly instead.
+  const frames = [false, true].map((short) => ({ C: shotContext({ S, short, dir: DIR }), ring: null, name: short ? 'the Short' : 'the film' }));
   // The words spoken while a cut tag's shot is on screen: from its word to the next cut, across paragraphs
   // (a tags-only line holds in silence and the next paragraph plays over it); a clip or a cutting tags line ends it.
   const onScreen = (bi, e) => {
@@ -163,7 +166,15 @@ async function check(S, { quiet = false } = {}) {
         // The chart lands its point on the word that says it (render: its value, or its words where it carries none);
         // a point nobody says while it is on screen cannot land.
         const typed = (e.tag.type === 'line' ? e.tag.rows.slice().sort((p, q) => p.t - q.t).slice(-1) : e.tag.rows.filter((r) => r.hot)).map((r) => r.text ?? (r.rb ? `${r.ra}..${r.rb}` : r.ra)).join(', ');
-        if (CHART_TYPES.includes(e.tag.type) && hasPoint(e.tag.type, e.tag.rows) && findPoint(e.tag.type, e.tag.rows, onScreen(bi, e).map((w) => ({ w }))) < 0) warnings.push(`chart "${e.tag.title}": its point (${typed}) is not spoken while the chart is on screen (its tag to the next cut), so it lands on the chart's own timing, ahead of the voice or without it`);
+        const said = onScreen(bi, e).map((w) => ({ w }));
+        if (CHART_TYPES.includes(e.tag.type) && hasPoint(e.tag.type, e.tag.rows) && findPoint(e.tag.type, e.tag.rows, said) < 0) warnings.push(`chart "${e.tag.title}": its point (${typed}) is not spoken while the chart is on screen (its tag to the next cut), so it lands on the chart's own timing, ahead of the voice or without it`);
+        // A row's `@ phrase` is the one word its author typed to place it; one nobody says falls back in silence.
+        for (const r of e.tag.rows) if (r.on && findSaid(said, r.on) < 0) warnings.push(`chart "${e.tag.title}": "${rowPhrase(e.tag.type, { ...r, on: null })}" names "@ ${r.on}", which is not spoken while the chart is on screen, so it lands ${r.hot ? 'on its value where that is said, else ' : ''}on the chart's own timing`);
+        if (e.tag.type === 'flow' && !e.tag.errors.length) for (const f of frames) {
+          const h = chartHtml(f.C, e.tag, null, [], { ring: f.ring });
+          f.ring = h.ring;
+          for (const [a, b] of h.overlap) warnings.push(`chart "${e.tag.title}": in ${f.name}, ${a} and ${b} would overlap at the places the earlier flows gave them, so it is laid out evenly there, not as the flow before it; rename, reorder or split`);
+        }
       }
       if (e.tag.kind === 'map' && e.tag.stops.some((x) => !x)) issues.push(`map stops must be "Name lat,lon > Name lat,lon": ${e.tag.args[0]}`);
       // The shared parser knows these for the edition films' cut lists; an episode's timeline places no pop and

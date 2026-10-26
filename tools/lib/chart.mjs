@@ -28,24 +28,39 @@
  * value on that word (`spoken`, ms per row from the render, findSaid); a row
  * nobody says keeps the chart's own clock, and land() leaves a row on its
  * word where the voice put it. The point lands on its value first, and on
- * its words where it carries none ("SIGN-OFF*" lands on "sign-off").
+ * its words where it carries none ("SIGN-OFF*" lands on "sign-off"). A
+ * timeline's row shows no sooner than its axis reaches its mark, so a word
+ * said in the first beat does not put a dot on an axis still drawing.
  *
  * A flow keeps its places (2026-10-26): parties sit on an ellipse at
  * 2π·i/n, so a loop that returned with one more party moved every box. Now
- * a party keeps the angle the film's first flow gave it (`ring`, name to
+ * a party keeps the angle the film's earlier flows gave it (`ring`, name to
  * angle, carried across the script's flows by the render and returned from
- * here), and a newcomer takes the middle of the widest gap beside a party it
- * has an edge with, so the diagram reads as the same picture with one new
- * box. A flow sharing no party with the ring is a new diagram and lays out
- * fresh, its parties added to the ring. Nothing goes outside the ring: the
- * frame has no room past it, and six edges at most never fill it.
+ * here), and a newcomer takes the middle of the widest gap, among every angle
+ * the ring holds, beside a party it has an edge with, so the diagram reads as
+ * the same picture with one new box. The ring holds one diagram: a flow
+ * sharing no party with it is a new diagram, laid out fresh, and starts the
+ * ring again, so no two parties of a flow can share an angle (the first
+ * version placed a newcomer among the flow's own parties only and a fresh
+ * diagram over the ring's angles, and a later flow drew one box over another,
+ * review of 26 Oct). Nothing goes outside the ring: the frame has no room
+ * past it, and six edges at most never fill it. Where two boxes would still
+ * overlap at their places (a tall frame's ellipse is narrow: 36° apart its
+ * boxes touch), that flow is laid out evenly in the ring's order, so
+ * neighbours stay neighbours, and the pair is reported (`overlap`) for the
+ * render and `check` to say; the ring keeps the places for the flows after
+ * it. An edge label wider than its edge is long breaks onto two lines, as a
+ * timeline's text does, because the clear that keeps a label off its curve
+ * is half the label's width along the normal, and a wide label on a short
+ * edge stood 400 px off it, across another edge's label.
  *
  * A timeline keyed to the minute (2024-10-10 22:11) places its rows by the
  * clock, so a day's events spread across the axis instead of stacking at the
  * 90 px minimum beside an empty one; on one day the rows read as times, the
  * first with its day, across days as the day and the time. A text wider than
  * its room breaks onto two lines before it shrinks, so the point keeps its
- * size (2026-10-26).
+ * size (2026-10-26), measured in the face's own advances (LABEL_ADV): one
+ * constant per character wrapped text that fit.
  *
  * Colour is emphasis, never categorical: the point the story is about is
  * Acid, everything else Malachite, gridlines Bottle, text Flash and Malachite
@@ -73,7 +88,7 @@
  *   flow      money or control between parties                    SoftBank > OpenAI=$30B*
  *   line      one series over time, optional reference line       2024-01=5.1
  * A value may carry display text in brackets: Week of sale=400 (400+)*.
- * `@ phrase` after a value names the word the row lands on: Ayrey > X=SIGNS @ approval.
+ * `@ phrase` after a value, outside the brackets, names the word the row lands on: Ayrey > X=SIGNS @ approval.
  */
 const ACID = '#CCFF00', MAL = '#00B24F', BOTTLE = '#063B22', VOID = '#050A06', FLASH = '#FFFFFF';
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -91,8 +106,9 @@ export function parseChart(type, parts) {
     if (eq < 0) { errors.push(`chart data "${p}" has no =`); continue; }
     const key = body.slice(0, eq).trim();
     let val = body.slice(eq + 1).trim();
-    // `@ phrase` names the word the row lands on (rowPhrase); without it the row's own text or label is the cue.
-    const at = /\s@\s+(\S.*)$/.exec(val);
+    // `@ phrase` names the word the row lands on (rowPhrase); without it the row's own text or label is the cue. The
+    // phrase runs to the end and holds no bracket, so an @ inside display text ("9.75 (sold @ par)") is not one.
+    const at = /\s@\s+([^()]*\S)\s*$/.exec(val);
     const on = at ? at[1].trim() : null;
     if (at) val = val.slice(0, at.index).trim();
     if (type === 'flow') {
@@ -186,13 +202,15 @@ const agree = (a, b) => (a.n !== null || b.n !== null
   : a.k === b.k || (Math.abs(a.k.length - b.k.length) <= 2 && (a.k.startsWith(b.k) || b.k.startsWith(a.k))));
 /**
  * The index of the first word ({ w }) that starts saying `phrase`, or -1: the phrase's words that carry meaning (a
- * number, or three letters or more and not a function word) found in order, each within four words of the one
- * before, at least half of them. Stricter than one shared word (spokenWord in shots.mjs, a page's sweep) because two
- * rows often share a first word ("July auction, as capped" and "July auction without the cap") and a label's weak
- * word is said in other sentences ("every"): a row drawn on the wrong word is worse than one on the clock.
+ * number, or three letters or more and not a function word), its first one found and then at least half of them in
+ * order, each within four words of the one before. Stricter than one shared word (spokenWord in shots.mjs, a page's
+ * sweep) because two rows often share a first word ("July auction, as capped" and "July auction without the cap")
+ * and a label's weak word is said in other sentences ("every"): a row drawn on the wrong word is worse than one on
+ * the clock. A label of numbers alone still lands on half of them ("2025/26" on "mid-2025"); whether a year said in
+ * passing should place a row is the owner's call, recorded in CLAUDE.md.
  */
 export function findSaid(words, phrase) {
-  const want = String(phrase || '').split(/[\s·–—/]+/).map(keyOf).filter((x) => x.n !== null || (x.k.length >= 3 && !STOP.has(x.k)));
+  const want = String(phrase || '').split(/[\s·\u2013\u2014/]+/).map(keyOf).filter((x) => x.n !== null || (x.k.length >= 3 && !STOP.has(x.k)));
   if (!want.length) return -1;
   const keys = words.map((w) => (/^\[\d+\]$/.test(w.w) ? null : keyOf(w.w))); // a citation mark is never said
   const need = Math.ceil(want.length / 2);
@@ -223,26 +241,28 @@ export const hasPoint = (type, rows) => hotValues(type, rows).length > 0 || rows
 
 /**
  * Where each party of a flow sits: its angle round the ellipse from the first party's place (the left in a wide
- * frame, the top in a tall one), clockwise. `ring` holds the parties the film's earlier flows placed, name to angle;
- * one of them keeps its angle. A flow with none of its parties in the ring lays out fresh and evenly, as the first
- * flow does; otherwise each new party, in the order the edges name it, takes the middle of the widest gap between
- * this flow's placed parties that ends at one it has an edge with (any gap when none of its partners is placed).
- * Returns the ring with this flow's parties in it.
+ * frame, the top in a tall one), clockwise. `ring` holds the parties the film's earlier flows placed, name to angle,
+ * one diagram's worth; one of them keeps its angle. A flow with none of its parties in the ring is a new diagram:
+ * it lays out fresh and evenly, as the first flow does, and the ring starts again with it, so no two parties of a
+ * flow can hold one angle. Otherwise each new party, in the order the edges name it, takes the middle of the widest
+ * gap between the ring's angles (every party the ring holds, in this flow or not) that ends at one it has an edge
+ * with (any gap when none of its partners is placed). Returns the ring with this flow's parties in it.
  */
 export function flowRing(names, rows, ring = null) {
-  const out = new Map(ring || []);
-  if (!names.some((n) => out.has(n))) { names.forEach((n, i) => out.set(n, (2 * Math.PI * i) / names.length)); return out; }
+  const TAU = 2 * Math.PI;
+  if (!ring || !names.some((n) => ring.has(n))) return new Map(names.map((n, i) => [n, (TAU * i) / names.length]));
+  const out = new Map(ring);
   for (const n of names.filter((x) => !out.has(x))) {
-    const placed = names.filter((m) => out.has(m)).sort((a, b) => out.get(a) - out.get(b));
+    const placed = [...out.keys()].sort((a, b) => out.get(a) - out.get(b));
     const partners = rows.filter((r) => r.from === n || r.to === n).map((r) => (r.from === n ? r.to : r.from)).filter((m) => out.has(m));
     const gaps = placed.map((m, i) => {
       const next = placed[(i + 1) % placed.length];
-      const a = out.get(m), b = out.get(next) + (i + 1 < placed.length ? 0 : 2 * Math.PI);
+      const a = out.get(m), b = out.get(next) + (i + 1 < placed.length ? 0 : TAU);
       return { ends: [m, next], a, b, w: b - a };
     });
     const near = gaps.filter((g) => g.ends.some((m) => partners.includes(m)));
     const g = (near.length ? near : gaps).reduce((best, x) => (x.w > best.w ? x : best));
-    out.set(n, ((g.a + g.b) / 2) % (2 * Math.PI));
+    out.set(n, ((g.a + g.b) / 2) % TAU);
   }
   return out;
 }
@@ -265,6 +285,30 @@ export const chartSizes = (tall) => (tall
  */
 const ADV = { cv: 0.66, cm: 0.68, mono: 0.74 };
 const monoW = (s, size, cls = 'cv') => String(s).length * size * ADV[cls];
+/**
+ * The label face's advance per character (Bricolage Grotesque, opsz 32, wdth 90, wght 600: the `.cl` class), in
+ * hundredths of an em, for the printable ASCII characters from the space to the tilde, then the marks a script
+ * sets beyond them (the middle dot, the curled quotes, the dashes, the ellipsis), measured in Chromium
+ * (2026-10-26); any other character counts as the mean. Their sum is a text's width to within half a percent (the
+ * kerning left out), where one constant for every character wrapped a timeline's text that fit (softbank-975's
+ * 1 July row, 550 px in 556 of room, read as 700) and read capitals 17 percent narrow.
+ */
+const LABEL_ADV = '21 25 31 57 55 87 69 15 29 29 39 45 16 29 18 32 57 30 52 52 54 53 56 44 56 56 20 18 45 45 45 38 87 59 59 59 60 51 49 61 62 25 33 59 44 81 66 62 56 62 58 56 49 62 58 86 59 56 49 30 32 29 50 49 28 51 55 50 55 51 34 52 54 24 25 51 24 81 54 53 55 55 38 48 34 54 50 76 50 53 44 32 24 31 45'.split(' ').map((x) => x / 100);
+const LABEL_MARKS = { '·': 0.18, '\u2018': 0.17, '\u2019': 0.17, '\u201c': 0.34, '\u201d': 0.34, '\u2013': 0.45, '\u2014': 0.65, '\u2026': 0.65 };
+const LABEL_MEAN = LABEL_ADV.reduce((a, b) => a + b, 0) / LABEL_ADV.length;
+const labelW = (s, size) => [...String(s)].reduce((w, ch) => w + (LABEL_ADV[ch.charCodeAt(0) - 32] ?? LABEL_MARKS[ch] ?? LABEL_MEAN), 0) * size;
+/**
+ * A text wider than `room` (by `width`, px) broken onto two lines, else as it is: between two parts at the " · "
+ * nearest its middle, the dot left out so no line ends on it (as a page shot's label breaks, shots.mjs), else at
+ * the space nearest its middle. A text with no space stays one line, and the page shrinks it.
+ */
+function lines(s, width, room) {
+  if (width(s) <= room) return [s];
+  const mid = s.length / 2;
+  const near = (re, w) => [...s.matchAll(re)].map((m) => ({ i: m.index, w })).sort((a, b) => Math.abs(a.i + a.w / 2 - mid) - Math.abs(b.i + b.w / 2 - mid))[0];
+  const cut = near(/ · /g, 3) || near(/ /g, 1);
+  return cut ? [s.slice(0, cut.i), s.slice(cut.i + cut.w)] : [s];
+}
 /**
  * Lines a string takes inside `maxW` at `adv` px per character, broken at
  * spaces only. Exact for the monospaced faces (a browser may also break after
@@ -326,7 +370,9 @@ function land(steps, landMs) {
  * frame and take no build time. `spoken` is each row's own word, ms from the
  * shot's first frame or null, parallel to `rows` (the starred row's is
  * `landMs`); `ring` the parties earlier flows placed (flowRing). Returns
- * { body, animMs, landed, ring }, `ring` the flow's parties with their angles.
+ * { body, animMs, landed, ring, overlap }, `ring` the flow's parties with their
+ * angles and `overlap` the pairs of them whose boxes met at those places, so
+ * the flow was laid out evenly instead (empty otherwise).
  */
 export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H, M, ref, landMs = null, held = [], spoken = [], ring = null }) {
   const tall = H > W;
@@ -363,6 +409,7 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
     else { const a = Math.max(0, ms - 900); steps.push({ id: mark, kind, at: a, dur: ms - a, hot: false, on: true }, { id: value, kind: 'show', at: ms, hot: false, on: true }); }
   };
   let ringOut; // a flow's parties with their angles, for the next flow
+  let overlap = []; // the pairs of a flow's boxes that met at the ring's places, so it was laid out evenly
   const blockTop = (blockH) => Math.round(top + Math.max(0, (bottom - top - blockH) / 2));
   const val = (r, which = 'a') => (r.show && (which === 'b' || r.b === null) ? r.show : fmt(r[which === 'a' ? 'ra' : 'rb'] ?? r[which]));
   const vsize = (r) => (r.hot ? Z.hot : Z.value);
@@ -455,23 +502,18 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
     const axis = nid();
     const sorted = rows.slice().sort((p, q) => p.t - q.t);
     // Rows timed to the minute on one day read by the clock, the first with its day; across days a timed row keeps
-    // its day and adds the time; dated to the day, the day. A text wider than its room breaks onto two lines, each
-    // fitted on its own, so the point keeps its size where one line would shrink: between two parts at the " · "
-    // nearest its middle, the dot left out so no line ends on it (as a page shot's label breaks), else at the space.
+    // its day and adds the time; dated to the day, the day. A text wider than its room (in the face's own advances,
+    // labelW) breaks onto two lines, each fitted on its own, so the point keeps its size where one line would shrink.
     const day = (t) => Math.floor(t / 864e5);
     const oneDay = rows.every((r) => r.time) && new Set(rows.map((r) => day(r.t))).size === 1;
     const when = (r) => (oneDay ? (r === sorted[0] ? `${r.date} · ${r.time}` : r.time) : r.time ? `${r.date} · ${r.time}` : r.date);
-    const lines = (s, size, room) => {
-      if (s.length * size * 0.5 <= room) return [s];
-      const mid = s.length / 2;
-      const near = (re, w) => [...s.matchAll(re)].map((m) => ({ i: m.index, w })).sort((a, b) => Math.abs(a.i + a.w / 2 - mid) - Math.abs(b.i + b.w / 2 - mid))[0];
-      const cut = near(/ · /g, 3) || near(/ /g, 1);
-      return cut ? [s.slice(0, cut.i), s.slice(cut.i + cut.w)] : [s];
-    };
-    // A row shows on its own word when it has one, else on the chart's clock, the point after every other row.
-    const showAt = (r, i) => {
+    const wrap = (s, size, room) => lines(s, (x) => labelW(x, size), room);
+    // A row shows on its own word when it has one, else on the chart's clock, the point after every other row. On its
+    // word it waits for the axis, which draws over the first beat, to reach its mark (`reach`, ms): a word said in
+    // that beat put a dot past the end of a half-drawn axis (review, 26 Oct).
+    const showAt = (r, i, reach = 0) => {
       const ms = r.hot ? null : spoken[i];
-      return ms === null || ms === undefined ? { at: r.hot ? 900 + rows.length * 450 : 900 + i * 450, hot: r.hot } : { at: ms, hot: false, on: true };
+      return ms === null || ms === undefined ? { at: r.hot ? 900 + rows.length * 450 : 900 + i * 450, hot: r.hot } : { at: Math.max(ms, reach), hot: false, on: true };
     };
     if (!tall) {
       const ay = top + (bottom - top) / 2, pad = 200;
@@ -486,25 +528,27 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
         const k = sorted.indexOf(r), x = xs.get(r), up = k % 2 === 0, e = nid();
         const room = Math.min(2 * (x - 0.8 * M), 2 * (W - 0.8 * M - x), ...[sorted[k - 2], sorted[k + 2]].filter(Boolean).map((o) => Math.abs(xs.get(o) - x) - 32));
         const colour = r.hot ? ACID : MAL, size = r.hot ? Z.hot : Z.label;
-        const ls = lines(r.text, size, room), lh = size * 1.05;
+        const ls = wrap(r.text, size, room), lh = size * 1.05;
         // The text's baseline (its last line's above the axis, its first below); the date sits on the far side of it.
         const ty = up ? ay - 80 : ay + 84 + size * 0.95;
         const dy = up ? ty - (ls.length - 1) * lh - size * 0.95 - 16 : ay + 76;
         els.push(`<g id="${e}"><line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${ay}" y2="${up ? ay - 60 : ay + 44}" stroke="${colour}" stroke-width="2"/><circle cx="${x.toFixed(1)}" cy="${ay}" r="12" fill="${colour}" stroke="${VOID}" stroke-width="3"/>`
           + `${text(x, dy, when(r), { cls: 'cm', fill: MAL, anchor: 'middle', fit: room })}${ls.map((l, j) => text(x, up ? ty - (ls.length - 1 - j) * lh : ty + j * lh, l, { anchor: 'middle', size: size !== Z.label && size, fit: room })).join('')}</g>`);
-        steps.push({ id: e, kind: 'show', ...showAt(r, i) });
+        steps.push({ id: e, kind: 'show', ...showAt(r, i, Math.ceil((900 * (x - X0)) / (X1 - X0))) });
       });
     } else {
       const ax = X0 + 20, gapY = 110 + Math.round(Z.hot / 2);
       const sy0 = (t) => top + 20 + ((bottom - top - 80) * (t - t0)) / span;
       // Same rule as the wide axis: room for a date and the point's label between neighbours (a second line of text
-      // adds its height), pushed down, then pulled back up if the last would pass the end.
+      // adds its height), pushed down, then pulled back up if the last would pass the end, which a second line of
+      // the last row's text brings up by its height.
       const room = X1 - ax - 44, size = (r) => (r.hot ? Z.hot : Z.label);
-      const wrapped = new Map(sorted.map((r) => [r, lines(r.text, size(r), room)]));
-      const need = (r) => gapY + (wrapped.get(r).length - 1) * size(r) * 1.05;
+      const wrapped = new Map(sorted.map((r) => [r, wrap(r.text, size(r), room)]));
+      const extra = (r) => (wrapped.get(r).length - 1) * size(r) * 1.05;
+      const need = (r) => gapY + extra(r);
       const ys = sorted.map((r) => sy0(r.t));
       for (let i = 1; i < ys.length; i++) ys[i] = Math.max(ys[i], ys[i - 1] + need(sorted[i - 1]));
-      const end = bottom - 90;
+      const end = bottom - 90 - extra(sorted[sorted.length - 1]);
       if (ys[ys.length - 1] > end) { ys[ys.length - 1] = end; for (let i = ys.length - 2; i >= 0; i--) ys[i] = Math.min(ys[i], ys[i + 1] - need(sorted[i])); }
       const at = new Map(sorted.map((r, i) => [r, ys[i]]));
       els.push(`<line id="${axis}" x1="${ax}" x2="${ax}" y1="${top}" y2="${bottom}" stroke="${MAL}" stroke-width="2" data-len="${bottom - top}"/>`);
@@ -512,7 +556,7 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
       rows.forEach((r, i) => {
         const y = at.get(r), e = nid(), colour = r.hot ? ACID : MAL, ls = wrapped.get(r);
         els.push(`<g id="${e}"><circle cx="${ax}" cy="${y.toFixed(1)}" r="14" fill="${colour}" stroke="${VOID}" stroke-width="3"/>${text(ax + 44, y - 12, when(r), { cls: 'cm', fill: MAL, fit: room })}${ls.map((l, j) => text(ax + 44, y + 22 + size(r) * 0.72 + j * size(r) * 1.05, l, { size: size(r) !== Z.label && size(r), fit: room })).join('')}</g>`);
-        steps.push({ id: e, kind: 'show', ...showAt(r, i) });
+        steps.push({ id: e, kind: 'show', ...showAt(r, i, Math.ceil((900 * (y - top)) / (bottom - top))) });
       });
     }
   }
@@ -526,12 +570,19 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
     const ftop = top - (tall ? 60 : 40), cx = (X0 + X1) / 2, cy = ftop + (bottom - ftop) / 2;
     const rx = tall ? (X1 - X0) / 2 - half : Math.min(640, (X1 - X0) / 2 - half - 40), ry = tall ? (bottom - ftop) / 2 - 110 : (bottom - ftop) / 2 - 50;
     // Parties on an ellipse, the first at the left (wide) or the top (tall), clockwise; a party an earlier flow of the
-    // film placed keeps its angle, a newcomer takes a gap beside a party it joins (flowRing).
+    // film placed keeps its angle, a newcomer takes a gap beside a party it joins (flowRing). Where two boxes would
+    // meet at those places (the tall ellipse is 308 px wide and a box 264: 36° apart they touch), this flow is laid
+    // out evenly in the ring's order instead, so neighbours stay neighbours, and the pairs are reported (`overlap`);
+    // the ring keeps the places for the flows after it.
     ringOut = flowRing(names, rows, ring);
-    const pos = names.map((n) => {
-      const a = (tall ? -Math.PI / 2 : Math.PI) + ringOut.get(n);
-      return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)];
-    });
+    const at = (a) => { const t = (tall ? -Math.PI / 2 : Math.PI) + a; return [cx + rx * Math.cos(t), cy + ry * Math.sin(t)]; };
+    let pos = names.map((n) => at(ringOut.get(n)));
+    const box = (i) => { const [x, y] = pos[i], w = boxW(names[i]); return [x - w / 2, y - boxH / 2, x + w / 2, y + boxH / 2]; };
+    const meets = (p, q) => p[0] < q[2] + 8 && q[0] < p[2] + 8 && p[1] < q[3] + 8 && q[1] < p[3] + 8;
+    if (ring && names.some((n) => ring.has(n))) {
+      for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) if (meets(box(i), box(j))) overlap.push([names[i], names[j]]);
+      if (overlap.length) { const order = names.slice().sort((a, b) => ringOut.get(a) - ringOut.get(b)); pos = names.map((n) => at((2 * Math.PI * order.indexOf(n)) / names.length)); }
+    }
     names.forEach((n, i) => {
       const [x, y] = pos[i], w = boxW(n);
       els.push(`<rect x="${(x - w / 2).toFixed(1)}" y="${(y - boxH / 2).toFixed(1)}" width="${w}" height="${boxH}" rx="2" fill="${VOID}" stroke="${FLASH}" stroke-width="2"/>${text(x, y + Z.name * 0.33, n, { cls: 'cn', anchor: 'middle', fit: w - 32 })}`);
@@ -551,15 +602,19 @@ export function chartBody({ type, title, sub, note, sourceLine, rows, fmt, W, H,
       const ex = b[0] - ux * off('b') + nx * 22, ey = b[1] - uy * off('b') + ny * 22;
       const qx = (a[0] + b[0]) / 2 + nx * bend, qy = (a[1] + b[1]) / 2 + ny * bend;
       const e = nid(), l = nid(), colour = r.hot ? ACID : MAL;
-      // The point's label is a value, set large in mono; the others are small mono labels.
+      // The point's label is a value, set large in mono; the others are small mono labels. A label wider than its
+      // edge is long breaks onto two lines (lines()): the clear below is half the label's width along the normal,
+      // and a wide label on a short edge stood 400 px off it, across another edge's label ("THE COIN, 66 MIN" on the
+      // stranger's edge to X, review of 26 Oct).
       const cls = r.hot ? 'cv' : 'cm', size = r.hot ? Z.hot : Z.mono;
+      const ls = lines(r.text, (s) => monoW(s, size, cls), len), lh = size * 1.5;
       // The label sits just outside the curve's apex, on the side it bends to, so a pair of opposite edges never share a
       // label spot: clear of the curve by its own half-extent along the bend, and kept inside the frame's margins.
-      const tw = Math.max(80, monoW(r.text, size, cls) + 28), th = Math.round(size * 1.5);
+      const tw = Math.max(80, Math.max(...ls.map((s) => monoW(s, size, cls))) + 28), th = Math.round(lh * ls.length);
       const clear = 14 + Math.abs(nx) * tw / 2 + Math.abs(ny) * th / 2;
       const mx = Math.min(X1 - tw / 2, Math.max(X0 + tw / 2, 0.25 * sx + 0.5 * qx + 0.25 * ex + nx * clear)), my = 0.25 * sy + 0.5 * qy + 0.25 * ey + ny * clear;
       edges.push(`<path id="${e}" d="M${sx.toFixed(1)},${sy.toFixed(1)}Q${qx.toFixed(1)},${qy.toFixed(1)} ${ex.toFixed(1)},${ey.toFixed(1)}" fill="none" stroke="${colour}" stroke-width="${r.hot ? 5 : 3}" marker-end="url(#${r.hot ? 'ha' : 'hm'})"/>`
-        + `<g id="${l}"><rect x="${(mx - tw / 2).toFixed(1)}" y="${(my - th / 2).toFixed(1)}" width="${tw.toFixed(1)}" height="${th}" rx="2" fill="${VOID}"/>${text(mx, my + size * 0.36, r.text, { cls, fill: r.hot ? ACID : FLASH, anchor: 'middle', size: r.hot && size })}</g>`);
+        + `<g id="${l}"><rect x="${(mx - tw / 2).toFixed(1)}" y="${(my - th / 2).toFixed(1)}" width="${tw.toFixed(1)}" height="${th}" rx="2" fill="${VOID}"/>${ls.map((s, j) => text(mx, my + (j - (ls.length - 1) / 2) * lh + size * 0.36, s, { cls, fill: r.hot ? ACID : FLASH, anchor: 'middle', size: r.hot && size })).join('')}</g>`);
       rowSteps(i, r, e, 'draw', l, r.hot ? 900 * rows.length : 900 * i);
     });
     // Edges under the boxes, so an arrow never crosses a name.
@@ -627,7 +682,7 @@ while(L>m&&z>12){z=Math.max(12,Math.min(z-0.5,(z*m)/L));t.style.fontSize=z.toFix
 const h=document.querySelector('.ch-h'),t=h.querySelector('.ch-t');let z=parseFloat(t.style.fontSize);
 while(h.getBoundingClientRect().bottom>+h.dataset.max&&z>40){z-=2;t.style.fontSize=z+'px';}
 window.__frame(0);window.__ready=true;});})();</script>`;
-  return { body: head + svg + footEl + script, animMs, landed, ring: ringOut };
+  return { body: head + svg + footEl + script, animMs, landed, ring: ringOut, overlap };
 }
 
 /** CSS for the chart page, added to the episode page's own. */
