@@ -167,9 +167,19 @@ that is a reference, not documentation.
    with the script-file step). The page itself is untouched by this: the
    edition remains the issued text, the film is its reading in the house
    voice. State: the voice guide and The Markup's cover and section 00
-   are written as the sample; the owner has two paces to choose from;
-   the remaining sections and the pipeline's script-file step wait on
-   that verdict.
+   were written as the sample (`source/film/edition-03.md`, whose facts
+   now predate the corrections of 18 Oct, so it is not a base). **On
+   2026-10-26 the owner said the films must be "like Fireship makes
+   them"**: a research pass measured ours against his (the numbers and
+   the plan are `source/film/plan-2026-10-26.md`, dated because they
+   move), and the first script written FROM an edition for the screen is
+   `source/episodes/countersign-pilot.md`, The Countersign in about 4:52,
+   674 spoken words, 75 shots, every number and quotation checked against
+   the built page twice and the craft reviewed twice; it renders through
+   `tools/episode.mjs` once the facts gate, pops and page shots for
+   episodes and the edition close exist (being built the same day, each
+   reviewed), and its footage is the owner's to find (the list is in the
+   plan). The promised checker is that facts gate.
 8. **The channel shows the world** (owner, 2026-09-25 and 26: "you need
    to use footage from movies aptly like other creators do", "like his
    episodes" of Jake Tran, then Johnny Harris's news clips and quotes from
