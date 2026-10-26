@@ -12,6 +12,8 @@ import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { markPath } from '../../src/lib/rose.mjs';
+import { LICENCE, numberWord } from '../../src/lib/editions.mjs';
+import { SITE } from '../../src/config.mjs';
 
 /**
  * Playwright is deliberately not in package.json (CLAUDE.md, Stack). CI and a
@@ -133,6 +135,21 @@ window.__frame(0); window.__ready = true;
 
 /** The dove, built by the site's own client script loaded into the frame unchanged. */
 export const doveHtml = () => `<svg class="dove" viewBox="0 0 260 180" role="img" aria-label="A dove, resolved out of the rose field." data-dove="${ACID}"></svg><script type="module" src="/src/scripts/aed.js"></script>`;
+
+/* ---- the record ---------------------------------------------------------- */
+// How an edition film ends: the record line read aloud, then the dove in silence. The text and the shot are written
+// here once, so the edition films (tools/generate-film.mjs) and an episode cut from an edition (tools/episode.mjs,
+// `edition:`, 2026-10-26) close on the same words and the same picture. `sections` is the edition's contents list and
+// `sources` the built page's own sources list, counted and never typed.
+const MONTHS = { Jan: 'January', Feb: 'February', Mar: 'March', Apr: 'April', May: 'May', Jun: 'June', Jul: 'July', Aug: 'August', Sep: 'September', Oct: 'October', Nov: 'November', Dec: 'December' };
+export const spokenDate = (d) => d.replace(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/, (m) => MONTHS[m]);
+const cap = (s) => s.replace(/^./, (c) => c.toUpperCase());
+/** The record line as the voice reads it, generated from data the page carries. */
+export const recordText = (E, sections, sources) => `${E.title}. ${spokenDate(E.dateLabel)}. ${cap(numberWord(sections))} sections, ${numberWord(sources)} sources, at aedificare dot art. ${LICENCE.name}.`;
+/** The seed line, the furniture of an edition film's shots: the equation, the seed and the k of each layer. */
+export const seedLine = (E) => `r = cos(kθ) · seed ${E.seed} · k ${kLabel(E.k)}`;
+/** The record shot's body, on Flash: the URL as two lines (host, then path) so no title's path crops, the record under it, the mark in Bottle. */
+export const recordHtml = (E, sections, sources) => `<div class="url"><div>${SITE.origin.replace(/^https?:\/\//, '')}</div><div>${esc(E.path)}</div><div class="rec mono">${esc([E.dateLabel, E.title, `${numberWord(sections)} sections`, `${numberWord(sources)} sources`, LICENCE.name].join(' · '))}</div></div>` + mastHtml(BOTTLE);
 
 /* ---- Chromium, serving the repo to the frame ----------------------------- */
 const MIME = { '.mjs': 'text/javascript', '.js': 'text/javascript', '.woff2': 'font/woff2', '.html': 'text/html; charset=utf-8' };

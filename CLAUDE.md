@@ -490,7 +490,18 @@ for a shortlist for bios and cards, which is a separate deliverable.
   but carry no commercial rights), `bed.py` (the
   computed music bed, through `uv`), `lib/film.mjs` (what the two film
   generators share: palette, ffmpeg search, surface CSS, the Chromium
-  context, the encoder), `upload-youtube.mjs` (a rendered film to the
+  context, the encoder, and, since 26 Oct 2026, the record: its spoken
+  line, its shot on Flash and the seed line, written once so an episode
+  cut from an edition closes on the same words and picture as the
+  edition's own film), `lib/facts.mjs` (facts are not free, lifted out of
+  `cuts.mjs` on 26 Oct 2026 so the episodes' edition films get the same
+  reading: the built page's text, its SVG left out, spelled numbers read
+  as numbers, a number at a scale found either way ("600 thousand" on a
+  page that prints $600,000, `$50K` on one that prints $50,000), what each
+  computed shot puts on screen, a quote card's words read for their
+  numbers only, a chart row's display text in place of its value, a
+  timeline row that names a day found with its day, where the month alone
+  had done), `upload-youtube.mjs` (a rendered film to the
   channel through the Data API, from the render's `meta.json`, private by
   default; `--update <videoId>` sets the same generated metadata, captions
   and thumbnail on a video the owner uploaded by hand, and `--meta-only`
@@ -600,6 +611,51 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `upload-youtube.mjs` refuses them before minting a token); chapters are
   listed only as YouTube shows them, three or more and none under ten
   seconds; every file in use with no line in `credits.txt` is named.
+  **An edition film from a script** (2026-10-26, the checker override 7
+  promised): `edition: <slug>` in the front matter names the edition a
+  script is written from. `check` then reads the built page through
+  `tools/lib/facts.mjs` (the same reading `cuts.mjs` gives a cut list) and
+  fails on every number it does not carry, spoken or on a computed
+  surface (a figure, a card, a pop, an overlay, a chart's display text and
+  its timeline's dates, a quote card's words and source line, the title,
+  and the thumbnail's lines, `thumb:` to `thumb3:`, type the render sets
+  in Acid and Flash from the front matter and the most seen computed
+  surface of all: a review of the same day put $52,000 on one and it
+  passed clean against a page that prints $50,000),
+  naming the line; wording is free, so a spoken word off the page is
+  nothing and a surface's word off the page is a warning, as on a cut
+  list; the kit's twelve words on a card, its label counted with it, on
+  the thumbnail and on each label of a chart come with the same function.
+  A draft edition is refused before a credit is spent, because a film
+  waits for its edition's check (Decisions log, 18 Oct 2026); its page
+  builds for the sweep, so until the review a script naming one passed
+  the gate against it. Tried on The
+  Countersign's pilot script (26 Oct 2026): every number in its sixteen
+  paragraphs and on its fifty-nine tagged surfaces was on the page, four
+  planted ones (a spoken 52,000, a 9,500 on a figure, a $1.1B in a chart's
+  display text, an 18 June for the page's 17th) were each named with their line,
+  and eight of its chart subtitles, notes and figure labels ran over
+  twelve words (six chart texts, two figure cards; the first count here
+  said seven), which is the pilot author's to cut. The film then closes
+  as an edition film closes: the record line (`recordText` in
+  `tools/lib/film.mjs`, the text `generate-film.mjs` writes, the section
+  count from `src/lib/editions.mjs` and the source count from the page's
+  own list) is one more narrated block, read over the record shot on
+  Flash with the seed line, then the dove on Void, built by
+  `src/scripts/aed.js` loaded into the frame as the edition films load
+  it, in place of the end card; the Short ends the same way, the bed ends
+  before the dove, and `longHolds` leaves both alone. The record costs
+  voice like any paragraph. The film's and the Short's descriptions open
+  with the edition's link, as the edition films' do (Decisions log, 20 Oct
+  2026), and `check` warns when a `hook:` types it too; whether an
+  `edition:` film's description should be the edition's own (`filmMeta`
+  in `tools/lib/film-meta.mjs`) rather than the episode's is the owner's
+  call, not changed. The parser now keeps each block's line for
+  the messages, blanking comments line for line as `cuts.mjs` does; every
+  script splits into the same paragraphs as before (checked over all six
+  and the pilot), every tag of all six still builds to byte-identical HTML
+  in both frames, and short-onegov's shots render to the same sixteen
+  segment hashes through `renderSegment`.
   **The shots live in `tools/lib/shots.mjs`** (2026-10-20): the tag
   parser, the grade, the quote, map, chart, figure, card, title, slate,
   end and overlay builders, the footage probes, and the renderer that
@@ -1003,8 +1059,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   nothing covers the opening field, the title's words, the record or the
   dove. `check` holds the spec's rules before any frame: every number on
   a computed surface on the built page's text (spelled numbers read as
-  numbers, the page's SVG left out, so a path's 44.27 is not a fact), a
-  pop's words too; every page shot captured (our own page with grey
+  numbers, the page's SVG left out, so a path's 44.27 is not a fact;
+  `tools/lib/facts.mjs` since 26 Oct 2026, the one reading the episodes'
+  edition films share, and The Floor's list gets the same verdicts from
+  it; since the same day a quote card's words are read for their numbers
+  and its `by:` line is held to the page's words, where a quote had been
+  passed over, and The Floor's four pass), a pop's words too; every page shot captured (our own page with grey
   text) and its words boxed; twelve
   words on a card, its label counted with it, three in a pop; the
   owner's footage named in `footage/credits.txt` or refused, its line in
