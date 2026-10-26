@@ -234,13 +234,15 @@ const ACID_PROBE = async () => {
 
 /**
  * The film plays on its page, and only once its reader asks (CLAUDE.md, Decisions log, 26 Oct 2026).
- * Before the click: one player, no iframe, a button named by the film's record, at least YouTube's 200 by
- * 200, and (counted by the sweep itself) no request off the origin. The click, Space or Enter: one iframe
- * whose src is exactly the data-embed URL on YouTube's privacy-enhanced host, a title naming the film,
- * autoplay and full screen allowed, a referrer YouTube can read, focus moved into it, nothing left in
- * front of it, and the first request off the origin is that URL. Returns the page's problems.
+ * Before the press: one player, no iframe, a button named by the film's record, at least YouTube's 200 by
+ * 200, its focus ring inside whatever clips around it, and (counted by the sweep itself) no request off
+ * the origin. The press, by mouse, Space or Enter: one iframe whose src is exactly the data-embed URL on
+ * YouTube's privacy-enhanced host with no autoplay (YouTube's embed rules forbid an automatic start with
+ * less than half the player on screen, and count no play its own button did not start), a title naming
+ * the film, full screen allowed, a referrer YouTube can read, focus moved into it, nothing left in front
+ * of it, and the first request off the origin is that URL. Returns the page's problems.
  */
-const EMBED = /^https:\/\/www\.youtube-nocookie\.com\/embed\/[A-Za-z0-9_-]{11}\?autoplay=1&playsinline=1&rel=0&color=white$/;
+const EMBED = /^https:\/\/www\.youtube-nocookie\.com\/embed\/[A-Za-z0-9_-]{11}\?playsinline=1&rel=0&color=white$/;
 async function filmProbe(page, how, off) {
   const out = [];
   const st = await page.evaluate(() => {
@@ -251,27 +253,45 @@ async function filmProbe(page, how, off) {
   });
   if (!st) return null;
   if (st.n > 1) out.push(`${st.n} players; an edition has one film`);
-  if (st.iframes) out.push(`${st.iframes} iframe(s) before any click`);
+  if (st.iframes) out.push(`${st.iframes} iframe(s) before any press`);
   if (st.w < 200 || st.h < 200) out.push(`the player is ${Math.round(st.w)}x${Math.round(st.h)}, under YouTube's 200x200`);
   if (st.name === null) out.push('the poster is not a button once the script has run');
   else if (!/^Film · \d+:\d\d/.test(st.name)) out.push(`the button's name "${st.name}" does not start with the film's record`);
-  if (!EMBED.test(st.embed)) out.push(`data-embed ${st.embed} is not the privacy-enhanced player URL`);
+  if (/\bautoplay\b/.test(st.embed) || !EMBED.test(st.embed)) out.push(`data-embed ${st.embed} is not the privacy-enhanced player URL without autoplay`);
+  // The focus ring: drawn outside the button, it must fall inside the first ancestor that clips.
+  await page.focus('[data-embed] > button');
+  const ring = await page.evaluate(() => {
+    const b = document.activeElement;
+    if (!b || b.tagName !== 'BUTTON') return 'focus did not reach the poster';
+    const cs = getComputedStyle(b);
+    if (cs.outlineStyle === 'none' || parseFloat(cs.outlineWidth) < 2) return `the poster's focus ring is ${cs.outlineStyle} ${cs.outlineWidth}`;
+    const grow = parseFloat(cs.outlineOffset) + parseFloat(cs.outlineWidth), r = b.getBoundingClientRect();
+    for (let e = b.parentElement; e; e = e.parentElement) {
+      if (getComputedStyle(e).overflow === 'visible') continue;
+      const c = e.getBoundingClientRect();
+      if (r.left - grow < c.left - 0.5 || r.top - grow < c.top - 0.5 || r.right + grow > c.right + 0.5 || r.bottom + grow > c.bottom + 0.5) return `the poster's focus ring is clipped by ${e.tagName.toLowerCase()}.${e.className}`;
+      break;
+    }
+    return null;
+  });
+  if (ring) out.push(ring);
   off.length = 0;
   if (how === 'click') await page.click('[data-embed] > button');
-  else { await page.focus('[data-embed] > button'); await page.keyboard.press(how); }
+  else await page.keyboard.press(how);
   await page.waitForTimeout(250);
   const f = await page.evaluate(() => {
     const box = document.querySelector('[data-embed]'), f = box.querySelector(':scope > iframe');
-    return f && { src: f.src, title: f.title, allow: f.allow, fs: f.allowFullscreen, ref: f.referrerPolicy, focused: document.activeElement === f, front: box.children.length };
+    return f && { src: f.src, title: f.title, allow: f.allow, ref: f.referrerPolicy, focused: document.activeElement === f, front: box.children.length };
   });
   if (!f) { out.push(`${how} made no player`); return out; }
   if (f.src !== st.embed) out.push(`the player loaded ${f.src}, not ${st.embed}`);
   if (!f.title.includes(', film, ')) out.push(`the player's title "${f.title}" does not name the film`);
-  if (!/\bautoplay\b/.test(f.allow) || !f.fs) out.push(`the player may not autoplay or fill the screen (allow="${f.allow}")`);
+  if (/\bautoplay\b/.test(f.allow)) out.push(`the player is allowed to autoplay (allow="${f.allow}"); the reader presses play`);
+  if (!/\bfullscreen\b/.test(f.allow)) out.push(`the player may not fill the screen (allow="${f.allow}")`);
   if (f.ref !== 'strict-origin-when-cross-origin') out.push(`the player's referrer policy is ${f.ref}; YouTube refuses an embed it cannot identify`);
   if (!f.focused) out.push('focus did not move into the player');
   if (f.front !== 1) out.push('something is left in the box with the player, in front of it');
-  if (off[0] !== st.embed) out.push(`the first request off the origin after the click was ${off[0] ?? 'none'}, not the player`);
+  if (off[0] !== st.embed) out.push(`the first request off the origin after the press was ${off[0] ?? 'none'}, not the player`);
   return out;
 }
 
@@ -381,7 +401,7 @@ const RENDER_PROBE = () => ({
       off.length = 0;
       await fp.goto(ORIGIN + p, { waitUntil: 'load' }).catch(() => null);
       await fp.waitForTimeout(80);
-      if (off.length) { filmFails++; report.push(`  FILM      ${width}px  ${p}  asked ${off[0]} before any click`); }
+      if (off.length) { filmFails++; report.push(`  FILM      ${width}px  ${p}  asked ${off[0]} before any press`); }
       const problems = await filmProbe(fp, how, off);
       if (!problems) continue;
       films++;

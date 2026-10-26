@@ -44,14 +44,16 @@ export const FILMS_DIR = 'public/film';
 export const THUMB = { width: 112, height: 63 };
 export const watchUrl = (id) => `https://www.youtube.com/watch?v=${id}`;
 /**
- * The player an edition page loads when, and only when, its reader plays the film: YouTube's
- * privacy-enhanced host, started by that click (autoplay), inline on iOS (playsinline), a white
- * progress bar rather than YouTube's red (color), and the end screen's suggestions from this
- * channel only (rel). Written into the page as an inert data attribute; src/scripts/aed.js turns it
- * into an iframe on the click, and tools/verify.cjs asserts the iframe it makes is this URL.
+ * The player an edition page loads when, and only when, its reader presses the poster: YouTube's
+ * privacy-enhanced host, inline on iOS (playsinline), a white progress bar rather than YouTube's red
+ * (color), and the end screen's suggestions from this channel only (rel). No autoplay: YouTube's
+ * embed rules forbid an automatic start with less than half the player on screen, and count no play
+ * its own button did not start, so the reader presses play in the player. Written into the page as
+ * an inert data attribute; src/scripts/aed.js turns it into an iframe on the press, and
+ * tools/verify.cjs asserts the iframe it makes is this URL.
  */
 export const EMBED_HOST = 'https://www.youtube-nocookie.com';
-export const embedUrl = (id) => `${EMBED_HOST}/embed/${id}?autoplay=1&playsinline=1&rel=0&color=white`;
+export const embedUrl = (id) => `${EMBED_HOST}/embed/${id}?playsinline=1&rel=0&color=white`;
 /** 865 seconds is 14:25; an hour or more is h:mm:ss. */
 export const clock = (s) => {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = String(s % 60).padStart(2, '0');
