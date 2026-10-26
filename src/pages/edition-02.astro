@@ -13,6 +13,8 @@ import Base from '../layouts/Base.astro';
 import Masthead from '../components/Masthead.astro';
 import RoseField from '../components/RoseField.astro';
 import EditionEnd from '../components/EditionEnd.astro';
+import Formats from '../components/Formats.astro';
+import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { edition, LICENCE, describe } from '../lib/editions.mjs';
 import { SITE, abs } from '../config.mjs';
@@ -117,12 +119,14 @@ const c = (...n: number[]) => n.map((x) => `[${String(x).padStart(2, '0')}]`).jo
       <div class="grid cover-grid">
         <h1 class="c-full display" data-flex="cursor">The<br><span class="wide">Subtraction</span></h1>
         <p class="c-a lede">A processor was built, then deliberately reduced, then sold at a fraction of its worth to people solving a puzzle that no longer exists. The reduction is the product.</p>
+        <Formats slug={ed.slug} />
       </div>
       <div class="foot mono cover-foot">
         <span>{ed.dateLabel} · Jesse James</span>
         <span>r = cos(kθ) · seed k 5/7/3 · NVIDIA CMP 170HX / GA100</span>
       </div>
     </section>
+    <FilmPlayer slug={ed.slug} />
 
     <section class="surface flash" id="thesis" aria-label="Thesis">
       <div class="grid">

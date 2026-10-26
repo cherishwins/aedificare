@@ -1,4 +1,24 @@
-Privacy: Aedificare uploader
+Privacy: Aedificare
+
+Two things here touch YouTube, and this page says what each does.
+
+
+1. The films on this site
+
+Each edition's page carries its film, played through YouTube's embedded
+player in its privacy-enhanced mode (youtube-nocookie.com). The player is
+loaded only when a reader presses the film's poster; before that press the
+page asks nothing of YouTube or of any other host, and every build of the
+site is checked for that. From the press on, the player is YouTube's: it
+runs under YouTube's terms (https://www.youtube.com/t/terms) and Google's
+privacy policy (https://policies.google.com/privacy), it may store what
+YouTube's privacy-enhanced mode stores, and it may show YouTube's ads.
+This site uses YouTube API Services to show that player. Aedificare
+receives nothing from the player and keeps no record of who pressed it or
+what they watched.
+
+
+2. The Aedificare uploader
 
 The Aedificare uploader is a private tool that puts Aedificare's own films
 on Aedificare's own YouTube channel (@aedificare_art). It is used by the
@@ -19,5 +39,6 @@ Removing access: the owner can revoke it at any time at
 https://myaccount.google.com/permissions; YouTube's own terms apply to
 the channel (https://www.youtube.com/t/terms), and Google's privacy policy
 to the account (https://policies.google.com/privacy).
+
 
 Contact: the owner, through https://aedificare.art.

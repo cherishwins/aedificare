@@ -30,14 +30,15 @@ function field(svg) {
   };
   if (reduced) { draw(seed); svg.dataset.motion = 'static'; return; }
   svg.dataset.motion = 'live';
-  let on = true, t0 = performance.now(), frame = 0;
+  let on = true, seen = true, t0 = performance.now(), frame = 0;
   const loop = (now) => {
+    if (!svg.isConnected) return; // a poster's field, once the player has replaced it
     if (on && (frame++ & 1)) draw(drift(seed, now - t0));
     requestAnimationFrame(loop);
   };
   draw(seed);
-  new IntersectionObserver(([e]) => { on = e.isIntersecting && !document.hidden; }).observe(svg);
-  document.addEventListener('visibilitychange', () => { on = !document.hidden; });
+  new IntersectionObserver(([e]) => { seen = e.isIntersecting; on = seen && !document.hidden; }).observe(svg);
+  document.addEventListener('visibilitychange', () => { on = seen && !document.hidden; });
   requestAnimationFrame(loop);
 }
 
@@ -110,6 +111,31 @@ function flex() {
   }
 }
 
+/* ---- the film, on the reader's press ------------------------------------
+   The page asks YouTube for nothing until then. The link to the watch page
+   becomes a button (so Space and Enter both work, and a reader without
+   this script still has the link); the press swaps it for the player the
+   page names and moves focus into it. The player does not start on its
+   own: the reader presses its play button, which is the play YouTube
+   counts. ---------------------------------------------------------------- */
+function film(box) {
+  const a = box.firstElementChild, b = document.createElement('button');
+  b.className = a.className;
+  b.type = 'button';
+  b.append(...a.childNodes);
+  a.replaceWith(b);
+  b.onclick = () => {
+    const f = document.createElement('iframe');
+    f.src = box.dataset.embed;
+    f.title = box.dataset.title;
+    f.allow = 'encrypted-media; fullscreen; picture-in-picture; clipboard-write; web-share';
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    b.replaceWith(f);
+    f.focus();
+  };
+}
+
+document.querySelectorAll('[data-embed]').forEach(film);
 document.querySelectorAll('svg[data-rose]').forEach(field);
 document.querySelectorAll('svg[data-dove]').forEach(dove);
 flex();

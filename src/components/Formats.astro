@@ -1,0 +1,31 @@
+---
+/**
+ * The three forms of an edition, together, on its cover under the lede: the
+ * page (its first section), the print (the PDF, its size read from the file)
+ * and the film (its band under the cover, where it plays). Each is there
+ * only when it exists; the record is the house's, as on the home ("Read",
+ * "PDF · 1.4 MB", "Film · 7:57"), never "Watch" or "Download now". The PDF
+ * says "as printed" here because it stands beside the page as an equal
+ * form, and most prints carry text the page has since corrected (CLAUDE.md,
+ * Findings): the page is the issued text, the print is the record of the
+ * day it was printed.
+ */
+import fs from 'node:fs';
+import { edition } from '../lib/editions.mjs';
+import { film } from '../lib/films.mjs';
+interface Props { slug: string }
+const { slug } = Astro.props;
+const e = edition(slug);
+const f = film(slug);
+const mb = (p) => (fs.statSync('public' + p).size / 1048576).toFixed(1) + ' MB';
+---
+<nav class="c-full formats-row mono-b" aria-label="Formats">
+  <a class="block-link" href={`#${e.contents[0].id}`}>Read · {e.contents.length} sections</a>
+  {e.pdf && <a class="block-link" href={e.pdf}>PDF · as printed · {mb(e.pdf)}</a>}
+  {f && <a class="block-link" href="#film">Film · <time datetime={f.iso}>{f.length}</time></a>}
+</nav>
+<style>
+  .formats-row { display: flex; flex-wrap: wrap; gap: 0 32px; color: var(--flash); }
+  .formats-row a { padding-block: 8px; }
+  .formats-row a:hover, .formats-row a:focus-visible { color: var(--acid); }
+</style>

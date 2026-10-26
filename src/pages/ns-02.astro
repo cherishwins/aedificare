@@ -7,6 +7,8 @@ import Rail from '../components/Rail.astro';
 import Pull from '../components/Pull.astro';
 import Stats from '../components/Stats.astro';
 import EditionEnd from '../components/EditionEnd.astro';
+import Formats from '../components/Formats.astro';
+import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { edition, LICENCE, describe } from '../lib/editions.mjs';
 import { SITE, abs } from '../config.mjs';
@@ -92,12 +94,14 @@ const sources = [
       <div class="grid cover-grid">
         <h1 class="c-full display" data-flex="cursor">The<br><span class="wide">Closest</span><br><span class="acid">Humans</span></h1>
         <p class="c-a lede">Two men, one year,<br>and two calls on a Sunday.</p>
+        <Formats slug={ed.slug} />
       </div>
       <div class="foot mono cover-foot">
         <span>{ed.dateLabel} · {SITE.author}</span>
         <span>r = cos(kθ) · seed {ed.seed}</span>
       </div>
     </section>
+    <FilmPlayer slug={ed.slug} ground="bottle" />
 
     <Section n="01" title="What The Hand<br>in the Water got wrong" acid id="wrong">
       <div class="c-a prose">

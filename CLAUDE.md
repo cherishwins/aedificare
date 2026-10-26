@@ -40,7 +40,7 @@ Shipped (2026-09-15):
 | `/edition-02` | 18 Oct 2026 · *The Subtraction* (printed as Edition 02), nine sections, thirty-six sources | live (2026-10-18, sourced from scratch; no PDF, none was issued) |
 | `/404` | | live |
 | `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/ai.txt` `/humans.txt` | discoverability | generated or static |
-| `/privacy.txt` | the YouTube uploader's privacy statement, which Google's consent screen needs before the app can leave Testing (2026-10-17); plain text like `humans.txt`, not a page | static |
+| `/privacy.txt` | the privacy statement: first the films' player on the editions (what the press loads, what applies from then on; YouTube's API terms require it of a site that embeds the player, 2026-10-26), then the YouTube uploader's, which Google's consent screen needs before the app can leave Testing (2026-10-17); plain text like `humans.txt`, not a page, linked from the rail beside every player | static |
 | `/index.json` `/og/desk.png` | the index as JSON and the desk's card, for apt.grok.me to fetch and hotlink | generated |
 | `/film/*.png` | each linked film's own thumbnail, reduced and content-hashed, beside a link to its YouTube watch page at the edition's end and on the home (Decisions log, 21 Oct 2026) | generated |
 | `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-09.pdf` `/pdf/edition-10.pdf` | the print editions as uploaded | as uploaded |
@@ -227,7 +227,10 @@ release files now. `tools/verify.cjs` adds
 the computed-style rules: contrast, Acid once per surface and never at scale
 in a film's thumbnail, the brand faces actually loaded, every rose field
 live, every field's reduced-motion still, and no request to any host but the
-page's own.
+page's own until the reader plays a film (then one iframe, YouTube's
+privacy-enhanced player, made by the click and never shipped in a page;
+the film probe plays every player by mouse, Space and Enter and proves
+it; Decisions log, 26 Oct 2026).
 
 **Human duties** (cannot fail a build; review by eye on every PR): one loud
 move per surface; never explain what the entity does; twelve words maximum
@@ -288,15 +291,20 @@ for a shortlist for bios and cards, which is a separate deliverable.
   question before any service is "is it free, and does it stay free at
   scale."
 - **Client JS budget: 5 kB gzipped for the whole site**, enforced by
-  `tools/check-budget.cjs` in the build. **Measured: 2,660 B** (the one
-  bundled script, 1,114 B, plus Astro's inline hydration shim on the-tilt-gap,
-  1,546 B; 2,672 until vite 8.3.4's newer rolldown, 21 Oct 2026, and the nine
-  bytes over the earlier 2,663 were `drift()` moving into
-  `src/lib/rose.mjs`, below). The rose must be computed live and the axis must move with the
-  reader; that is the only JavaScript the brand earns.
+  `tools/check-budget.cjs` in the build. **Measured: 2,896 B** (the client
+  script `src/scripts/aed.js`, inlined on every page, 1,780 B, plus Astro's
+  prefetch module `page.*.js`, 1,116 B; 2,660 until the film's player on the
+  reader's press, 26 Oct 2026, whose 236 B are the whole of it, and before
+  that the two parts were misnamed here as a bundled script and a hydration
+  shim; 2,672 until vite 8.3.4's newer rolldown, 21
+  Oct 2026, and the nine bytes over the earlier 2,663 were `drift()` moving
+  into `src/lib/rose.mjs`, below). The rose must be computed live and the
+  axis must move with the reader; that, and since 26 Oct 2026 the film
+  playing on the reader's click (Decisions log), is the only JavaScript the
+  brand earns.
 - **WCAG AA on every surface and zero axe-core violations**, enforced by
   `tools/verify.cjs` on every PR and push. **Current state: clean on all
-  thirteen counts.** Keep it there. `node tools/verify.cjs --url https://host`
+  fourteen counts.** Keep it there. `node tools/verify.cjs --url https://host`
   runs the same sweep against a LIVE origin over the real network, because
   a deploy status is not a verification; run it after every production
   deploy and before telling anyone the site is up.
@@ -354,7 +362,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - `src/layouts/Base.astro`: head, OG via the manifest, licence and
   discoverability links, JSON-LD, skip link, the script.
 - `src/components/`: `Mark`, `RoseField`, `Dove`, `Masthead`, `Section`,
-  `Rail`, `Pull`, `Stats`, `EditionEnd`, `FilmLink`.
+  `Rail`, `Pull`, `Stats`, `EditionEnd`, `FilmLink`, `Formats` (the row on
+  an edition's cover: read, PDF, film, each only when it exists) and
+  `FilmPlayer` (the film's own surface under the cover, playing on the
+  click; Decisions log, 26 Oct 2026).
 - `src/pages/`: `index`, `the-grade`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
   `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `404`, and the generated `feed.xml.ts`,
   `llms.txt.ts`, `robots.txt.ts`, `index.json.ts` (the index as JSON for
@@ -2292,7 +2303,9 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   reported. Its rules that hold are recorded here and in
   `.claude/skills/youtube/SKILL.md`.
 
-- **2026-10-21 · An edition links its film, and nothing is embedded.**
+- **2026-10-21 · An edition links its film, and nothing is embedded**
+  (the "nothing is embedded" half superseded on 26 Oct 2026, below; the
+  link, the thumbnail and the rules that keep them true stand).
   The owner asked in chat: "Shouldn't we have these LinkedIn maybe even
   embedded in the website?" (the films). The builder answered with the
   trade-offs below and put two questions with options; the owner chose,
@@ -2374,6 +2387,106 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   15:00 UTC on 22 Oct; then, read public by `list` at 18:05 UTC on 26
   Oct, The Snapshot Problem (`pJkE2cNBWvs`, 23 Oct), The Markup
   (`DFPTdSYPNkE`, 24 Oct) and The Floor (`5VFA1JW5HJk`, 26 Oct).
+
+- **2026-10-26 · The film plays on its page, and the three forms stand
+  together.** The owner, in chat: "why don't we have the videos on the
+  site... So you can download the PDF, watch the video, read it there.
+  Right now it's not organized that way. I want to know why not." Why not
+  was the decision above it: on 21 Oct the owner chose the plain link,
+  on the builder's framing of three costs (a request to Google the moment
+  a page opens, the 5 kB script budget, YouTube's chrome on a brand
+  surface), and the builder then put the film where that framing led, as
+  a 112 px thumbnail at the very end of each edition. The owner asked
+  again, so this is a new decision, and the framing was the builder's
+  error of weight: the costs were real, the film was buried. Built:
+  `src/components/Formats.astro`, a row on every edition's cover under
+  the lede, "Read · N sections" (to the first section), "PDF · x MB" (the
+  size read from the file, as the home reads it) and "Film · m:ss" (to
+  the player), each present only when the form exists, never "Watch",
+  never "Download now"; and `src/components/FilmPlayer.astro`, the film's
+  own surface directly under the cover, a 16:9 Bottle field (never under
+  YouTube's 200 px) that before the click is the film's own quiet rose,
+  computed live by the client script from the same layers, seed and
+  `drift()` clock as `tools/generate-film.mjs`'s field, with the record
+  top-left and "YouTube · plays here" bottom-left in Flash, and a link to
+  the watch page that `src/scripts/aed.js` turns into a button, so Space
+  and Enter work and a reader without the script keeps the link. The
+  press makes the iframe (`youtube-nocookie.com`, playsinline, `rel=0`, a
+  white progress bar, **no autoplay**; the URL is written once,
+  `embedUrl()` in `src/lib/films.mjs`) and moves focus into it, and the
+  reader then presses the player's own play button: two presses
+  everywhere, on a phone and a desk alike. The first cut started the
+  player on the press, and the review stopped it: YouTube's embed rules
+  (its Required Minimum Functionality) forbid an automatic start with
+  less than half the player on screen, and at 1440 by 900 a press on 120
+  px of poster started a player 28 percent visible; and the IFrame API
+  reference counts a playback toward a video's views only if the player's
+  own play button started it, so an autoplay would have thrown the view
+  away as well. **Nothing is asked of any other host until that press**:
+  the constraint of 21 Oct is kept, and
+  `tools/verify.cjs` now proves it rather than assumes it (no built page
+  carries an `<iframe`; every player is pressed at 1280 by mouse, 390 by
+  Space and 320 by Enter, and the first request off the origin after the
+  press must be the embed URL and none may come before; the embed URL and
+  the iframe's `allow` carry no autoplay; the poster's focus ring must lie
+  inside whatever clips around it; with JavaScript off the poster must be
+  the watch-page link; Acid at scale inside a `.player` fails on its own,
+  as a thumbnail's does, so the cover above keeps the sequence's loud
+  move). The review of the first cut found four more things, each fixed
+  before it merged: the focus ring was clipped by the player's
+  `overflow: hidden` (the poster clips its own rose now, the box clips
+  nothing); the poster's rose field went on drawing after the player had
+  replaced it, at 15 fps for as long as the film ran (`field()` stops
+  when its svg leaves the document, and a hidden tab no longer overrides
+  the off-screen state, an older fault); the two 11 px labels measured
+  3.4:1 over the brightest Malachite curve, which no probe reads because
+  none reads an SVG background (they sit on strips of the field's own
+  colour now, and the record is display type at 24 px and more, where
+  3:1 is the floor and it measures above 4:1); and the band read as the
+  cover's tail where section 00 is Void too (it takes `ground="bottle"`
+  there). The home's film link now goes to the
+  edition's `#film` and reads "Film · 7:57" without "· YouTube"; the
+  end-of-edition record still links out to YouTube with its thumbnail, as
+  the way out. **Embedding the player makes the site an API client under
+  YouTube's API Services Terms** (its help page says those terms and the
+  Developer Policies apply to the embedded player), which require a
+  published privacy policy that says the site uses YouTube API Services
+  and links Google's privacy policy, and a link to YouTube's terms, both
+  easy to reach: `public/privacy.txt` now opens with the films (what the
+  press loads, what applies from then on, that the site receives nothing
+  from the player), the uploader's statement follows it, and the rail
+  beside every player links `youtube.com · m:ss`, YouTube's terms and
+  `/privacy.txt`, and says the player loads on the press and not before.
+  The channel's URL is still written only in `src/config.mjs` and
+  `public/humans.txt`; the statement does not repeat it. Costs accepted,
+  stated plainly: 236 B of script (2,896 of 5,120); after the
+  press, YouTube's chrome inside a frame no checker can read, about 0.8
+  MB of its scripts, storage under its privacy-enhanced mode, which
+  YouTube says does not shape recommendations and does not say is
+  nothing, and YouTube's ads where it chooses to show them. No
+  `VideoObject` JSON-LD: Google gives video features to a watch page
+  whose main content is the video, which an edition page is not. A play
+  on the site counts as a YouTube view because the reader presses the
+  player's own play button; the Analytics API lists EMBEDDED as a
+  playback location, which `tools/youtube-analytics.mjs` can read by
+  `insightPlaybackLocationType` once there is traffic. (The first draft
+  of this entry cited a line about autoplayed embeds not counting that
+  YouTube's help page no longer carries; the IFrame API reference is the
+  source.) The PDF in the cover row says "PDF · as printed", because it
+  stands beside the page as an equal form and most prints carry text the
+  page has since corrected (Findings); the home and the edition's end
+  still say "PDF" and "Download the PDF", and the wording of all three
+  is the owner's to settle. Still the owner's to judge by eye: whether
+  "YouTube · plays here" is cue enough with no icon (the kit draws none,
+  and a ▶ is an emoji to `tools/check-brand.cjs`), and whether "Read · 15
+  sections" reads well on the page itself. **One the owner must make
+  knowingly:** Vercel's Hobby plan is for non-commercial use and its
+  fair-use page lists advertising as commercial; YouTube may show ads
+  inside the embedded player, and once the channel is in the Partner
+  Program the owner earns from them. The builder's reading is that a
+  third party's ads inside its own player are not the site's advertising,
+  and that reading is worth exactly what Vercel says it is, so it is
+  raised here and in chat rather than settled.
 
 ## Open
 
@@ -2478,7 +2591,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    its own film's watch page, once the film is public, at its end and on
    the home, never embedded; the channel URL itself is still written only
    in those two places. The owner chose the plain link over click-to-play.
-   Decisions log.) Still open: **music** (the owner wanted soft
+   Decisions log. Amended again 26 Oct 2026: the film now also plays on
+   its own page, on the reader's click, under the cover; Decisions log.) Still open: **music** (the owner wanted soft
    piano; the pipeline mixes a file the owner downloads from the YouTube
    Audio Library under the voice with `--music`, credit line in the
    description if the track asks for one; a bed computed from the

@@ -60,7 +60,7 @@ for (const e of PUBLISHED) {
             <span class="go">
               <a class="block-link" href={e.path}>Read · {e.title}</a>
               {e.pdf && <a class="block-link" href={e.pdf}>PDF · {mb(e.pdf)}</a>}
-              <FilmLink slug={e.slug} />
+              <FilmLink slug={e.slug} to={`${e.path}#film`} />
             </span>
             <span class="aside mono">{e.contents.length} sections · seed {e.seed}</span>
           </p>
