@@ -1753,6 +1753,35 @@ for a shortlist for bios and cards, which is a separate deliverable.
    on Bottle, which is 3.38:1 and fails AA, so section 08 is Void, where
    it is 5.32:1. `base.css` declares `.figure` as Acid after `.shock`, so
    the page restates the colour rather than reordering a shared file.
+   **Sourced and corrected again, 2026-10-26**, when the page was found to
+   print URLs for 4 of its 22 sources and no outbound link, so a reader
+   could not open what it cites and a film cut from it had no document to
+   show. Two researchers found each source's primary and read every claim
+   and quotation the page hangs on it, a skeptic per half re-opened each
+   URL, an editor applied what survived with the smallest true change and
+   a second skeptic re-opened every source behind every hunk: 68 claims
+   and quotations with a verdict, 18 lines of prose, marks and data
+   changed, two posts added as sources ([23] Ayrey's thread of 23 Jan
+   2025, [24] three of the four posts of 10 Oct 2024). What changed: the
+   council is [07]'s alone and post approval [06]'s, one mark per
+   sentence; "a stranger launched it" cites [07] too (LessWrong says
+   "linked"); the 33 days cite the launch date's source; the chart's $48M
+   is "the week before 23 Oct", crypto.news's own words; the hijack went
+   "through his mobile carrier, in what The Block read as a SIM swap"
+   ([18] never mentions a SIM); "set up a foundation to hold the wallets
+   and the IP" by late January 2025, which is what Ayrey's thread says
+   where the page had "moved"; the sector peak is Cointribune's "$15
+   billion in January 2025" and the August figure the Fool's, so the
+   caveat that they "disagree" went; "the next day" is "within two hours"
+   (1 h 49 min by the posts' UTC); "Then he asked" is "In public, he
+   asked"; the slap's cut after "autonomous agent" carries the house
+   ellipsis; the BBC note says the feature opens now and gives two peaks;
+   the time-zone note says the posts' own clock puts all four on 10
+   October. [13] is crypto.news, not "Cryptonews.net". The Defiant's body
+   could not be read here (client-rendered), so what hangs on [19] was
+   checked against [23]. The print is left as issued; the dated note under
+   the sources is two sentences, as The Markup's is. Its film still reads
+   the old wording until it is rendered again.
    **Editions 07 and 08 never arrived in this repo.** Nothing is missing
    from the site: the code is the date, so the sequence the prints carry
    is not a sequence the site keeps. Recorded so nobody hunts for them.

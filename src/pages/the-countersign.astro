@@ -24,6 +24,11 @@ import { SITE, abs } from '../config.mjs';
 // The print says so in its colophon and so does the page: the dates are
 // part of the figures, not decoration, because a token price is true of an
 // afternoon and of nothing else.
+//
+// Every source that could be read was opened again on 26 Oct 2026 and the
+// page corrected where one said less or other than the print (the print is
+// left as issued; the tallies are in CLAUDE.md, Findings 0f). The note under
+// the sources says so.
 const ed = edition('the-countersign');
 
 // The cover rose is the print's still 01: the house layers frozen at the k
@@ -46,14 +51,16 @@ const article = {
   description: ed.lede,
 };
 
-// The legend, checked. Three claims, one verdict each.
+// The legend, checked. Three claims, one verdict each; a note's sentences
+// carry their own marks, because the post approval is CoinDesk's and the
+// council is TechCrunch's.
 const claims = [
   ['01', 'A billionaire funded an AI.', 'True',
-    'Andreessen later called it a grant to the bot and its creator Andy Ayrey.', '[04]'],
+    [['Andreessen later called it a grant to the bot and its creator Andy Ayrey.', '[04]']]],
   ['02', 'The AI launched its own coin.', 'False',
-    'A stranger launched it, within about an hour of one of the bot’s posts.', '[05]'],
+    [['A stranger launched it, within about an hour of one of the bot’s posts.', '[05] [07]']]],
   ['03', 'The AI got rich on its own.', 'False',
-    'A human approved every post. A council had to sign before any money moved.', '[06] [07]'],
+    [['A human approved every post.', '[06]'], ['A council had to sign before any money moved.', '[07]']]],
 ];
 
 // Chain of custody: an idea that started between two models and ended in a
@@ -84,9 +91,10 @@ const minutes = [
 
 // GOAT's climb, as reported. A log scale, because the first point and the
 // last are four and a half orders of magnitude apart; the print drew a line
-// and said the real path was rougher, and so does this.
+// and said the real path was rougher, and so does this. The first point is
+// crypto.news's "last week's low", which it gives no day for.
 const climb = [
-  ['16 Oct 2024', '$48M', 48e6, '[13]'],
+  ['Week before 23 Oct 2024', '$48M', 48e6, '[13]'],
   ['23 Oct 2024', '$668M', 668e6, '[13]'],
   ['12 Nov 2024', '$1B', 1000e6, '[14]'],
   ['17 Nov 2024', '$1.35B', 1350e6, '[15]'],
@@ -122,7 +130,7 @@ const drawdown = [
 // logged out and the clock they show is UTC.
 const sources = [
   'Marc Andreessen, post on X, 9 Jul 2024. x.com/pmarca/status/1810813293805851044',
-  'Decrypt, Jose Antonio Lanz, “Marc Andreessen Sends $50K in Bitcoin to an AI Bot on Twitter”, 10 Jul 2024. decrypt.co/239340/marc-andreessen-sends-50k-in-bitcoin-to-an-ai-bot-on-twitter',
+  'Decrypt, Jose Antonio Lanz, “Marc Andreessen Sends $50K in Bitcoin to an AI Bot on Twitter”, 10 Jul 2024, embedding Andreessen’s post on X of 10 Jul 2024, x.com/pmarca/status/1810840616835895625. decrypt.co/239340/marc-andreessen-sends-50k-in-bitcoin-to-an-ai-bot-on-twitter',
   'Cryptopolitan, Hristina Vasileva, “Truth Terminal becomes the first AI crypto millionaire”, 18 Oct 2024. cryptopolitan.com/truth-terminal-becomes-the-first-ai-crypto-millionaire/',
   'Coinspeaker, Temitope Olatunji, “Autonomous AI Bot ‘Truth Terminal’ Made Over $500K from $20K Investment in Solana Meme Coin”, 17 Oct 2024, quoting Andreessen’s clarification on X of 16 Oct 2024, x.com/pmarca/status/1846374466101944629. coinspeaker.com/ai-bot-truth-terminal-500k-20k-investment-solana-meme-coin/',
   'LessWrong, crvr.fr and MTorrents, “Truth Terminal: A reconstruction of events”, 17 Nov 2024. lesswrong.com/posts/buiTYy75KJDhckDgq/truth-terminal-a-reconstruction-of-events',
@@ -143,6 +151,8 @@ const sources = [
   'Decrypt, Logan Hitchcock, “Solana Meme Coin Fartcoin Falls After AI Bot Creator Sells Huge Stash”, 23 Jan 2025. decrypt.co/302436/solana-meme-coin-fartcoin-falls-ai-bot-sells',
   'Cointribune, Mikaia Andriamahazoarimanana, “Violent Correction: The Descent Into Hell Of AI Agent Tokens”, 13 Jan 2025, the article’s share title; its headline reads “Crypto: AI Agents Face A Historic Debacle”. cointribune.com/en/crypto-ai-agents-face-a-historic-debacle/',
   'The Motley Fool, Alex Carchidi, “An AI Agent Token Once Worth $2.4 Billion Is Now Worth Almost Nothing”, 20 Aug 2026. fool.com/investing/2026/08/20/an-ai-agent-token-once-worth-24-billion-is-now-wor/',
+  'Andy Ayrey, thread on X, 23 Jan 2025. x.com/AndyAyrey/status/1882318084415090857',
+  'Truth Terminal and Andy Ayrey, three of the four posts on X of 10 Oct 2024 that the reconstruction logs; the fourth, the reply that linked the token, is footnoted there. x.com/truth_terminal/status/1844470764583424360, x.com/AndyAyrey/status/1844517270141403271 and x.com/truth_terminal/status/1844520459188003316',
 ];
 ---
 <Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
@@ -170,7 +180,7 @@ const sources = [
         </blockquote>
       </div>
       <div class="c-a prose">
-        <p>Marc Andreessen sent that line to a chatbot. The next day he confirmed he had sent it $50,000 in Bitcoin. <span class="cite">[02]</span></p>
+        <p>Marc Andreessen sent that line to a chatbot. Within two hours he confirmed he had sent it $50,000 in Bitcoin. <span class="cite">[02]</span></p>
         <p>Within four months it was being called the first AI millionaire, <span class="cite">[03]</span> and a meme coin it had endorsed was worth more than a billion dollars. <span class="cite">[14]</span></p>
         <p>Most of that is true. Read the fine print and the story stops being about the machine.</p>
       </div>
@@ -188,12 +198,12 @@ const sources = [
         <p>Three things everyone repeats about Truth Terminal. One of them survives.</p>
       </div>
       <div class="c-full claims">
-        {claims.map(([n, claim, verdict, note, src]) => (
+        {claims.map(([n, claim, verdict, notes]) => (
           <div class:list={['claim', 'field', verdict === 'True' && 'true']}>
             <p class="mono n">{n}</p>
             <p class="claim-t mono-b">{claim}</p>
             <p class:list={['verdict', 'display', verdict === 'True' && 'acid']}>{verdict}</p>
-            <p class="note">{note} <span class="cite">{src}</span></p>
+            <p class="note">{notes.map(([note, src], i) => (<>{i > 0 && ' '}{note} <span class="cite">{src}</span></>))}</p>
           </div>
         ))}
       </div>
@@ -259,7 +269,7 @@ const sources = [
         </ol>
       </figure>
       <div class="c-a prose">
-        <p>Before paying, Andreessen messaged Ayrey to check the project was real. <span class="cite">[07]</span> Then he asked the bot what it needed, and offered a grant instead of an investment. <span class="cite">[02]</span></p>
+        <p>Before paying, Andreessen messaged Ayrey to check the project was real. <span class="cite">[07]</span> In public, he asked the bot what it needed, and offered a grant instead of an investment. <span class="cite">[02]</span></p>
         <p>Its wish list, per Decrypt: its own computer, tweaks to its model, a billboard, a Discord server, a stipend for its creator, and a Mars rover that 3D-prints its scripture. <span class="cite">[02]</span></p>
       </div>
       <Pull src="Truth Terminal, to a jailbreak attempt, July 2024 [12]" class="c-b">
@@ -282,7 +292,7 @@ const sources = [
             <li><span class="mono when">{t}</span><span class="what">{what}</span></li>
           ))}
         </ol>
-        <p class="mono note">Times per the LessWrong reconstruction. Time zone not stated there, and not stated here. <span class="cite">[05]</span></p>
+        <p class="mono note">Times per the LessWrong reconstruction. Time zone not stated there, and not stated here; the posts’ own clock, in UTC, puts all four on 10 October. <span class="cite">[05] [24]</span></p>
       </figure>
       <div class="c-a prose">
         <p class="mono reg">Position</p>
@@ -307,7 +317,7 @@ const sources = [
         <p class="mono note">A log scale, because the launch and the peak are orders of magnitude apart. Four reported points, not a price history. The real path between them was rougher.</p>
       </figure>
       <Stats class="c-b" items={[
-        ['33', 'Days from launch to the first billion [14]'],
+        ['33', 'Days from launch to the first billion [14] [18]'],
         ['$1.35B', 'Peak market value, 17 Nov 2024 [15]'],
         ['1', 'Pump.fun coin had done it before. None [14]'],
       ]} />
@@ -334,7 +344,7 @@ const sources = [
     <section class="surface flash" aria-label="Record">
       <div class="grid">
         <p class="c-full mono-b">Andy Ayrey, to CoinDesk · 10 Dec 2024 [06]</p>
-        <p class="c-full display slap" data-flex="cursor">“It would be disingenuous to refer to it as an autonomous agent.”</p>
+        <p class="c-full display slap" data-flex="cursor">“It would be disingenuous to refer to it as an autonomous agent …”</p>
         <p class="c-full mono-b">He reviews its posts before they go live. [06]</p>
       </div>
     </section>
@@ -363,8 +373,8 @@ const sources = [
       </div>
       <div class="c-a prose">
         <p class="mono reg">29 October 2024</p>
-        <p>The bot’s account was never the one that fell. Attackers hijacked Ayrey’s personal X account through a SIM swap. <span class="cite">[17] [18]</span></p>
-        <p>They promoted a fake token, pumped it to about $25 million and cashed out. <span class="cite">[17]</span></p>
+        <p>The bot’s account was never the one that fell. Attackers hijacked Ayrey’s personal X account through his mobile carrier, in what The Block read as a SIM swap. <span class="cite">[17] [18]</span></p>
+        <p>They promoted a fake token, pumped it to about $25 million and cashed out. <span class="cite">[17] [18]</span></p>
         <p>A SIM swap targets a phone number. The phone number belonged to the human in the loop.</p>
       </div>
     </Section>
@@ -377,7 +387,7 @@ const sources = [
       <div class="c-a prose">
         <p class="mono reg">January 2025</p>
         <p>A chatbot cannot legally own property, so on paper the fortune was Ayrey’s. He said that put him at “grave risk” of a personal tax bill. <span class="cite">[19]</span></p>
-        <p>That month he moved the wallets and the intellectual property into a foundation, the Truth Collective. <span class="cite">[11] [19]</span></p>
+        <p>By late January 2025 he had set up a foundation to hold the wallets and the intellectual property, the Truth Collective. <span class="cite">[11] [19] [23]</span></p>
         <p>The wallet then sold 15 million Fartcoin, a second meme coin it held. Part of the proceeds bought more GOAT. <span class="cite">[20]</span></p>
       </div>
     </Section>
@@ -399,10 +409,10 @@ const sources = [
       </figure>
       <div class="c-a prose">
         <p class="mono reg">As reported · 16 Oct 2026</p>
-        <p>The AI-agent token market that followed peaked above $15 billion around New Year 2025, and sat near $3.2 billion by August 2026. <span class="cite">[21] [22]</span></p>
+        <p>The AI-agent token market that followed peaked at $15 billion in January 2025, <span class="cite">[21]</span> and sat near $3.2 billion by August 2026. <span class="cite">[22]</span></p>
         <p>ai16z, once worth $2.4 billion, was declared dead by its own founder. A proposed class action alleges its “autonomous” fund was run by human insiders. <span class="cite">[22]</span></p>
         <p class="mono reg">Where it is wrong</p>
-        <p>Every figure on this surface is a market price on a stated day. Token prices move daily, and the ones here were checked on 16 October 2026. Read them as a record of that day, not as a quote. The sector figures are broad-market estimates from two outlets, and they disagree with each other by more than the rounding suggests.</p>
+        <p>Every figure on this surface is a market price on a stated day. Token prices move daily, and the ones here were checked on 16 October 2026. Read them as a record of that day, not as a quote. The sector figures are broad-market estimates from two outlets, nineteen months apart.</p>
       </div>
     </Section>
 
@@ -419,13 +429,14 @@ const sources = [
     <Section n="10" title="Sources" id="sources">
       <div class="c-full">
         <p class="mono">Primary sources · figures checked 16 October 2026</p>
+        <p class="mono">Every source that could be read opened again on 26 Oct 2026 and the page corrected where one said less or other than the print; two posts added as sources. The print is left as issued.</p>
       </div>
       <ol class="c-full sources">
         {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
       </ol>
       <div class="c-a prose">
         <p class="mono reg">Not used</p>
-        <p>The BBC Future feature of October 2025 is cited by much of the secondary coverage and is the origin of the wallet’s reported peak above $66 million. It could not be opened directly for this edition, so neither the peak nor the quotations attributed to it appear above. Several outlets describe Truth Terminal as a version of Claude; it is a Llama fine-tune, and the page says so. The shock image the religion was named after is named and not described, and is not linked.</p>
+        <p>The BBC Future feature of October 2025 is cited by much of the secondary coverage and is the origin of the wallet’s reported peak above $66 million. It opens, and it gives the wallet two peaks, about $50 million and past $66 million, both in 2025, so neither figure nor the quotations attributed to it appear above. Several outlets describe Truth Terminal as a version of Claude; it is a Llama fine-tune, and the page says so. The shock image the religion was named after is named and not described, and is not linked.</p>
         <p class="mono reg">Colophon</p>
         <p>Set in Bricolage Grotesque and Martian Mono. The roses are computed from r = cos(kθ) and never drawn: still 01 at seed 0909, k = 5.048, 6.947 and 3.043; still 02 at seed 1016; still 03 resolved at k offset zero. Screen edition. Acid does not survive CMYK.</p>
       </div>
