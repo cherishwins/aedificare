@@ -1,0 +1,97 @@
+# Put a film's voice back in the narration cache from the render that spoke it, so a render after a fix to the
+# words pays for the changed blocks alone (tools/seed-narration.py has the why: the "$1 billion" fault of 26 Oct
+# 2026 reached three released films, GitHub had dropped their caches after seven idle days, and re-voicing them
+# whole was about 5,000 credits). The voice itself is never called here; the ElevenLabs key is read only for the
+# voice's stored settings, which are part of every cache key, and for the credit count it prints.
+#
+# Dispatch with the edition's slug and the id of the film.yml run whose artifact film-<slug>-wide holds that
+# voice (90 days from the render). With render=true it then runs film.yml, which restores this cache by its
+# prefix and speaks only what it has not heard, and files the result through release.yml as any render.
+name: seed-narration
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'Edition slug, as in src/lib/editions.mjs'
+        required: true
+      run_id:
+        description: 'The film.yml run whose artifact film-<slug>-wide carries the voice to keep'
+        required: true
+      render:
+        description: 'Then render the edition again through film.yml, voicing only the blocks whose words changed'
+        type: boolean
+        default: false
+
+env:
+  NARRATOR: ${{ vars.NARRATOR }}  # empty: the channel's voice from src/config.mjs
+  SLUG: ${{ inputs.slug }}
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
+    # The same group as film.yml's render, so a seed never writes the cache a render is reading or saving.
+    concurrency:
+      group: film-${{ inputs.slug }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: The render that spoke it
+        uses: actions/download-artifact@v4
+        with:
+          name: film-${{ inputs.slug }}-wide
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: render
+
+      # What the cache already holds is kept; the seed adds to it.
+      - name: Narration cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/aedificare-narration
+          key: narration-${{ env.SLUG }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: narration-${{ env.SLUG }}-
+
+      - name: Seed
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY || secrets.PLUTO }}
+        run: |
+          N="${NARRATOR:-$(node --input-type=module -e "import('./src/config.mjs').then((m) => console.log(m.NARRATOR))")}"
+          case "$N" in
+            eleven:*) V="${N#eleven:}" ;;
+            *) echo "::error::the channel's voice is $N; this seeds the ElevenLabs cache only"; exit 1 ;;
+          esac
+          ls render | head -40
+          mkdir -p ~/.cache/aedificare-narration
+          export NARRATION_CACHE=~/.cache/aedificare-narration
+          uv run tools/seed-narration.py render --voice "$V" | tee seed.log
+          { echo "## seed-narration: $SLUG from run ${{ inputs.run_id }}"; echo; echo '```'; cat seed.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the narration cache
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/aedificare-narration
+          key: narration-${{ env.SLUG }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+  render:
+    needs: seed
+    if: ${{ inputs.render }}
+    uses: ./.github/workflows/film.yml
+    permissions:
+      contents: write
+      actions: read
+    with:
+      slug: ${{ inputs.slug }}
+      format: wide
+    secrets: inherit

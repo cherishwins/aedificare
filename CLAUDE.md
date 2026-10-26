@@ -457,7 +457,16 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `narrate_eleven.py` when `NARRATOR` is `eleven:<voice id>`, the channel's
   voice since 2026-10-17: one request a block, every word's time from the
   reply's character times, the same wav2vec2 gate, a block cache, spent
-  credits exit 75), `voice-samples.mjs`
+  credits exit 75), `seed-narration.py` (2026-10-26: puts a film's voice
+  back in that block cache from the render artifact that spoke it,
+  `narration.json` and `narration.wav`, under the keys the current code
+  would ask for, leaving out and naming every block whose spoken text the
+  current normaliser changes, so a render after a fix to the words pays
+  for those blocks alone; refuses another model's or voice's narration;
+  tried offline on The Countersign's narration with a synthetic wav: 55
+  blocks back, the 5 "dollars" blocks named, about 1,100 characters to
+  voice again; run by `.github/workflows/seed-narration.yml`),
+  `voice-samples.mjs`
   (the same passage in every candidate voice, filed under the Release
   `voice-samples`: Kokoro, Gemini, and an ElevenLabs voice designed from
   the Gemini analyst's own description with a fixed seed, so the paid
@@ -1260,6 +1269,20 @@ for a shortlist for bios and cards, which is a separate deliverable.
   title or description changes in `src/lib/editions.mjs` and reaches the
   channel in minutes, at no render and no voice credits. It downloads a
   re-cut's `cuts.json` too, so the refile keeps its credits.
+- `.github/workflows/seed-narration.yml`: manual dispatch, `slug`,
+  `run_id` (the `film.yml` run whose artifact `film-<slug>-wide` carries
+  the voice; artifacts last 90 days) and `render`. Downloads that
+  artifact, restores the edition's narration cache, runs
+  `tools/seed-narration.py` with the voice's settings read from the
+  account (the key is never used to speak), prints the credits used and
+  the reset date in the job summary, saves the cache under
+  `narration-<slug>-…`, and with `render=true` calls `film.yml`, which
+  restores that cache by its prefix and voices only the blocks the seed
+  left out. Written 2026-10-26 for the three films that carry "1 dollars
+  billion" (The Countersign from run 39031456682, The Markup from
+  39159409713, The Subtraction from 39159416466), whose caches GitHub had
+  dropped after seven idle days: whole re-voicings were about 5,000
+  credits, the changed blocks a few hundred.
 - `.github/workflows/verify-live.yml`: manual dispatch, `url` input. Curls
   every route and discovery file on the live origin, checks the headers,
   canonical, draft noindex and sitemap exclusion, then runs the same sweep
