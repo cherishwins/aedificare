@@ -24,7 +24,7 @@ export const isNumWord = (t) => t.split('-').every((p) => p in UNITS || p in TEN
 export function numbersIn(text) {
   const pairs = [];
   // A suffix letter counts only when no letter follows it: "19th" is 19, "10km" is 10 with its unit, "$50k" is 50 thousand.
-  const toks = String(text).toLowerCase().replace(/[–—]/g, ' ').match(/\d[\d,]*(?:\.\d+)?(?:[kmbt](?![a-z]))?|[a-z]+(?:-[a-z]+)*/g) || [];
+  const toks = String(text).toLowerCase().replace(/[\u2013\u2014]/g, ' ').match(/\d[\d,]*(?:\.\d+)?(?:[kmbt](?![a-z]))?|[a-z]+(?:-[a-z]+)*/g) || [];
   for (let i = 0; i < toks.length; i++) {
     const t = toks[i];
     if (/\d/.test(t)) {
@@ -71,7 +71,7 @@ export const has = (facts, v) => facts.nums.some((x) => Math.abs(x - v) <= 1e-9 
 export const found = (facts, [v, sc]) => has(facts, v) || (sc !== null && has(facts, sc));
 /** The numbers in a text that the page does not carry, each as written. */
 export const missingNumbers = (facts, text) => numbersIn(text).pairs.filter((p) => !found(facts, p)).map((p) => p[0]);
-const ONE_SURFACE = new Set(['card', 'fig', 'over', 'title', 'pop']); // the kinds whose fields are one surface of type
+const ONE_SURFACE = new Set(['card', 'fig', 'over', 'title', 'pop', 'thumb']); // the kinds whose fields are one surface of type
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 /**
@@ -82,10 +82,12 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
  * the speaker's, read for their numbers only, never counted as display copy or held to its rules (a cut list's
  * quotes are also checked online against their source). A bars, range, stack or line row shows its display text
  * where it has one (chart.mjs `val`: the text in place of the value, or of a range's high end) and its value otherwise.
+ * An episode's thumbnail (`thumb:` in its front matter, two lines in one string, no tag) shows that string.
  */
 export function displayed(tag, T) {
   const k = tag.kind;
   if (k === 'pop') return [[tag.text, true]];
+  if (k === 'thumb') return [[tag.text, false]];
   if (k === 'fig' || k === 'over') return [[tag.value, false], [tag.label, false]];
   if (k === 'card') return [[tag.text, false], [tag.label, false]];
   if (k === 'title') return T ? [[T.title, false], [T.dateLabel, false]] : [];

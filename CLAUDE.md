@@ -607,17 +607,26 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `tools/lib/facts.mjs` (the same reading `cuts.mjs` gives a cut list) and
   fails on every number it does not carry, spoken or on a computed
   surface (a figure, a card, a pop, an overlay, a chart's display text and
-  its timeline's dates, a quote card's words and source line, the title),
+  its timeline's dates, a quote card's words and source line, the title,
+  and the thumbnail's lines, `thumb:` to `thumb3:`, type the render sets
+  in Acid and Flash from the front matter and the most seen computed
+  surface of all: a review of the same day put $52,000 on one and it
+  passed clean against a page that prints $50,000),
   naming the line; wording is free, so a spoken word off the page is
   nothing and a surface's word off the page is a warning, as on a cut
-  list; the kit's twelve words on a card, its label counted with it, and
-  on each label of a chart come with the same function. Tried on The
+  list; the kit's twelve words on a card, its label counted with it, on
+  the thumbnail and on each label of a chart come with the same function.
+  A draft edition is refused before a credit is spent, because a film
+  waits for its edition's check (Decisions log, 18 Oct 2026); its page
+  builds for the sweep, so until the review a script naming one passed
+  the gate against it. Tried on The
   Countersign's pilot script (26 Oct 2026): every number in its sixteen
   paragraphs and on its fifty-nine tagged surfaces was on the page, four
   planted ones (a spoken 52,000, a 9,500 on a figure, a $1.1B in a chart's
   display text, an 18 June for the page's 17th) were each named with their line,
-  and seven of its chart subtitles, notes and figure labels ran over
-  twelve words, which is the pilot author's to cut. The film then closes
+  and eight of its chart subtitles, notes and figure labels ran over
+  twelve words (six chart texts, two figure cards; the first count here
+  said seven), which is the pilot author's to cut. The film then closes
   as an edition film closes: the record line (`recordText` in
   `tools/lib/film.mjs`, the text `generate-film.mjs` writes, the section
   count from `src/lib/editions.mjs` and the source count from the page's
@@ -626,7 +635,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `src/scripts/aed.js` loaded into the frame as the edition films load
   it, in place of the end card; the Short ends the same way, the bed ends
   before the dove, and `longHolds` leaves both alone. The record costs
-  voice like any paragraph. The parser now keeps each block's line for
+  voice like any paragraph. The film's and the Short's descriptions open
+  with the edition's link, as the edition films' do (Decisions log, 20 Oct
+  2026), and `check` warns when a `hook:` types it too; whether an
+  `edition:` film's description should be the edition's own (`filmMeta`
+  in `tools/lib/film-meta.mjs`) rather than the episode's is the owner's
+  call, not changed. The parser now keeps each block's line for
   the messages, blanking comments line for line as `cuts.mjs` does; every
   script splits into the same paragraphs as before (checked over all six
   and the pilot), every tag of all six still builds to byte-identical HTML
@@ -1038,7 +1052,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   numbers, the page's SVG left out, so a path's 44.27 is not a fact;
   `tools/lib/facts.mjs` since 26 Oct 2026, the one reading the episodes'
   edition films share, and The Floor's list gets the same verdicts from
-  it), a pop's words too; every page shot captured (our own page with grey
+  it; since the same day a quote card's words are read for their numbers
+  and its `by:` line is held to the page's words, where a quote had been
+  passed over, and The Floor's four pass), a pop's words too; every page shot captured (our own page with grey
   text) and its words boxed; twelve
   words on a card, its label counted with it, three in a pop; the
   owner's footage named in `footage/credits.txt` or refused, its line in

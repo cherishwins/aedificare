@@ -35,8 +35,11 @@
  * left out, spelled numbers read as numbers: tools/lib/facts.mjs, the same
  * reading the re-cut's cut lists get): every number spoken, and every number
  * on a computed surface (a figure, a card, a pop, an overlay, a chart's
- * display text, a quote card and its source line, the title), is on that
- * page or `check` fails and names it with its line. Wording is free. And it
+ * display text, a quote card and its source line, the title, the
+ * thumbnail's lines), is on that page or `check` fails and names it with
+ * its line. Wording is free. A draft edition is refused before a credit is
+ * spent: a film waits for its edition's check. The description opens with
+ * the edition's link, as the edition films' do. And it
  * closes as an edition film closes: the record line read aloud (the text
  * tools/generate-film.mjs writes, from src/lib/editions.mjs and the page's
  * own sources list) on Flash, then the dove in silence, in place of the end
@@ -72,8 +75,8 @@ function parse(file) {
   const src = fs.readFileSync(file, 'utf8');
   const fm = /^---\n([\s\S]*?)\n---\n/.exec(src);
   if (!fm) { console.error(`episode: ${file} has no front matter`); process.exit(1); }
-  const meta = {};
-  for (const line of fm[1].split('\n')) { const i = line.indexOf(':'); if (i > 0) meta[line.slice(0, i).trim()] = line.slice(i + 1).trim(); }
+  const meta = {}, metaLine = {}; // the front matter's keys, and the line each is on (line 1 is the opening ---), for the messages
+  fm[1].split('\n').forEach((line, k) => { const i = line.indexOf(':'); if (i > 0) { const key = line.slice(0, i).trim(); meta[key] = line.slice(i + 1).trim(); metaLine[key] = k + 2; } });
   // Comments are blanked line for line (as tools/cuts.mjs reads a list), so every block keeps the line it starts on
   // for the messages; the paragraphs are the same as when a comment was cut out whole (checked over every script).
   const body = src.slice(fm[0].length).replace(/<!--[\s\S]*?-->/g, (c) => c.replace(/[^\n]/g, ''));
@@ -125,10 +128,14 @@ function parse(file) {
   if (meta.edition) {
     E = edition(meta.edition);
     if (!E) issues.push(`edition: ${meta.edition} is not one of our editions`);
+    // A draft's page builds (noindex) so it can be swept, but a film waits for its edition's check (CLAUDE.md, Decisions
+    // log, 18 Oct 2026): a page nobody has checked would become a film nobody has checked, in a voice, so the script is
+    // refused here, before a credit is spent on it (review, 26 Oct 2026).
+    else if (E.draft) issues.push(`edition: ${E.slug} is a draft; a film waits for its edition's check`);
     else if (!(built = pageFacts(E))) issues.push(`dist/${E.slug}/index.html is not built: run npm run build`);
     else { const text = recordText(E, E.contents.length, built.sources); blocks.push({ kind: 'record', text, tokens: text.split(' '), events: [], cites: [], read: true, line: null }); }
   }
-  return { meta, sources, blocks, issues, E, built };
+  return { meta, metaLine, sources, blocks, issues, E, built };
 }
 
 /* ---- check: facts are not free ------------------------------------------- */
@@ -217,6 +224,13 @@ async function check(S, { quiet = false } = {}) {
       if (b.kind === 'p') for (const v of missingNumbers(S.built, b.text)) out.issues.push(`line ${b.line}: ${v} is not on the built page ("${sentence(b.text, v)}"); facts are not free`);
       for (const e of (b.events || [])) facts(X, { line: b.line, kind: e.tag.kind, tag: e.tag }, out, { page: true });
     }
+    // The thumbnail's lines (`thumb:`, `thumb2:`, `thumb3:`, "line one / line two") are type the render sets in Acid and
+    // Flash from the front matter, not from a tag, and the most seen computed surface of all, so they are read as a card
+    // is: its numbers on the page, its words a warning, twelve words at most (a review of 26 Oct 2026 put $52,000 on one
+    // and it passed clean against a page that prints $50,000).
+    for (const n of ['', '2', '3']) if (S.meta[`thumb${n}`]) facts(X, { line: S.metaLine[`thumb${n}`], kind: 'thumb', tag: { kind: 'thumb', text: S.meta[`thumb${n}`] } }, out, { page: true });
+    // The description opens with the edition's link (describe); a hook that types it too would read it twice.
+    if ((S.meta.hook || '').includes(SITE.origin + S.E.path)) out.warnings.push(`line ${S.metaLine.hook}: hook: carries ${SITE.origin + S.E.path}, which the description opens with; it would read twice`);
     issues.push(...out.issues); warnings.push(...out.warnings);
   }
   if (ONLINE) {
@@ -426,6 +440,8 @@ function describe(T, bedLine) {
   if (uncredited.length) warnOnce(`episode: ${uncredited.length} file(s) in use with no line in footage/credits.txt ("id: source, licence"): ${uncredited.join(', ')}`);
   const firstP = S.blocks.find((x) => x.kind === 'p');
   const text = [
+    // An edition film's description opens with the edition's link, as the edition films' do (owner, 20 Oct 2026).
+    ...(S.E ? [SITE.origin + S.E.path] : []),
     S.meta.hook || firstP.text,
     '',
     ...chapterLines, ...(chapterLines.length ? [''] : []),
@@ -589,7 +605,7 @@ async function render() {
     const shortCues = cues.map((c) => ({ ...c, s: remap(c.s), e: remap(Math.min(c.e, segs.find(([a, b]) => c.s >= a && c.s < b)?.[1] ?? c.e) - 0.001) })).filter((c) => c.s !== null && c.e !== null);
     fs.writeFileSync(path.join(DIR, 'captions-short.srt'), srt(shortCues));
     const len = segs.reduce((n, [a, b]) => n + b - a, 0);
-    const description = [S.meta.hook || firstP.text, '', 'The full film is on the channel.', '', 'Sources:', ...sources, '', `Voice: synthetic, ${T.N.model} ${T.N.voice}.`, SITE.origin].join('\n');
+    const description = [...(S.E ? [SITE.origin + S.E.path] : []), S.meta.hook || firstP.text, '', 'The full film is on the channel.', '', 'Sources:', ...sources, '', `Voice: synthetic, ${T.N.model} ${T.N.voice}.`, SITE.origin].join('\n');
     fs.writeFileSync(path.join(DIR, 'meta-short.json'), JSON.stringify({
       kind: 'short', slug: SLUG, title: S.meta.title, description, file: path.basename(short), captions: 'captions-short.srt',
       thumbnail: null, categoryId: '28', licence: 'youtube', madeForKids: false, duration: Math.round(len),
