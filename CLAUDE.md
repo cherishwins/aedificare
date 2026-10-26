@@ -933,8 +933,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
   footage arrives) and Acid otherwise, and is composed as one sparse
   ffconcat layer of its four stills over the `over` chain, as the re-cut
   composes its pops, because a looped PNG input is decoded again for
-  every frame of the film and four of them a pop would have cost a
-  ten-minute film an hour; two pops on one word fail the check, and a
+  every frame of the film. Measured on this sandbox's four cores (26
+  Oct 2026; a 60 s 1080p clip through the final mix's own encode, three
+  runs of each): the encode alone took 21 s, with four looped full-frame
+  stills 49 to 50 and with sixteen 146 to 149, about 7 to 8 s a still
+  for each minute of film, where one sparse layer holding the same
+  sixteen stills took 23 to 24; so four stills a pop over twelve pops
+  would have cost a ten-minute film an hour, and the layer costs it
+  under half a minute. Two pops on one word fail the check, and a
   pop left under half a second before the next tag (which ends it, as
   it ends every overlay) stops the render before its first frame, as
   the re-cut refuses one. A `[[page: s3 | hl: words | by: Author]]` is cut through
@@ -965,7 +971,22 @@ for a shortlist for bios and cards, which is a separate deliverable.
   both; and the whole render composed through `episode.mjs render`
   with a synthetic narration cache and `uv` off the PATH, so nothing
   could speak. The six scripts still build byte for byte (611 HTML
-  hashes) and short-onegov's shots render to the same 196 hashes.
+  hashes) and short-onegov's shots render to the same 196 hashes. A
+  review the same day found two things the build had left apart: a cut
+  list's page tag may carry `by:` since `parsePage` took it, and its
+  label named that author while the check's byline warning and the
+  description's credits still read the credit without it, so `checkPage`
+  and `creditOf` in `tools/cuts.mjs` pass the tag's `by:` to `pageSource`
+  as `pageHtml` does (the source line's `by:` still wins); and the
+  episode's `checkPage` had dropped the cut list's guards for our own
+  page, so it holds them: a `self <slug>#<id>` capture older than the
+  page as built (its sha256 against `dist/`) warns, one shot before grey
+  text fails, and a self shot naming no page of ours fails in `check`,
+  where the capture would have refused it under a stem the check never
+  looked for (an episode's is hashed with `ep-<slug>`), each tried on a
+  scratch script against The Floor's built page. The review's aside, not
+  this code: on the Wikipedia capture `pageCrop` kept the next heading
+  below the words, which Wikipedia wraps in a `div.mw-heading`.
   **`tools/capture.mjs` shoots the pages a film shows** (2026-10-20), the
   capture half of the `page` shot: a cited source in Chromium, 1440 CSS px
   wide at twice the pixel density, under the honest agent

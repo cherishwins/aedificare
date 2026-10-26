@@ -21,7 +21,8 @@
  *
  * THE LIST. Front matter pins what it was written against; a source line gives an outside source the URL its page
  * does not carry (the pages cite as text: CLAUDE.md, "Block links only"), `pub:` and `date:` where a card names it,
- * and `by:` where the author a credit names is not the one the capture read (a page shot names its author either way);
+ * and `by:` where the author a credit names is not the one the capture read (a page shot names its author either way;
+ * `by:` on one page tag does the same for that shot alone, on its label and in the credits, and the source line's wins);
  * an anchor line is a phrase the narration says, then the shot, in episode.mjs's tag grammar:
  *
  *   ---
@@ -575,7 +576,8 @@ function checkPage(X, e, out) {
   if (rec.source && rec.source.namesHost === false) out.warnings.push(`${where}: source ${rec.src}'s entry does not name ${new URL(rec.url).hostname}; a person confirms the URL is the cited document`);
   // Fair dealing names the author where the source gives one (ss. 29.1 and 29.2): a by: that leaves the page's own
   // byline out is said, so a person decides.
-  const ps = pageSource({ S: shotS(X) }, rec);
+  // The tag's own by: reaches the credit as it reaches the label (pageHtml), so the two cannot differ (review, 26 Oct).
+  const ps = pageSource({ S: shotS(X) }, rec, e.tag.by || null);
   if (ps.author && !namesAuthor(`${ps.by || ''} ${ps.pub}`, ps.author)) out.warnings.push(`${where}: source ${rec.src}'s page gives its author as "${ps.author}", and its credit ("${ps.by ? `${ps.by}, ` : ''}${ps.pub}") does not name them; fair dealing names the author the source gives`);
   if (rec.self && rec.built?.sha256) {
     const f = path.join('dist', edition(rec.page).path.replace(/^\//, ''), 'index.html');
@@ -611,7 +613,7 @@ function creditOf(X, C, e) {
   if (e.kind === 'page') {
     const r = pageCapture(X, e);
     if (!r.rec || !r.rec.src) return [];
-    const ps = pageSource(C, r.rec), n = r.rec.src, v = pageView(C, r.rec, r.shot);
+    const ps = pageSource(C, r.rec, e.tag.by || null), n = r.rec.src, v = pageView(C, r.rec, r.shot);
     // The author before the publisher, as the label sets them; a shot shown as its quote card shows no pixels of the page.
     return [{ n, line: ps.own ? `[${n}] ${ps.own}, ${ps.date}, this site` : `[${n}] ${ps.by ? `${ps.by}, ` : ''}${ps.pub}, ${ps.date}`.replace(/, $/, ''), by: ps.by, own: !!ps.own, pixels: !v.card && !v.error }];
   }

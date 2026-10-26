@@ -18,7 +18,11 @@ node tools/episode.mjs all    source/episodes/<slug>.md              narrate if 
    committee's own hearing video. Every figure and quote gets a source line.
 3. **Script.** Written here, in the voice, with shot tags.
 4. **Check.** `check --online` passes: every sentence with a number cites a
-   source, every quote's words are on its source page.
+   source, every quote's words are on its source page. A `[[page: ...]]`
+   tag is shot first, `node tools/capture.mjs source/episodes/<slug>.md`,
+   into `brand/youtube/ep-<slug>/pages/`; `check` names one not shot yet,
+   and the `episode` workflow has no capture step, so a script with a page
+   tag renders only where its pages were shot.
 5. **Sheet.** `sheet` lists every clip, footage shot and gag the script asks
    for, with the file name each one needs. The owner finds them and attaches
    them to the GitHub Release `footage-<slug>`.

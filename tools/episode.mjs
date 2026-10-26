@@ -35,15 +35,19 @@
  * word fail the check, and one left under half a second before the next tag stops the render before its first
  * frame. `[[page: s3 | hl: the words | by: Author]]` is the cited source as tools/capture.mjs shot it
  * (`node tools/capture.mjs source/episodes/<slug>.md`), its words swept in Acid, or its quote card where the capture
- * was refused or a frame cannot show the words whole (pageView); `check` names a page tag with no capture yet.
+ * was refused or a frame cannot show the words whole (pageView); `check` names a page tag with no capture yet, a
+ * self shot that names no page of ours (an episode has none), and one of our pages changed since its capture or
+ * shot before grey text, as tools/cuts.mjs names them for a cut list.
  *
  * The script format is documented in source/episodes/FORMAT.md.
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { browser, findFfmpeg, openContext, esc, ACID, VOID, FLASH } from './lib/film.mjs';
 import { NARRATOR, SITE } from '../src/config.mjs';
+import { edition } from '../src/lib/editions.mjs';
 import { CHART_TYPES, hotValues, findSpoken } from './lib/chart.mjs';
 // The shots themselves (the tag, the computed cards, the footage cut, one shot to one segment) live in
 // tools/lib/shots.mjs, so the edition films' cut lists build them the same way.
@@ -224,12 +228,17 @@ const CARD_WHY = { picture: 'a picture on the source touches its words, so text 
  * source gives, ss. 29.1 and 29.2), and what each frame makes of it (pageView): the page, or the shot's quote card
  * where a picture touches the words or the frame cannot show them whole, said so a person knows what the film shows.
  * A refused capture is a warning, as in a cut list: the shot is a quote card of words nobody could read on the source.
+ * Our own page is named as a cut list's is: changed since its capture (its built sha256 against dist/) a warning,
+ * shot before grey text an issue, and a self shot naming no page of ours an issue here, where tools/capture.mjs
+ * would refuse it under a name the check does not look for (an episode's stem is hashed with ep-<slug>).
  */
 function checkPage(S, e, issues, warnings, used) {
-  const where = `[[page: ${e.tag.body.slice(0, 60)}]]`;
+  // The tag by its head and first phrase, whole, rather than cut at a count of characters mid-word.
+  const where = `[[page: ${e.tag.body.split('|')[0].trim()}${e.tag.hls.length ? ` | hl: ${e.tag.hls[0]}` : ''}]]`;
   const urls = Object.fromEntries(Object.values(S.sources).map((s) => [s.id, s.url]));
   let shot;
   try { shot = parsePage(e.tag.body, urls); } catch (err) { issues.push(`${where}: ${err.message.replace(/^page:\s*/, '')}`); return; }
+  if (shot.self && !shot.page) { issues.push(`${where}: an episode has no page of its own; name one of ours: self <slug>#<id>`); return; }
   if (!shot.self) { if (!S.sources[shot.src]) { issues.push(`${where}: ${shot.src} is not in # Sources`); return; } used.add(shot.src); }
   const file = path.join(DIR, 'pages', `${shotName(SLUG, shot)}.json`);
   if (!fs.existsSync(file)) { issues.push(`${where}: no capture yet (${file}); node tools/capture.mjs ${FILE} shoots every page tag of the script, --page "<tag>" one of them`); return; }
@@ -240,6 +249,15 @@ function checkPage(S, e, issues, warnings, used) {
   if (lost.length) { issues.push(`${where}: "${lost.join('", "')}" not boxed in the capture`); return; }
   const ps = pageSource({ S }, rec, e.tag.by || null);
   if (ps.author && !namesAuthor(`${ps.by || ''} ${ps.pub}`, ps.author)) warnings.push(`${where}: the page gives its author as "${ps.author}" and its credit ("${ps.by ? `${ps.by}, ` : ''}${ps.pub}") does not name them; by: names the author the source gives`);
+  // Our own page as built (tools/cuts.mjs checkPage holds the same): a capture older than the page shows the page
+  // as it was, and one shot before tools/capture.mjs drew text grey carries Chromium's blue and orange fringes on
+  // every glyph, colours the kit does not have.
+  const ed = rec.self && rec.built?.sha256 ? edition(rec.page) : null;
+  if (ed) {
+    const f = path.join('dist', ed.path.replace(/^\//, ''), 'index.html');
+    if (fs.existsSync(f) && rec.built.sha256 !== crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex')) warnings.push(`${where}: our page ${rec.page} changed since its capture (${rec.readAt.slice(0, 10)}); capture it again so the shot shows the page as built`);
+  }
+  if (rec.self && !rec.greyText) { issues.push(`${where}: our page ${rec.page}'s capture (${rec.readAt.slice(0, 10)}) predates grey text, so its type carries colours the kit does not have; capture it again (node tools/capture.mjs ${FILE} --page "${e.tag.body}")`); return; }
   for (const short of [false, true]) {
     const v = pageView(shotContext({ S, short, dir: DIR, slug: SLUG, capture: FILE }), rec, shot);
     if (v.error) issues.push(`${where}: ${v.error}`);
@@ -456,7 +474,9 @@ async function render() {
   // before it cannot be read and stops the render, as the re-cut refuses it (tools/cuts.mjs MIN), and two at once (two
   // on one word, which the check names too) would land on each other; one over a shot or an overlay that spends Acid
   // is Flash, one over a shot that spends none is Acid (one Acid at a time, as tools/cuts.mjs decides it; a slate's
-  // key line is Acid too, so a pop over a slate turns Acid once the footage arrives).
+  // key line is Acid too, so a pop over a slate turns Acid once the footage arrives). A quote with hl: counts even
+  // where quoteHtml finds the phrase nowhere in its text and draws no bar, so that pop is Flash over a card with no
+  // Acid on it: the safe side, never a second Acid.
   const spends = (s) => ACID_KINDS.has(s.tag.kind) || (s.tag.kind === 'quote' && !!s.tag.hl) || (OWNER.includes(s.tag.kind) && !footageFile(C, s.tag.id));
   const meets = (a, b) => a.t < b.end && a.end > b.t;
   for (const o of T.pops) {

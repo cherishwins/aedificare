@@ -140,7 +140,7 @@ export function parsePage(body, sources = {}) {
   else if ((m = /^(s\d+)$/.exec(head))) { shot.src = m[1]; shot.url = shot.url || sources[shot.src] || null; }
   else throw new Error(`page: "${head}" is neither a source number (07, or an episode's s3) nor self <n>, self #<id> or self <slug>#<id>`);
   if (shot.hl.some((h) => !h)) throw new Error(`page: ${head} has an empty hl:; copy the words from the source itself`);
-  if (!shot.self && !shot.url) throw new Error(`page: source ${shot.src} has no URL (give url:, or a "- ${shot.src} | <url>" line under # Sources)`);
+  if (!shot.self && !shot.url) throw new Error(`page: source ${shot.src} has no URL (give url:, or ${/^s\d+$/.test(shot.src) ? `the URL last on its "- ${shot.src} | publisher | title | date | url" line` : `a "- ${shot.src} | <url>" line`} under # Sources)`);
   // The words are the point of a source's shot: a page with nothing found on it proves nothing.
   if (!shot.self && !shot.hl.length) throw new Error(`page: source ${shot.src} needs hl:, the words the shot is for`);
   return shot;
@@ -1007,7 +1007,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   let sources = {};
   if (cuts) { const c = cutsPages(cuts); sources = c.sources; tags.push(...c.tags); }
   if (script) { const e = episodePages(script); sources = e.sources; slug = `ep-${e.slug}`; if (!tags.length) tags.push(...e.tags); }
-  if (!tags.length) { console.error(`capture: ${script} has no [[page: ...]] tag`); process.exit(1); }
+  if (!tags.length) { console.error(`capture: ${cuts || script} has no [[page: ...]] tag`); process.exit(1); }
   let shots;
   try { shots = tags.map((t) => parsePage(t, sources)); } catch (e) { console.error(`capture: ${e.message}`); process.exit(1); }
   const records = await capture(slug, shots, { out, clean: !flag('--raw'), height, episode: !!script });
