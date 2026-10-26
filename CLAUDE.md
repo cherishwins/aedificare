@@ -248,7 +248,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
 
 ## Stack
 
-- **Astro 7.3**, `output: 'static'`, **no adapter**: there are no API routes,
+- **Astro 7.4**, `output: 'static'`, **no adapter**: there are no API routes,
   so `@astrojs/vercel` would be a dependency that serves nothing. Vercel
   detects Astro and publishes `dist/`; `tools/verify.cjs` sweeps that same
   directory so the check runs on the bytes that ship.
@@ -392,7 +392,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
   future exemption goes; on 2026-10-21 three advisories in the
   `launch-editor` that vite 8.3.0 bundles, one high, turned CI red the same
   way, and `npm audit fix` took vite to 8.3.4 with its rolldown, postcss and
-  nanoid, the lockfile alone),
+  nanoid, the lockfile alone; on 2026-10-26 four more turned it red, two
+  high, in the `undici` astro 7.3's `unifont` brings and in `zod`, and
+  the fixed undici (8.12.2, 15 Oct) comes only with astro 7.4's unifont,
+  so `npm audit fix` took astro from 7.3.2 to 7.4.1, the lockfile alone
+  again; 7.4 keeps a newline and indent inside some elements that 7.3
+  dropped, so eleven pages' bytes changed while every page's text,
+  layout and full-page pixels at 1440 and 390 stayed identical, and
+  `/llms-full.txt` gained blank lines),
   `check-contents.cjs` (every contents entry in
   `src/lib/editions.mjs` must exist as an id and a heading in the built
   edition page, and every published page's meta description must run 100
@@ -2330,10 +2337,10 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   the click; it was offered, and the owner chose the plain link.
   **Small on purpose.** Each thumbnail
   sets one word or figure in Acid; at 112 by 63 its tallest band of Acid
-  ink, as the probe reads it where it is shown, is 14 px (The Supply
-  Cabinet's 1,200 and The Countersign's 9,000+), 12 (SUBTRACTION and
-  The Tilt Gap's GAP) and 11 (69), and The Markup's
-  $18,214, not linked yet, reads 15, all under the 16 px capital
+  ink, as the probe reads it where it is shown, is 15 px (The Markup's
+  $18,214), 14 (the 1,200 of The Supply Cabinet and of The Snapshot
+  Problem, and The Countersign's 9,000+), 12 (SUBTRACTION, The Tilt
+  Gap's GAP and The Floor's 15) and 11 (69), all under the 16 px capital
   of 24 px type where the probe starts counting "at scale". At 128 by 72
   the 1,200 reached 16 px with its comma, so the size came down. A surface
   of the film's own, the other form, would have put a loud move after the
@@ -2364,7 +2371,9 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   Fourth Axis (`9joaycmFqsU`), The Subtraction (`00hUzMPhGsY`) and The
   Supply Cabinet (`yGdOAIj1Wa8`); then The Countersign (`6j4BfaF8ZvM`),
   public at 15:00 UTC on 21 Oct, and The Tilt Gap (`mCq1v6d3GVs`) at
-  15:00 UTC on 22 Oct.
+  15:00 UTC on 22 Oct; then, read public by `list` at 18:05 UTC on 26
+  Oct, The Snapshot Problem (`pJkE2cNBWvs`, 23 Oct), The Markup
+  (`DFPTdSYPNkE`, 24 Oct) and The Floor (`5VFA1JW5HJk`, 26 Oct).
 
 ## Open
 
