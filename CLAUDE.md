@@ -248,7 +248,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
 
 ## Stack
 
-- **Astro 7.3**, `output: 'static'`, **no adapter**: there are no API routes,
+- **Astro 7.4**, `output: 'static'`, **no adapter**: there are no API routes,
   so `@astrojs/vercel` would be a dependency that serves nothing. Vercel
   detects Astro and publishes `dist/`; `tools/verify.cjs` sweeps that same
   directory so the check runs on the bytes that ship.
@@ -392,7 +392,14 @@ for a shortlist for bios and cards, which is a separate deliverable.
   future exemption goes; on 2026-10-21 three advisories in the
   `launch-editor` that vite 8.3.0 bundles, one high, turned CI red the same
   way, and `npm audit fix` took vite to 8.3.4 with its rolldown, postcss and
-  nanoid, the lockfile alone),
+  nanoid, the lockfile alone; on 2026-10-26 four more turned it red, two
+  high, in the `undici` astro 7.3's `unifont` brings and in `zod`, and
+  the fixed undici (8.12.2, 15 Oct) comes only with astro 7.4's unifont,
+  so `npm audit fix` took astro from 7.3.2 to 7.4.1, the lockfile alone
+  again; 7.4 keeps a newline and indent inside some elements that 7.3
+  dropped, so eleven pages' bytes changed while every page's text,
+  layout and full-page pixels at 1440 and 390 stayed identical, and
+  `/llms-full.txt` gained blank lines),
   `check-contents.cjs` (every contents entry in
   `src/lib/editions.mjs` must exist as an id and a heading in the built
   edition page, and every published page's meta description must run 100
