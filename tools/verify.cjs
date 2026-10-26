@@ -210,7 +210,7 @@ const ACID_PROBE = async () => {
       const ink = await acidInk(img);
       if (ink < CAP) continue;
       hits.push(`[image ${img.getAttribute('src')}]`);
-      if (img.closest('.film')) out.push({ surface: label(), hits: [`[film thumbnail ${img.getAttribute('src')}: ${ink}px of Acid ink, at or over the ${CAP.toFixed(1)}px capital]`], film: true });
+      if (img.closest('.film, .player')) out.push({ surface: label(), hits: [`[film thumbnail ${img.getAttribute('src')}: ${ink}px of Acid ink, at or over the ${CAP.toFixed(1)}px capital]`], film: true });
     }
     for (const el of s.querySelectorAll('*')) {
       if (el.closest('.surface') !== s) continue;
@@ -219,6 +219,9 @@ const ACID_PROBE = async () => {
       if (!r.width || !r.height) continue;
       const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
       if (own && cs.color === ACID && parseFloat(cs.fontSize) >= 24) hits.push(el.textContent.trim().slice(0, 30));
+      // The film's poster is quiet: the cover above it is the loud move (CLAUDE.md, Decisions log, 26 Oct 2026).
+      if (el.closest('.player') && ((own && cs.color === ACID && parseFloat(cs.fontSize) >= 24) || el.getAttribute('stroke') === '#CCFF00'))
+        out.push({ surface: label(), hits: [`[film poster: Acid at scale in ${el.tagName.toLowerCase()}]`], film: true });
       if (el instanceof SVGElement && el.getAttribute('stroke') === '#CCFF00' && Math.max(r.width, r.height) >= 200) {
         const svg = el.closest('svg');
         if (!hits.includes('[rose]')) hits.push(svg?.dataset.dove !== undefined ? '[dove]' : '[rose]');
@@ -228,6 +231,49 @@ const ACID_PROBE = async () => {
   }
   return out;
 };
+
+/**
+ * The film plays on its page, and only once its reader asks (CLAUDE.md, Decisions log, 26 Oct 2026).
+ * Before the click: one player, no iframe, a button named by the film's record, at least YouTube's 200 by
+ * 200, and (counted by the sweep itself) no request off the origin. The click, Space or Enter: one iframe
+ * whose src is exactly the data-embed URL on YouTube's privacy-enhanced host, a title naming the film,
+ * autoplay and full screen allowed, a referrer YouTube can read, focus moved into it, nothing left in
+ * front of it, and the first request off the origin is that URL. Returns the page's problems.
+ */
+const EMBED = /^https:\/\/www\.youtube-nocookie\.com\/embed\/[A-Za-z0-9_-]{11}\?autoplay=1&playsinline=1&rel=0&color=white$/;
+async function filmProbe(page, how, off) {
+  const out = [];
+  const st = await page.evaluate(() => {
+    const boxes = document.querySelectorAll('[data-embed]'), box = boxes[0];
+    if (!box) return null;
+    const r = box.getBoundingClientRect(), btn = box.querySelector(':scope > button');
+    return { n: boxes.length, w: r.width, h: r.height, embed: box.dataset.embed, name: btn ? btn.textContent.replace(/\s+/g, ' ').trim() : null, iframes: document.querySelectorAll('iframe').length };
+  });
+  if (!st) return null;
+  if (st.n > 1) out.push(`${st.n} players; an edition has one film`);
+  if (st.iframes) out.push(`${st.iframes} iframe(s) before any click`);
+  if (st.w < 200 || st.h < 200) out.push(`the player is ${Math.round(st.w)}x${Math.round(st.h)}, under YouTube's 200x200`);
+  if (st.name === null) out.push('the poster is not a button once the script has run');
+  else if (!/^Film · \d+:\d\d/.test(st.name)) out.push(`the button's name "${st.name}" does not start with the film's record`);
+  if (!EMBED.test(st.embed)) out.push(`data-embed ${st.embed} is not the privacy-enhanced player URL`);
+  off.length = 0;
+  if (how === 'click') await page.click('[data-embed] > button');
+  else { await page.focus('[data-embed] > button'); await page.keyboard.press(how); }
+  await page.waitForTimeout(250);
+  const f = await page.evaluate(() => {
+    const box = document.querySelector('[data-embed]'), f = box.querySelector(':scope > iframe');
+    return f && { src: f.src, title: f.title, allow: f.allow, fs: f.allowFullscreen, ref: f.referrerPolicy, focused: document.activeElement === f, front: box.children.length };
+  });
+  if (!f) { out.push(`${how} made no player`); return out; }
+  if (f.src !== st.embed) out.push(`the player loaded ${f.src}, not ${st.embed}`);
+  if (!f.title.includes(', film, ')) out.push(`the player's title "${f.title}" does not name the film`);
+  if (!/\bautoplay\b/.test(f.allow) || !f.fs) out.push(`the player may not autoplay or fill the screen (allow="${f.allow}")`);
+  if (f.ref !== 'strict-origin-when-cross-origin') out.push(`the player's referrer policy is ${f.ref}; YouTube refuses an embed it cannot identify`);
+  if (!f.focused) out.push('focus did not move into the player');
+  if (f.front !== 1) out.push('something is left in the box with the player, in front of it');
+  if (off[0] !== st.embed) out.push(`the first request off the origin after the click was ${off[0] ?? 'none'}, not the player`);
+  return out;
+}
 
 /** The brand faces loaded, the fields are live, the dove exists where declared. */
 const RENDER_PROBE = () => ({
@@ -243,15 +289,18 @@ const RENDER_PROBE = () => ({
   if (!LIVE && !fs.existsSync(ROOT)) { console.error(`verify: no build at ${ROOT}`); process.exit(1); }
   if (LIVE) console.log(`  live sweep of ${LIVE}`);
   // No service worker, by decision (CLAUDE.md Q10). Its absence is asserted, not assumed.
-  const swProblems = [];
+  const swProblems = [], iframes = [];
   if (!LIVE) {
     if (fs.existsSync(path.join(ROOT, 'sw.js'))) swProblems.push('sw.js is in the build; the site ships no service worker');
     for (const f of fs.readdirSync(ROOT)) if (f.endsWith('.html') && /serviceWorker/.test(fs.readFileSync(path.join(ROOT, f), 'utf8'))) swProblems.push(`${f} references serviceWorker`);
+    // A film's player is made by the reader's click, never shipped: no page carries an iframe.
+    for (const p of PAGES) { const f = path.join(ROOT, p === '/' ? 'index.html' : p.endsWith('.html') ? p : `${p}/index.html`); if (fs.existsSync(f) && /<iframe\b/i.test(fs.readFileSync(f, 'utf8'))) iframes.push(`${p} ships an iframe; a film's player is made by the click`); }
   }
   for (const m of swProblems) console.log(`  SW        ${m}`);
+  for (const m of iframes) console.log(`  FILM      ${m}`);
 
   const browser = await chromium.launch();
-  let overflow = 0, clipped = 0, jsErrors = 0, taps = 0, contrast = 0, missing = 0, altMissing = 0, broken = 0, axeFails = 0, acid = 0, render = 0, offOrigin = 0;
+  let overflow = 0, clipped = 0, jsErrors = 0, taps = 0, contrast = 0, missing = 0, altMissing = 0, broken = 0, axeFails = 0, acid = 0, render = 0, offOrigin = 0, films = 0, filmFails = 0;
   const report = [];
 
   for (const width of VIEWPORTS) {
@@ -320,6 +369,37 @@ const RENDER_PROBE = () => ({
   }
   await rm.close();
   process.stdout.write(`  reduced-motion ✓\n`);
+
+  // The film, played: by mouse at desktop, by Space and by Enter on the phones. In its own context, so the
+  // requests the player makes once asked for are not counted against the pages above.
+  for (const [width, how] of [[1280, 'click'], [390, 'Space'], [320, 'Enter']]) {
+    const fc = await browser.newContext({ viewport: { width, height: 900 } });
+    const fp = await fc.newPage();
+    const off = [];
+    await serve(fp, () => {}, (u) => off.push(u));
+    for (const p of PAGES) {
+      off.length = 0;
+      await fp.goto(ORIGIN + p, { waitUntil: 'load' }).catch(() => null);
+      await fp.waitForTimeout(80);
+      if (off.length) { filmFails++; report.push(`  FILM      ${width}px  ${p}  asked ${off[0]} before any click`); }
+      const problems = await filmProbe(fp, how, off);
+      if (!problems) continue;
+      films++;
+      for (const m of problems) { filmFails++; report.push(`  FILM      ${width}px  ${p}  ${m}`); }
+    }
+    await fc.close();
+  }
+  // Without the script, the poster is the link it was rendered as.
+  const nj = await browser.newContext({ viewport: { width: 1280, height: 900 }, javaScriptEnabled: false });
+  const np = await nj.newPage();
+  await serve(np, () => {});
+  for (const p of PAGES) {
+    await np.goto(ORIGIN + p, { waitUntil: 'load' }).catch(() => null);
+    const href = await np.evaluate(() => { const a = document.querySelector('[data-embed] > *'); return a ? a.getAttribute('href') ?? a.tagName : null; });
+    if (href !== null && !/^https:\/\/www\.youtube\.com\/watch\?v=[A-Za-z0-9_-]{11}$/.test(href)) { filmFails++; report.push(`  FILM      no-js  ${p}  the poster is ${href}, not a link to the watch page`); }
+  }
+  await nj.close();
+  process.stdout.write(`  films played ✓\n`);
   await browser.close();
 
   if (report.length) console.log('\n' + report.join('\n'));
@@ -337,7 +417,8 @@ const RENDER_PROBE = () => ({
   console.log(`  axe-core violations      ${axeFails}`);
   console.log(`  Acid beyond its rule     ${acid}`);  // twice at scale on a surface, or a film thumbnail at scale
   console.log(`  render (fonts/rose/dove) ${render}`);
-  const bad = overflow + clipped + jsErrors + taps + contrast + missing + altMissing + broken + offOrigin + swProblems.length + axeFails + acid + render;
+  console.log(`  film players (${String(films).padStart(2)} played) ${filmFails + iframes.length}`);
+  const bad = overflow + clipped + jsErrors + taps + contrast + missing + altMissing + broken + offOrigin + swProblems.length + axeFails + acid + render + filmFails + iframes.length;
   console.log(bad ? `\nverify: ${bad} issue(s)` : '\nverify: clean');
   process.exit(bad ? 1 : 0);
 })();

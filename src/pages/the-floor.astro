@@ -6,6 +6,8 @@ import Section from '../components/Section.astro';
 import Rail from '../components/Rail.astro';
 import Stats from '../components/Stats.astro';
 import EditionEnd from '../components/EditionEnd.astro';
+import Formats from '../components/Formats.astro';
+import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { edition, LICENCE, describe, seedDrift, label } from '../lib/editions.mjs';
 import { SITE, abs } from '../config.mjs';
@@ -80,12 +82,14 @@ const sources = [
       <div class="grid cover-grid">
         <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Floor</span></h1>
         <p class="c-a lede">The Markup quoted the datasheet.<br>The builder had measured the first Haven a year before.</p>
+        <Formats slug={ed.slug} />
       </div>
       <div class="foot mono cover-foot">
         <span>{ed.dateLabel} · {SITE.author}</span>
         <span>r = cos(kθ) · seed {ed.seed}</span>
       </div>
     </section>
+    <FilmPlayer slug={ed.slug} />
 
     <Section n="00" title="The number" id="number">
       <div class="c-full">

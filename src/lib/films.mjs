@@ -43,6 +43,15 @@ export const FILMS_DIR = 'public/film';
  */
 export const THUMB = { width: 112, height: 63 };
 export const watchUrl = (id) => `https://www.youtube.com/watch?v=${id}`;
+/**
+ * The player an edition page loads when, and only when, its reader plays the film: YouTube's
+ * privacy-enhanced host, started by that click (autoplay), inline on iOS (playsinline), a white
+ * progress bar rather than YouTube's red (color), and the end screen's suggestions from this
+ * channel only (rel). Written into the page as an inert data attribute; src/scripts/aed.js turns it
+ * into an iframe on the click, and tools/verify.cjs asserts the iframe it makes is this URL.
+ */
+export const EMBED_HOST = 'https://www.youtube-nocookie.com';
+export const embedUrl = (id) => `${EMBED_HOST}/embed/${id}?autoplay=1&playsinline=1&rel=0&color=white`;
 /** 865 seconds is 14:25; an hour or more is h:mm:ss. */
 export const clock = (s) => {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = String(s % 60).padStart(2, '0');
@@ -122,7 +131,7 @@ export const films = () => {
   if (bad.length) throw new Error(`films: ${bad.length} problem(s) in ${FILMS_FILE}; tools/films.mjs writes it\n  ${bad.join('\n  ')}`);
   cache = EDITIONS.filter((e) => raw[e.slug]).map((e) => {
     const f = raw[e.slug];
-    return { slug: e.slug, id: f.id, url: watchUrl(f.id), duration: f.duration, length: clock(f.duration), iso: isoDuration(f.duration), thumb: f.thumb };
+    return { slug: e.slug, id: f.id, url: watchUrl(f.id), embed: embedUrl(f.id), duration: f.duration, length: clock(f.duration), iso: isoDuration(f.duration), thumb: f.thumb };
   });
   return cache;
 };

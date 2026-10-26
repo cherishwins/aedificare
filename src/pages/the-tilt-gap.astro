@@ -6,6 +6,8 @@ import Section from '../components/Section.astro';
 import Rail from '../components/Rail.astro';
 import Stats from '../components/Stats.astro';
 import EditionEnd from '../components/EditionEnd.astro';
+import Formats from '../components/Formats.astro';
+import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { edition, LICENCE, describe, seedDrift } from '../lib/editions.mjs';
 import { SITE, abs } from '../config.mjs';
@@ -179,12 +181,14 @@ const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
       <div class="grid cover-grid">
         <h1 class="c-full display" data-flex="cursor">The Tilt<br><span class="acid">Gap</span></h1>
         <p class="c-a lede">{ed.lede}</p>
+        <Formats slug={ed.slug} />
       </div>
       <div class="foot mono cover-foot">
         <span>{ed.dateLabel} · {SITE.author}</span>
         <span>r = cos(kθ) · seed {ed.seed}</span>
       </div>
     </section>
+    <FilmPlayer slug={ed.slug} />
 
     <Section n="00" title="You have<br>tilted." acid id="brief">
       <div class="c-a prose">

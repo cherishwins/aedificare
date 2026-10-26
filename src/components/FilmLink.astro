@@ -24,13 +24,13 @@
  * its Bottle home entry, still reads as a picture and not as loose type.
  */
 import { film } from '../lib/films.mjs';
-interface Props { slug: string; class?: string }
-const { slug, class: cls } = Astro.props;
+interface Props { slug: string; class?: string; /** Where the link goes instead of YouTube: the edition's own player, on the home. */ to?: string }
+const { slug, class: cls, to } = Astro.props;
 const f = film(slug);
 ---
 {f && (
-  <a class:list={['block-link', 'film', cls]} href={f.url}>
-    <span class="record">Film · <time datetime={f.iso}>{f.length}</time> · YouTube</span>
+  <a class:list={['block-link', 'film', cls]} href={to ?? f.url}>
+    <span class="record">Film · <time datetime={f.iso}>{f.length}</time>{!to && ' · YouTube'}</span>
     <span class="field thumb"><img src={f.thumb.src} srcset={`${f.thumb.src2x} 2x`} width={f.thumb.width} height={f.thumb.height} alt={f.thumb.alt} loading="lazy" decoding="async" /></span>
   </a>
 )}

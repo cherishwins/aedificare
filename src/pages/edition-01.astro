@@ -6,6 +6,8 @@ import Section from '../components/Section.astro';
 import Rail from '../components/Rail.astro';
 import Stats from '../components/Stats.astro';
 import EditionEnd from '../components/EditionEnd.astro';
+import Formats from '../components/Formats.astro';
+import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { edition, LICENCE, describe } from '../lib/editions.mjs';
 import { SITE, abs } from '../config.mjs';
@@ -109,12 +111,14 @@ const sources = [
       <div class="grid cover-grid">
         <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Snapshot</span><br><span class="wide">Problem</span></h1>
         <p class="c-a lede">Agents formed societies this summer.<br>The models under them learned nothing.</p>
+        <Formats slug={ed.slug} />
       </div>
       <div class="foot mono cover-foot">
         <span>{ed.dateLabel} · {SITE.author}</span>
         <span>r = cos(kθ) · seed {ed.seed} · k 16/3 · 29/4 · 13/4</span>
       </div>
     </section>
+    <FilmPlayer slug={ed.slug} />
 
     <Section n="00" title="The window" id="window">
       <div class="c-full">

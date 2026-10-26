@@ -110,6 +110,30 @@ function flex() {
   }
 }
 
+/* ---- the film, on the reader's click ------------------------------------
+   The page asks YouTube for nothing until then. The link to the watch page
+   becomes a button (so Space and Enter both play it, and a reader without
+   this script still has the link); the click swaps it for the player the
+   page names, started by that click, and moves focus into it. ------------ */
+function film(box) {
+  const a = box.firstElementChild, b = document.createElement('button');
+  b.className = a.className;
+  b.type = 'button';
+  b.append(...a.childNodes);
+  a.replaceWith(b);
+  b.onclick = () => {
+    const f = document.createElement('iframe');
+    f.src = box.dataset.embed;
+    f.title = box.dataset.title;
+    f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
+    f.allowFullscreen = true;
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    b.replaceWith(f);
+    f.focus();
+  };
+}
+
+document.querySelectorAll('[data-embed]').forEach(film);
 document.querySelectorAll('svg[data-rose]').forEach(field);
 document.querySelectorAll('svg[data-dove]').forEach(dove);
 flex();
