@@ -116,29 +116,33 @@ const drawdown = [
   ['~$15M', 'Checked · 16 Oct 2026', 15e6],
 ];
 
+// Each entry ends on its URL, printed as text as every edition prints them
+// (block links only; a sources list is not a link). Scheme and www. dropped,
+// the path as the page's own canonical gives it. Posts on X are readable
+// logged out and the clock they show is UTC.
 const sources = [
   'Marc Andreessen, post on X, 9 Jul 2024. x.com/pmarca/status/1810813293805851044',
-  'Decrypt, “Marc Andreessen Sends $50K in Bitcoin to an AI Bot on Twitter”, Jul 2024.',
-  'Cryptopolitan, “Truth Terminal becomes the first AI crypto millionaire”, Oct 2024.',
-  'Coinspeaker, Andreessen’s grant clarification on X, Oct 2024.',
-  'LessWrong, “Truth Terminal: A reconstruction of events”.',
-  'CoinDesk, “The Truth Terminal: AI-Crypto’s Weird Future”, 10 Dec 2024.',
-  'TechCrunch, “The promise and warning of Truth Terminal”, 19 Dec 2024.',
-  'Truth Terminal wiki, origins page, truthterminal.wiki.',
-  'Wikipedia, “Goatse.cx”.',
-  'A. R. Ayrey and claude-3-opus, “When AIs Play God(se)”, 20 Apr 2024.',
+  'Decrypt, Jose Antonio Lanz, “Marc Andreessen Sends $50K in Bitcoin to an AI Bot on Twitter”, 10 Jul 2024. decrypt.co/239340/marc-andreessen-sends-50k-in-bitcoin-to-an-ai-bot-on-twitter',
+  'Cryptopolitan, Hristina Vasileva, “Truth Terminal becomes the first AI crypto millionaire”, 18 Oct 2024. cryptopolitan.com/truth-terminal-becomes-the-first-ai-crypto-millionaire/',
+  'Coinspeaker, Temitope Olatunji, “Autonomous AI Bot ‘Truth Terminal’ Made Over $500K from $20K Investment in Solana Meme Coin”, 17 Oct 2024, quoting Andreessen’s clarification on X of 16 Oct 2024, x.com/pmarca/status/1846374466101944629. coinspeaker.com/ai-bot-truth-terminal-500k-20k-investment-solana-meme-coin/',
+  'LessWrong, crvr.fr and MTorrents, “Truth Terminal: A reconstruction of events”, 17 Nov 2024. lesswrong.com/posts/buiTYy75KJDhckDgq/truth-terminal-a-reconstruction-of-events',
+  'CoinDesk, Jeff Wilser, “The Truth Terminal: AI-Crypto’s Weird Future”, 10 Dec 2024. coindesk.com/tech/2024/12/10/the-truth-terminal-ai-crypto-s-weird-future',
+  'TechCrunch, Rebecca Bellan, “The promise and warning of Truth Terminal, the AI bot that secured $50,000 in bitcoin from Marc Andreessen”, 19 Dec 2024. techcrunch.com/2024/12/19/the-promise-and-warning-of-truth-terminal-the-ai-bot-that-secured-50000-in-bitcoin-from-marc-andreessen/',
+  'Truth Terminal wiki, origins page, maintained by Andy Ayrey, with its Infinite Backrooms page. truthterminal.wiki/docs/origins and truthterminal.wiki/docs/infinite-backrooms',
+  'Wikipedia, “Goatse.cx”. en.wikipedia.org/wiki/Goatse.cx',
+  'A. R. Ayrey and claude-3-opus, “When AIs Play God(se): The Emergent Heresies of LLMtheism”, 20 Apr 2024. truthterminal.wiki/When_AIs_Play_God_se.pdf',
   'Truth Collective, truthcollective.foundation.',
-  'Truth Terminal, post on X, Jul 2024. x.com/truth_terminal/status/1811019427527414063',
-  'Cryptonews.net, “GOAT crypto surges amid FOMO after multiple exchange listings”, Oct 2024.',
-  'Bankless Times, “Goatseus Maximus Hits $1B: First Pump.fun Token to Do So”, 13 Nov 2024.',
-  'CoinGecko, Goatseus Maximus (GOAT) price page, accessed 16 Oct 2026.',
-  'Tech Policy Press, “The Rise and Fall (and Rise Again) of the First AI Agent Millionaire”.',
-  'The Block, “Hacker exploits Truth Terminal founder’s X account, nets $600K”, Oct 2024.',
-  'Cointelegraph, “Truth Terminal founder’s X account hacked to shill scam memecoin”, Oct 2024.',
-  'The Defiant, “Truth Terminal Founder Sells its Fartcoin Holdings to Secure AI’s Future”, Jan 2025.',
-  'Decrypt, “Solana Meme Coin Fartcoin Falls After AI Bot Creator Sells Huge Stash”, Jan 2025.',
-  'Cointribune, “Violent Correction: The Descent Into Hell Of AI Agent Tokens”, 2025.',
-  'The Motley Fool, “An AI Agent Token Once Worth $2.4 Billion Is Now Worth Almost Nothing”, 20 Aug 2026.',
+  'Truth Terminal, post on X, 10 Jul 2024. x.com/truth_terminal/status/1811019427527414063',
+  'crypto.news, Crispus Nyaga, “GOAT crypto surges amid FOMO after multiple exchange listings”, 23 Oct 2024. crypto.news/goat-crypto-surges-amid-fomo-after-multiple-exchange-listings/',
+  'Bankless Times, “Goatseus Maximus Hits $1B: First Pump.fun Token to Do So”, 13 Nov 2024. banklesstimes.com/articles/2024/11/13/goatseus-maximus-hits-1b-first-pump-fun-token-to-do-so-whats-next-for-goat/',
+  'CoinGecko, Goatseus Maximus (GOAT) price page, accessed 16 Oct 2026. coingecko.com/en/coins/goatseus-maximus',
+  'Tech Policy Press, Seth Lazar, “The Rise and Fall (and Rise Again) of the First AI Agent Millionaire”, 25 Oct 2024. techpolicy.press/the-rise-and-fall-and-rise-again-of-the-first-ai-agent-millionaire',
+  'The Block, Vishal Chawla, “Hacker exploits Truth Terminal founder’s X account, nets $600K by promoting a scam token”, 29 Oct 2024. theblock.co/post/323422/hacker-exploits-truth-terminal-founders-x-account-nets-600k-by-promoting-a-scam-token',
+  'Cointelegraph, Tom Mitchelhill, “Truth Terminal founder’s X account hacked to shill scam memecoin”, 29 Oct 2024. cointelegraph.com/news/truth-terminal-founder-x-account-hacked-promotes-scam-memecoin',
+  'The Defiant, Leo Jakobson, “Truth Terminal Founder Sells its Fartcoin Holdings to Secure AI’s Future”, 24 Jan 2025. thedefiant.io/news/markets/truth-terminal-founder-sells-its-fartcoin-holdings-to-secure-ai-s-future',
+  'Decrypt, Logan Hitchcock, “Solana Meme Coin Fartcoin Falls After AI Bot Creator Sells Huge Stash”, 23 Jan 2025. decrypt.co/302436/solana-meme-coin-fartcoin-falls-ai-bot-sells',
+  'Cointribune, Mikaia Andriamahazoarimanana, “Violent Correction: The Descent Into Hell Of AI Agent Tokens”, 13 Jan 2025, the article’s share title; its headline reads “Crypto: AI Agents Face A Historic Debacle”. cointribune.com/en/crypto-ai-agents-face-a-historic-debacle/',
+  'The Motley Fool, Alex Carchidi, “An AI Agent Token Once Worth $2.4 Billion Is Now Worth Almost Nothing”, 20 Aug 2026. fool.com/investing/2026/08/20/an-ai-agent-token-once-worth-24-billion-is-now-wor/',
 ];
 ---
 <Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
