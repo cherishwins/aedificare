@@ -66,7 +66,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { browser, openContext, findFfmpeg, GREY_TEXT } from './lib/film.mjs';
-import { FPS, KINDS, OVERLAYS, OWNER, shotContext, parseTag, chartHtml, chartLand, sweepPlan, pageSource, pageView, namesAuthor, popEnd, overEnd, footageFile, renderSegment, renderPop, renderOverlay, ff } from './lib/shots.mjs';
+import { FPS, KINDS, OVERLAYS, OWNER, shotContext, parseTag, chartHtml, chartLand, rowLands, sweepPlan, pageSource, pageView, namesAuthor, popEnd, overEnd, footageFile, renderSegment, renderPop, renderOverlay, ff } from './lib/shots.mjs';
 import { CHART_TYPES } from './lib/chart.mjs';
 import { parsePage, shotName, sourcesOf, neverFetched, UA } from './capture.mjs';
 import { edition } from '../src/lib/editions.mjs';
@@ -349,11 +349,12 @@ function innerChanges(X, C, p) {
       for (const x of sweepPlan(texts.filter(Boolean), s, d, X.words)) out.push(Math.round((x.at / 1000) * FPS));
     }
   } else if (k === 'chart') {
-    const land = chartLand(s, X.words, d);
-    const h = chartHtml(C, p.e.tag, land ? land.ms : null);
+    const land = chartLand(s, X.words, d), rows = rowLands(s, X.words, d);
+    const h = chartHtml(C, p.e.tag, land ? land.ms : null, [], { spoken: rows.map((x) => x && x.ms) });
     const build = Math.min(h.animMs || 900, d * 1000);
     for (let ms = 900; ms <= build; ms += 900) out.push(Math.round((ms / 1000) * FPS));
     if (land) out.push(Math.round((land.ms / 1000) * FPS));
+    for (const x of rows) if (x) out.push(Math.round((x.ms / 1000) * FPS)); // a row on its own word moves the picture there
   } else if (k === 'quote' || k === 'map') out.push(beat);
   else if (OWNER.includes(k)) { const n = k === 'footage' && d > 5.4 ? Math.round(d / 3.6) : 1; for (let j = 1; j < n; j++) out.push(Math.round(((p.b - p.a) * j) / n)); }
   return out.filter((f) => f > 0 && f < p.b - p.a).map((f) => p.a + f);
@@ -788,7 +789,7 @@ async function render(L) {
   // antialiased so no glyph's edge carries a colour the kit does not have (GREY_TEXT, tools/lib/film.mjs).
   const b = await browser({ args: [GREY_TEXT] });
   const { ctx, page: pg, show, shot } = await openContext(b, C.F, { frame: 'png' });
-  const RS = { work, brandDir, words: X.words, pg, show, shot, missing: new Set(), lastChart: null };
+  const RS = { work, brandDir, words: X.words, pg, show, shot, missing: new Set(), lastChart: null, flowRing: null };
   const placed = Q.placed.filter((p) => p.a < T).map((p) => ({ ...p, b: Math.min(p.b, T) }));
   const segs = new Map();
   for (const [i, p] of placed.entries()) {

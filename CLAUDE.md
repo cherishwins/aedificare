@@ -559,7 +559,22 @@ for a shortlist for bios and cards, which is a separate deliverable.
   word that speaks its value (the narration's own timestamps; `check`
   warns when no word said while the chart is up says it, because then
   the picture gives the point away before the voice), a chart that
-  comes back holding the rows it already showed, every
+  comes back holding the rows it already showed, and, since 26 Oct 2026,
+  every other row landing on its own word too (its label, or the
+  `@ phrase` its tag names, said while the chart is up: at least half
+  the label's meaningful words in order, so two rows sharing a first
+  word do not land together, and a point with no number landing on its
+  words, "SIGN-OFF*" on "sign-off"), a flow keeping its places across
+  the script's flows (a party keeps the angle its first flow gave it,
+  carried in the render's `flowRing`; a newcomer takes the widest gap
+  beside a party it joins, so a loop that returns with a stranger is the
+  same picture with one new box, where 2π·i/n had moved every box), and
+  a timeline keyed to the minute (`2024-10-10 22:11=The joke`) spreading
+  a day's rows by the clock and labelling them as times, where the same
+  day twice had stacked them 90 px apart beside an empty axis, a text
+  too wide for its room breaking onto two lines before it shrinks so the
+  point keeps its size (which also changed softbank-975's payments
+  timeline, whose hot row had been shrinking to fit), every
   chart citing its sources on screen, type sized for a phone and a TV
   (16:9 labels 40 px, Shorts clear of the right 120 px and the lower
   quarter), designed with the dataviz skill's method and its palette

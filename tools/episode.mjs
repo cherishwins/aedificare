@@ -36,7 +36,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { browser, findFfmpeg, openContext, esc, ACID, VOID, FLASH } from './lib/film.mjs';
 import { NARRATOR, SITE } from '../src/config.mjs';
-import { CHART_TYPES, hotValues, findSpoken } from './lib/chart.mjs';
+import { CHART_TYPES, findPoint, hasPoint } from './lib/chart.mjs';
 // The shots themselves (the tag, the computed cards, the footage cut, one shot to one segment) live in
 // tools/lib/shots.mjs, so the edition films' cut lists build them the same way.
 import { FPS, CUTS, OWNER, GRADE, shotContext, fit, parseTag, page, footageFile, hasAudio, overEnd, ff, warnOnce, renderSegment, renderOverlay } from './lib/shots.mjs';
@@ -160,10 +160,10 @@ async function check(S, { quiet = false } = {}) {
         if (!e.tag.srcs.length) issues.push(`chart "${e.tag.title}" cites no source (src: s1, s2)`);
         for (const id of e.tag.srcs) { if (!S.sources[id]) issues.push(`chart "${e.tag.title}" cites ${id}, which is not in # Sources`); else used.add(id); }
         if (e.tag.type !== 'flow' && e.tag.type !== 'timeline' && e.tag.rows.filter((r) => r.hot).length > 1) issues.push(`chart "${e.tag.title}": one point is the story; mark one row with *, not ${e.tag.rows.filter((r) => r.hot).length}`);
-        // The chart lands its point on the word that says it (render); a point nobody says while it is on screen cannot land.
-        const values = CHART_TYPES.includes(e.tag.type) ? hotValues(e.tag.type, e.tag.rows) : [];
+        // The chart lands its point on the word that says it (render: its value, or its words where it carries none);
+        // a point nobody says while it is on screen cannot land.
         const typed = (e.tag.type === 'line' ? e.tag.rows.slice().sort((p, q) => p.t - q.t).slice(-1) : e.tag.rows.filter((r) => r.hot)).map((r) => r.text ?? (r.rb ? `${r.ra}..${r.rb}` : r.ra)).join(', ');
-        if (values.length && findSpoken(onScreen(bi, e).map((w) => ({ w })), values) < 0) warnings.push(`chart "${e.tag.title}": its point (${typed}) is not spoken while the chart is on screen (its tag to the next cut), so it lands on the chart's own timing, ahead of the voice or without it`);
+        if (CHART_TYPES.includes(e.tag.type) && hasPoint(e.tag.type, e.tag.rows) && findPoint(e.tag.type, e.tag.rows, onScreen(bi, e).map((w) => ({ w }))) < 0) warnings.push(`chart "${e.tag.title}": its point (${typed}) is not spoken while the chart is on screen (its tag to the next cut), so it lands on the chart's own timing, ahead of the voice or without it`);
       }
       if (e.tag.kind === 'map' && e.tag.stops.some((x) => !x)) issues.push(`map stops must be "Name lat,lon > Name lat,lon": ${e.tag.args[0]}`);
       // The shared parser knows these for the edition films' cut lists; an episode's timeline places no pop and
@@ -413,7 +413,7 @@ async function render() {
   // Each shot to its own segment on the frame grid (tools/lib/shots.mjs); R carries what runs across shots.
   const segs = [];
   const missing = new Set();
-  const R = { work, brandDir, words: T.words, pg, show, shot, missing, lastChart: null };
+  const R = { work, brandDir, words: T.words, pg, show, shot, missing, lastChart: null, flowRing: null };
   for (let i = 0; i < T.shots.length; i++) segs.push(...await renderSegment(C, R, T.shots[i], i));
   // Overlays: one transparent still each, cut in and out on the word.
   const overs = [];
