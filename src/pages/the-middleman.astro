@@ -75,16 +75,18 @@ const ratios: [string, string, string, string][] = [
   ['Leases signed, not begun ÷ equity', '7.1×', '0.04×', '0.74×'],
 ];
 
-const loans: [string, string, string, string, string][] = [
-  ['$8.5B', '31 Mar 2026', 'A3', '2.25', 'one investment-grade customer’s contract'],
-  ['$3.1B', '18 May 2026', 'Ba2', '4.50', '“two large, non-investment grade customers”'],
-  ['$2.6B', 'Aug 2026', 'Ba2 / BB+', '5.50', 'contracts averaging about three years'],
+// Each loan's share of equipment cost is its credit agreement's own figure;
+// the August facility's agreement was not read, so its cell reads n/a.
+const loans: [string, string, string, string, string, string, string][] = [
+  ['$8.5B', '31 Mar 2026', 'A3 / A (low)', '2.25', '90%', 'only for fraud and the like', 'one investment-grade customer’s contract'],
+  ['$3.1B', '18 May 2026', 'Ba2 / BB+', '4.50', '71.42%', 'in full', '“two large, non-investment grade customers”'],
+  ['$2.6B', 'Aug 2026', 'Ba2 / BB+', '5.50', 'n/a', 'in full', 'contracts averaging about three years'],
 ];
 
 // Nvidia's own 10-Q, quarter ended 26 Jul 2026, $ billions. Commitments and
 // maximum guarantee exposure are two tables there and are never summed.
 const nvidia: [string, number][] = [
-  ['Residual value guarantees, Ohio campus · guarantee', 105],
+  ['Lease and power guarantees, Ohio campus · guarantee', 105],
   ['AI cloud agreements · commitment', 36],
   ['Data centre leases for others, not begun · commitment', 20],
   ['Land, power and shell guarantees · guarantee', 3.5],
@@ -146,11 +148,13 @@ const SRC: Record<string, string> = {
   ind: 'CoreWeave, Inc., indenture for the 9.625% senior notes due 2032, Exhibit 4.1 to Form 8-K, filed 18 Jun 2026. sec.gov/Archives/edgar/data/1769628/000176962826000291/exhibit41.htm',
   ddtl4: 'CoreWeave, Inc., Form 8-K of 31 Mar 2026, Exhibit 10.1, the DDTL 4.0 credit agreement, and Exhibit 99.1, its release. sec.gov/Archives/edgar/data/1769628/000176962826000129/ex1011.htm and sec.gov/Archives/edgar/data/1769628/000176962826000129/ex991.htm',
   ddtl5: 'CoreWeave, Inc., “CoreWeave Closes $3.1 Billion Loan Facility, Expanding Access to Public Markets for GPU-Backed Financing”, 18 May 2026. investors.coreweave.com/news/news-details/2026/CoreWeave-Closes-3-1-Billion-Loan-Facility-Expanding-Access-to-Public-Markets-for-GPU-Backed-Financing/default.aspx',
+  ddtl5ca: 'CoreWeave, Inc., DDTL 5.0 credit agreement, Exhibit 10.1 to Form 8-K filed 18 May 2026. sec.gov/Archives/edgar/data/1769628/000176962826000236/ex101.htm',
+  ddtl3: 'CoreWeave, Inc., DDTL 3.0 credit agreement of 28 Jul 2025, Exhibit 10.1 to Form 8-K filed 31 Jul 2025. sec.gov/Archives/edgar/data/1769628/000176962825000033/coreweave30-ex101xtermlo.htm',
+  ddtl2: 'CoreWeave, Inc., fifth amendment to the DDTL 2.0 credit agreement, Exhibit 10.1 to Form 8-K filed 2 Oct 2025. sec.gov/Archives/edgar/data/1769628/000119312525227562/d910811dex101.htm',
   semi: 'SemiAnalysis, Daniel Nishball and others, “Nvidia GPU Debt Backstop Unleashes the AI Project Trinity”, 6 Jul 2026. newsletter.semianalysis.com/p/nvidia-gpu-debt-backstop-unleashes',
   huang: 'Investing.com, Louis Juricic, relaying Bloomberg and ICE Data Services on Jensen Huang and CoreWeave, 15 Oct 2026, read in its Yahoo Finance syndication. finance.yahoo.com/technology/ai/articles/nvidia-ceo-says-coreweave-needs-162723555.html',
   bis2: 'Bisnow, Dan Rabb, “CoreWeave’s Debt Troubles Fuel Fears Of An AI Data Center Reckoning”, 20 Oct 2026. bisnow.com/news/national/data-center-capital-markets/coreweave-s-debt-troubles-fuel-fears-of-a-neocloud-reckoning',
-  tedards: 'Equity Empire, Colin Tedards, “CoreWeave’s $22B Gamble: Why the Market Now Sees 40% Default Risk”, 15 Nov 2025. theinvestorchannel.substack.com/p/coreweaves-22b-gamble-why-the-market',
-  ccir: 'CCIR Research, “CoreWeave’s Debt, Entity by Entity”, 16 Oct 2026. ccir.io/research/coreweave-debt-by-entity',
+  q225q: 'CoreWeave, Inc., Form 10-Q for the quarter ended 30 Jun 2025, filed 13 Aug 2025, note 2, with the same sentence in its 10-Qs for the quarters ended 31 Mar 2025 and 30 Sep 2025. sec.gov/Archives/edgar/data/1769628/000176962825000041/crwv-20250630.htm, sec.gov/Archives/edgar/data/1769628/000176962825000014/crwv-20250331.htm and sec.gov/Archives/edgar/data/1769628/000176962825000062/crwv-20250930.htm',
   meta: 'Meta Platforms, Inc., Form 10-Q for the quarter ended 30 Sep 2026, filed 22 Oct 2026. sec.gov/Archives/edgar/data/1326801/000162828026066773/meta-20260930.htm',
   usc: '11 U.S.C. § 365 and § 502, Legal Information Institute. law.cornell.edu/uscode/text/11/365 and law.cornell.edu/uscode/text/11/502',
   call: 'CoreWeave, Inc., second quarter 2026 earnings call, corrected transcript, FactSet CallStreet, 11 Aug 2026. s205.q4cdn.com/133937190/files/doc_financials/2026/q2/CRWV-US-CORRECTED-TRANSCRIPT-CoreWeave-Q2-2026-Earnings-Call-11August2026.pdf',
@@ -183,6 +187,7 @@ const SRC: Record<string, string> = {
   w14: 'Richard A. Werner, “Can banks individually create money out of nothing? The theories and the empirical evidence”, International Review of Financial Analysis 36, Dec 2014, doi 10.1016/j.irfa.2014.07.015, read on the author’s page. professorwerner.org/?p=656',
   boe: 'Bank of England, Michael McLeay, Amar Radia and Ryland Thomas, “Money creation in the modern economy”, Quarterly Bulletin 2014 Q1, 14 Mar 2014. bankofengland.co.uk/quarterly-bulletin/2014/q1/money-creation-in-the-modern-economy',
   w12: 'Richard A. Werner, “Towards a new research programme on ‘banking and the economy’”, International Review of Financial Analysis 25, 2012, doi 10.1016/j.irfa.2012.06.002. ideas.repec.org/a/eee/finana/v25y2012icp1-17.html',
+  h8: 'Federal Reserve Board, H.8, Assets and Liabilities of Commercial Banks in the United States, table 2, seasonally adjusted, released 23 Oct 2026, with its Notes on the Data. federalreserve.gov/releases/h8/current/h8.pdf',
   cfr: '12 CFR 217.2, high volatility commercial real estate exposure, and 217.32, general risk weights, Legal Information Institute. law.cornell.edu/cfr/text/12/217.2 and law.cornell.edu/cfr/text/12/217.32',
   prop: 'OCC, Federal Reserve and FDIC, proposed rule on regulatory capital for Category I and II banking organisations, 27 Mar 2026, docket 2026-05959. govinfo.gov/content/pkg/FR-2026-03-27/html/2026-05959.htm',
   cre: 'Federal Reserve, FDIC and OCC, “Interagency Guidance on Concentrations in Commercial Real Estate Lending, Sound Risk-Management Practices”, Dec 2006. federalreserve.gov/frrs/guidance/interagency-guidance-on-concentrations-in-commercial-real-estate-lending-sound-risk-management-practices.htm',
@@ -342,22 +347,22 @@ const sources = KEYS.map((k) => SRC[k]);
 
     <Section n="05" title="The price of a name" ground="bottle" acid id="price">
       <div class="c-a prose">
-        <p>What the lenders price is the customer. In March 2026 CoreWeave closed an $8.5 billion loan secured by its equipment and one customer’s contract. Moody’s rated it A3, the first loan of its kind rated investment grade, and it priced at 2.25 percentage points over SOFR. In May a $3.1 billion loan backed by contracts with “two large, non-investment grade customers” was rated Ba2 and priced at 4.50 points over. The collateral was of the same kind. The customers were not. <span class="cite">{c('ddtl4', 'ddtl5')}</span></p>
+        <p>What the lenders price is the customer. CoreWeave’s filed loan agreements lend a fixed share of the cost of the equipment, and the customer’s credit rating sets the share. Its $8.5 billion loan of March 2026, secured by its equipment and one investment-grade customer’s contract, lends 90 percent; Moody’s rated it A3, the first loan of its kind rated investment grade, and it priced at 2.25 percentage points over SOFR, though the parent guarantees it only against fraud, misconduct and a voluntary bankruptcy. Its $3.1 billion loan of May, backed by contracts with “two large, non-investment grade customers”, lends 71.42 percent, carries the parent’s full guarantee, was rated Ba2, and still priced at 4.50 points over. In 2025 its loans against OpenAI’s contracts lent 80 percent, then 75. <span class="cite">{c('ddtl4', 'ddtl5', 'ddtl5ca', 'ddtl3', 'ddtl2', 'q2')}</span></p>
         <p>The August facility, over contracts of about three years and guaranteed by the parent, was rated Ba2 by Moody’s and BB+ by Fitch and priced at 5.50 points over. <span class="cite">{c('ddtl55')}</span></p>
-        <p>Blackstone’s credit arm anchored the March loan. No lender says how much it advances against a processor: the March agreement sizes its loans to a projected debt service coverage of at least 1.20 to 1, and every percentage in the filed copy is redacted. <span class="cite">{c('ddtl4')}</span></p>
+        <p>Blackstone’s credit arm anchored the March loan, which also requires a projected debt service coverage of at least 1.20 to 1. <span class="cite">{c('ddtl4')}</span></p>
         <p class="mono reg">Estimate</p>
-        <p>The 70 to 80 percent loan to value in circulation is SemiAnalysis’s own estimate, from its cost model. <span class="cite">{c('semi')}</span></p>
+        <p>The 70 to 80 percent in circulation is SemiAnalysis’s estimate, from its cost model. The filed figures run from 60 to 90. <span class="cite">{c('semi', 'ddtl2', 'ddtl4')}</span></p>
         <p class="mono reg">Reported</p>
-        <p>The parent’s own debt is priced on its own name. On 15 October 2026 CoreWeave’s five-year credit default swaps touched a record 1,194.5 basis points, a price implying better than even odds of default within five years, by ICE Data Services’ measure as reported by Bloomberg. The same day Jensen Huang said CoreWeave needed no backstop from Nvidia: “Their cost of capital is actually decreasing.” <span class="cite">{c('huang')}</span></p>
+        <p>The parent’s own debt is priced on its own name. On 15 October 2026 CoreWeave’s five-year credit default swaps touched a record 1,194.5 basis points, a price implying better than even odds of default within five years, by ICE Data Services’ measure as reported by Bloomberg. The same day Jensen Huang, reported as saying CoreWeave needed no backstop from Nvidia, said: “Their cost of capital is actually decreasing.” <span class="cite">{c('huang')}</span></p>
         <p>JPMorgan’s analysts wrote, according to Bloomberg as reported by Bisnow, that “the cash burn is not a function of unfavorable economics per project but more of the capacity being ramped each year relative to the installed active capacity at this time”. <span class="cite">{c('bis2')}</span></p>
       </div>
       <div class="c-b">
         <div class="field scroll" tabindex="0" role="region" aria-label="Three loans against equipment and contracts">
           <table class="ledger">
-            <caption class="mono">Three loans against equipment and contracts, 2026 <span class="cite">{c('ddtl4', 'ddtl5', 'ddtl55')}</span></caption>
-            <thead><tr><th scope="col">Loan</th><th scope="col">Closed</th><th scope="col">Rated</th><th scope="col">Over SOFR</th><th scope="col">Behind it</th></tr></thead>
+            <caption class="mono">Three loans against equipment and contracts, 2026 <span class="cite">{c('ddtl4', 'ddtl5', 'ddtl5ca', 'ddtl55', 'q2')}</span></caption>
+            <thead><tr><th scope="col">Loan</th><th scope="col">Closed</th><th scope="col">Rated</th><th scope="col">Over SOFR</th><th scope="col">Lends, of cost</th><th scope="col">Parent guarantees it</th><th scope="col">Behind it</th></tr></thead>
             <tbody>
-              {loans.map(([a, d, r, s, b]) => (<tr><th scope="row">{a}</th><td>{d}</td><td>{r}</td><td class="n">{s}</td><td>{b}</td></tr>))}
+              {loans.map(([a, d, r, s, l, g, b]) => (<tr><th scope="row">{a}</th><td>{d}</td><td>{r}</td><td class="n">{s}</td><td class="n">{l}</td><td>{g}</td><td>{b}</td></tr>))}
             </tbody>
           </table>
         </div>
@@ -374,22 +379,20 @@ const sources = KEYS.map((k) => SRC[k]);
     <Section n="06" title="Who holds the lien" ground="bottle" acid id="lien">
       <div class="c-a prose">
         <p>Much of the equipment sits in what CoreWeave calls “bankruptcy-remote, special-purpose consolidated subsidiaries formed to hold the financed infrastructure and the related customer contracts”. At 30 June they held $18.2 billion of long-lived assets and $2.6 billion of current assets, pledged to lenders. <span class="cite">{c('q2')}</span></p>
-        <p>The liens belong to the lenders. The March facility is secured by “perfected first priority pledges” over the subsidiary’s equity and substantially all of its assets, held for the lenders by a collateral agent. The customer signs a consent that lets that agent step into its contract. It takes no security of its own. <span class="cite">{c('ddtl4', 'q2')}</span></p>
-        <p>That the customers hold the liens is a claim in circulation. Its earliest published form, a Substack post of November 2025, says OpenAI “has a lien on the SPV’s equity” and cites nothing. No filing shows a customer as a lienholder; every filing that names one names a lender or its agent. OpenAI’s own interest in CoreWeave is shares. <span class="cite">{c('tedards', 'q2', 'k25')}</span></p>
-        <p class="mono reg">Reported</p>
-        <p>One research site, CCIR, says an unfiled agreement among CoreWeave, OpenAI and Dell Financial Services governs one facility’s contract revenue after a default. It cites no document. <span class="cite">{c('ccir')}</span></p>
-        <p class="mono reg">Filed</p>
-        <p>The wall around the subsidiaries is thin. Of $35.1 billion of debt, $3.7 billion is non-recourse to the parent; CoreWeave guarantees every one of these facilities but the March one. Behind the pledged assets stand about $14.6 billion of the parent’s unsecured notes. <span class="cite">{c('q2', 'ddtl55')}</span></p>
-        <p>Where a large technology company does stand inside such a vehicle, it stands as guarantor. Meta owns 20 percent of the two ventures developing its Louisiana and Texas campuses, leases them, and guarantees their investors up to $41.5 billion of the properties’ residual value, against which it has recorded no liability. <span class="cite">{c('meta')}</span></p>
+        <p>Most of the liens belong to the lenders. The March facility is secured by “perfected first priority pledges” over the subsidiary’s equity and substantially all of its assets, held for the lenders by a collateral agent, and the customer signs a consent with that agent whose terms are not filed. <span class="cite">{c('ddtl4', 'q2')}</span></p>
+        <p>One customer held one. CoreWeave’s quarterly reports for the first three quarters of 2025 said of the vehicle built to serve OpenAI: “Upon an event of default, OpenAI has a lien and security interest in the equity of the special purpose vehicle.” Its annual report for 2025 and the reports since no longer repeat the sentence, which is not evidence that the lien ended. No filing or report found gives Meta one. <span class="cite">{c('q225q', 'k25', 'q2', 'meta')}</span></p>
+        <p>The loan that financed that vehicle is, by its own terms, subject “in all respects” to an unfiled agreement among OpenAI, Dell Financial Services and the lenders’ agent, which sets the order of payment after a trigger it defines. The servers in it are not the lenders’ collateral; they are leased from Dell Financial Services. And CoreWeave’s guarantee covers only part of that loan, and falls away if OpenAI becomes investment grade. <span class="cite">{c('ddtl3')}</span></p>
+        <p>The wall around the subsidiaries is thin. Of $35.1 billion of debt, $31.4 billion is recourse to the parent, its own or guaranteed by it, and $3.7 billion, chiefly the March loan, is not. Behind the pledged assets stand about $14.6 billion of the parent’s unsecured notes. <span class="cite">{c('q2', 'ddtl55')}</span></p>
+        <p>Meta stands inside vehicles like these too, its own landlords’, and stands there as guarantor. It owns 20 percent of the two ventures developing its Louisiana and Texas campuses, leases them, and guarantees their investors up to $41.5 billion of the properties’ residual value, against which it has recorded no liability. It has also agreed to buy up to $14.72 billion of an unnamed cloud provider’s capacity over five years, reducible if the provider sells it to others: a floor of the kind Nvidia gives CoreWeave. <span class="cite">{c('meta')}</span></p>
         <p>If a tenant fails, the law caps what a long lease is worth to its landlord. A bankrupt tenant has 120 days, extendable once by 90, to keep or reject a lease of commercial property, paying the rent in full meanwhile, and the landlord’s claim for the rest is capped at the greater of a year’s rent or 15 percent of what remains, never more than three years’. Most of a long lease rejected in a default would fall on landlords and their lenders. <span class="cite">{c('usc')}</span></p>
-        <p>Not all of it. CoreWeave, Inc. signs some leases itself, the Applied Digital ones among them, and guarantees about 90 percent of its debt, including every equipment loan but the March one. The capped rent, and any shortfall on that debt, would rank beside its bondholders. <span class="cite">{c('apld', 'q2', 'ddtl55')}</span></p>
+        <p>Not all of it. CoreWeave, Inc. signs some leases itself, the Applied Digital ones among them, and about 90 percent of its debt is its own or guaranteed by it. The capped rent, and any shortfall on that debt, would rank beside its bondholders. <span class="cite">{c('apld', 'q2')}</span></p>
         <p>Its finance chief’s case is that the debt is paid off inside the contracts: “So when an initial contract ends, the cluster no longer has any leverage”. The August facility is the first that was not, by its own terms. <span class="cite">{c('call', 'ddtl55')}</span></p>
       </div>
       <div class="c-b">
         <dl class="rail">
-          <dt>The lenders</dt><dd>The liens, through a collateral agent.</dd>
-          <dt>The customer</dt><dd>A consent letting that agent step in.</dd>
-          <dt>OpenAI</dt><dd>Shares in CoreWeave.</dd>
+          <dt>The lenders</dt><dd>Most of the liens, through a collateral agent.</dd>
+          <dt>OpenAI</dt><dd>Shares in CoreWeave, and by its 2025 reports a lien on one vehicle’s equity on default.</dd>
+          <dt>Dell Financial Services</dt><dd>The servers in that vehicle, leased.</dd>
           <dt>Meta, elsewhere</dt><dd>A guarantee to its landlords’ investors.</dd>
           <dt>The noteholders</dt><dd>What remains.</dd>
         </dl>
@@ -467,7 +470,8 @@ const sources = KEYS.map((k) => SRC[k]);
     <Section n="10" title="Credit, land and hands" ground="bottle" acid id="houses">
       <div class="c-a prose">
         <p>The case that this boom crowds out housing starts with banks, and with one economist’s account of them. Richard Werner showed in 2014 that a bank creates new money when it lends, and the Bank of England said the same that year. His later work splits bank credit into credit for things that count in output and credit for buying existing assets, and blames the second for bubbles. On his own split, a loan to put up a data centre or buy servers is the first kind. <span class="cite">{c('w14', 'boe', 'w12')}</span></p>
-        <p>The capital rule tilts toward housing, where it tilts at all. A mortgage on an occupied or rented home and a builder’s loan on a home already sold carry a 50 percent risk weight; other home construction loans carry 100. A construction loan on commercial property built for income, secured by it and repaid from it, carries 150, or 100 once the borrower has put in 15 percent of its finished value and the loan meets the rule’s other tests. Loans to the cloud companies themselves, or secured by servers and contracts rather than land, are corporate loans at 100. The one place homes and data centres meet is a supervisory screen of 2006 that counts all construction lending together and, in its own words, does “not constitute limits”. <span class="cite">{c('cfr', 'prop', 'cre')}</span></p>
+        <p>Where banks do appear is in the loans themselves and behind the lenders that are not banks. The 2025 loan against OpenAI’s contracts was made directly by banks, MUFG, Morgan Stanley, Goldman Sachs and JPMorgan among them. Bank loans to lenders that are not banks, private credit and equity funds and securitisation vehicles among them, rose from $1.72 trillion to $2.06 trillion between September 2025 and September 2026, about a fifth, part of it reclassified into the line, while residential real estate lending grew under 2 percent. The figures do not say how much went to data centres. <span class="cite">{c('ddtl3', 'h8')}</span></p>
+<p>The capital rule tilts toward housing, where it tilts at all. A mortgage on an occupied or rented home and a builder’s loan on a home already sold carry a 50 percent risk weight; other home construction loans carry 100. A construction loan on commercial property built for income, secured by it and repaid from it, carries 150, or 100 once the borrower has put in 15 percent of its finished value and the loan meets the rule’s other tests. Loans to the cloud companies themselves, or secured by servers and contracts rather than land, are corporate loans at 100. The one place homes and data centres meet is a supervisory screen of 2006 that counts all construction lending together and, in its own words, does “not constitute limits”. <span class="cite">{c('cfr', 'prop', 'cre')}</span></p>
         <p>Banks lent about $14.9 billion to data centres in the year to the third quarter of 2025, on MSCI’s estimate as cited by the Chicago Fed, which found the exposure not material from a commercial property view; most of large banks’ lending to AI is to companies, $450 billion committed and $150 billion drawn. Lending to build single-family homes was rising, 1.9 percent on the year in the first quarter of 2026. Builders have reported tighter credit for eighteen quarters running, a run that began before data centre spending took off in 2023. <span class="cite">{c('chi', 'nahb', 'feds')}</span></p>
         <p>Data centre construction ran at $85 billion a year in August 2026, against $519 billion for new homes, single-family and multifamily. The $370 billion a year in circulation is a Federal Reserve staff forecast of all data centre investment by mid 2026, the servers included, and its authors assume only 44 percent of it is domestic. <span class="cite">{c('c30', 'feds')}</span></p>
         <p>Large banks’ direct lending to AI-related industries was about 0.8 percent of their assets, by the Chicago Fed’s estimate, which found the indirect channels, through lenders that are not banks, hard to measure with the data regulators hold. The Kansas City Fed put neocloud companies at 85 percent debt to assets, against 44 for the largest cloud companies and 34 for chipmakers, and noted that the newest financing structures “have not yet been stress-tested by an economic downturn”. <span class="cite">{c('chi', 'kc')}</span></p>

@@ -27,7 +27,7 @@ Shipped (2026-09-15):
 | Route | What | State |
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
-| `/the-middleman` | 27 Oct 2026 · *The Middleman*, no print, written from an unsourced research deck, twelve sections, seventy-one sources, three registers | **draft**: sourced from scratch, six researchers and a skeptic each (Findings 0j); title and lede the owner's to confirm |
+| `/the-middleman` | 27 Oct 2026 · *The Middleman*, no print, written from an unsourced research deck, twelve sections, seventy-five sources, three registers | **draft**: sourced from scratch, six researchers and a skeptic each (Findings 0j); title and lede the owner's to confirm |
 | `/the-grade` | 22 Oct 2026 · *The Grade* (printed as Edition 10), twelve sections, fourteen sources | **draft**: ported and swept, every source still to be opened |
 | `/the-countersign` | 16 Oct 2026 · *The Countersign* (printed as Edition 09), fifteen sections, twenty-two sources, three registers | live |
 | `/the-supply-cabinet` | 8 Oct 2026 · *The Supply Cabinet* (printed as Edition 06), eleven sections, twelve sources (ten cited) | live (2026-10-17, every source opened, 98 claims corrected) |
@@ -2099,9 +2099,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
    balance sheet says $72.0 billion of liabilities on $5.0 billion of equity
    at 30 June 2026, and $35.5 billion of rent on leases not yet begun is not
    a liability and does not add to the rest. "Borrowed hardware": CoreWeave
-   owns $46.7 billion of equipment. "OpenAI and Meta hold direct liens":
-   every filing that names a lienholder names a lender; the claim traces to
-   an uncited Substack post. "Sub-zero cash flow" against "$2T Cap": $34.3
+   owns $46.7 billion of equipment. "OpenAI and Meta hold direct liens": half right, and the
+   researcher had it wholly wrong. CoreWeave's 10-Qs for the first three
+   quarters of 2025 say "Upon an event of default, OpenAI has a lien and
+   security interest in the equity of the special purpose vehicle"; the
+   10-K and the 2026 reports drop the sentence; nothing gives Meta one. "Sub-zero cash flow" against "$2T Cap": $34.3
    billion of Anthropic's $42.0 billion loss for 2025 was a fair-value charge
    on convertible notes, paid in shares, and the $2 trillion and the $518
    billion are one Reuters sentence, neither in any draft or the S-1. Slide
@@ -2133,7 +2135,18 @@ for a shortlist for bios and cards, which is a separate deliverable.
    obtained anything, and every brief after it forbade the attempt. The
    page keys its sources by name and numbers them in the order listed, so a
    mark stays right when a source is added or dropped, and a missing key
-   fails the build. Reports are in the session's scratchpad.
+   fails the build.
+   **The lane that was wrong three times.** The credit-loop researcher said
+   "no filing discloses" three times and was wrong each time: the 15 to 25
+   percent prepayment (the 10-K has it), OpenAI's lien (three 2025 10-Qs
+   have it) and the advance rates it called redacted (filed in plain
+   figures: 90 percent of equipment cost for an investment-grade customer
+   in March 2026, 71.42 for two that were not in May, 80 then 75 for
+   OpenAI's contracts in 2025). The builder confirmed the lien in two
+   filings and the March and May rates in the agreements themselves
+   before printing them. A negative ("no filing", "not in any source") is
+   the claim a skeptic most needs to test, because a search that misses is
+   silent. Reports are in the session's scratchpad.
 
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text
