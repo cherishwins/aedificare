@@ -22,52 +22,6 @@
       }
     }
   },
-  "edition-02": {
-    "id": "00hUzMPhGsY",
-    "duration": 1096,
-    "source": {
-      "release": "film-edition-02",
-      "asset": "edition-02-film-1920x1080.mp4",
-      "bytes": 997156851,
-      "updated": "2026-10-18T20:47:50Z",
-      "seconds": 1095.375
-    },
-    "thumb": {
-      "src": "/film/edition-02.389ff6fe.png",
-      "src2x": "/film/edition-02-2x.c6752415.png",
-      "width": 112,
-      "height": 63,
-      "alt": "Thumbnail: SUBTRACTION in acid green on black",
-      "source": {
-        "release": "film-edition-02",
-        "asset": "edition-02-thumb-1280x720.png",
-        "sha256": "5a478521e04bfa3ffabf0bc0129a30c229d333194d8f2f1194eac9368d29682a"
-      }
-    }
-  },
-  "the-countersign": {
-    "id": "6j4BfaF8ZvM",
-    "duration": 477,
-    "source": {
-      "release": "film-the-countersign",
-      "asset": "the-countersign-film-1920x1080.mp4",
-      "bytes": 379518306,
-      "updated": "2026-10-17T18:51:52Z",
-      "seconds": 476.25
-    },
-    "thumb": {
-      "src": "/film/the-countersign.df66d4f6.png",
-      "src2x": "/film/the-countersign-2x.ba0ef09b.png",
-      "width": 112,
-      "height": 63,
-      "alt": "Thumbnail: 9,000+ in acid green on dark green",
-      "source": {
-        "release": "film-the-countersign",
-        "asset": "the-countersign-thumb-1280x720.png",
-        "sha256": "139d164cd1ef31b1ffdcadcde994bea10234f2627fbb2331aa5953834cfa88bb"
-      }
-    }
-  },
   "the-supply-cabinet": {
     "id": "yGdOAIj1Wa8",
     "duration": 819,
@@ -134,29 +88,6 @@
         "release": "film-the-tilt-gap",
         "asset": "the-tilt-gap-thumb-1280x720.png",
         "sha256": "46b193d89cbfdf9eeab908cf4a2d2829de54a6ce0448ed08efd75b047478f27b"
-      }
-    }
-  },
-  "edition-03": {
-    "id": "DFPTdSYPNkE",
-    "duration": 910,
-    "source": {
-      "release": "film-edition-03",
-      "asset": "edition-03-film-1920x1080.mp4",
-      "bytes": 736988700,
-      "updated": "2026-10-18T20:22:34Z",
-      "seconds": 909.584
-    },
-    "thumb": {
-      "src": "/film/edition-03.0b54eaeb.png",
-      "src2x": "/film/edition-03-2x.58d74219.png",
-      "width": 112,
-      "height": 63,
-      "alt": "Thumbnail: $18,214 in acid green on black",
-      "source": {
-        "release": "film-edition-03",
-        "asset": "edition-03-thumb-1280x720.png",
-        "sha256": "0ab8c88f3450984eeb5bc099230bbfac68ebbd87551c40dd5314988cf49d435a"
       }
     }
   },

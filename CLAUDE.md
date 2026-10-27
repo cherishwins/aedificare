@@ -2455,7 +2455,18 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   public at 15:00 UTC on 21 Oct, and The Tilt Gap (`mCq1v6d3GVs`) at
   15:00 UTC on 22 Oct; then, read public by `list` at 18:05 UTC on 26
   Oct, The Snapshot Problem (`pJkE2cNBWvs`, 23 Oct), The Markup
-  (`DFPTdSYPNkE`, 24 Oct) and The Floor (`5VFA1JW5HJk`, 26 Oct).
+  (`DFPTdSYPNkE`, 24 Oct) and The Floor (`5VFA1JW5HJk`, 26 Oct). **Three
+  dropped on 27 Oct 2026**, the morning after their corrected renders (the
+  "1 dollars billion" fix, `tools/test-narrate.py`) went up private beside
+  the public films they replace: The Countersign (`xuMIlnvWbe8`, publishing
+  29 Oct 15:00 UTC), The Markup (`VRtpMEPMw9c`, 30 Oct; its Short
+  `LLBUYiWHFx8`, 31 Oct 03:00, replaces `5szqnoz4oME`) and The Subtraction
+  (`VIrS3eKfwEM`, 31 Oct). Each release's ledger now names the new video,
+  so the old link read wrong to `--check --online` and the uploader said to
+  drop it; the old films stay public until each replacement is, then
+  `youtube-channel.mjs retire` and `node tools/films.mjs <new id>` the same
+  morning. Until then those three pages carry no player and no film in
+  their cover row, which is the honest state and the cost of the rule.
 
 - **2026-10-26 · The film plays on its page, and the three forms stand
   together.** The owner, in chat: "why don't we have the videos on the
