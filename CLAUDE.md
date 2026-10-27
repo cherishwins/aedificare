@@ -668,7 +668,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   display text, an 18 June for the page's 17th) were each named with their line,
   and eight of its chart subtitles, notes and figure labels ran over
   twelve words (six chart texts, two figure cards; the first count here
-  said seven), which is the pilot author's to cut. The film then closes
+  said seven), which is the pilot author's to cut; cut on 27 Oct, when
+  the committed script (seven over, against the page as corrected on 26
+  Oct) got `edition: the-countersign`, a hook that no longer types the
+  URL, and the page's new source [24] for the clock note, and passed the
+  gate clean with warnings only (two flows laid out evenly, below, and
+  four surface words off the page). The film then closes
   as an edition film closes: the record line (`recordText` in
   `tools/lib/film.mjs`, the text `generate-film.mjs` writes, the section
   count from `src/lib/editions.mjs` and the source count from the page's
