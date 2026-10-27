@@ -2690,7 +2690,9 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   public at 15:00 UTC on 21 Oct, and The Tilt Gap (`mCq1v6d3GVs`) at
   15:00 UTC on 22 Oct; then, read public by `list` at 18:05 UTC on 26
   Oct, The Snapshot Problem (`pJkE2cNBWvs`, 23 Oct), The Markup
-  (`DFPTdSYPNkE`, 24 Oct) and The Floor (`5VFA1JW5HJk`, 26 Oct). **Three
+  (`DFPTdSYPNkE`, 24 Oct) and The Floor (`5VFA1JW5HJk`, 26 Oct); then The
+  Hand in the Water (`NhE65kjbbj0`, 16:18), public at 15:00 UTC on 27 Oct,
+  linked by the daily channel routine the same hour. **Three
   dropped on 27 Oct 2026**, the morning after their corrected renders (the
   "1 dollars billion" fix, `tools/test-narrate.py`) went up private beside
   the public films they replace: The Countersign (`xuMIlnvWbe8`, publishing
