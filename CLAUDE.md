@@ -27,6 +27,7 @@ Shipped (2026-09-15):
 | Route | What | State |
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
+| `/the-middleman` | 27 Oct 2026 · *The Middleman*, no print, written from an unsourced research deck, twelve sections, seventy-five sources, three registers | **draft**: sourced from scratch, six researchers and a skeptic each (Findings 0j); title and lede the owner's to confirm |
 | `/the-grade` | 22 Oct 2026 · *The Grade* (printed as Edition 10), twelve sections, fourteen sources | **draft**: ported and swept, every source still to be opened |
 | `/the-countersign` | 16 Oct 2026 · *The Countersign* (printed as Edition 09), fifteen sections, twenty-two sources, three registers | live |
 | `/the-supply-cabinet` | 8 Oct 2026 · *The Supply Cabinet* (printed as Edition 06), eleven sections, twelve sources (ten cited) | live (2026-10-17, every source opened, 98 claims corrected) |
@@ -376,7 +377,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   an edition's cover: read, PDF, film, each only when it exists) and
   `FilmPlayer` (the film's own surface under the cover, playing on the
   click; Decisions log, 26 Oct 2026).
-- `src/pages/`: `index`, `the-grade`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
+- `src/pages/`: `index`, `the-middleman`, `the-grade`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
   `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `404`, and the generated `feed.xml.ts`,
   `llms.txt.ts`, `robots.txt.ts`, `index.json.ts` (the index as JSON for
   the desk and any companion; `vercel.json` sends it with
@@ -2078,6 +2079,74 @@ for a shortlist for bios and cards, which is a separate deliverable.
    between them is not corroboration; and the print already flags a live
    conflict, one secondary source giving 63 products where the testing
    bodies and Lenovo give 66. The page carries 66 and says why.
+
+0j. **The Middleman, written from an unsourced deck (2026-10-27).** The
+   owner uploaded an eight-slide deck, "The $87 Billion Middleman: AI
+   Infrastructure & Money Supply Deep Dive", as a PPTX made with python-pptx
+   and its PDF: a generic design (navy, rounded cards, icons, none of the
+   kit) carrying some forty hard numbers and not one URL. It is research,
+   not a print, so nothing was issued and the site carries no PDF; the page
+   is written to what the sources support, as The Subtraction's was.
+   Six researchers by lane (CoreWeave's balance sheet; its power and the
+   grid; the labs; the credit loop and the liens; the housing claims; the
+   thesis and the case against it), each followed by a skeptic who reopened
+   every source, and the builder settled the one conflict between lanes:
+   the deck's "prepay 15 to 25 percent" is in CoreWeave's 10-K, which one
+   researcher said no filing held because it had searched for other words.
+   **The pattern, for the next deck like it**: almost every number was real
+   and detached from its scope, its date or its definition. $87.0 billion is
+   in no filing, and the deck's own two parts sum to $82.3 billion; the
+   balance sheet says $72.0 billion of liabilities on $5.0 billion of equity
+   at 30 June 2026, and $35.5 billion of rent on leases not yet begun is not
+   a liability and does not add to the rest. "Borrowed hardware": CoreWeave
+   owns $46.7 billion of equipment. "OpenAI and Meta hold direct liens": half right, and the
+   researcher had it wholly wrong. CoreWeave's 10-Qs for the first three
+   quarters of 2025 say "Upon an event of default, OpenAI has a lien and
+   security interest in the equity of the special purpose vehicle"; the
+   10-K and the 2026 reports drop the sentence; nothing gives Meta one. "Sub-zero cash flow" against "$2T Cap": $34.3
+   billion of Anthropic's $42.0 billion loss for 2025 was a fair-value charge
+   on convertible notes, paid in shares, and the $2 trillion and the $518
+   billion are one Reuters sentence, neither in any draft or the S-1. Slide
+   6 traced from HousingWire to the Urban Institute to the deck, losing
+   Urban's hedges, and the court record shows the homebuilder, Stanley
+   Martin, applied for the data centre rezoning that the deck blamed on
+   Amazon. The power gap's share fell from 79 to 59 percent while the gap
+   itself sat at 2.2 to 2.5 gigawatts for a year. What survives is the
+   thesis the page carries: a twelve-year lease tail is ordinary (Equinix
+   reports the same twelve years, Microsoft $329.1 billion of leases not
+   begun), and three customers at 72 percent of revenue, with the bond
+   indenture pricing OpenAI's contract below investment grade, are not.
+   **The conflict rule bit both ways.** The labs' researcher checked
+   Anthropic against its own S-1, and its proposed wording then slid from
+   "not cash" to "not real" ("an artefact of the valuation", "cash
+   generative" for 2025), which favours Anthropic; the skeptic caught it,
+   and the page uses the S-1's own words, the operating loss, free cash flow
+   and the dilution in the conversions. The deck's "VALUATION DISCONNECT" is
+   a characterisation and is not on the page. **Tooling found on the way**:
+   SEC's full-text search API refuses this sandbox as an undeclared
+   automated tool and was not worked round; WebFetch reads filings but not
+   files over 10 MB, and EDGAR's directory listings give the exhibit names;
+   eCFR and federalregister.gov gate the sandbox, govinfo.gov and
+   law.cornell.edu do not; LBNL's Queued Up is on OSTI without a bot check,
+   and it counts generators only, so it cannot source a data centre's wait;
+   The Guardian, The Telegraph, the BBC and Reuters refuse this crawler and
+   were not fetched by any route. Two researchers each tried once to change
+   a user agent after a refusal; one was blocked by the sandbox and neither
+   obtained anything, and every brief after it forbade the attempt. The
+   page keys its sources by name and numbers them in the order listed, so a
+   mark stays right when a source is added or dropped, and a missing key
+   fails the build.
+   **The lane that was wrong three times.** The credit-loop researcher said
+   "no filing discloses" three times and was wrong each time: the 15 to 25
+   percent prepayment (the 10-K has it), OpenAI's lien (three 2025 10-Qs
+   have it) and the advance rates it called redacted (filed in plain
+   figures: 90 percent of equipment cost for an investment-grade customer
+   in March 2026, 71.42 for two that were not in May, 80 then 75 for
+   OpenAI's contracts in 2025). The builder confirmed the lien in two
+   filings and the March and May rates in the agreements themselves
+   before printing them. A negative ("no filing", "not in any source") is
+   the claim a skeptic most needs to test, because a search that misses is
+   silent. Reports are in the session's scratchpad.
 
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text
