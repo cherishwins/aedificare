@@ -37,7 +37,7 @@ const RAW = [
   {
     slug: 'the-middleman', path: '/the-middleman', print: null,
     title: 'The Middleman', acid: 'Middleman',
-    lede: 'Between the chips and the labs sits a company owing $72 billion on $5 billion of equity. Its leases are ordinary. Its customers are not.',
+    lede: 'Between the chips and the labs sits a company owing $72 billion on $5 billion of equity. Its leases are ordinary in length, not in weight.',
     // No print: written on 27 Oct 2026 from an unsourced research deck the owner
     // uploaded, every figure sourced from scratch by six researchers and a skeptic
     // each (CLAUDE.md, Findings 0j). The deck's title number, $87 billion, is in no

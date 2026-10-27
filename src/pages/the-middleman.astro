@@ -67,6 +67,14 @@ const years: [string, number][] = [
   ['Longest lease signed, not begun · 30 Jun 2026', 16],
 ];
 
+// Each ratio from one filer's own balance sheet at its own date. Lease
+// liabilities include finance leases; Microsoft's are mostly finance leases.
+const ratios: [string, string, string, string][] = [
+  ['Lease liabilities ÷ total assets', '21.5%', '9.5%', '11.7%'],
+  ['Lease liabilities ÷ equity', '3.3×', '0.27×', '0.20×'],
+  ['Leases signed, not begun ÷ equity', '7.1×', '0.04×', '0.74×'],
+];
+
 const loans: [string, string, string, string, string][] = [
   ['$8.5B', '31 Mar 2026', 'A3', '2.25', 'one investment-grade customer’s contract'],
   ['$3.1B', '18 May 2026', 'Ba2', '4.50', '“two large, non-investment grade customers”'],
@@ -134,6 +142,7 @@ const SRC: Record<string, string> = {
   eqix: 'Equinix, Inc., Form 10-K for the year ended 31 Dec 2025, filed 11 Feb 2026. sec.gov/Archives/edgar/data/1101239/000110123926000032/eqix-20251231.htm',
   msft: 'Microsoft Corporation, Form 10-K for the year ended 30 Jun 2026, filed 29 Jul 2026. sec.gov/Archives/edgar/data/789019/000119312526323660/msft-20260630.htm',
   bis1: 'Bisnow, Dan Rabb, “‘WeWork 2.0’: Booming AI Startups Concern Some Data Center Execs”, 27 Jul 2026. bisnow.com/national/news/data-center-capital-markets/neoclouds-rewriting-rules-data-center-financing-135570',
+  apld: 'Applied Digital Corporation, Form 8-K of 28 May 2025, on its Ellendale leases with CoreWeave, Inc. sec.gov/Archives/edgar/data/1144879/000164117225013199/form8-k.htm',
   ind: 'CoreWeave, Inc., indenture for the 9.625% senior notes due 2032, Exhibit 4.1 to Form 8-K, filed 18 Jun 2026. sec.gov/Archives/edgar/data/1769628/000176962826000291/exhibit41.htm',
   ddtl4: 'CoreWeave, Inc., Form 8-K of 31 Mar 2026, Exhibit 10.1, the DDTL 4.0 credit agreement, and Exhibit 99.1, its release. sec.gov/Archives/edgar/data/1769628/000176962826000129/ex1011.htm and sec.gov/Archives/edgar/data/1769628/000176962826000129/ex991.htm',
   ddtl5: 'CoreWeave, Inc., “CoreWeave Closes $3.1 Billion Loan Facility, Expanding Access to Public Markets for GPU-Backed Financing”, 18 May 2026. investors.coreweave.com/news/news-details/2026/CoreWeave-Closes-3-1-Billion-Loan-Facility-Expanding-Access-to-Public-Markets-for-GPU-Backed-Financing/default.aspx',
@@ -221,7 +230,7 @@ const sources = KEYS.map((k) => SRC[k]);
     <section class="surface flash" id="thesis" aria-label="Thesis">
       <div class="grid">
         <p class="c-full mono-b">Thesis</p>
-        <p class="c-full display thin slap">The lease is ordinary. The customer is not.</p>
+        <p class="c-full display thin slap">The length is ordinary. The weight is not.</p>
       </div>
     </section>
 
@@ -288,10 +297,11 @@ const sources = KEYS.map((k) => SRC[k]);
         <p>By 30 June 2026 the leases in use had twelve years left. Of the $103.7 billion of work under contract that day, 41 percent was due within two years, 80 percent within four, and all of it by month 78. Leases signed and not yet begun run seven to sixteen years. <span class="cite">{c('q2')}</span></p>
         <p>The contracts are getting shorter. The $2.6 billion facility of August is, CoreWeave says, the first of its equipment loans not matched to the contracts behind it: about five years of debt against contracts that “average approximately three years in length”. In September it told investors that since June it had signed customer contracts “with terms of approximately three to six months”. <span class="cite">{c('ddtl55', 'atm')}</span></p>
         <p>Customers pay part in advance: across its active contracts the weighted-average prepayment was 15 to 25 percent of total contract value at the end of 2025. <span class="cite">{c('k25')}</span></p>
-        <p>A long lease against shorter contracts is not unusual in this business. Equinix, which owns some of its data centres and leases the rest, reports the same twelve-year average remaining lease term. Microsoft disclosed $329.1 billion of leases, mostly data centres, signed and not yet begun, running one to twenty years. <span class="cite">{c('eqix', 'msft')}</span></p>
-        <p>What is different is the equipment. CoreWeave depreciates its servers over six years, so a lease of twelve outlasts two generations of what it was signed to hold, and each generation has to find a customer again. <span class="cite">{c('k25')}</span></p>
+        <p>The length is not unusual. Equinix, which owns some of its data centres and leases the rest, reports the same twelve-year average remaining lease term, against customer contracts “generally one to five years in length”. Microsoft disclosed $329.1 billion of leases, mostly data centres, signed and not yet begun, running one to twenty years. <span class="cite">{c('eqix', 'msft')}</span></p>
+        <p>The weight is. Set against each company’s own balance sheet, CoreWeave’s lease liabilities are more than three times its equity, where Equinix’s are about a quarter of its and Microsoft’s a fifth, and the leases it has signed and not begun come to seven times its equity. Equinix has more than 10,500 customers, and its largest brings in about 3 percent of its recurring revenue. <span class="cite">{c('q2', 'eqix', 'msft')}</span></p>
+        <p>And the equipment wears out first. CoreWeave depreciates its servers over six years, so the machines a twelve-year lease was signed to hold are written off twice over before it ends. <span class="cite">{c('k25')}</span></p>
         <p class="mono reg">Reported</p>
-        <p>Jeffrey Moerdler, a data centre lawyer at Haynes Boone, told Bisnow in July that neoclouds are “signing 15-year data center leases” against customer agreements of “max one to three years”. That is where the fifteen years in circulation come from: a description of an industry, not of one company’s filings. <span class="cite">{c('bis1')}</span></p>
+        <p>Jeffrey Moerdler, a data centre lawyer at Haynes Boone, told a Bisnow summit in July that neoclouds are “signing 15-year data center leases” against customer agreements of “max one to three years”. CoreWeave’s own bear him out: those it signed itself with Applied Digital in 2025, about $7 billion, run about fifteen years. <span class="cite">{c('bis1', 'apld')}</span></p>
       </div>
       <div class="c-b">
         <figure class="field bars" aria-label="Contract, equipment and lease lengths in years, each at its own date">
@@ -300,6 +310,15 @@ const sources = KEYS.map((k) => SRC[k]);
             <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${(v / 16) * 100}%`}></span></span><span class="num val">{v}</span></div>
           ))}
         </figure>
+        <div class="field scroll" tabindex="0" role="region" aria-label="Leases against each company’s own balance sheet">
+          <table class="ledger">
+            <caption class="mono">Leases against each company’s own balance sheet · computed from each filing <span class="cite">{c('q2', 'eqix', 'msft')}</span></caption>
+            <thead><tr><th scope="col">Measure</th><th scope="col">CoreWeave · Jun 2026</th><th scope="col">Equinix · Dec 2025</th><th scope="col">Microsoft · Jun 2026</th></tr></thead>
+            <tbody>
+              {ratios.map(([l, a, b, d]) => (<tr><th scope="row">{l}</th><td class="n">{a}</td><td class="n">{b}</td><td class="n">{d}</td></tr>))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </Section>
 
@@ -309,8 +328,8 @@ const sources = KEYS.map((k) => SRC[k]);
         <p class="mono fig-sub">of revenue from three customers, second quarter 2026 <span class="cite">{c('q2')}</span></p>
         <p>In 2025 one customer, Microsoft, was 67 percent of CoreWeave’s revenue. In the second quarter of 2026 its three largest customers were 36, 26 and 10 percent of it. <span class="cite">{c('k25', 'q2')}</span></p>
         <p>Two of the larger contracts are public in outline. OpenAI committed in March 2025 to pay up to about $11.9 billion through October 2030, and in September 2025 up to about $6.5 billion more through May 2031. Meta committed in March 2026 to pay up to about $21.0 billion. <span class="cite">{c('k25', 'q2')}</span></p>
-        <p>CoreWeave’s bond documents say how its lenders weigh them. The indenture for its 2032 notes lets a financing vehicle borrow up to 90 percent of its value where its contracts are mostly with investment-grade customers and 75 percent where they are not, and it names one contract: OpenAI’s, at 75 percent unless OpenAI has an investment-grade rating. <span class="cite">{c('ind')}</span></p>
-        <p class="beat">The unusual risk is not the length of the lease. It is how few customers stand behind it.</p>
+        <p>CoreWeave’s bond documents say how its lenders weigh them. The indenture for its 2032 notes lets a financing vehicle borrow up to 90 percent of its value where its contracts are mostly with investment-grade customers and 75 percent where they are not, and it names one contract: OpenAI’s, at 75 percent, or 90 to the extent OpenAI has an investment-grade rating, with debt against that contract capped at $7.0 billion. Its largest customer, Microsoft, is rated at the top of the scale. <span class="cite">{c('ind')}</span></p>
+        <p class="beat">The unusual risk is not how long the leases run. It is how much rests on so little equity, and on so few customers.</p>
       </div>
       <div class="c-b">
         <Stats class="stack" items={[
@@ -324,13 +343,13 @@ const sources = KEYS.map((k) => SRC[k]);
     <Section n="05" title="The price of a name" ground="bottle" acid id="price">
       <div class="c-a prose">
         <p>What the lenders price is the customer. In March 2026 CoreWeave closed an $8.5 billion loan secured by its equipment and one customer’s contract. Moody’s rated it A3, the first loan of its kind rated investment grade, and it priced at 2.25 percentage points over SOFR. In May a $3.1 billion loan backed by contracts with “two large, non-investment grade customers” was rated Ba2 and priced at 4.50 points over. The collateral was of the same kind. The customers were not. <span class="cite">{c('ddtl4', 'ddtl5')}</span></p>
-        <p>The August facility, over contracts of about three years and guaranteed by the parent, was rated Ba2 and BB+ and priced at 5.50 points over. <span class="cite">{c('ddtl55')}</span></p>
+        <p>The August facility, over contracts of about three years and guaranteed by the parent, was rated Ba2 by Moody’s and BB+ by Fitch and priced at 5.50 points over. <span class="cite">{c('ddtl55')}</span></p>
         <p>Blackstone’s credit arm anchored the March loan. No lender says how much it advances against a processor: the March agreement sizes its loans to a projected debt service coverage of at least 1.20 to 1, and every percentage in the filed copy is redacted. <span class="cite">{c('ddtl4')}</span></p>
         <p class="mono reg">Estimate</p>
         <p>The 70 to 80 percent loan to value in circulation is SemiAnalysis’s own estimate, from its cost model. <span class="cite">{c('semi')}</span></p>
         <p class="mono reg">Reported</p>
         <p>The parent’s own debt is priced on its own name. On 15 October 2026 CoreWeave’s five-year credit default swaps touched a record 1,194.5 basis points, a price implying better than even odds of default within five years, by ICE Data Services’ measure as reported by Bloomberg. The same day Jensen Huang said CoreWeave needed no backstop from Nvidia: “Their cost of capital is actually decreasing.” <span class="cite">{c('huang')}</span></p>
-        <p>JPMorgan’s analysts, reported by Bisnow, wrote that “the cash burn is not a function of unfavorable economics per project”. <span class="cite">{c('bis2')}</span></p>
+        <p>JPMorgan’s analysts wrote, according to Bloomberg as reported by Bisnow, that “the cash burn is not a function of unfavorable economics per project but more of the capacity being ramped each year relative to the installed active capacity at this time”. <span class="cite">{c('bis2')}</span></p>
       </div>
       <div class="c-b">
         <div class="field scroll" tabindex="0" role="region" aria-label="Three loans against equipment and contracts">
@@ -362,8 +381,9 @@ const sources = KEYS.map((k) => SRC[k]);
         <p class="mono reg">Filed</p>
         <p>The wall around the subsidiaries is thin. Of $35.1 billion of debt, $3.7 billion is non-recourse to the parent; CoreWeave guarantees every one of these facilities but the March one. Behind the pledged assets stand about $14.6 billion of the parent’s unsecured notes. <span class="cite">{c('q2', 'ddtl55')}</span></p>
         <p>Where a large technology company does stand inside such a vehicle, it stands as guarantor. Meta owns 20 percent of the two ventures developing its Louisiana and Texas campuses, leases them, and guarantees their investors up to $41.5 billion of the properties’ residual value, against which it has recorded no liability. <span class="cite">{c('meta')}</span></p>
-        <p>If a tenant fails, the law limits what a long lease is worth to its landlord. A bankrupt tenant has 120 days, extendable once by 90, to keep or reject a lease of commercial property, and the landlord’s claim for the rest is capped at the greater of a year’s rent or 15 percent of what remains, never more than three years’. <span class="cite">{c('usc')}</span></p>
-        <p>And the equipment loans were drawn to be repaid inside the contracts behind them. “When an initial contract ends,” the chief financial officer said in August, “the cluster no longer has any leverage.” <span class="cite">{c('call')}</span></p>
+        <p>If a tenant fails, the law caps what a long lease is worth to its landlord. A bankrupt tenant has 120 days, extendable once by 90, to keep or reject a lease of commercial property, paying the rent in full meanwhile, and the landlord’s claim for the rest is capped at the greater of a year’s rent or 15 percent of what remains, never more than three years’. Most of a long lease rejected in a default would fall on landlords and their lenders. <span class="cite">{c('usc')}</span></p>
+        <p>Not all of it. CoreWeave, Inc. signs some leases itself, the Applied Digital ones among them, and guarantees about 90 percent of its debt, including every equipment loan but the March one. The capped rent, and any shortfall on that debt, would rank beside its bondholders. <span class="cite">{c('apld', 'q2', 'ddtl55')}</span></p>
+        <p>Its finance chief’s case is that the debt is paid off inside the contracts: “So when an initial contract ends, the cluster no longer has any leverage”. The August facility is the first that was not, by its own terms. <span class="cite">{c('call', 'ddtl55')}</span></p>
       </div>
       <div class="c-b">
         <dl class="rail">
@@ -450,7 +470,7 @@ const sources = KEYS.map((k) => SRC[k]);
         <p>The capital rule tilts toward housing, where it tilts at all. A mortgage on an occupied or rented home and a builder’s loan on a home already sold carry a 50 percent risk weight; other home construction loans carry 100. A construction loan on commercial property built for income, secured by it and repaid from it, carries 150, or 100 once the borrower has put in 15 percent of its finished value and the loan meets the rule’s other tests. Loans to the cloud companies themselves, or secured by servers and contracts rather than land, are corporate loans at 100. The one place homes and data centres meet is a supervisory screen of 2006 that counts all construction lending together and, in its own words, does “not constitute limits”. <span class="cite">{c('cfr', 'prop', 'cre')}</span></p>
         <p>Banks lent about $14.9 billion to data centres in the year to the third quarter of 2025, on MSCI’s estimate as cited by the Chicago Fed, which found the exposure not material from a commercial property view; most of large banks’ lending to AI is to companies, $450 billion committed and $150 billion drawn. Lending to build single-family homes was rising, 1.9 percent on the year in the first quarter of 2026. Builders have reported tighter credit for eighteen quarters running, a run that began before data centre spending took off in 2023. <span class="cite">{c('chi', 'nahb', 'feds')}</span></p>
         <p>Data centre construction ran at $85 billion a year in August 2026, against $519 billion for new homes, single-family and multifamily. The $370 billion a year in circulation is a Federal Reserve staff forecast of all data centre investment by mid 2026, the servers included, and its authors assume only 44 percent of it is domestic. <span class="cite">{c('c30', 'feds')}</span></p>
-        <p>Large banks’ direct exposure to the whole AI industry was about 0.8 percent of their assets, the Chicago Fed found. The Kansas City Fed found the neocloud companies at 85 percent debt to assets and their financing vehicles near 90, against 44 for the largest cloud companies, and noted that these arrangements “have not been stress-tested by an economic downturn”. <span class="cite">{c('chi', 'kc')}</span></p>
+        <p>Large banks’ direct lending to AI-related industries was about 0.8 percent of their assets, by the Chicago Fed’s estimate, which found the indirect channels, through lenders that are not banks, hard to measure with the data regulators hold. The Kansas City Fed put neocloud companies at 85 percent debt to assets, against 44 for the largest cloud companies and 34 for chipmakers, and noted that the newest financing structures “have not yet been stress-tested by an economic downturn”. <span class="cite">{c('chi', 'kc')}</span></p>
         <p class="mono reg">Reported</p>
         <p>The Urban Institute, which raised the question in October, wrote that “to date, no study has quantified whether data center financing has diverted capital from housing.” For land it gave one case, a site “entitled for 516 homes” sold to Amazon, which it said sought the rezoning. It took the case from HousingWire. <span class="cite">{c('urban', 'hw')}</span></p>
         <p class="mono reg">Filed</p>
