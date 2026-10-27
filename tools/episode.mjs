@@ -29,17 +29,50 @@
  * starred figure nobody says is a figure nobody reads, or worse, one the
  * picture gives away before the voice gets there.
  *
+ * AN EDITION FILM (`edition: <slug>` in the front matter, 2026-10-26): a
+ * script written FROM an edition in the film voice. Its facts are the built
+ * page's (dist/<slug>/index.html, the text a reader reads, the page's SVG
+ * left out, spelled numbers read as numbers: tools/lib/facts.mjs, the same
+ * reading the re-cut's cut lists get): every number spoken, and every number
+ * on a computed surface (a figure, a card, a pop, an overlay, a chart's
+ * display text, a quote card and its source line, the title, the
+ * thumbnail's lines), is on that page or `check` fails and names it with
+ * its line. Wording is free. A draft edition is refused before a credit is
+ * spent: a film waits for its edition's check. The description opens with
+ * the edition's link, as the edition films' do. And it
+ * closes as an edition film closes: the record line read aloud (the text
+ * tools/generate-film.mjs writes, from src/lib/editions.mjs and the page's
+ * own sources list) on Flash, then the dove in silence, in place of the end
+ * card; the Short ends the same way. The record is one more narrated block,
+ * about fifteen words, so it costs voice like any paragraph.
+ *
+ * POPS AND PAGES (2026-10-26) are the re-cut's two kinds, cut here as tools/cuts.mjs cuts them. `[[pop: WORD]]` is
+ * one to three words landing on the word that says them (popHtml, popEnd), composed as one sparse layer of stills
+ * over whatever is beneath, Flash where that shot or an overlay spends Acid and Acid where none does; two on one
+ * word fail the check, and one left under half a second before the next tag stops the render before its first
+ * frame. `[[page: s3 | hl: the words | by: Author]]` is the cited source as tools/capture.mjs shot it
+ * (`node tools/capture.mjs source/episodes/<slug>.md`), its words swept in Acid, or its quote card where the capture
+ * was refused or a frame cannot show the words whole (pageView); `check` names a page tag with no capture yet, a
+ * self shot that names no page of ours (an episode has none), and one of our pages changed since its capture or
+ * shot before grey text, as tools/cuts.mjs names them for a cut list.
+ *
  * The script format is documented in source/episodes/FORMAT.md.
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { browser, findFfmpeg, openContext, esc, ACID, VOID, FLASH } from './lib/film.mjs';
+import { browser, findFfmpeg, openContext, esc, recordText, ACID, VOID, FLASH } from './lib/film.mjs';
 import { NARRATOR, SITE } from '../src/config.mjs';
-import { CHART_TYPES, hotValues, findSpoken } from './lib/chart.mjs';
+import { edition } from '../src/lib/editions.mjs';
+import { CHART_TYPES, findPoint, hasPoint, findSaid, rowPhrase } from './lib/chart.mjs';
+// An edition film's facts gate: the built page's numbers, read as tools/cuts.mjs reads them for a cut list.
+import { pageFacts, facts, numbersIn, missingNumbers } from './lib/facts.mjs';
 // The shots themselves (the tag, the computed cards, the footage cut, one shot to one segment) live in
 // tools/lib/shots.mjs, so the edition films' cut lists build them the same way.
-import { FPS, CUTS, OWNER, GRADE, shotContext, fit, parseTag, page, footageFile, hasAudio, overEnd, ff, warnOnce, renderSegment, renderOverlay } from './lib/shots.mjs';
+import { FPS, CUTS, OWNER, ACID_KINDS, GRADE, shotContext, fit, parseTag, page, footageFile, hasAudio, overEnd, popEnd, pageSource, pageView, namesAuthor, ff, warnOnce, renderSegment, renderOverlay, renderPop, chartHtml } from './lib/shots.mjs';
+// A page tag's capture is found by the name tools/capture.mjs gave it, from the tag it parsed.
+import { parsePage, shotName } from './capture.mjs';
 
 const [STEP, FILE] = process.argv.slice(2);
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
@@ -55,13 +88,19 @@ function parse(file) {
   const src = fs.readFileSync(file, 'utf8');
   const fm = /^---\n([\s\S]*?)\n---\n/.exec(src);
   if (!fm) { console.error(`episode: ${file} has no front matter`); process.exit(1); }
-  const meta = {};
-  for (const line of fm[1].split('\n')) { const i = line.indexOf(':'); if (i > 0) meta[line.slice(0, i).trim()] = line.slice(i + 1).trim(); }
-  const body = src.slice(fm[0].length).replace(/<!--[\s\S]*?-->/g, '');
+  const meta = {}, metaLine = {}; // the front matter's keys, and the line each is on (line 1 is the opening ---), for the messages
+  fm[1].split('\n').forEach((line, k) => { const i = line.indexOf(':'); if (i > 0) { const key = line.slice(0, i).trim(); meta[key] = line.slice(i + 1).trim(); metaLine[key] = k + 2; } });
+  // Comments are blanked line for line (as tools/cuts.mjs reads a list), so every block keeps the line it starts on
+  // for the messages; the paragraphs are the same as when a comment was cut out whole (checked over every script).
+  const body = src.slice(fm[0].length).replace(/<!--[\s\S]*?-->/g, (c) => c.replace(/[^\n]/g, ''));
+  const first = fm[0].split('\n').length; // the body's first line
   const sources = {}, blocks = [], issues = [];
   let inSources = false;
-  for (const para of body.split(/\n\s*\n/)) {
-    const t = para.trim();
+  // A paragraph is a run of lines between blank ones, with the line it starts on.
+  const paras = [];
+  body.split('\n').forEach((text, k) => { if (!text.trim()) { paras.push(null); return; } const last = paras[paras.length - 1]; if (last) last.lines.push(text); else paras.push({ line: first + k, lines: [text] }); });
+  for (const para of paras.filter(Boolean)) {
+    const t = para.lines.join('\n').trim(), line = para.line;
     if (!t) continue;
     if (/^#\s+sources\b/i.test(t)) { inSources = true; }
     if (/^##\s/.test(t)) inSources = false;
@@ -75,9 +114,9 @@ function parse(file) {
       continue;
     }
     if (/^#\s/.test(t)) continue;
-    if (/^##\s/.test(t)) { blocks.push({ kind: 'h2', text: t.replace(/^##\s+/, ''), read: false }); continue; }
+    if (/^##\s/.test(t)) { blocks.push({ kind: 'h2', text: t.replace(/^##\s+/, ''), read: false, line }); continue; }
     const lone = /^\[\[([\s\S]*?)\]\]$/.exec(t);
-    if (lone && /^clip[:#]/.test(lone[1].trim())) { blocks.push({ kind: 'clip', tag: parseTag(lone[1]), read: false, text: '' }); continue; }
+    if (lone && /^clip[:#]/.test(lone[1].trim())) { blocks.push({ kind: 'clip', tag: parseTag(lone[1]), read: false, text: '', line }); continue; }
     // A narrated paragraph: tags become events anchored at the next word, [sN] markers become citations.
     const events = [], cites = [], tokens = [];
     let rest = t.replace(/\s+/g, ' ');
@@ -92,11 +131,24 @@ function parse(file) {
     }
     addText(rest.slice(last));
     if (!tokens.length) { // a paragraph of tags only: the events land on the next paragraph's first word
-      blocks.push({ kind: 'tags', events, read: false, text: '' }); continue;
+      blocks.push({ kind: 'tags', events, read: false, text: '', line }); continue;
     }
-    blocks.push({ kind: 'p', text: tokens.join(' '), tokens, events, cites, read: true });
+    blocks.push({ kind: 'p', text: tokens.join(' '), tokens, events, cites, read: true, line });
   }
-  return { meta, sources, blocks, issues };
+  // An edition film (`edition:`): its facts are the built page's, and it closes on the record line, one more
+  // narrated block, read last, whose counts (the edition's contents list, the page's own sources list) are never typed.
+  let E = null, built = null;
+  if (meta.edition) {
+    E = edition(meta.edition);
+    if (!E) issues.push(`edition: ${meta.edition} is not one of our editions`);
+    // A draft's page builds (noindex) so it can be swept, but a film waits for its edition's check (CLAUDE.md, Decisions
+    // log, 18 Oct 2026): a page nobody has checked would become a film nobody has checked, in a voice, so the script is
+    // refused here, before a credit is spent on it (review, 26 Oct 2026).
+    else if (E.draft) issues.push(`edition: ${E.slug} is a draft; a film waits for its edition's check`);
+    else if (!(built = pageFacts(E))) issues.push(`dist/${E.slug}/index.html is not built: run npm run build`);
+    else { const text = recordText(E, E.contents.length, built.sources); blocks.push({ kind: 'record', text, tokens: text.split(' '), events: [], cites: [], read: true, line: null }); }
+  }
+  return { meta, metaLine, sources, blocks, issues, E, built };
 }
 
 /* ---- check: facts are not free ------------------------------------------- */
@@ -117,6 +169,9 @@ async function check(S, { quiet = false } = {}) {
     if (!/^\d{4}(-\d{2}){0,2}$/.test(s.date || '')) issues.push(`${s.id}: date must be YYYY, YYYY-MM or YYYY-MM-DD, got "${s.date}"`);
   }
   const used = new Set();
+  // The script's flows walked in both frames as the render walks them, each party keeping its place (chart.mjs,
+  // flowRing), to say where two boxes would meet at those places and the flow is laid out evenly instead.
+  const frames = [false, true].map((short) => ({ C: shotContext({ S, short, dir: DIR }), ring: null, name: short ? 'the Short' : 'the film' }));
   // The words spoken while a cut tag's shot is on screen: from its word to the next cut, across paragraphs
   // (a tags-only line holds in silence and the next paragraph plays over it); a clip or a cutting tags line ends it.
   const onScreen = (bi, e) => {
@@ -160,19 +215,52 @@ async function check(S, { quiet = false } = {}) {
         if (!e.tag.srcs.length) issues.push(`chart "${e.tag.title}" cites no source (src: s1, s2)`);
         for (const id of e.tag.srcs) { if (!S.sources[id]) issues.push(`chart "${e.tag.title}" cites ${id}, which is not in # Sources`); else used.add(id); }
         if (e.tag.type !== 'flow' && e.tag.type !== 'timeline' && e.tag.rows.filter((r) => r.hot).length > 1) issues.push(`chart "${e.tag.title}": one point is the story; mark one row with *, not ${e.tag.rows.filter((r) => r.hot).length}`);
-        // The chart lands its point on the word that says it (render); a point nobody says while it is on screen cannot land.
-        const values = CHART_TYPES.includes(e.tag.type) ? hotValues(e.tag.type, e.tag.rows) : [];
+        // The chart lands its point on the word that says it (render: its value, or its words where it carries none);
+        // a point nobody says while it is on screen cannot land.
         const typed = (e.tag.type === 'line' ? e.tag.rows.slice().sort((p, q) => p.t - q.t).slice(-1) : e.tag.rows.filter((r) => r.hot)).map((r) => r.text ?? (r.rb ? `${r.ra}..${r.rb}` : r.ra)).join(', ');
-        if (values.length && findSpoken(onScreen(bi, e).map((w) => ({ w })), values) < 0) warnings.push(`chart "${e.tag.title}": its point (${typed}) is not spoken while the chart is on screen (its tag to the next cut), so it lands on the chart's own timing, ahead of the voice or without it`);
+        const said = onScreen(bi, e).map((w) => ({ w }));
+        if (CHART_TYPES.includes(e.tag.type) && hasPoint(e.tag.type, e.tag.rows) && findPoint(e.tag.type, e.tag.rows, said) < 0) warnings.push(`chart "${e.tag.title}": its point (${typed}) is not spoken while the chart is on screen (its tag to the next cut), so it lands on the chart's own timing, ahead of the voice or without it`);
+        // A row's `@ phrase` is the one word its author typed to place it; one nobody says falls back in silence.
+        for (const r of e.tag.rows) if (r.on && findSaid(said, r.on) < 0) warnings.push(`chart "${e.tag.title}": "${rowPhrase(e.tag.type, { ...r, on: null })}" names "@ ${r.on}", which is not spoken while the chart is on screen, so it lands ${r.hot ? 'on its value where that is said, else ' : ''}on the chart's own timing`);
+        if (e.tag.type === 'flow' && !e.tag.errors.length) for (const f of frames) {
+          const h = chartHtml(f.C, e.tag, null, [], { ring: f.ring });
+          f.ring = h.ring;
+          for (const [a, b] of h.overlap) warnings.push(`chart "${e.tag.title}": in ${f.name}, ${a} and ${b} would overlap at the places the earlier flows gave them, so it is laid out evenly there, not as the flow before it; rename, reorder or split`);
+        }
       }
       if (e.tag.kind === 'map' && e.tag.stops.some((x) => !x)) issues.push(`map stops must be "Name lat,lon > Name lat,lon": ${e.tag.args[0]}`);
-      // The shared parser knows these for the edition films' cut lists; an episode's timeline places no pop and
-      // tools/capture.mjs shoots only an edition's sources, so here either would vanish or fail an hour in.
-      if (e.tag.kind === 'page' || e.tag.kind === 'pop') issues.push(`[[${e.tag.kind}: ...]] is a cut list's shot (the edition films' re-cut); an episode script cannot cut it yet`);
-      if ((e.tag.kind === 'fig' || e.tag.kind === 'over') && /\d/.test(e.tag.value) && !cites.length) issues.push(`figure "${e.tag.value}" sits in a paragraph with no citation`);
+      // A pop is one to three words and no exclamation mark (the parser holds both); a page shot's capture is read here,
+      // so a render never stops an hour in for a tag nobody shot.
+      if (e.tag.kind === 'pop') {
+        issues.push(...e.tag.errors);
+        if (b.events.some((o) => o !== e && o.anchor === e.anchor && o.tag.kind === 'pop' && b.events.indexOf(o) > b.events.indexOf(e))) issues.push(`two pops on one word; they would land on each other: "${e.tag.text}"`);
+      }
+      if (e.tag.kind === 'page') checkPage(S, e, issues, warnings, used);
+      if (['fig', 'over', 'pop'].includes(e.tag.kind) && /\d/.test(e.tag.value ?? e.tag.text) && !cites.length) issues.push(`figure "${e.tag.value ?? e.tag.text}" sits in a paragraph with no citation`);
     }
   }
   for (const id of Object.keys(S.sources)) if (!used.has(id)) issues.push(`${id} is listed but never cited`);
+  // An edition film's facts are the page's (override 7, the checker it promised): every number spoken, and every
+  // number on a computed surface, is on the built page's text (tools/lib/facts.mjs), or the check fails and names
+  // it with its line. Wording is free, so a spoken word off the page is nothing; a surface's word off the page is a
+  // warning, as a cut list's is. The record line is the editions list's own data and is not checked against the page.
+  if (S.built) {
+    const X = { facts: S.built, E: { slug: S.E.slug, title: S.meta.title } }; // what the title card shows: the script's title, no date
+    const out = { issues: [], warnings: [] };
+    const sentence = (text, v) => (text.split(/(?<=[.?!]["”’)]*)\s+/).find((x) => numbersIn(x).primary.includes(v)) || text).slice(0, 90);
+    for (const b of S.blocks) {
+      if (b.kind === 'p') for (const v of missingNumbers(S.built, b.text)) out.issues.push(`line ${b.line}: ${v} is not on the built page ("${sentence(b.text, v)}"); facts are not free`);
+      for (const e of (b.events || [])) facts(X, { line: b.line, kind: e.tag.kind, tag: e.tag }, out, { page: true });
+    }
+    // The thumbnail's lines (`thumb:`, `thumb2:`, `thumb3:`, "line one / line two") are type the render sets in Acid and
+    // Flash from the front matter, not from a tag, and the most seen computed surface of all, so they are read as a card
+    // is: its numbers on the page, its words a warning, twelve words at most (a review of 26 Oct 2026 put $52,000 on one
+    // and it passed clean against a page that prints $50,000).
+    for (const n of ['', '2', '3']) if (S.meta[`thumb${n}`]) facts(X, { line: S.metaLine[`thumb${n}`], kind: 'thumb', tag: { kind: 'thumb', text: S.meta[`thumb${n}`] } }, out, { page: true });
+    // The description opens with the edition's link (describe); a hook that types it too would read it twice.
+    if ((S.meta.hook || '').includes(SITE.origin + S.E.path)) out.warnings.push(`line ${S.metaLine.hook}: hook: carries ${SITE.origin + S.E.path}, which the description opens with; it would read twice`);
+    issues.push(...out.issues); warnings.push(...out.warnings);
+  }
   if (ONLINE) {
     const norm = (s) => s.toLowerCase().replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
     for (const b of S.blocks) for (const e of (b.events || [])) {
@@ -201,12 +289,59 @@ async function check(S, { quiet = false } = {}) {
   return issues;
 }
 
+// Why a frame shows a page shot as its quote card (pageView's verdicts), for the check's warning.
+const CARD_WHY = { picture: 'a picture on the source touches its words, so text only', wide: 'the words\' block cannot be read whole at the frame\'s smallest type', small: 'the words\' block is a sliver of its page at the frame\'s largest type', unnamed: 'the words\' figures cannot be shown with the head that names them' };
+/**
+ * A page shot's capture, read without stopping (tools/cuts.mjs checkPage does the same for a cut list): the tag as
+ * tools/capture.mjs parses it, its source in # Sources, its record under DIR/pages (named as the capture named it),
+ * its words boxed, the author the page gives against the credit the label sets (fair dealing names the author the
+ * source gives, ss. 29.1 and 29.2), and what each frame makes of it (pageView): the page, or the shot's quote card
+ * where a picture touches the words or the frame cannot show them whole, said so a person knows what the film shows.
+ * A refused capture is a warning, as in a cut list: the shot is a quote card of words nobody could read on the source.
+ * Our own page is named as a cut list's is: changed since its capture (its built sha256 against dist/) a warning,
+ * shot before grey text an issue, and a self shot naming no page of ours an issue here, where tools/capture.mjs
+ * would refuse it under a name the check does not look for (an episode's stem is hashed with ep-<slug>).
+ */
+function checkPage(S, e, issues, warnings, used) {
+  // The tag by its head and first phrase, whole, rather than cut at a count of characters mid-word.
+  const where = `[[page: ${e.tag.body.split('|')[0].trim()}${e.tag.hls.length ? ` | hl: ${e.tag.hls[0]}` : ''}]]`;
+  const urls = Object.fromEntries(Object.values(S.sources).map((s) => [s.id, s.url]));
+  let shot;
+  try { shot = parsePage(e.tag.body, urls); } catch (err) { issues.push(`${where}: ${err.message.replace(/^page:\s*/, '')}`); return; }
+  if (shot.self && !shot.page) { issues.push(`${where}: an episode has no page of its own; name one of ours: self <slug>#<id>`); return; }
+  if (!shot.self) { if (!S.sources[shot.src]) { issues.push(`${where}: ${shot.src} is not in # Sources`); return; } used.add(shot.src); }
+  const file = path.join(DIR, 'pages', `${shotName(SLUG, shot)}.json`);
+  if (!fs.existsSync(file)) { issues.push(`${where}: no capture yet (${file}); node tools/capture.mjs ${FILE} shoots every page tag of the script, --page "<tag>" one of them`); return; }
+  const rec = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (rec.refused) { warnings.push(`${where}: the capture was refused (${rec.refusal}: ${String(rec.reason).slice(0, 80)}); the shot is a quote card of words nobody could read on the source, so a person confirms them before upload`); return; }
+  if (!rec.ok || !rec.png) { issues.push(`${where}: the capture failed (${rec.error || 'no PNG'}); fix the tag and capture again`); return; }
+  const lost = shot.hl.filter((h, i) => !(rec.hl?.[i]?.found && rec.hl[i].union && rec.hl[i].boxes?.length));
+  if (lost.length) { issues.push(`${where}: "${lost.join('", "')}" not boxed in the capture`); return; }
+  const ps = pageSource({ S }, rec, e.tag.by || null);
+  if (ps.author && !namesAuthor(`${ps.by || ''} ${ps.pub}`, ps.author)) warnings.push(`${where}: the page gives its author as "${ps.author}" and its credit ("${ps.by ? `${ps.by}, ` : ''}${ps.pub}") does not name them; by: names the author the source gives`);
+  // Our own page as built (tools/cuts.mjs checkPage holds the same): a capture older than the page shows the page
+  // as it was, and one shot before tools/capture.mjs drew text grey carries Chromium's blue and orange fringes on
+  // every glyph, colours the kit does not have.
+  const ed = rec.self && rec.built?.sha256 ? edition(rec.page) : null;
+  if (ed) {
+    const f = path.join('dist', ed.path.replace(/^\//, ''), 'index.html');
+    if (fs.existsSync(f) && rec.built.sha256 !== crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex')) warnings.push(`${where}: our page ${rec.page} changed since its capture (${rec.readAt.slice(0, 10)}); capture it again so the shot shows the page as built`);
+  }
+  if (rec.self && !rec.greyText) { issues.push(`${where}: our page ${rec.page}'s capture (${rec.readAt.slice(0, 10)}) predates grey text, so its type carries colours the kit does not have; capture it again (node tools/capture.mjs ${FILE} --page "${e.tag.body}")`); return; }
+  for (const short of [false, true]) {
+    const v = pageView(shotContext({ S, short, dir: DIR, slug: SLUG, capture: FILE }), rec, shot);
+    if (v.error) issues.push(`${where}: ${v.error}`);
+    else if (v.card) warnings.push(`${where}: the ${short ? 'Short' : 'film'} shows the shot's quote card (${CARD_WHY[v.card]})`);
+  }
+}
+
 /* ---- paths ----------------------------------------------------------------- */
 const S = parse(FILE);
 const SLUG = S.meta.slug || path.basename(FILE, '.md');
 const DIR = path.join('brand/youtube', `ep-${SLUG}`);
-// What every shot is built from: the script, the frame with its margins and type sizes, and the footage folder.
-const C = shotContext({ S, short: SHORT, dir: DIR });
+// What every shot is built from: the script, the frame with its margins and type sizes, the footage folder, and the
+// pages tools/capture.mjs shot for this script (DIR/pages).
+const C = shotContext({ S, short: SHORT, dir: DIR, slug: SLUG, capture: FILE });
 const FOOT = C.FOOT;
 fs.mkdirSync(FOOT, { recursive: true });
 const SEED = (S.meta.date || '').replace(/-/g, '').slice(2) || '0';
@@ -261,17 +396,27 @@ function timeline() {
     for (const w of tw) words.push({ ...w, s: w.s + shift, e: w.e + shift });
     for (const c of chapters) if (c.t === undefined) c.t = nb.start + shift;
   });
-  const total = N.duration + shift + 0.6;
+  // The edition close: the body ends where the record's lead begins (generate-film's 0.3 s), the record shows while
+  // its line is read, the dove from 0.6 s after it to the end of the voice's own silence after it; otherwise the body
+  // runs 0.6 s past the voice and the end card holds 3.6 s.
+  const last = N.blocks[N.blocks.length - 1];
+  const record = S.blocks[S.blocks.length - 1]?.kind === 'record' ? { t: last.start + shift - 0.3, end: last.end + shift } : null;
+  const total = record ? record.t : N.duration + shift + 0.6;
+  const end = record ? N.duration + shift : total + 3.6;
   events.sort((a, b) => a.t - b.t);
   const cuts = events.filter((e) => CUTS.includes(e.tag.kind));
   // The first cut owns the lead-in silence; a blank opens the film only when nothing is cut before the first two seconds.
   if (!cuts.length || cuts[0].t > 2) cuts.unshift({ t: 0, tag: { kind: 'blank' } });
   cuts[0].t = 0;
-  const shots = cuts.map((c, i) => ({ ...c, end: i + 1 < cuts.length ? cuts[i + 1].t : total }));
-  shots.push({ t: total, end: total + 3.6, tag: { kind: 'end' } });
+  if (record) cuts.push({ t: record.t, tag: { kind: 'record', E: S.E, sections: S.E.contents.length, sources: S.built.sources } }, { t: record.end + 0.6, tag: { kind: 'dove' } });
+  const shots = cuts.map((c, i) => ({ ...c, end: i + 1 < cuts.length ? cuts[i + 1].t : end }));
+  if (!record) shots.push({ t: total, end, tag: { kind: 'end' } });
   const all = events.map((e) => e.t).concat([total]);
-  const overs = events.filter((e) => e.tag.kind === 'over').map((e) => ({ ...e, end: overEnd(e, Math.min(...all.filter((x) => x > e.t + 0.01)), words) }));
-  return { N, shots, overs, clips, chapters, words, total, end: total + 3.6 };
+  const next = (e) => Math.min(...all.filter((x) => x > e.t + 0.01));
+  const overs = events.filter((e) => e.tag.kind === 'over').map((e) => ({ ...e, end: overEnd(e, next(e), words) }));
+  // A pop lands on its word and leaves once the word is said and read (popEnd), never past the next tag.
+  const pops = events.filter((e) => e.tag.kind === 'pop').map((e) => ({ ...e, end: popEnd(e, next(e), words) }));
+  return { N, shots, overs, pops, clips, chapters, words, total, end, record };
 }
 
 /* ---- sheet: what the owner finds ------------------------------------------ */
@@ -373,6 +518,8 @@ function describe(T, bedLine) {
   if (uncredited.length) warnOnce(`episode: ${uncredited.length} file(s) in use with no line in footage/credits.txt ("id: source, licence"): ${uncredited.join(', ')}`);
   const firstP = S.blocks.find((x) => x.kind === 'p');
   const text = [
+    // An edition film's description opens with the edition's link, as the edition films' do (owner, 20 Oct 2026).
+    ...(S.E ? [SITE.origin + S.E.path] : []),
     S.meta.hook || firstP.text,
     '',
     ...chapterLines, ...(chapterLines.length ? [''] : []),
@@ -402,6 +549,21 @@ async function render() {
   const music = arg('--music', 'bed');
   const bedLine = (bedFile) => bedFile === null ? 'Music: none.' : music === 'bed' ? `Music: computed from r = cos(kθ), seed ${SEED}; no third-party audio.` : `Music: ${path.basename(bedFile)} (add the licence credit here)`;
   if (SHORT) shortPlan(T); else describe(T, bedLine(music === 'none' ? null : music));
+  // The pops, planned before the first frame too. popEnd ends one at the next tag, so one left under half a second
+  // before it cannot be read and stops the render, as the re-cut refuses it (tools/cuts.mjs MIN), and two at once (two
+  // on one word, which the check names too) would land on each other; one over a shot or an overlay that spends Acid
+  // is Flash, one over a shot that spends none is Acid (one Acid at a time, as tools/cuts.mjs decides it; a slate's
+  // key line is Acid too, so a pop over a slate turns Acid once the footage arrives). A quote with hl: counts even
+  // where quoteHtml finds the phrase nowhere in its text and draws no bar, so that pop is Flash over a card with no
+  // Acid on it: the safe side, never a second Acid.
+  const spends = (s) => ACID_KINDS.has(s.tag.kind) || (s.tag.kind === 'quote' && !!s.tag.hl) || (OWNER.includes(s.tag.kind) && !footageFile(C, s.tag.id));
+  const meets = (a, b) => a.t < b.end && a.end > b.t;
+  for (const o of T.pops) {
+    if (o.end - o.t < 0.5) { console.error(`episode: pop "${o.tag.text}" at ${o.t.toFixed(2)} s is left ${(o.end - o.t).toFixed(2)} s before the tag after it, too short to read; move it or give it room`); process.exit(1); }
+    const other = T.pops.find((p) => p !== o && meets(p, o));
+    if (other) { console.error(`episode: two pops on screen at once ("${o.tag.text}" at ${o.t.toFixed(2)} s and "${other.tag.text}" at ${other.t.toFixed(2)} s); one leaves before the next lands`); process.exit(1); }
+    o.acid = !T.shots.some((s) => meets(s, o) && spends(s)) && !T.overs.some((v) => meets(v, o));
+  }
   const work = path.join(DIR, SHORT ? 'work-short' : 'work'); fs.rmSync(work, { recursive: true, force: true }); fs.mkdirSync(work, { recursive: true });
   const t0 = Date.now();
 
@@ -413,11 +575,14 @@ async function render() {
   // Each shot to its own segment on the frame grid (tools/lib/shots.mjs); R carries what runs across shots.
   const segs = [];
   const missing = new Set();
-  const R = { work, brandDir, words: T.words, pg, show, shot, missing, lastChart: null };
+  const R = { work, brandDir, words: T.words, pg, show, shot, missing, lastChart: null, flowRing: null };
   for (let i = 0; i < T.shots.length; i++) segs.push(...await renderSegment(C, R, T.shots[i], i));
   // Overlays: one transparent still each, cut in and out on the word.
   const overs = [];
   for (const [j, o] of T.overs.entries()) overs.push(await renderOverlay(C, R, o, j));
+  // Pops: four stills each, three landing and the landed word (tools/lib/shots.mjs renderPop), Acid or Flash as planned above.
+  const pops = [];
+  for (const [j, o] of T.pops.entries()) pops.push(await renderPop(C, R, o, j));
   // Thumbnails: a frame of the named shot, graded, with two lines of type. Up to three variants for YouTube's
   // Test & Compare (thumb/thumbframe, thumb2/thumbframe2, thumb3/thumbframe3; a variant without its own frame
   // uses the first one's): thumb.png, thumb-b.png, thumb-c.png.
@@ -483,7 +648,8 @@ async function render() {
   let bedFile = null;
   if (music === 'bed') {
     const bd = path.join(work, 'bed'); fs.mkdirSync(bd);
-    fs.writeFileSync(path.join(bd, 'narration.json'), JSON.stringify({ duration: T.total, blocks: [] }));
+    // bed.py ends the bed 0.6 s after a record block and fades before it, so the dove is silent, as in an edition film.
+    fs.writeFileSync(path.join(bd, 'narration.json'), JSON.stringify({ duration: T.total, blocks: T.record ? [{ kind: 'record', end: T.record.end }] : [] }));
     fs.writeFileSync(path.join(bd, 'script.json'), JSON.stringify({ seed: SEED }));
     if (spawnSync('uv', ['run', '-q', 'tools/bed.py', bd], { stdio: 'inherit' }).status === 0) bedFile = path.join(bd, 'bed.wav');
   } else if (music !== 'none') bedFile = music;
@@ -499,6 +665,23 @@ async function render() {
     ov.push(`[${last}][${idx}:v]overlay=0:0:enable='between(t,${o.t.toFixed(3)},${o.end.toFixed(3)})':shortest=1[o${j}]`);
     last = `o${j}`;
   });
+  // The pops as one sparse layer over everything (as tools/cuts.mjs composes them): each still one frame at its first
+  // frame, held until the next, a transparent frame between, at 24 a second so every time lands on a frame. One input
+  // for all of them, where a looped PNG input is decoded again for every frame of the film.
+  const pieces = pops.flatMap((p) => p.pieces).sort((a, b) => a.t - b.t);
+  if (pieces.length) {
+    const clear = path.join(work, 'clear.png');
+    ff(['-f', 'lavfi', '-i', `color=c=black@0.0:s=${W}x${H},format=rgba`, '-frames:v', '1', clear], 'a transparent frame');
+    const total = Math.round(T.end * FPS);
+    const lines = ['ffconcat version 1.0'], put = (png, n) => { if (n > 0) lines.push(`file '${path.resolve(png)}'`, `option framerate ${FPS}`, `duration ${(n / FPS).toFixed(6)}`); };
+    let at = 0;
+    for (const x of pieces) { const a = Math.round(x.t * FPS), e = Math.min(total, Math.round(x.end * FPS)); put(clear, a - at); put(x.png, e - a); at = Math.max(at, e); }
+    put(clear, Math.max(1, total - at));
+    fs.writeFileSync(path.join(work, 'pops.ffconcat'), lines.join('\n') + '\n');
+    fin.push('-f', 'concat', '-safe', '0', '-i', path.join(work, 'pops.ffconcat'));
+    ov.push(`[${last}][${2 + (bedFile ? 1 : 0) + overs.length}:v]overlay=0:0:eof_action=repeat:format=auto[pl]`);
+    last = 'pl';
+  }
   const graph = [...ov];
   graph.push(bedFile ? `[2:a]aresample=48000,volume=0.35,apad=whole_dur=${T.end}[b];[1:a][b]amix=inputs=2:normalize=0:duration=first[a]` : '[1:a]anull[a]');
   ff([...fin, '-filter_complex', graph.join(';'), '-map', ov.length ? `[${last}]` : '0:v', '-map', '[a]',
@@ -535,13 +718,13 @@ async function render() {
     const shortCues = cues.map((c) => ({ ...c, s: remap(c.s), e: remap(Math.min(c.e, segs.find(([a, b]) => c.s >= a && c.s < b)?.[1] ?? c.e) - 0.001) })).filter((c) => c.s !== null && c.e !== null);
     fs.writeFileSync(path.join(DIR, 'captions-short.srt'), srt(shortCues));
     const len = segs.reduce((n, [a, b]) => n + b - a, 0);
-    const description = [S.meta.hook || firstP.text, '', 'The full film is on the channel.', '', 'Sources:', ...sources, '', `Voice: synthetic, ${T.N.model} ${T.N.voice}.`, SITE.origin].join('\n');
+    const description = [...(S.E ? [SITE.origin + S.E.path] : []), S.meta.hook || firstP.text, '', 'The full film is on the channel.', '', 'Sources:', ...sources, '', `Voice: synthetic, ${T.N.model} ${T.N.voice}.`, SITE.origin].join('\n');
     fs.writeFileSync(path.join(DIR, 'meta-short.json'), JSON.stringify({
       kind: 'short', slug: SLUG, title: S.meta.title, description, file: path.basename(short), captions: 'captions-short.srt',
       thumbnail: null, categoryId: '28', licence: 'youtube', madeForKids: false, duration: Math.round(len),
     }, null, 1) + '\n');
     fs.writeFileSync(path.join(DIR, 'sheet-short.txt'), `Title: ${S.meta.title}\n\nDescription:\n${description}\n\nCaptions: captions-short.srt (English). Licence: Standard YouTube Licence. YouTube files it as a Short by its shape and length.\n`);
-    console.log(`episode: ${short} ${len.toFixed(1)} s from ${segs.length - 1} chapter(s) and the end card, ${Math.round(fs.statSync(short).size / 1048576)} MB, ${((Date.now() - t0) / 60000).toFixed(1)} min wall`);
+    console.log(`episode: ${short} ${len.toFixed(1)} s from ${segs.length - 1} chapter(s) and the ${T.record ? 'record and the dove' : 'end card'}, ${Math.round(fs.statSync(short).size / 1048576)} MB, ${((Date.now() - t0) / 60000).toFixed(1)} min wall`);
     if (missing.size) console.log(`episode: ${missing.size} shot(s) still slates: ${[...missing].join(', ')}`);
     longHolds(T);
     return;
@@ -561,7 +744,7 @@ async function render() {
     : '';
   fs.writeFileSync(path.join(DIR, 'sheet.txt'), `Title: ${S.meta.title}\n\nDescription:\n${description}\n\nCaptions: captions.srt (English). Thumbnail: thumb.png. Licence: Standard YouTube Licence.${variantLines}\n`);
   sheet(T);
-  console.log(`episode: ${film} ${(T.end / 60).toFixed(1)} min, ${T.shots.length} shots, ${overs.length} overlays, ${Math.round(fs.statSync(film).size / 1048576)} MB, ${((Date.now() - t0) / 60000).toFixed(1)} min wall`);
+  console.log(`episode: ${film} ${(T.end / 60).toFixed(1)} min, ${T.shots.length} shots, ${overs.length} overlays, ${pops.length} pops (${pops.filter((p) => p.acid).length} Acid, ${pops.filter((p) => !p.acid).length} Flash), ${Math.round(fs.statSync(film).size / 1048576)} MB, ${((Date.now() - t0) / 60000).toFixed(1)} min wall`);
   if (missing.size) console.log(`episode: ${missing.size} shot(s) still slates: ${[...missing].join(', ')}`);
   longHolds(T);
 }
@@ -574,7 +757,7 @@ async function render() {
  */
 function longHolds(T) {
   const held = (s) => s.end - s.t - (s.builtMs || 0) / 1000;
-  const long = T.shots.filter((s) => !OWNER.includes(s.tag.kind) && !['end', 'blank'].includes(s.tag.kind) && held(s) > 14.4);
+  const long = T.shots.filter((s) => !OWNER.includes(s.tag.kind) && !['end', 'blank', 'record', 'dove'].includes(s.tag.kind) && held(s) > 14.4);
   for (const s of long) console.warn(`episode: long hold, ${held(s).toFixed(1)} s of ${s.tag.kind} standing still${s.builtMs ? ` after ${(s.builtMs / 1000).toFixed(1)} s of build` : ''} at ${Math.floor(s.t / 60)}:${String(Math.floor(s.t % 60)).padStart(2, '0')} (${s.tag.title || s.tag.value || s.tag.text || s.tag.by || ''}); add a cut`);
 }
 

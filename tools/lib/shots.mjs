@@ -16,11 +16,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { css, esc, FORMATS, ACID, MAL, BOTTLE, VOID, FLASH } from './film.mjs';
+import { css, esc, FORMATS, ACID, MAL, BOTTLE, VOID, FLASH, recordHtml, seedLine, doveHtml } from './film.mjs';
 import { markPath } from '../../src/lib/rose.mjs';
 import { SITE } from '../../src/config.mjs';
 import { edition } from '../../src/lib/editions.mjs';
-import { chartBody, chartCss, parseChart, hotValues, findSpoken, rowKey, numKey } from './chart.mjs';
+import { chartBody, chartCss, parseChart, findPoint, hasPoint, findSaid, rowPhrase, rowKey, numKey } from './chart.mjs';
 // A page tag's body is capture.mjs's own tag, so the render names the very file the capture wrote.
 import { parsePage, shotName } from '../capture.mjs';
 
@@ -30,6 +30,9 @@ export const KINDS = ['footage', 'gag', 'clip', 'quote', 'map', 'chart', 'fig', 
 export const OVERLAYS = ['over', 'pop'];
 export const CUTS = KINDS.filter((k) => !OVERLAYS.includes(k));
 export const OWNER = ['footage', 'gag', 'clip']; // shots the owner supplies
+// The kinds that spend a shot's one Acid (a quote card spends it when it highlights; a slate's key line is Acid too):
+// a pop over one of them is Flash (tools/cuts.mjs place, tools/episode.mjs).
+export const ACID_KINDS = new Set(['page', 'chart', 'fig', 'over', 'map']);
 // The grade that makes footage from six decades read as one film: most of the colour out, contrast up, pushed toward Void.
 export const GRADE = 'hue=s=0.18,eq=contrast=1.22:brightness=-0.07:gamma=0.92,'
   + 'colorbalance=rs=-0.10:gs=0.03:bs=-0.08:rm=-0.07:gm=0.03:bm=-0.06:rh=-0.04:bh=-0.04,'
@@ -39,13 +42,15 @@ const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' '
 /**
  * The context every shot is built in. `S` is the parsed script (its meta and sources), `short` the tall frame for
  * the Shorts feed (1080x1920), `dir` the work directory whose footage/ folder holds the owner's files. `slug` and
- * `pages` say where tools/capture.mjs wrote a page shot's PNG and JSON (brand/youtube/<slug>/pages/ by default).
+ * `pages` say where tools/capture.mjs wrote a page shot's PNG and JSON (brand/youtube/<slug>/pages/ by default);
+ * `capture` is what tools/capture.mjs is given to shoot them (the edition's slug, or an episode's script), for the
+ * message that names a capture still to make.
  */
-export function shotContext({ S, short = false, dir, slug = S?.meta?.slug, pages = path.join(dir, 'pages') }) {
+export function shotContext({ S, short = false, dir, slug = S?.meta?.slug, pages = path.join(dir, 'pages'), capture = slug }) {
   const F = short ? FORMATS.tall : FORMATS.wide, W = F.W, H = F.H, M = short ? 64 : 120;
   // Type sized to the frame: tall frames are narrower, and the bottom third of a Short sits under YouTube's own controls.
   const TY = short ? { quote: 62, stmt: 170, title: 190, end: 130, slate: 44, low: Math.round(H * 0.3) } : { quote: 84, stmt: 170, title: 200, end: 150, slate: 56, low: M + 150 };
-  return { S, SHORT: short, F, W, H, M, TY, DIR: dir, FOOT: path.join(dir, 'footage'), SLUG: slug, PAGES: pages };
+  return { S, SHORT: short, F, W, H, M, TY, DIR: dir, FOOT: path.join(dir, 'footage'), SLUG: slug, PAGES: pages, CAPTURE: capture };
 }
 /** A figure's size: its base, or smaller if the string would not fit between the margins (condensed digits run about half an em). */
 export const fit = (C, value, base) => Math.min(base, Math.floor((C.W - 2 * C.M) / (Math.max(1, value.length) * 0.5)));
@@ -80,10 +85,11 @@ export function parseTag(inner) {
     tag.errors = [...(n < 1 || n > 3 ? [`pop "${tag.text}": one to three words, not ${n}`] : []), ...(tag.text.includes('!') ? [`pop "${tag.text}": no exclamation`] : [])];
   }
   if (tag.kind === 'page') {
-    // Kept whole for capture.mjs's parser; `hls` are the phrases in order (one picture, its related steps).
+    // Kept whole for capture.mjs's parser; `hls` are the phrases in order (one picture, its related steps). The
+    // source is a cut list's number (07) or an episode's id (s3); `by:` names the author the label credits.
     tag.body = m[3].trim();
     tag.hls = parts.filter((p) => /^hl\s*:/.test(p)).map((p) => p.replace(/^hl\s*:\s*/, '').replace(/^["“](.*)["”]$/, '$1'));
-    tag.src = /^\d{1,3}$/.test(args[0] || '') ? args[0].padStart(2, '0') : null;
+    tag.src = /^\d{1,3}$/.test(args[0] || '') ? args[0].padStart(2, '0') : /^s\d+$/.test(args[0] || '') ? args[0] : null;
   }
   return tag;
 }
@@ -274,15 +280,16 @@ ${tag.label ? `<div class="maplabel mono">${esc(tag.label)}</div>` : ''}
   return { html, anim: pts.length > 1, live: true };
 }
 
-export function chartHtml(C, tag, landMs = null, held = []) {
+/** `spoken` is each row's own word in ms (rowLands), `ring` the parties the film's earlier flows placed (chart.mjs). */
+export function chartHtml(C, tag, landMs = null, held = [], { spoken = [], ring = null } = {}) {
   const { W, H, M } = C;
   const num = (v) => v.toLocaleString('en-US', { maximumFractionDigits: 3 });
   // A typed string (the value as the source prints it) passes through; a computed tick is formatted.
   const fmt = (v) => `${tag.prefix || ''}${typeof v === 'string' ? v : num(v)}${tag.unit || ''}`;
   const sourceLine = 'SOURCE: ' + tag.srcs.map((id) => C.S.sources[id]).filter(Boolean).map((s) => `${s.pub}, ${s.date}`).join(' · ');
   const ref = tag.ref ? (() => { const m = /^(-?[\d.]+)\s*(.*)$/.exec(tag.ref); return m ? { v: +m[1], r: m[1], label: m[2] } : null; })() : null;
-  const { body, animMs, landed } = chartBody({ type: tag.type, title: tag.title, sub: tag.sub, note: tag.note, sourceLine, rows: tag.rows, fmt, W, H, M, ref, landMs, held });
-  return { html: page(C, body, VOID, chartCss(W, H, M)), anim: true, live: true, animMs, landMs: landed ? landMs : null };
+  const { body, animMs, landed, ring: placed, overlap } = chartBody({ type: tag.type, title: tag.title, sub: tag.sub, note: tag.note, sourceLine, rows: tag.rows, fmt, W, H, M, ref, landMs, held, spoken, ring });
+  return { html: page(C, body, VOID, chartCss(W, H, M)), anim: true, live: true, animMs, landMs: landed ? landMs : null, ring: placed, overlap };
 }
 
 export const figHtml = (C, tag) => ({ html: page(C, `<div class="big" style="font-size:${fit(C, tag.value, tag.value.length > 8 ? 260 : 360)}px;color:${ACID}">${esc(tag.value)}</div>${tag.label ? `<div class="sub mono" style="color:${MAL}">${esc(tag.label)}</div>` : ''}`) });
@@ -291,6 +298,14 @@ export const titleHtml = (C) => ({ html: page(C, `<div class="stmt" style="font-
 export const slateHtml = (C, tag) => ({ html: page(C, `<div class="slate"><div class="k mono">${tag.kind === 'clip' ? 'Clip needed' : tag.kind === 'gag' ? 'Gag needed' : 'Footage needed'} · ${esc(tag.id)}</div><div class="d">${esc(tag.desc)}</div>${tag.say ? `<div class="f mono">Says: ${esc(tag.say)}</div>` : ''}${tag.find ? `<div class="f mono">Find: ${esc(tag.find)}</div>` : ''}</div>`, BOTTLE) });
 export const endHtml = (C) => ({ html: page(C, `<div class="stmt" style="font-size:${C.TY.end}px;text-transform:none">${esc(new URL(SITE.origin).host)}</div><div class="mast mono" style="color:${FLASH}"><svg viewBox="0 0 100 100"><path d="${markPath(100)}" fill="none" stroke="${FLASH}" stroke-width="6"/></svg>AEDIFICARE</div>`) });
 export const overHtml = (C, tag) => page(C, `${tag.value ? `<div class="big" style="font-size:${fit(C, tag.value, tag.value.length > 9 ? 200 : 300)}px;color:${ACID}">${esc(tag.value)}</div>` : ''}${tag.label ? `<div class="sub mono" style="color:${FLASH}">${esc(tag.label)}</div>` : ''}`, 'transparent');
+/**
+ * The edition close (tools/episode.mjs, `edition:`, 2026-10-26): the record on Flash as the edition film draws it
+ * (tools/lib/film.mjs recordHtml, with the seed line in Bottle; the ink is Void, which page() sets Flash), and then
+ * the dove on Void, built by the site's own client script loaded into the frame unchanged, which show() waits for
+ * (`dove`). The record tag carries the edition and its two counts. Neither is a tag a script can write.
+ */
+export const recordShotHtml = (C, tag) => ({ html: page(C, recordHtml(tag.E, tag.sections, tag.sources) + `<div class="seed mono" style="color:${BOTTLE}">${seedLine(tag.E)}</div>`, FLASH, `body{color:${VOID}}`) });
+export const doveShotHtml = (C) => ({ html: page(C, doveHtml()), dove: true });
 
 /* ---- page: a cited source as served, its words swept in Acid -------------------- */
 const die = (m) => { console.error(m); process.exit(1); };
@@ -1358,6 +1373,16 @@ export function namesAuthor(text, author) {
 }
 
 /**
+ * An episode's source date as its line writes it (YYYY, YYYY-MM or YYYY-MM-DD; FORMAT.md) set as the editions set a
+ * date ("8 Feb 2024", "Feb 2024", "2024"); anything else (a cut list's "2 Sep 2026") is given back as it is.
+ */
+function givenDate(v) {
+  const m = /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$/.exec(String(v || '').trim());
+  if (!m) return v;
+  return m[3] ? dayLabel(v) : m[2] ? `${MON[+m[2] - 1]} ${m[1]}` : m[1];
+}
+
+/**
  * Who wrote a captured page, who published it and when, as its shot's label names them and a description credits
  * them (tools/cuts.mjs): the cut list's own `by:`, `pub:` and `date:` for the source first, then what the capture read.
  * The author is named because fair dealing for criticism and news reporting names the source and, where the source
@@ -1365,20 +1390,24 @@ export function namesAuthor(text, author) {
  * paper's authors in the cut list's pub:) is not named twice. `author` is the capture's own byline, whatever `by` says,
  * so the check can say when a credit leaves it out. Our own pages are named by edition. A refused capture is named by
  * its host and the day the edition read it, because the wall's title says nothing about the source.
+ * An episode's source (s3: its publisher and date on its `# Sources` line) is numbered as the description numbers
+ * it, by its place in the list; `tagBy` is the page tag's own `by:`, which names the author where the line cannot.
  */
-export function pageSource(C, rec) {
+export function pageSource(C, rec, tagBy = null) {
   const src = rec.src ? C.S.sources?.[rec.src] : null;
   const given = src && typeof src === 'object' ? src : {};
+  const n = /^s\d+$/.test(rec.src || '') ? String(Object.keys(C.S.sources || {}).indexOf(rec.src) + 1) : rec.src;
+  const gDate = given.date ? givenDate(given.date) : null;
   if (rec.refused) {
     const read = rec.source && /\bread (\d{1,2} [A-Z][a-z]{2} \d{4})/.exec(rec.source.text || '');
-    return { n: rec.src, pub: given.pub || new URL(rec.url).hostname.replace(/^www\./, ''), date: given.date || (read ? `read ${read[1]}` : ''), by: given.by || null, author: null, own: null };
+    return { n, pub: given.pub || new URL(rec.url).hostname.replace(/^www\./, ''), date: gDate || (read ? `read ${read[1]}` : ''), by: given.by || tagBy || null, author: null, own: null };
   }
   const ed = rec.self ? edition(rec.page) : null;
   const pub = ed ? `${SITE.name} · ${ed.title}` : given.pub || rec.publisher || new URL(rec.finalUrl || rec.url).hostname.replace(/^www\./, '');
-  const date = ed ? ed.dateLabel : given.date || dayLabel(rec.published) || `read ${dayLabel(rec.readAt)}`;
+  const date = ed ? ed.dateLabel : gDate || dayLabel(rec.published) || `read ${dayLabel(rec.readAt)}`;
   const author = ed ? null : cleanAuthor(rec.author);
-  const by = ed ? null : given.by || (author && !namesAuthor(pub, author) ? author : null);
-  return { n: rec.src, pub, date, by, author, own: ed ? ed.title : null };
+  const by = ed ? null : given.by || tagBy || (author && !namesAuthor(pub, author) ? author : null);
+  return { n, pub, date, by, author, own: ed ? ed.title : null };
 }
 /** A page shot's source as its label sets it: "[02] Julian Horsey, Geeky Gadgets". */
 const pageCredit = (ps) => `${ps.n ? `[${ps.n}] ` : ''}${ps.by ? `${ps.by}, ` : ''}${ps.pub}`;
@@ -1433,7 +1462,7 @@ export function pageRecord(C, tag) {
   try { shot = parsePage(tag.body, urls); } catch (e) { die(`shots: [[page: ${tag.body}]]: ${e.message}`); }
   const name = shotName(C.SLUG, shot);
   const file = path.join(C.PAGES, `${name}.json`);
-  if (!fs.existsSync(file)) die(`shots: no capture for [[page: ${tag.body}]] (${path.join(C.PAGES, name)}.json); run node tools/capture.mjs ${C.SLUG} --page "${tag.body}"`);
+  if (!fs.existsSync(file)) die(`shots: no capture for [[page: ${tag.body}]] (${path.join(C.PAGES, name)}.json); run node tools/capture.mjs ${C.CAPTURE} --page "${tag.body}"`);
   return { shot, rec: JSON.parse(fs.readFileSync(file, 'utf8')), file };
 }
 
@@ -1460,7 +1489,7 @@ export function pageRecord(C, tag) {
  */
 export async function pageHtml(C, s, { d, words = [], work, ground = VOID }) {
   const { shot, rec } = pageRecord(C, s.tag);
-  const ps = pageSource(C, rec);
+  const ps = pageSource(C, rec, s.tag.by || null);
   const v = pageView(C, rec, shot);
   if (v.card) {
     // The edition's own source line says when it was read; the wall's title says nothing about the source.
@@ -1619,29 +1648,48 @@ export async function shotHtml(C, s, landMs = null, held = [], opts = {}) {
   if (k === 'page') return pageHtml(C, s, opts);
   if (k === 'quote') return quoteHtml(C, s.tag, 0, null, opts.ground);
   if (k === 'map') return mapHtml(C, s.tag);
-  if (k === 'chart') return chartHtml(C, s.tag, landMs, held);
+  if (k === 'chart') return chartHtml(C, s.tag, landMs, held, { spoken: opts.spoken, ring: opts.ring });
   if (k === 'fig') return figHtml(C, s.tag);
   if (k === 'card') return cardHtml(C, s.tag);
   if (k === 'title') return titleHtml(C);
   if (k === 'end') return endHtml(C);
+  if (k === 'record') return recordShotHtml(C, s.tag);
+  if (k === 'dove') return doveShotHtml(C);
   if (k === 'blank') return { html: page(C, '') };
   return slateHtml(C, s.tag);
 }
 
 /**
  * Where a chart's point lands (source/channel/brief-2026-09-26.md, 6: narration in step with the picture): on the
- * first word inside the shot that speaks the starred value, in ms from the shot's first frame. Held to at least one
- * beat in, so the context has a beat to build, and to half a beat before the cut, so the landed value is on screen
- * before the next shot. Null when no word in the shot says it, or the shot is too short to build and land in; the
- * chart then keeps its own timing.
+ * first word inside the shot that speaks the starred value, or its words where it carries none (chart.mjs,
+ * findPoint), in ms from the shot's first frame. Held to at least one beat in, so the context has a beat to build,
+ * and to half a beat before the cut, so the landed value is on screen before the next shot. Null when no word in
+ * the shot says it, or the shot is too short to build and land in; the chart then keeps its own timing.
  */
 export function chartLand(s, words, d) {
   const inShot = words.filter((w) => w.s >= s.t && w.s < s.end);
-  const i = findSpoken(inShot, hotValues(s.tag.type, s.tag.rows));
+  const i = findPoint(s.tag.type, s.tag.rows, inShot);
   if (i < 0) return null;
   const at = (inShot[i].s - Math.round(s.t * FPS) / FPS) * 1000; // from the shot's first frame on the film's grid
   const ms = Math.min(Math.max(at, 900), d * 1000 - 450);
   return ms >= 900 ? { word: inShot[i], at, ms: Math.round(ms) } : null;
+}
+
+/**
+ * Each other row's own word, { word, at, ms } in ms from the shot's first frame, parallel to the chart's rows: the
+ * `@ phrase` its tag gives, else its text or label, said inside the shot (chart.mjs, findSaid). Null for the starred
+ * row (chartLand's), for a row nobody says, which keeps the chart's own clock, and past half a beat before the cut;
+ * held to the kit's short beat in, so a mark is seen landing. A line's points are not rows.
+ */
+export function rowLands(s, words, d) {
+  if (s.tag.type === 'line') return s.tag.rows.map(() => null);
+  const inShot = words.filter((w) => w.s >= s.t && w.s < s.end), first = Math.round(s.t * FPS) / FPS;
+  return s.tag.rows.map((r) => {
+    const i = r.hot ? -1 : findSaid(inShot, rowPhrase(s.tag.type, r));
+    if (i < 0) return null;
+    const at = (inShot[i].s - first) * 1000, ms = Math.round(Math.max(at, 120));
+    return ms <= d * 1000 - 450 ? { word: inShot[i], at, ms } : null;
+  });
 }
 
 /**
@@ -1686,8 +1734,9 @@ export const warnOnce = (m) => { if (warned.has(m)) return; warned.add(m); conso
  * One shot of the timeline as its own segment, `work/<i>.mp4`, or as pieces `work/<i>-<k>.mp4` when a long footage
  * shot is cut into a sequence; returns the files in order. `R` is the render's state across shots: `work` and
  * `brandDir` (where each computed shot's HTML goes for check-brand), the film's `words` with their times, the
- * Chromium page (`pg`, `show`, `shot` from openContext), the `missing` set of owner shots still slates, and
- * `lastChart`, so a chart that comes back keeps the rows it already showed (chart.mjs, held). `lastCard` is set here:
+ * Chromium page (`pg`, `show`, `shot` from openContext), the `missing` set of owner shots still slates, `lastChart`,
+ * so a chart that comes back keeps the rows it already showed (chart.mjs, held), and `flowRing`, the angle each party
+ * of a flow was given, so a loop that comes back keeps its places (chart.mjs, flowRing). `lastCard` is set here:
  * a quote card, or a page shot shown as its card, that starts on the frame the card before it ended is set on the
  * other ground, so two cards back to back read as two pictures (The Floor's Short, 2026-10-20). Sets `s.builtMs` on a
  * computed shot, for longHolds.
@@ -1704,6 +1753,7 @@ export async function renderSegment(C, R, s, i) {
   const enc = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '16', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-an', out];
   const f = OWNER.includes(s.tag.kind) ? footageFile(C, s.tag.id) : null;
   let land = null; // a chart's spoken point, when the build lands on it
+  let rows = []; // a chart's other rows' own words, where the voice says them
   let pageNote = ''; // a page shot's label and where each highlighter landed, for the log
   if (f) {
     // B-roll cuts every four beats: a footage shot longer than six beats is cut into pieces of about 3.6 s,
@@ -1739,15 +1789,19 @@ export async function renderSegment(C, R, s, i) {
       const cap = SHORT ? 3 : 5;
       if (s.tag.type !== 'line' && s.tag.rows.length > cap) console.warn(`episode: chart "${s.tag.title}" has ${s.tag.rows.length} rows; a ${SHORT ? 'Short reads three' : '16:9 frame reads five'} at most, so fold or split it`);
       land = chartLand(s, R.words, d);
+      rows = rowLands(s, R.words, d);
     }
     const held = s.tag.kind === 'chart' && R.lastChart && R.lastChart.type === s.tag.type && ['bars', 'range'].includes(s.tag.type) ? R.lastChart.rows.map(rowKey) : [];
     if (s.tag.kind === 'chart') R.lastChart = s.tag;
-    const h = await shotHtml(C, s, land ? land.ms : null, held, { d, words: R.words, work, ground: follows === VOID ? BOTTLE : VOID });
+    const h = await shotHtml(C, s, land ? land.ms : null, held, { d, words: R.words, work, ground: follows === VOID ? BOTTLE : VOID, spoken: rows.map((x) => x && x.ms), ring: R.flowRing });
+    if (h.ring) R.flowRing = h.ring;
+    // Two boxes met at the places the earlier flows gave them, so this flow was laid out evenly (chart.mjs, overlap).
+    for (const [a, b] of h.overlap || []) console.warn(`episode: flow "${s.tag.title}": ${a} and ${b} would overlap at the places the earlier flows gave them, so it is laid out evenly, not as the flow before it; rename, reorder or split`);
     if (!h.landMs) land = null;
     if (s.tag.kind === 'quote' || h.card) R.lastCard = { f: Math.round(s.end * FPS), ground: h.ground || VOID };
     // What check-brand reads: our own type only. A page shot's capture and a quote's words are someone else's.
     fs.writeFileSync(path.join(brandDir, `${i}.html`), h.brand ?? (s.tag.kind === 'quote' ? h.html.replace(/<div class="t">[\s\S]*?<\/div>/, '<div class="t"></div>') : h.html));
-    await show({ id: `${i}`, html: h.html, live: h.live });
+    await show({ id: `${i}`, html: h.html, live: h.live, dove: h.dove });
     const fdir = path.join(work, `f${i}`); fs.mkdirSync(fdir);
     // A build longer than the shot is compressed to finish inside 80 percent of it, so the point always lands on screen.
     // A chart landed on its word was already fitted inside the shot (chartLand), so it keeps the voice's own pace; the
@@ -1775,7 +1829,9 @@ export async function renderSegment(C, R, s, i) {
     process.stdout.write(land
       ? `        ${s.tag.type} "${s.tag.title}": lands on "${land.word.w}" at ${land.word.s.toFixed(2)} s, landMs ${land.ms}${held}\n`
       : `        ${s.tag.type} "${s.tag.title}": its point is not spoken in the shot; own timing\n`);
-    if (!land && hotValues(s.tag.type, s.tag.rows).length) console.warn(`episode: chart "${s.tag.title}" lands its point on its own timing; no word in its shot says it`);
+    const own = rows.map((x, k) => x && `"${rowPhrase(s.tag.type, s.tag.rows[k]).slice(0, 24)}" on "${x.word.w}" at ${x.ms} ms`).filter(Boolean);
+    if (own.length) process.stdout.write(`        rows on their words: ${own.join('; ')}\n`);
+    if (!land && hasPoint(s.tag.type, s.tag.rows)) console.warn(`episode: chart "${s.tag.title}" lands its point on its own timing; no word in its shot says it`);
   }
   return [out];
 }

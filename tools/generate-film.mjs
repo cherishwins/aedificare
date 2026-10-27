@@ -41,9 +41,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { HOUSE } from '../src/lib/rose.mjs';
-import { EDITIONS, seedDrift, LICENCE, numberWord } from '../src/lib/editions.mjs';
+import { EDITIONS, seedDrift } from '../src/lib/editions.mjs';
 import { SITE, NARRATOR } from '../src/config.mjs';
-import { ACID, MAL, BOTTLE, VOID, FLASH, SHOCK, GROUND, FORMATS, kLabel, esc, css, mastHtml, fieldHtml, doveHtml, findFfmpeg, openContext, encoder, browser } from './lib/film.mjs';
+import { ACID, MAL, BOTTLE, VOID, FLASH, SHOCK, GROUND, FORMATS, esc, css, mastHtml, fieldHtml, doveHtml, recordText, recordHtml, seedLine, findFfmpeg, openContext, encoder, browser } from './lib/film.mjs';
 import { filmMeta, sheetText, metaIssues } from './lib/film-meta.mjs';
 
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : dflt; };
@@ -64,13 +64,8 @@ if (!E) { console.error(`generate-film: no edition ${SLUG}`); process.exit(1); }
 const DIR = path.join('brand/youtube', SLUG);
 fs.mkdirSync(DIR, { recursive: true });
 const F = SHORT ? FORMATS.tall : FORMATS[FORMAT];
-const HOST = SITE.origin.replace(/^https?:\/\//, '');
 const URL_ = SITE.origin + E.path;
 const FF = findFfmpeg();
-
-const MONTHS = { Jan: 'January', Feb: 'February', Mar: 'March', Apr: 'April', May: 'May', Jun: 'June', Jul: 'July', Aug: 'August', Sep: 'September', Oct: 'October', Nov: 'November', Dec: 'December' };
-const spokenDate = (d) => d.replace(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/, (m) => MONTHS[m]);
-const cap = (s) => s.replace(/^./, (c) => c.toUpperCase());
 
 /* ---- 1. the script, from the built page --------------------------------- */
 async function script() {
@@ -119,9 +114,8 @@ async function script() {
   // The section count is the edition's contents list, as every other surface counts it: a page can carry an h2 that
   // is not a section (The Subtraction's "One die, five permissions."), and two films read out one section too many.
   const sections = E.contents?.length ?? blocks.filter((x) => x.kind === 'h2').length;
-  // The record line, generated from data the page carries, read last.
-  blocks.push({ i: blocks.length, kind: 'record', sec: 'record', ground: 'flash', read: true,
-    text: `${E.title}. ${spokenDate(E.dateLabel)}. ${cap(numberWord(sections))} sections, ${numberWord(sources)} sources, at aedificare dot art. ${LICENCE.name}.` });
+  // The record line, generated from data the page carries, read last (tools/lib/film.mjs, shared with the episodes' edition close).
+  blocks.push({ i: blocks.length, kind: 'record', sec: 'record', ground: 'flash', read: true, text: recordText(E, sections, sources) });
   const out = { slug: SLUG, title: E.title, seed: E.seed, voice: VOICE, speed: 1.0, sections, sources, blocks };
   fs.writeFileSync(path.join(DIR, 'script.json'), JSON.stringify(out, null, 1));
   const words = blocks.filter((x) => x.read).reduce((n, x) => n + x.text.split(' ').length, 0);
@@ -223,7 +217,6 @@ function fragment(words, k0, k1) {
 async function render() {
   const N = JSON.parse(fs.readFileSync(path.join(DIR, 'narration.json'), 'utf8'));
   const S = JSON.parse(fs.readFileSync(path.join(DIR, 'script.json'), 'utf8'));
-  const seedLine = `r = cos(kθ) · seed ${E.seed} · k ${kLabel(E.k)}`;
   const seed = seedDrift(E.seed);
   const house = E.k.map((k, i) => ({ k, s: HOUSE[i].s, ph: HOUSE[i].ph, w: HOUSE[i].w, c: [ACID, MAL, SHOCK][i], o: [0.95, 0.6, 0.8][i] }));
   const quiet = E.k.map((k, i) => ({ k, s: HOUSE[i].s, ph: HOUSE[i].ph, w: HOUSE[i].w, c: MAL, o: [0.62, 0.34, 0.2][i] }));
@@ -231,7 +224,7 @@ async function render() {
   const page = (ground, body, blk) => {
     const flash = ground === 'flash';
     const ink = flash ? VOID : FLASH;
-    const furniture = `<div class="label mono"${flash ? ` style="color:${BOTTLE}"` : ''}>${esc(label(blk))}</div><div class="seed mono" style="color:${flash ? BOTTLE : MAL}">${seedLine}</div>`;
+    const furniture = `<div class="label mono"${flash ? ` style="color:${BOTTLE}"` : ''}>${esc(label(blk))}</div><div class="seed mono" style="color:${flash ? BOTTLE : MAL}">${seedLine(E)}</div>`;
     return `<!doctype html><html lang="en"><meta charset="utf-8"><title>${esc(E.title)}</title><style>${css(F, GROUND[ground], ink)}</style><body>${body}${furniture}</body></html>`;
   };
 
@@ -276,8 +269,7 @@ async function render() {
     } else if (blk.kind === 'slap') {
       add({ id: 'slap-' + bi, start: blk.start - 0.3, end: blk.end + 0.9, ground: 'flash', html: page('flash', `<div class="slap">${esc(blk.text)}</div>`, blk) });
     } else if (blk.kind === 'record') {
-      add({ id: 'record', start: blk.start - 0.3, end: blk.end + 0.6, ground: 'flash',
-        html: page('flash', `<div class="url"><div>${HOST}</div><div>${esc(E.path)}</div><div class="rec mono">${esc([E.dateLabel, E.title, `${numberWord(S.sections)} sections`, `${numberWord(S.sources)} sources`, LICENCE.name].join(' · '))}</div></div>` + mastHtml(BOTTLE), blk) });
+      add({ id: 'record', start: blk.start - 0.3, end: blk.end + 0.6, ground: 'flash', html: page('flash', recordHtml(E, S.sections, S.sources), blk) });
       add({ id: 'dove', start: blk.end + 0.6, end: total, ground: 'void', dove: true, html: page('void', doveHtml(), { sec: 'record' }) });
     } else if (blk.read && blk.words?.length) {
       const figs = figuresIn(blk.words);

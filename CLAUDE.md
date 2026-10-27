@@ -490,7 +490,18 @@ for a shortlist for bios and cards, which is a separate deliverable.
   but carry no commercial rights), `bed.py` (the
   computed music bed, through `uv`), `lib/film.mjs` (what the two film
   generators share: palette, ffmpeg search, surface CSS, the Chromium
-  context, the encoder), `upload-youtube.mjs` (a rendered film to the
+  context, the encoder, and, since 26 Oct 2026, the record: its spoken
+  line, its shot on Flash and the seed line, written once so an episode
+  cut from an edition closes on the same words and picture as the
+  edition's own film), `lib/facts.mjs` (facts are not free, lifted out of
+  `cuts.mjs` on 26 Oct 2026 so the episodes' edition films get the same
+  reading: the built page's text, its SVG left out, spelled numbers read
+  as numbers, a number at a scale found either way ("600 thousand" on a
+  page that prints $600,000, `$50K` on one that prints $50,000), what each
+  computed shot puts on screen, a quote card's words read for their
+  numbers only, a chart row's display text in place of its value, a
+  timeline row that names a day found with its day, where the month alone
+  had done), `upload-youtube.mjs` (a rendered film to the
   channel through the Data API, from the render's `meta.json`, private by
   default; `--update <videoId>` sets the same generated metadata, captions
   and thumbnail on a video the owner uploaded by hand, and `--meta-only`
@@ -569,7 +580,39 @@ for a shortlist for bios and cards, which is a separate deliverable.
   word that speaks its value (the narration's own timestamps; `check`
   warns when no word said while the chart is up says it, because then
   the picture gives the point away before the voice), a chart that
-  comes back holding the rows it already showed, every
+  comes back holding the rows it already showed, and, since 26 Oct 2026,
+  every other row landing on its own word too (its label, or the
+  `@ phrase` its tag names, said while the chart is up: the label's
+  first meaningful word, then at least half of them in order, so two
+  rows sharing a first word do not land together, and a point with no
+  number landing on its words, "SIGN-OFF*" on "sign-off"; a timeline's
+  row waits for its axis to reach its mark; `check` warns of an
+  `@ phrase` nobody says; a label of numbers alone, "2025/26", still
+  lands on "mid-2025", and whether a year said in passing should place
+  a row is the owner's call), a flow keeping its places across the
+  script's flows (a party keeps the angle its earlier flows gave it,
+  carried in the render's `flowRing`; a newcomer takes the widest gap,
+  among every angle the ring holds, beside a party it joins, so a loop
+  that returns with a stranger is the same picture with one new box,
+  where 2π·i/n had moved every box; the ring holds one diagram, and a
+  flow sharing no party with it starts the ring again, so no two
+  parties of a flow can hold one angle, which the first version let
+  happen (review, 26 Oct); where two boxes would still meet at their
+  places, as a sixth party 36° from its neighbour does on the Short's
+  narrow ellipse, that flow is laid out evenly in the ring's order and
+  `check` and the render name the frame and the pair; a label wider than
+  its edge breaks onto two lines, as the stranger's "THE COIN, 66 MIN"
+  on its short edge to X had stood 400 px off it; labels are still
+  placed edge by edge, so two can meet, as before), and
+  a timeline keyed to the minute (`2024-10-10 22:11=The joke`) spreading
+  a day's rows by the clock and labelling them as times, where the same
+  day twice had stacked them 90 px apart beside an empty axis, a text
+  too wide for its room breaking onto two lines before it shrinks so the
+  point keeps its size, the room read in the face's own advances
+  (`LABEL_ADV`, measured in Chromium: one constant per character wrapped
+  text that fit; this changed softbank-975's payments timeline in the
+  film, whose hot row had been shrinking to fit, and left the Short's as
+  it was), every
   chart citing its sources on screen, type sized for a phone and a TV
   (16:9 labels 40 px, Shorts clear of the right 120 px and the lower
   quarter), designed with the dataviz skill's method and its palette
@@ -600,6 +643,56 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `upload-youtube.mjs` refuses them before minting a token); chapters are
   listed only as YouTube shows them, three or more and none under ten
   seconds; every file in use with no line in `credits.txt` is named.
+  **An edition film from a script** (2026-10-26, the checker override 7
+  promised): `edition: <slug>` in the front matter names the edition a
+  script is written from. `check` then reads the built page through
+  `tools/lib/facts.mjs` (the same reading `cuts.mjs` gives a cut list) and
+  fails on every number it does not carry, spoken or on a computed
+  surface (a figure, a card, a pop, an overlay, a chart's display text and
+  its timeline's dates, a quote card's words and source line, the title,
+  and the thumbnail's lines, `thumb:` to `thumb3:`, type the render sets
+  in Acid and Flash from the front matter and the most seen computed
+  surface of all: a review of the same day put $52,000 on one and it
+  passed clean against a page that prints $50,000),
+  naming the line; wording is free, so a spoken word off the page is
+  nothing and a surface's word off the page is a warning, as on a cut
+  list; the kit's twelve words on a card, its label counted with it, on
+  the thumbnail and on each label of a chart come with the same function.
+  A draft edition is refused before a credit is spent, because a film
+  waits for its edition's check (Decisions log, 18 Oct 2026); its page
+  builds for the sweep, so until the review a script naming one passed
+  the gate against it. Tried on The
+  Countersign's pilot script (26 Oct 2026): every number in its sixteen
+  paragraphs and on its fifty-nine tagged surfaces was on the page, four
+  planted ones (a spoken 52,000, a 9,500 on a figure, a $1.1B in a chart's
+  display text, an 18 June for the page's 17th) were each named with their line,
+  and eight of its chart subtitles, notes and figure labels ran over
+  twelve words (six chart texts, two figure cards; the first count here
+  said seven), which is the pilot author's to cut; cut on 27 Oct, when
+  the committed script (seven over, against the page as corrected on 26
+  Oct) got `edition: the-countersign`, a hook that no longer types the
+  URL, and the page's new source [24] for the clock note, and passed the
+  gate clean with warnings only (two flows laid out evenly, below, and
+  four surface words off the page). The film then closes
+  as an edition film closes: the record line (`recordText` in
+  `tools/lib/film.mjs`, the text `generate-film.mjs` writes, the section
+  count from `src/lib/editions.mjs` and the source count from the page's
+  own list) is one more narrated block, read over the record shot on
+  Flash with the seed line, then the dove on Void, built by
+  `src/scripts/aed.js` loaded into the frame as the edition films load
+  it, in place of the end card; the Short ends the same way, the bed ends
+  before the dove, and `longHolds` leaves both alone. The record costs
+  voice like any paragraph. The film's and the Short's descriptions open
+  with the edition's link, as the edition films' do (Decisions log, 20 Oct
+  2026), and `check` warns when a `hook:` types it too; whether an
+  `edition:` film's description should be the edition's own (`filmMeta`
+  in `tools/lib/film-meta.mjs`) rather than the episode's is the owner's
+  call, not changed. The parser now keeps each block's line for
+  the messages, blanking comments line for line as `cuts.mjs` does; every
+  script splits into the same paragraphs as before (checked over all six
+  and the pilot), every tag of all six still builds to byte-identical HTML
+  in both frames, and short-onegov's shots render to the same sixteen
+  segment hashes through `renderSegment`.
   **The shots live in `tools/lib/shots.mjs`** (2026-10-20): the tag
   parser, the grade, the quote, map, chart, figure, card, title, slate,
   end and overlay builders, the footage probes, and the renderer that
@@ -931,10 +1024,72 @@ for a shortlist for bios and cards, which is a separate deliverable.
   and Meshtastic's Long Fast row became cards; whether those joins want
   the other ground is the owner's call. Every tag and builder of the six
   episode scripts still parses and builds byte for byte as before, and
-  short-onegov renders to the same 284 hashes. An episode script's
-  `check` refuses both kinds: its timeline places no pop, and capture
-  shoots only an edition's sources. The cut lists (spec step 2) place
-  them.
+  short-onegov renders to the same 284 hashes. The cut lists (spec step
+  2) place them, and so, since 26 Oct 2026, does an episode script
+  (`source/episodes/FORMAT.md`), which refused both until then. A
+  `[[pop: WORD]]` in a paragraph lands on its next word, as every
+  episode tag does (no 0.15 s lead, which is the re-cut's rule for cuts
+  into a finished film), leaves by `popEnd`, is Flash where the shot
+  beneath it or an overlay spends Acid (`ACID_KINDS`, exported from
+  `tools/lib/shots.mjs` and read by the re-cut and the episodes alike; a
+  slate's key line counts, so a pop over a slate turns Acid once the
+  footage arrives) and Acid otherwise, and is composed as one sparse
+  ffconcat layer of its four stills over the `over` chain, as the re-cut
+  composes its pops, because a looped PNG input is decoded again for
+  every frame of the film. Measured on this sandbox's four cores (26
+  Oct 2026; a 60 s 1080p clip through the final mix's own encode, three
+  runs of each): the encode alone took 21 s, with four looped full-frame
+  stills 49 to 50 and with sixteen 146 to 149, about 7 to 8 s a still
+  for each minute of film, where one sparse layer holding the same
+  sixteen stills took 23 to 24; so four stills a pop over twelve pops
+  would have cost a ten-minute film an hour, and the layer costs it
+  under half a minute. Two pops on one word fail the check, and a
+  pop left under half a second before the next tag (which ends it, as
+  it ends every overlay) stops the render before its first frame, as
+  the re-cut refuses one. A `[[page: s3 | hl: words | by: Author]]` is cut through
+  `pageHtml` like a cut list's, so each frame shows the page or its
+  quote card by `pageView` (the Short's narrower panel turns a wide
+  paragraph into the card, as it does in a re-cut); its source is the
+  script's `# Sources` line (the label numbers it as the description
+  does, by its place in the list, and sets its ISO date as the editions
+  set one), `by:` on the tag names the author where the line cannot
+  (`parsePage` carries it and does not shoot it, so a credit changed is
+  not a page captured again), and `check` reads the capture without
+  stopping: a tag with no capture yet is named with the command that
+  shoots it, a refused one is a warning (the shot is its quote card), a
+  failed one or an unboxed phrase an issue, a byline the credit leaves
+  out a warning, and each frame's card verdict a warning, so a person
+  knows what the film will show before it renders. The description is
+  unchanged: the sources list already carries the page's publisher,
+  title, date and URL, and whether it should also name the page's
+  author, as a re-cut's does, is open. `episode.yml` has no capture step
+  yet, so a page tag renders only where someone has run
+  `tools/capture.mjs` on the script first (locally, or a step to add
+  that files the pages as `recut.yml` does). Tried on a scratch script
+  with one page tag on a Wikipedia article (its robots.txt allows the
+  agent; four pictures painted out) and two pops: `check` named the
+  missing capture, then passed with the two warnings above; built and
+  rendered in both frames through the segment renderer (the film shows
+  the page at zoom 2.38, the Short its card), `check-brand` clean on
+  both; and the whole render composed through `episode.mjs render`
+  with a synthetic narration cache and `uv` off the PATH, so nothing
+  could speak. The six scripts still build byte for byte (611 HTML
+  hashes) and short-onegov's shots render to the same 196 hashes. A
+  review the same day found two things the build had left apart: a cut
+  list's page tag may carry `by:` since `parsePage` took it, and its
+  label named that author while the check's byline warning and the
+  description's credits still read the credit without it, so `checkPage`
+  and `creditOf` in `tools/cuts.mjs` pass the tag's `by:` to `pageSource`
+  as `pageHtml` does (the source line's `by:` still wins); and the
+  episode's `checkPage` had dropped the cut list's guards for our own
+  page, so it holds them: a `self <slug>#<id>` capture older than the
+  page as built (its sha256 against `dist/`) warns, one shot before grey
+  text fails, and a self shot naming no page of ours fails in `check`,
+  where the capture would have refused it under a stem the check never
+  looked for (an episode's is hashed with `ep-<slug>`), each tried on a
+  scratch script against The Floor's built page. The review's aside, not
+  this code: on the Wikipedia capture `pageCrop` kept the next heading
+  below the words, which Wikipedia wraps in a `div.mw-heading`.
   **`tools/capture.mjs` shoots the pages a film shows** (2026-10-20), the
   capture half of the `page` shot: a cited source in Chromium, 1440 CSS px
   wide at twice the pixel density, under the honest agent
@@ -990,6 +1145,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   them), because that PNG is what the film is cut from and what
   `recut.yml` files on a public release: no copy of a third-party
   photograph exists to publish (review, 20 Oct; spec 2.3, row 5).
+  Given an episode's script instead of an edition's slug (26 Oct 2026),
+  it reads the script's `# Sources` lines for the URLs (a source is
+  `s3`, not a number), shoots every `[[page: ...]]` tag in it (or the
+  ones `--page` names) under the same refusals into
+  `brand/youtube/ep-<slug>/pages/`, checks no source number against an
+  edition's list, because an episode has none, and takes `self` only
+  as one of our pages named whole (`self edition-03#ledger`).
   **`tools/cuts.mjs` re-cuts an edition film without a word spoken
   again** (2026-10-20, spec step 2). A cut list,
   `source/film/<slug>.cuts.md` (its format is the tool's header), names a
@@ -1003,8 +1165,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   nothing covers the opening field, the title's words, the record or the
   dove. `check` holds the spec's rules before any frame: every number on
   a computed surface on the built page's text (spelled numbers read as
-  numbers, the page's SVG left out, so a path's 44.27 is not a fact), a
-  pop's words too; every page shot captured (our own page with grey
+  numbers, the page's SVG left out, so a path's 44.27 is not a fact;
+  `tools/lib/facts.mjs` since 26 Oct 2026, the one reading the episodes'
+  edition films share, and The Floor's list gets the same verdicts from
+  it; since the same day a quote card's words are read for their numbers
+  and its `by:` line is held to the page's words, where a quote had been
+  passed over, and The Floor's four pass), a pop's words too; every page shot captured (our own page with grey
   text) and its words boxed; twelve
   words on a card, its label counted with it, three in a pop; the
   owner's footage named in `footage/credits.txt` or refused, its line in

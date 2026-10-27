@@ -7,6 +7,7 @@
  * on Void and falls back to a computed quote card when a capture is refused.
  *
  *   node tools/capture.mjs <slug> --page "<tag>" [--page "<tag>" ...] [--cuts <file>] [--raw] [--height <px>] [--out <dir>]
+ *   node tools/capture.mjs source/episodes/<slug>.md [--page "<tag>" ...] [--raw] [--height <px>] [--out <dir>]
  *
  * <tag> is what follows `page:` in a cut list's [[page: ...]]:
  *   07 | hl: These are PHY rates | url: https://www.morsemicro.com/products/chips/
@@ -16,7 +17,12 @@
  * `hl:` may be given more than once (one picture, two related steps). `in:` limits the search to one element and,
  * with no `hl:`, frames it. The pages cite their sources as text, not links (CLAUDE.md, "Block links only"), so an
  * outside source's URL comes from `url:` or from the cut list's `# Sources` line, `- 07 | <url> | read <date>`.
- * --cuts reads that section and every [[page: ...]] tag in the file.
+ * --cuts reads that section and every [[page: ...]] tag in the file. `by:` is the render's (the author its label
+ * credits) and is carried, not shot: it names no file, so a credit changed is not a page shot again.
+ * An EPISODE's script (source/episodes/<slug>.md, 2026-10-26) names its sources `s3`, and its `# Sources` line gives the
+ * URL (`- s3 | publisher | title | date | url`, FORMAT.md); with no --page every [[page: ...]] tag in the script is
+ * shot, into brand/youtube/ep-<slug>/pages/, where tools/episode.mjs reads them. An episode has no page of its own,
+ * so `self` there names one of our pages whole (self edition-03#ledger), never a source number.
  *
  * What it will not do, each a refusal recorded in the shot's JSON and never a workaround:
  * - fetch anything from YouTube or a streaming service, not even an embed's thumbnail or a redirect hop. Every
@@ -114,13 +120,16 @@ const SHORT_PAGE = 2500;
 const MODAL_SEL = '[role="dialog"],[role="alertdialog"],[aria-modal="true"],dialog[open]';
 
 /* ---- the tag ------------------------------------------------------------------ */
-/** One [[page: ...]] body, with `sources` (number to URL) from the cut list. Throws on a tag that cannot be shot. */
+/**
+ * One [[page: ...]] body, with `sources` (number, or an episode's id, to URL) from the cut list or the script. Throws
+ * on a tag that cannot be shot. `by:` is kept for the render's label and is not part of the shot.
+ */
 export function parsePage(body, sources = {}) {
   const [head, ...fields] = String(body).split('|').map((x) => x.trim());
-  const shot = { tag: String(body).trim(), self: false, src: null, page: null, url: null, in: null, hl: [] };
+  const shot = { tag: String(body).trim(), self: false, src: null, page: null, url: null, in: null, hl: [], by: null };
   for (const f of fields) {
-    const kv = /^(hl|in|url)\s*:\s*([\s\S]*)$/.exec(f);
-    if (!kv) throw new Error(`page: unknown field "${f}" (hl:, in: and url: are the fields)`);
+    const kv = /^(hl|in|url|by)\s*:\s*([\s\S]*)$/.exec(f);
+    if (!kv) throw new Error(`page: unknown field "${f}" (hl:, in:, url: and by: are the fields)`);
     const v = kv[2].trim().replace(/^["\u201c](.*)["\u201d]$/, '$1');
     if (kv[1] === 'hl') shot.hl.push(v); else shot[kv[1]] = v;
   }
@@ -128,9 +137,10 @@ export function parsePage(body, sources = {}) {
   if ((m = /^self\s+(\d{1,3})(#[\w-]+)?$/.exec(head))) { shot.self = true; shot.src = m[1].padStart(2, '0'); if (m[2]) shot.in = shot.in ? scopeClash(head) : m[2]; }
   else if ((m = /^self\s+([a-z][a-z0-9-]*)?(#[\w-]+)?$/.exec(head)) && (m[1] || m[2])) { shot.self = true; shot.page = m[1] || null; if (m[2]) shot.in = shot.in ? scopeClash(head) : m[2]; }
   else if ((m = /^(\d{1,3})$/.exec(head))) { shot.src = m[1].padStart(2, '0'); shot.url = shot.url || sources[shot.src] || null; }
-  else throw new Error(`page: "${head}" is neither a source number nor self <n>, self #<id> or self <slug>#<id>`);
+  else if ((m = /^(s\d+)$/.exec(head))) { shot.src = m[1]; shot.url = shot.url || sources[shot.src] || null; }
+  else throw new Error(`page: "${head}" is neither a source number (07, or an episode's s3) nor self <n>, self #<id> or self <slug>#<id>`);
   if (shot.hl.some((h) => !h)) throw new Error(`page: ${head} has an empty hl:; copy the words from the source itself`);
-  if (!shot.self && !shot.url) throw new Error(`page: source ${shot.src} has no URL (give url:, or a "- ${shot.src} | <url>" line under # Sources)`);
+  if (!shot.self && !shot.url) throw new Error(`page: source ${shot.src} has no URL (give url:, or ${/^s\d+$/.test(shot.src) ? `the URL last on its "- ${shot.src} | publisher | title | date | url" line` : `a "- ${shot.src} | <url>" line`} under # Sources)`);
   // The words are the point of a source's shot: a page with nothing found on it proves nothing.
   if (!shot.self && !shot.hl.length) throw new Error(`page: source ${shot.src} needs hl:, the words the shot is for`);
   return shot;
@@ -149,6 +159,27 @@ export function cutsPages(file) {
   }
   const tags = [...src.matchAll(/\[\[page:\s*([\s\S]*?)\]\]/g)].map((m) => m[1]);
   return { sources, tags };
+}
+
+/**
+ * An episode script's slug, sources and page tags (the format of source/episodes/<slug>.md, FORMAT.md): the
+ * `# Sources` section runs to the next `##`, each line `- sN | publisher | title | date | url`, and the URL is the
+ * last field, as tools/episode.mjs reads it.
+ */
+export function episodePages(file) {
+  const src = fs.readFileSync(file, 'utf8');
+  const fm = /^---\n([\s\S]*?)\n---\n/.exec(src);
+  const slug = (fm && /^slug\s*:\s*(.+)$/m.exec(fm[1])?.[1].trim()) || path.basename(file, '.md');
+  const sources = {};
+  let inSources = false;
+  for (const line of src.replace(/<!--[\s\S]*?-->/g, '').split('\n')) {
+    if (/^#\s+sources\b/i.test(line)) { inSources = true; continue; }
+    if (/^##\s/.test(line)) { inSources = false; continue; }
+    const m = inSources && /^-\s*(s\d+)\s*\|(.+)$/.exec(line.trim());
+    if (m) sources[m[1]] = m[2].split('|').map((x) => x.trim()).pop();
+  }
+  const tags = [...src.replace(/<!--[\s\S]*?-->/g, '').matchAll(/\[\[page:\s*([\s\S]*?)\]\]/g)].map((m) => m[1].replace(/\s+/g, ' ').trim());
+  return { slug, sources, tags };
 }
 
 /** The file stem a shot is written under, the same for the same request on any day. */
@@ -817,6 +848,8 @@ async function outside(b, gate, run, rec, shot) {
 
 /** One of our own pages, served from dist/ with the network closed. */
 async function ours(b, gate, run, rec, shot, slug) {
+  // An episode has no page and no numbered sources of its own: its self shot names one of our pages whole.
+  if (run.episode && (shot.src || !shot.page)) return Object.assign(rec, { error: 'an episode has no page of its own; name one of ours: self <slug>#<id>' });
   let ed = shot.page ? edition(shot.page) : edition(slug);
   if (shot.page && !ed) return Object.assign(rec, { error: `${shot.page} is not one of our editions` });
   if (shot.src) {
@@ -899,20 +932,21 @@ function paintOut(png, media, dpr) {
 /* ---- the run -------------------------------------------------------------------- */
 /**
  * Shoot each parsed shot for an edition, one at a time, at least a second apart on any one host (longer if its
- * robots.txt asks). Returns the records, each also written as <name>.json in `out`.
+ * robots.txt asks). Returns the records, each also written as <name>.json in `out`. With `episode`, `slug` is an
+ * episode's work name (ep-<slug>), which has no edition and no numbered source list to check the shots against.
  */
-export async function capture(slug, shots, { out = path.join(ROOT, 'brand/youtube', slug, 'pages'), clean = true, height = HEIGHT, log = console.log } = {}) {
-  const ed = edition(slug);
-  if (!ed) throw new Error(`capture: ${slug} is not one of our editions`);
+export async function capture(slug, shots, { out = path.join(ROOT, 'brand/youtube', slug, 'pages'), clean = true, height = HEIGHT, log = console.log, episode = false } = {}) {
+  const ed = episode ? null : edition(slug);
+  if (!episode && !ed) throw new Error(`capture: ${slug} is not one of our editions`);
   fs.mkdirSync(out, { recursive: true });
   const gate = await openGate();
-  const run = { out, clean, height, stopped: new Map(), robots: new Map(), last: new Map(), delay: new Map() };
+  const run = { out, clean, height, episode, stopped: new Map(), robots: new Map(), last: new Map(), delay: new Map() };
   // <-loopback> takes away Chromium's own exception for 127.0.0.1, so a page's request for this machine meets the gate too.
   // Grey antialiased text (GREY_TEXT, tools/lib/film.mjs): the PNG is the picture the film shows, and Chromium's LCD
   // text put a blue and an orange fringe on every glyph of our own pages, colours the kit does not have.
   const b = await browser({ proxy: { server: gate.url, bypass: '<-loopback>' }, args: [GREY_TEXT] });
-  const list = sourcesOf(ed);
-  if (!list) log('capture: no build, so source numbers are not checked against the edition (npm run build)');
+  const list = ed ? sourcesOf(ed) : null;
+  if (!list && !episode) log('capture: no build, so source numbers are not checked against the edition (npm run build)');
   const records = [];
   try {
     for (const shot of shots) {
@@ -964,15 +998,19 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     else if (!a.startsWith('--') && !slug) slug = a;
     else { console.error(`capture: unknown argument ${a}`); process.exit(1); }
   }
-  if (!slug || (!tags.length && !cuts) || !(height >= 600 && height <= 4000)) {
-    console.error('usage: node tools/capture.mjs <slug> --page "<tag>" [--page ...] [--cuts <file>] [--raw] [--height <px, 600 to 4000>] [--out <dir>]');
+  // An episode's script in place of a slug: its sources give the URLs, and its page tags are the shots unless --page names them.
+  const script = slug && /\.md$/.test(slug) && fs.existsSync(slug) ? slug : null;
+  if (!slug || (!tags.length && !cuts && !script) || (script && cuts) || !(height >= 600 && height <= 4000)) {
+    console.error('usage: node tools/capture.mjs <slug> --page "<tag>" [--page ...] [--cuts <file>] [--raw] [--height <px, 600 to 4000>] [--out <dir>]\n       node tools/capture.mjs source/episodes/<slug>.md [--page "<tag>" ...] [--raw] [--height <px>] [--out <dir>]');
     process.exit(1);
   }
   let sources = {};
   if (cuts) { const c = cutsPages(cuts); sources = c.sources; tags.push(...c.tags); }
+  if (script) { const e = episodePages(script); sources = e.sources; slug = `ep-${e.slug}`; if (!tags.length) tags.push(...e.tags); }
+  if (!tags.length) { console.error(`capture: ${cuts || script} has no [[page: ...]] tag`); process.exit(1); }
   let shots;
   try { shots = tags.map((t) => parsePage(t, sources)); } catch (e) { console.error(`capture: ${e.message}`); process.exit(1); }
-  const records = await capture(slug, shots, { out, clean: !flag('--raw'), height });
+  const records = await capture(slug, shots, { out, clean: !flag('--raw'), height, episode: !!script });
   const n = (f) => records.filter(f).length;
   console.log(`capture: ${records.length} shot(s): ${n((r) => r.ok)} captured, ${n((r) => r.refused)} refused, ${n((r) => !r.ok && !r.refused)} failed`);
   process.exit(n((r) => !r.ok && !r.refused) ? 1 : 0);
