@@ -137,7 +137,7 @@ by the job the data does (`tools/lib/chart.mjs`):
 | `bars` | compare a few magnitudes | `Label=9.75` |
 | `range` | low to high per row: the rates of an issue, a band | `Jun 2021=2.125..5.25` |
 | `stack` | the parts of one whole | `Due 2034=438.75` |
-| `timeline` | dated events | `2026-10-01=Last $10B` |
+| `timeline` | dated events; keyed to the minute, a day's events by the clock | `2026-10-01=Last $10B`, `2024-10-10 22:11=The joke` |
 | `flow` | money or control between parties | `SoftBank > OpenAI=$30B` |
 | `line` | one series over time, `ref: 5.10 TREASURY` for a reference line | `2026-04=8.5` |
 
@@ -162,12 +162,45 @@ still past 14.4 s (four bars of four beats), counted from when its build
 or highlighter finishes: a static screen gets another cut, a chart
 building in step with the voice is not static.
 
+The other rows land on their own words too: a row whose label (a flow's
+or timeline's text, a bar's label) is said while the chart is up draws
+on that word, and `@ phrase` after a value names the word instead
+(`Ayrey > X=SIGNS @ approval`, `Andreessen > Ayrey=CHECKED FIRST @ check*`;
+the phrase runs to the end of the part and holds no bracket, so an `@`
+inside display text, `9.75 (sold @ par)`, is not one). A label is "said"
+when its first word that carries meaning is, and then at least half of
+them in order, each within four words of the last ("HOLDS" on "hold",
+"SIGNS EVERY POST" on "signs: every post"; "MIN" never on "minutes"; "Deal
+signed" not on "signed a deal"), so two rows sharing a first word do not
+land together. A row nobody says keeps the chart's own clock; a timeline's
+row waits for its axis to reach its mark. `check` warns of an `@ phrase`
+no word on screen says. A starred row with no number in it lands on its
+words the same way (`SIGN-OFF*` on "sign-off").
+
 A chart that comes back after a cutaway is a second tag, and each
 appearance stars the number said while it is up: first July's two
 prices with `$554.72*`, then after the figure the same two rows and the
 backstop's `$555.00*`. Rows the previous chart of the same form already
 showed (bars and range, same label, same value) are held: drawn from the
-first frame, so only the new row builds and it lands on its word.
+first frame, so only the new row builds and it lands on its word. A flow
+that comes back keeps its places: a party keeps the angle the script's
+earlier flows gave it, and a new party takes the widest gap, among every
+party placed so far, beside one it has an edge with, so a loop that
+returns with a stranger reads as the same picture with one new box. A
+flow sharing no party with the earlier ones is a new diagram: it lays out
+fresh and the places start again from it. Where two boxes would meet at
+their places (the Short's frame is narrow), that flow is laid out evenly
+instead and `check` and `render` say so, naming the frame and the pair;
+rename, reorder or split it. An edge's label wider than its edge breaks
+onto two lines.
+
+A timeline keyed to the minute (`2024-10-10 22:11=The joke`) places a
+day's events by the clock, labelled as times, the first with its day;
+across days a timed row keeps its day and adds the time. Two rows dated
+to the same day without times sit 90 px apart, because nothing says
+which came first. A row's text wider than its room, measured in the
+face's own advances, breaks onto two lines before it shrinks, so the
+point keeps its size.
 
 `#id` names the file the owner supplies (`footage/<id>.mp4`); without one,
 the id is the first five words of the description. `raw` on a footage tag

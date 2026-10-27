@@ -65,12 +65,12 @@ import { spawnSync } from 'node:child_process';
 import { browser, findFfmpeg, openContext, esc, recordText, ACID, VOID, FLASH } from './lib/film.mjs';
 import { NARRATOR, SITE } from '../src/config.mjs';
 import { edition } from '../src/lib/editions.mjs';
-import { CHART_TYPES, hotValues, findSpoken } from './lib/chart.mjs';
+import { CHART_TYPES, findPoint, hasPoint, findSaid, rowPhrase } from './lib/chart.mjs';
 // An edition film's facts gate: the built page's numbers, read as tools/cuts.mjs reads them for a cut list.
 import { pageFacts, facts, numbersIn, missingNumbers } from './lib/facts.mjs';
 // The shots themselves (the tag, the computed cards, the footage cut, one shot to one segment) live in
 // tools/lib/shots.mjs, so the edition films' cut lists build them the same way.
-import { FPS, CUTS, OWNER, ACID_KINDS, GRADE, shotContext, fit, parseTag, page, footageFile, hasAudio, overEnd, popEnd, pageSource, pageView, namesAuthor, ff, warnOnce, renderSegment, renderOverlay, renderPop } from './lib/shots.mjs';
+import { FPS, CUTS, OWNER, ACID_KINDS, GRADE, shotContext, fit, parseTag, page, footageFile, hasAudio, overEnd, popEnd, pageSource, pageView, namesAuthor, ff, warnOnce, renderSegment, renderOverlay, renderPop, chartHtml } from './lib/shots.mjs';
 // A page tag's capture is found by the name tools/capture.mjs gave it, from the tag it parsed.
 import { parsePage, shotName } from './capture.mjs';
 
@@ -169,6 +169,9 @@ async function check(S, { quiet = false } = {}) {
     if (!/^\d{4}(-\d{2}){0,2}$/.test(s.date || '')) issues.push(`${s.id}: date must be YYYY, YYYY-MM or YYYY-MM-DD, got "${s.date}"`);
   }
   const used = new Set();
+  // The script's flows walked in both frames as the render walks them, each party keeping its place (chart.mjs,
+  // flowRing), to say where two boxes would meet at those places and the flow is laid out evenly instead.
+  const frames = [false, true].map((short) => ({ C: shotContext({ S, short, dir: DIR }), ring: null, name: short ? 'the Short' : 'the film' }));
   // The words spoken while a cut tag's shot is on screen: from its word to the next cut, across paragraphs
   // (a tags-only line holds in silence and the next paragraph plays over it); a clip or a cutting tags line ends it.
   const onScreen = (bi, e) => {
@@ -212,10 +215,18 @@ async function check(S, { quiet = false } = {}) {
         if (!e.tag.srcs.length) issues.push(`chart "${e.tag.title}" cites no source (src: s1, s2)`);
         for (const id of e.tag.srcs) { if (!S.sources[id]) issues.push(`chart "${e.tag.title}" cites ${id}, which is not in # Sources`); else used.add(id); }
         if (e.tag.type !== 'flow' && e.tag.type !== 'timeline' && e.tag.rows.filter((r) => r.hot).length > 1) issues.push(`chart "${e.tag.title}": one point is the story; mark one row with *, not ${e.tag.rows.filter((r) => r.hot).length}`);
-        // The chart lands its point on the word that says it (render); a point nobody says while it is on screen cannot land.
-        const values = CHART_TYPES.includes(e.tag.type) ? hotValues(e.tag.type, e.tag.rows) : [];
+        // The chart lands its point on the word that says it (render: its value, or its words where it carries none);
+        // a point nobody says while it is on screen cannot land.
         const typed = (e.tag.type === 'line' ? e.tag.rows.slice().sort((p, q) => p.t - q.t).slice(-1) : e.tag.rows.filter((r) => r.hot)).map((r) => r.text ?? (r.rb ? `${r.ra}..${r.rb}` : r.ra)).join(', ');
-        if (values.length && findSpoken(onScreen(bi, e).map((w) => ({ w })), values) < 0) warnings.push(`chart "${e.tag.title}": its point (${typed}) is not spoken while the chart is on screen (its tag to the next cut), so it lands on the chart's own timing, ahead of the voice or without it`);
+        const said = onScreen(bi, e).map((w) => ({ w }));
+        if (CHART_TYPES.includes(e.tag.type) && hasPoint(e.tag.type, e.tag.rows) && findPoint(e.tag.type, e.tag.rows, said) < 0) warnings.push(`chart "${e.tag.title}": its point (${typed}) is not spoken while the chart is on screen (its tag to the next cut), so it lands on the chart's own timing, ahead of the voice or without it`);
+        // A row's `@ phrase` is the one word its author typed to place it; one nobody says falls back in silence.
+        for (const r of e.tag.rows) if (r.on && findSaid(said, r.on) < 0) warnings.push(`chart "${e.tag.title}": "${rowPhrase(e.tag.type, { ...r, on: null })}" names "@ ${r.on}", which is not spoken while the chart is on screen, so it lands ${r.hot ? 'on its value where that is said, else ' : ''}on the chart's own timing`);
+        if (e.tag.type === 'flow' && !e.tag.errors.length) for (const f of frames) {
+          const h = chartHtml(f.C, e.tag, null, [], { ring: f.ring });
+          f.ring = h.ring;
+          for (const [a, b] of h.overlap) warnings.push(`chart "${e.tag.title}": in ${f.name}, ${a} and ${b} would overlap at the places the earlier flows gave them, so it is laid out evenly there, not as the flow before it; rename, reorder or split`);
+        }
       }
       if (e.tag.kind === 'map' && e.tag.stops.some((x) => !x)) issues.push(`map stops must be "Name lat,lon > Name lat,lon": ${e.tag.args[0]}`);
       // A pop is one to three words and no exclamation mark (the parser holds both); a page shot's capture is read here,
@@ -564,7 +575,7 @@ async function render() {
   // Each shot to its own segment on the frame grid (tools/lib/shots.mjs); R carries what runs across shots.
   const segs = [];
   const missing = new Set();
-  const R = { work, brandDir, words: T.words, pg, show, shot, missing, lastChart: null };
+  const R = { work, brandDir, words: T.words, pg, show, shot, missing, lastChart: null, flowRing: null };
   for (let i = 0; i < T.shots.length; i++) segs.push(...await renderSegment(C, R, T.shots[i], i));
   // Overlays: one transparent still each, cut in and out on the word.
   const overs = [];

@@ -20,7 +20,7 @@ import { css, esc, FORMATS, ACID, MAL, BOTTLE, VOID, FLASH, recordHtml, seedLine
 import { markPath } from '../../src/lib/rose.mjs';
 import { SITE } from '../../src/config.mjs';
 import { edition } from '../../src/lib/editions.mjs';
-import { chartBody, chartCss, parseChart, hotValues, findSpoken, rowKey, numKey } from './chart.mjs';
+import { chartBody, chartCss, parseChart, findPoint, hasPoint, findSaid, rowPhrase, rowKey, numKey } from './chart.mjs';
 // A page tag's body is capture.mjs's own tag, so the render names the very file the capture wrote.
 import { parsePage, shotName } from '../capture.mjs';
 
@@ -280,15 +280,16 @@ ${tag.label ? `<div class="maplabel mono">${esc(tag.label)}</div>` : ''}
   return { html, anim: pts.length > 1, live: true };
 }
 
-export function chartHtml(C, tag, landMs = null, held = []) {
+/** `spoken` is each row's own word in ms (rowLands), `ring` the parties the film's earlier flows placed (chart.mjs). */
+export function chartHtml(C, tag, landMs = null, held = [], { spoken = [], ring = null } = {}) {
   const { W, H, M } = C;
   const num = (v) => v.toLocaleString('en-US', { maximumFractionDigits: 3 });
   // A typed string (the value as the source prints it) passes through; a computed tick is formatted.
   const fmt = (v) => `${tag.prefix || ''}${typeof v === 'string' ? v : num(v)}${tag.unit || ''}`;
   const sourceLine = 'SOURCE: ' + tag.srcs.map((id) => C.S.sources[id]).filter(Boolean).map((s) => `${s.pub}, ${s.date}`).join(' · ');
   const ref = tag.ref ? (() => { const m = /^(-?[\d.]+)\s*(.*)$/.exec(tag.ref); return m ? { v: +m[1], r: m[1], label: m[2] } : null; })() : null;
-  const { body, animMs, landed } = chartBody({ type: tag.type, title: tag.title, sub: tag.sub, note: tag.note, sourceLine, rows: tag.rows, fmt, W, H, M, ref, landMs, held });
-  return { html: page(C, body, VOID, chartCss(W, H, M)), anim: true, live: true, animMs, landMs: landed ? landMs : null };
+  const { body, animMs, landed, ring: placed, overlap } = chartBody({ type: tag.type, title: tag.title, sub: tag.sub, note: tag.note, sourceLine, rows: tag.rows, fmt, W, H, M, ref, landMs, held, spoken, ring });
+  return { html: page(C, body, VOID, chartCss(W, H, M)), anim: true, live: true, animMs, landMs: landed ? landMs : null, ring: placed, overlap };
 }
 
 export const figHtml = (C, tag) => ({ html: page(C, `<div class="big" style="font-size:${fit(C, tag.value, tag.value.length > 8 ? 260 : 360)}px;color:${ACID}">${esc(tag.value)}</div>${tag.label ? `<div class="sub mono" style="color:${MAL}">${esc(tag.label)}</div>` : ''}`) });
@@ -1647,7 +1648,7 @@ export async function shotHtml(C, s, landMs = null, held = [], opts = {}) {
   if (k === 'page') return pageHtml(C, s, opts);
   if (k === 'quote') return quoteHtml(C, s.tag, 0, null, opts.ground);
   if (k === 'map') return mapHtml(C, s.tag);
-  if (k === 'chart') return chartHtml(C, s.tag, landMs, held);
+  if (k === 'chart') return chartHtml(C, s.tag, landMs, held, { spoken: opts.spoken, ring: opts.ring });
   if (k === 'fig') return figHtml(C, s.tag);
   if (k === 'card') return cardHtml(C, s.tag);
   if (k === 'title') return titleHtml(C);
@@ -1660,18 +1661,35 @@ export async function shotHtml(C, s, landMs = null, held = [], opts = {}) {
 
 /**
  * Where a chart's point lands (source/channel/brief-2026-09-26.md, 6: narration in step with the picture): on the
- * first word inside the shot that speaks the starred value, in ms from the shot's first frame. Held to at least one
- * beat in, so the context has a beat to build, and to half a beat before the cut, so the landed value is on screen
- * before the next shot. Null when no word in the shot says it, or the shot is too short to build and land in; the
- * chart then keeps its own timing.
+ * first word inside the shot that speaks the starred value, or its words where it carries none (chart.mjs,
+ * findPoint), in ms from the shot's first frame. Held to at least one beat in, so the context has a beat to build,
+ * and to half a beat before the cut, so the landed value is on screen before the next shot. Null when no word in
+ * the shot says it, or the shot is too short to build and land in; the chart then keeps its own timing.
  */
 export function chartLand(s, words, d) {
   const inShot = words.filter((w) => w.s >= s.t && w.s < s.end);
-  const i = findSpoken(inShot, hotValues(s.tag.type, s.tag.rows));
+  const i = findPoint(s.tag.type, s.tag.rows, inShot);
   if (i < 0) return null;
   const at = (inShot[i].s - Math.round(s.t * FPS) / FPS) * 1000; // from the shot's first frame on the film's grid
   const ms = Math.min(Math.max(at, 900), d * 1000 - 450);
   return ms >= 900 ? { word: inShot[i], at, ms: Math.round(ms) } : null;
+}
+
+/**
+ * Each other row's own word, { word, at, ms } in ms from the shot's first frame, parallel to the chart's rows: the
+ * `@ phrase` its tag gives, else its text or label, said inside the shot (chart.mjs, findSaid). Null for the starred
+ * row (chartLand's), for a row nobody says, which keeps the chart's own clock, and past half a beat before the cut;
+ * held to the kit's short beat in, so a mark is seen landing. A line's points are not rows.
+ */
+export function rowLands(s, words, d) {
+  if (s.tag.type === 'line') return s.tag.rows.map(() => null);
+  const inShot = words.filter((w) => w.s >= s.t && w.s < s.end), first = Math.round(s.t * FPS) / FPS;
+  return s.tag.rows.map((r) => {
+    const i = r.hot ? -1 : findSaid(inShot, rowPhrase(s.tag.type, r));
+    if (i < 0) return null;
+    const at = (inShot[i].s - first) * 1000, ms = Math.round(Math.max(at, 120));
+    return ms <= d * 1000 - 450 ? { word: inShot[i], at, ms } : null;
+  });
 }
 
 /**
@@ -1716,8 +1734,9 @@ export const warnOnce = (m) => { if (warned.has(m)) return; warned.add(m); conso
  * One shot of the timeline as its own segment, `work/<i>.mp4`, or as pieces `work/<i>-<k>.mp4` when a long footage
  * shot is cut into a sequence; returns the files in order. `R` is the render's state across shots: `work` and
  * `brandDir` (where each computed shot's HTML goes for check-brand), the film's `words` with their times, the
- * Chromium page (`pg`, `show`, `shot` from openContext), the `missing` set of owner shots still slates, and
- * `lastChart`, so a chart that comes back keeps the rows it already showed (chart.mjs, held). `lastCard` is set here:
+ * Chromium page (`pg`, `show`, `shot` from openContext), the `missing` set of owner shots still slates, `lastChart`,
+ * so a chart that comes back keeps the rows it already showed (chart.mjs, held), and `flowRing`, the angle each party
+ * of a flow was given, so a loop that comes back keeps its places (chart.mjs, flowRing). `lastCard` is set here:
  * a quote card, or a page shot shown as its card, that starts on the frame the card before it ended is set on the
  * other ground, so two cards back to back read as two pictures (The Floor's Short, 2026-10-20). Sets `s.builtMs` on a
  * computed shot, for longHolds.
@@ -1734,6 +1753,7 @@ export async function renderSegment(C, R, s, i) {
   const enc = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '16', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-an', out];
   const f = OWNER.includes(s.tag.kind) ? footageFile(C, s.tag.id) : null;
   let land = null; // a chart's spoken point, when the build lands on it
+  let rows = []; // a chart's other rows' own words, where the voice says them
   let pageNote = ''; // a page shot's label and where each highlighter landed, for the log
   if (f) {
     // B-roll cuts every four beats: a footage shot longer than six beats is cut into pieces of about 3.6 s,
@@ -1769,10 +1789,14 @@ export async function renderSegment(C, R, s, i) {
       const cap = SHORT ? 3 : 5;
       if (s.tag.type !== 'line' && s.tag.rows.length > cap) console.warn(`episode: chart "${s.tag.title}" has ${s.tag.rows.length} rows; a ${SHORT ? 'Short reads three' : '16:9 frame reads five'} at most, so fold or split it`);
       land = chartLand(s, R.words, d);
+      rows = rowLands(s, R.words, d);
     }
     const held = s.tag.kind === 'chart' && R.lastChart && R.lastChart.type === s.tag.type && ['bars', 'range'].includes(s.tag.type) ? R.lastChart.rows.map(rowKey) : [];
     if (s.tag.kind === 'chart') R.lastChart = s.tag;
-    const h = await shotHtml(C, s, land ? land.ms : null, held, { d, words: R.words, work, ground: follows === VOID ? BOTTLE : VOID });
+    const h = await shotHtml(C, s, land ? land.ms : null, held, { d, words: R.words, work, ground: follows === VOID ? BOTTLE : VOID, spoken: rows.map((x) => x && x.ms), ring: R.flowRing });
+    if (h.ring) R.flowRing = h.ring;
+    // Two boxes met at the places the earlier flows gave them, so this flow was laid out evenly (chart.mjs, overlap).
+    for (const [a, b] of h.overlap || []) console.warn(`episode: flow "${s.tag.title}": ${a} and ${b} would overlap at the places the earlier flows gave them, so it is laid out evenly, not as the flow before it; rename, reorder or split`);
     if (!h.landMs) land = null;
     if (s.tag.kind === 'quote' || h.card) R.lastCard = { f: Math.round(s.end * FPS), ground: h.ground || VOID };
     // What check-brand reads: our own type only. A page shot's capture and a quote's words are someone else's.
@@ -1805,7 +1829,9 @@ export async function renderSegment(C, R, s, i) {
     process.stdout.write(land
       ? `        ${s.tag.type} "${s.tag.title}": lands on "${land.word.w}" at ${land.word.s.toFixed(2)} s, landMs ${land.ms}${held}\n`
       : `        ${s.tag.type} "${s.tag.title}": its point is not spoken in the shot; own timing\n`);
-    if (!land && hotValues(s.tag.type, s.tag.rows).length) console.warn(`episode: chart "${s.tag.title}" lands its point on its own timing; no word in its shot says it`);
+    const own = rows.map((x, k) => x && `"${rowPhrase(s.tag.type, s.tag.rows[k]).slice(0, 24)}" on "${x.word.w}" at ${x.ms} ms`).filter(Boolean);
+    if (own.length) process.stdout.write(`        rows on their words: ${own.join('; ')}\n`);
+    if (!land && hasPoint(s.tag.type, s.tag.rows)) console.warn(`episode: chart "${s.tag.title}" lands its point on its own timing; no word in its shot says it`);
   }
   return [out];
 }
