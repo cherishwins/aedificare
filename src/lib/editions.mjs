@@ -35,6 +35,34 @@ import { HOUSE } from './rose.mjs';
 
 const RAW = [
   {
+    slug: 'the-middleman', path: '/the-middleman', print: null,
+    title: 'The Middleman', acid: 'Middleman',
+    lede: 'Between the chips and the labs sits a company owing $72 billion on $5 billion of equity. Its leases are ordinary. Its customers are not.',
+    // No print: written on 27 Oct 2026 from an unsourced research deck the owner
+    // uploaded, every figure sourced from scratch by six researchers and a skeptic
+    // each (CLAUDE.md, Findings 0j). The deck's title number, $87 billion, is in no
+    // filing, so the working title drops it; the title is the owner's to change.
+    // Seed is the date and k the house configuration, as for any edition without
+    // a colophon. A draft until the skeptics' amendments are in and it is reviewed.
+    date: '2026-10-27', dateLabel: '27 Oct 2026',
+    seed: '261027', k: [5, 7, 3], pdf: null,
+    draft: true,
+    contents: [
+      { n: '00', t: 'Seventy-two on five', id: 'number' },
+      { n: '01', t: 'Atlantic Crypto Corp', id: 'origin' },
+      { n: '02', t: 'Every four dollars', id: 'dollars' },
+      { n: '03', t: 'Five years against eleven', id: 'tail' },
+      { n: '04', t: 'Three names', id: 'names' },
+      { n: '05', t: 'The price of a name', id: 'price' },
+      { n: '06', t: 'Who holds the lien', id: 'lien' },
+      { n: '07', t: 'The supplier as buyer', id: 'nvidia' },
+      { n: '08', t: 'A loss is not a cash flow', id: 'labs' },
+      { n: '09', t: 'Contracted, not energised', id: 'power' },
+      { n: '10', t: 'Credit, land and hands', id: 'houses' },
+      { n: '11', t: 'Sources', id: 'sources' },
+    ],
+  },
+  {
     slug: 'the-grade', path: '/the-grade', print: 'Edition 10',
     title: 'The Grade', acid: 'Grade',
     lede: 'China put an IQ grade on every phone and laptop. Then it wired the grade to the till.',

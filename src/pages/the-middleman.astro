@@ -1,0 +1,538 @@
+---
+/**
+ * The Middleman. No print was issued: the page was written on 27 Oct 2026
+ * from an eight-slide research deck that carried no sources at all, and every
+ * figure on it was sourced from scratch by six researchers, each followed by a
+ * skeptic who re-opened every source (CLAUDE.md, Findings 0j). The deck's
+ * numbers were mostly real ones detached from their scope, date or
+ * definition, so this page keeps three registers: Filed (an SEC filing, a
+ * statute or a regulator's own release, and the default), Reported (a named
+ * outlet, read where it opened) and Estimate (someone's model, named).
+ *
+ * The title and lede are the builder's working text and the owner's to change.
+ * Anthropic appears in section 08 as one of three buyers at the top of the
+ * chain; its figures are read from its own S-1, set out exactly as the other
+ * two companies' are, and no characterisation of it is the builder's.
+ */
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import Section from '../components/Section.astro';
+import Stats from '../components/Stats.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import Formats from '../components/Formats.astro';
+import FilmPlayer from '../components/FilmPlayer.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, LICENCE, describe, seedDrift } from '../lib/editions.mjs';
+import { SITE, abs } from '../config.mjs';
+
+const ed = edition('the-middleman');
+const DRAFT = !!ed.draft;
+const cover = HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
+// Interior fields, Malachite only, so a surface's one Acid stays its type.
+const div = (k1: number, k2: number, ph: number) => [
+  { k: k1, s: 1.0, ph, w: 0.7, c: '#00B24F', o: 0.42 },
+  { k: k2, s: 0.71, ph: ph + 0.38, w: 0.7, c: '#00B24F', o: 0.28 },
+];
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: ed.title,
+  datePublished: ed.date,
+  author: { '@type': 'Person', name: SITE.author },
+  publisher: { '@type': 'Organization', name: SITE.name, url: SITE.origin },
+  url: abs(ed.path),
+  mainEntityOfPage: abs(ed.path),
+  license: LICENCE.url,
+  isAccessibleForFree: true,
+  description: ed.lede,
+};
+
+// Second quarter of 2026, scaled to every $4.00 billed. Rebuilt from the 10-Q's
+// own lines; the depreciation is its "approximately $1.3 billion" for servers
+// and networking, the rest of the quarter's $1,393M sits in cost of revenue.
+const dollars: [string, number][] = [
+  ['Depreciation, servers and networking', 2.02],
+  ['Cost of revenue: rent, power, facilities', 1.37],
+  ['Net interest', 0.99],
+  ['Everything else', 0.69],
+];
+
+// Years, each at its own date and in its own words.
+const years: [string, number][] = [
+  ['Customer contracts, weighted average · 31 Dec 2025', 5],
+  ['Servers, depreciation life', 6],
+  ['Leases in use, average remaining · 31 Dec 2025', 11],
+  ['Longest lease signed, not begun · 30 Jun 2026', 16],
+];
+
+const loans: [string, string, string, string, string][] = [
+  ['$8.5B', '31 Mar 2026', 'A3', '2.25', 'one investment-grade customer’s contract'],
+  ['$3.1B', '18 May 2026', 'Ba2', '4.50', '“two large, non-investment grade customers”'],
+  ['$2.6B', 'Aug 2026', 'Ba2 / BB+', '5.50', 'contracts averaging about three years'],
+];
+
+// Nvidia's own 10-Q, quarter ended 26 Jul 2026, $ billions. Commitments and
+// maximum guarantee exposure are two tables there and are never summed.
+const nvidia: [string, number][] = [
+  ['Residual value guarantees, Ohio campus · guarantee', 105],
+  ['AI cloud agreements · commitment', 36],
+  ['Data centre leases for others, not begun · commitment', 20],
+  ['Land, power and shell guarantees · guarantee', 3.5],
+];
+
+// 2025, $ billions. OpenAI's rows are leaked accounts, one origin, and it has
+// filed nothing public; its net loss is the consolidated figure.
+const labs: [string, string, string, string, string, string][] = [
+  ['OpenAI', '13.07', '20.92', '60.35', '41.55', 'not published'],
+  ['Anthropic', '4.59', '8.06', '41.97', '34.31', '−2.77'],
+  ['SpaceX, with xAI', '18.67', '2.59', '4.94', 'none of this kind', '−13.95'],
+];
+
+// Contracted power not yet active, gigawatts, from each date's disclosed
+// active and contracted figures. December's active power is "over 850 MW",
+// so its gap is a ceiling. The share falls; the gap in gigawatts does not.
+const power: [string, number, string][] = [
+  ['30 Jun 2025 · 470 MW of 2.2 GW', 1.73, '1.73'],
+  ['30 Sep 2025 · 590 MW of 2.9 GW', 2.31, '2.31'],
+  ['31 Dec 2025 · over 850 MW of 3.1 GW', 2.25, 'under 2.25'],
+  ['30 Jun 2026 · 1.5 GW of 3.7 GW', 2.2, '2.2'],
+];
+
+const weights: [string, string][] = [
+  ['Mortgage on an occupied or rented home', '50%'],
+  ['Builder’s loan on a home already sold', '50%'],
+  ['Other home construction loan', '100%'],
+  ['Corporate, including loans against servers or contracts', '100%'],
+  ['Commercial construction for income, high volatility', '150%'],
+];
+
+const bristow: [string, string][] = [
+  ['Mar 2020', 'Prince William County zones 270 acres at Bristow for 516 homes, at the request of Stanley Martin, a homebuilder.'],
+  ['2022', 'Stanley Martin turns the project to data centres and applies to rezone.'],
+  ['Nov 2023', 'The county board rezones the land for data centres, five votes to three.'],
+  ['Sep 2025', 'The Court of Appeals of Virginia upholds the rezoning. The parties were the board and Stanley Martin.'],
+  ['Late 2025', 'Amazon pays about $700 million for 189 of the acres, about $3.7 million an acre. Stanley Martin had paid $51.3 million for all 270, about $190,000 an acre.'],
+];
+
+// Sources by key, numbered in the order listed here, so a mark stays right
+// when a source is added or dropped during the check. Each entry ends on its
+// URL as text (block links only; a sources list is not a link), scheme and
+// www. dropped.
+const SRC: Record<string, string> = {
+  q2: 'CoreWeave, Inc., Form 10-Q for the quarter ended 30 Jun 2026, filed 12 Aug 2026. sec.gov/Archives/edgar/data/1769628/000176962826000366/crwv-20260630.htm',
+  fortune: 'Fortune, “CoreWeave: A look inside the $52 billion debt and lease hole the company needs to beat”, 16 Oct 2026. fortune.com/2026/10/16/coreweave-debt-leases-profit-revenue-stock/',
+  ddtl55: 'CoreWeave, Inc., Form 8-K dated 7 Aug 2026, filed 10 Aug 2026, with Exhibit 99.1, “CoreWeave Closes $2.6 Billion Loan Facility”. sec.gov/Archives/edgar/data/1769628/000176962826000357/ex991pr.htm',
+  conv: 'CoreWeave, Inc., Form 8-K on its 2.875% convertible senior notes due 2033, filed 22 Sep 2026. sec.gov/Archives/edgar/data/1769628/000176962826000432/crwv-20260917.htm',
+  atm: 'CoreWeave, Inc., prospectus supplement, Form 424B5, 17 Sep 2026. sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001769628&type=424B5',
+  edgar: 'U.S. Securities and Exchange Commission, EDGAR record for CIK 0001769628, former name Atlantic Crypto Corp. sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001769628',
+  ipo: 'CoreWeave, Inc., prospectus, Form 424B4, 31 Mar 2025. sec.gov/Archives/edgar/data/1769628/000119312525067651/d899798d424b4.htm',
+  k25: 'CoreWeave, Inc., Form 10-K for the year ended 31 Dec 2025, filed 2 Mar 2026. sec.gov/Archives/edgar/data/1769628/000176962826000104/crwv-20251231.htm',
+  proxy: 'CoreWeave, Inc., proxy statement, Form DEF 14A, 22 Apr 2026. sec.gov/Archives/edgar/data/1769628/000176962826000191/crwv-20260422.htm',
+  rel: 'CoreWeave, Inc., “CoreWeave Reports Strong Second Quarter 2026 Results”, Exhibit 99.1 to Form 8-K, 11 Aug 2026. sec.gov/Archives/edgar/data/1769628/000176962826000362/coreweave2q26earningspress.htm',
+  eqix: 'Equinix, Inc., Form 10-K for the year ended 31 Dec 2025, filed 11 Feb 2026. sec.gov/Archives/edgar/data/1101239/000110123926000032/eqix-20251231.htm',
+  msft: 'Microsoft Corporation, Form 10-K for the year ended 30 Jun 2026, filed 29 Jul 2026. sec.gov/Archives/edgar/data/789019/000119312526323660/msft-20260630.htm',
+  bis1: 'Bisnow, Dan Rabb, “‘WeWork 2.0’: Booming AI Startups Concern Some Data Center Execs”, 27 Jul 2026. bisnow.com/national/news/data-center-capital-markets/neoclouds-rewriting-rules-data-center-financing-135570',
+  ind: 'CoreWeave, Inc., indenture for the 9.625% senior notes due 2032, Exhibit 4.1 to Form 8-K, filed 18 Jun 2026. sec.gov/Archives/edgar/data/1769628/000176962826000291/exhibit41.htm',
+  ddtl4: 'CoreWeave, Inc., Form 8-K of 31 Mar 2026, Exhibit 10.1, the DDTL 4.0 credit agreement, and Exhibit 99.1, its release. sec.gov/Archives/edgar/data/1769628/000176962826000129/ex1011.htm and sec.gov/Archives/edgar/data/1769628/000176962826000129/ex991.htm',
+  ddtl5: 'CoreWeave, Inc., “CoreWeave Closes $3.1 Billion Loan Facility, Expanding Access to Public Markets for GPU-Backed Financing”, 18 May 2026. investors.coreweave.com/news/news-details/2026/CoreWeave-Closes-3-1-Billion-Loan-Facility-Expanding-Access-to-Public-Markets-for-GPU-Backed-Financing/default.aspx',
+  semi: 'SemiAnalysis, Daniel Nishball and others, “Nvidia GPU Debt Backstop Unleashes the AI Project Trinity”, 6 Jul 2026. newsletter.semianalysis.com/p/nvidia-gpu-debt-backstop-unleashes',
+  huang: 'Investing.com, Louis Juricic, relaying Bloomberg and ICE Data Services on Jensen Huang and CoreWeave, 15 Oct 2026, read in its Yahoo Finance syndication. finance.yahoo.com/technology/ai/articles/nvidia-ceo-says-coreweave-needs-162723555.html',
+  bis2: 'Bisnow, Dan Rabb, “CoreWeave’s Debt Troubles Fuel Fears Of An AI Data Center Reckoning”, 20 Oct 2026. bisnow.com/news/national/data-center-capital-markets/coreweave-s-debt-troubles-fuel-fears-of-a-neocloud-reckoning',
+  tedards: 'Equity Empire, Colin Tedards, “CoreWeave’s $22B Gamble: Why the Market Now Sees 40% Default Risk”, 15 Nov 2025. theinvestorchannel.substack.com/p/coreweaves-22b-gamble-why-the-market',
+  ccir: 'CCIR Research, “CoreWeave’s Debt, Entity by Entity”, 16 Oct 2026. ccir.io/research/coreweave-debt-by-entity',
+  meta: 'Meta Platforms, Inc., Form 10-Q for the quarter ended 30 Sep 2026, filed 22 Oct 2026. sec.gov/Archives/edgar/data/1326801/000162828026066773/meta-20260930.htm',
+  usc: '11 U.S.C. § 365 and § 502, Legal Information Institute. law.cornell.edu/uscode/text/11/365 and law.cornell.edu/uscode/text/11/502',
+  call: 'CoreWeave, Inc., second quarter 2026 earnings call, corrected transcript, FactSet CallStreet, 11 Aug 2026. s205.q4cdn.com/133937190/files/doc_financials/2026/q2/CRWV-US-CORRECTED-TRANSCRIPT-CoreWeave-Q2-2026-Earnings-Call-11August2026.pdf',
+  nvof: 'CoreWeave, Inc., Form 8-K, Item 1.01, order form with NVIDIA Corporation of 9 Sep 2025, filed 15 Sep 2025. sec.gov/Archives/edgar/data/1769628/000176962825000047/crwv-20250909.htm',
+  nvq: 'NVIDIA Corporation, Form 10-Q for the quarter ended 26 Jul 2026, filed 26 Aug 2026. sec.gov/Archives/edgar/data/1045810/000104581026000075/nvda-20260726.htm',
+  nv8k: 'NVIDIA Corporation, Form 8-K, event of 17 Aug 2026. sec.gov/Archives/edgar/data/1045810/000104581026000069/nvda-20260817.htm',
+  forbes: 'Forbes, Janakiram MSV, “Nvidia Backs $164.5 Billion Of AI Data Centers To Keep GPUs Selling”, 21 Oct 2026, read in its Yahoo Finance syndication. finance.yahoo.com/technology/ai/articles/nvidia-backs-164-5-billion-061322658.html',
+  apollo: 'Apollo Global Management, “NVIDIA Partners with Apollo, BlackRock, Blackstone, Brookfield, Goldman Sachs and KKR”, 10 Aug 2026. apollo.com/insights-news/pressreleases/2026/08/nvidia-partners-with-apollo',
+  s1: 'Anthropic, PBC, registration statement, Form S-1, filed 26 Oct 2026. sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm',
+  zit: 'Where’s Your Ed At, Ed Zitron, “Exclusive: OpenAI Losses Increased Nearly 8X in 2025, With Spending Hitting $34 Billion”, 15 Jun 2026. wheresyoured.at/exclusive-openai-financials/',
+  fort2: 'Fortune, Jim Edwards, “OpenAI’s financials have leaked, showing $21 billion in losses against $13 billion in revenue”, 16 Jun 2026. fortune.com/2026/06/16/openai-financials-leaked-losses-revenue-profit/',
+  spx: 'Space Exploration Technologies Corp., prospectus, Form 424B4, 12 Jun 2026. sec.gov/Archives/edgar/data/1181412/000162828026042639/spaceexplorationtechnologi.htm',
+  reut: 'Reuters, “Anthropic’s IPO prospectus sharpens focus on AI valuations”, 29 Sep 2026, read in its Investing.com syndication. investing.com/news/stock-market-news/anthropics-ipo-prospectus-sharpens-focus-on-ai-valuations-4923003',
+  qz: 'Quartz, Cris Tolomia, on OpenAI’s employee share sale, 11 Aug 2026, read in its Yahoo Finance syndication. finance.yahoo.com/markets/stocks/articles/openai-completes-7-billion-employee-111836206.html',
+  seriesh: 'Anthropic, “Anthropic raises $65B in Series H funding at $965B post-money valuation”, 28 May 2026. anthropic.com/news/series-h',
+  tc: 'TechCrunch, Julie Bort, on OpenAI’s new round, citing CNBC, 22 Oct 2026. techcrunch.com/2026/10/22/openai-working-on-new-30b-raise-at-1-25t-valuation-ahead-of-ipo/',
+  drs: 'Anthropic, PBC, draft registration statement, Form DRS/A, 4 Sep 2026, made public with the S-1. sec.gov/Archives/edgar/data/2130357/000162827926001111/filename1.htm',
+  ft278: 'Investing.com, Simon Mugo, relaying the Financial Times, “OpenAI expects $278 billion cash burn through 2030”, 18 Sep 2026. investing.com/news/company-news/openai-expects-278-billion-cash-burn-through-2030--ft-4907996',
+  q225: 'CoreWeave, Inc., “CoreWeave Reports Strong Second Quarter 2025 Results”, 12 Aug 2025. investors.coreweave.com/news/news-details/2025/CoreWeave-Reports-Strong-Second-Quarter-2025-Results/',
+  q325: 'CoreWeave, Inc., third quarter 2025 results, Exhibit 99.1 to Form 8-K, 10 Nov 2025. sec.gov/Archives/edgar/data/1769628/000176962825000059/coreweave3q25earningspress.htm',
+  dom: 'Bloomberg, Josh Saul, “Data Centers Face Seven-Year Wait for Dominion Power Hookups”, 30 Aug 2024, read in its EnergyConnects syndication. energyconnects.com/news/utilities/2024/august/data-centers-face-seven-year-wait-for-dominion-power-hookups/',
+  jll: 'JLL Research, “2026 Global Data Center Outlook”, Jan 2026. jll.com/content/dam/jllcom/en/global/documents/reports/research-reports/26-research-global-data-center-outlook-new.pdf',
+  dck1: 'Data Center Knowledge, Shane Snider, “AI Data Center Boom Rewires US Power Supply Chain”, 4 May 2026, quoting Wood Mackenzie. datacenterknowledge.com/build-design/ai-data-center-boom-rewires-us-power-supply-chain',
+  bg2: 'BG2 Pod, “All things AI w @altcap @sama & @satyanadella. A Halloween Special”, 31 Oct 2025, at 18:39, heard from the episode’s audio; and Tom’s Hardware, Jowi Morales, 2 Nov 2025. tomshardware.com/tech-industry/artificial-intelligence/microsoft-ceo-says-the-company-doesnt-have-enough-electricity-to-install-all-the-ai-gpus-in-its-inventory-you-may-actually-have-a-bunch-of-chips-sitting-in-inventory-that-i-cant-plug-in',
+  nscale: 'Nscale, “Nscale announces UK AI infrastructure commitment in partnership with Microsoft, NVIDIA and OpenAI”, 16 Sep 2025. nscale.com/press-releases/nscale-uk-ai-infrastructure-announcement',
+  dck2: 'Data Center Knowledge, Shane Snider, “Nscale Loses Microsoft Deal as Power Delays Threaten AI”, 19 Oct 2026, quoting The Guardian. datacenterknowledge.com/build-design/microsoft-exits-nscale-data-center-deal-over-uk-power-delays',
+  afp: 'AFP, “Microsoft exits data centre deal in blow to UK”, 19 Oct 2026, read in the Kuwait Times. kuwaittimes.com/article/51935/business/microsoft-exits-data-centre-deal-in-blow-to-uk/',
+  bij: 'Business Insider Japan, its licensed translation of Eugene Kim’s Business Insider report of 20 Oct 2026, 23 Oct 2026. businessinsider.jp/article/2610-amazon-nvidia-gb300-dark-gpus-ai-hardware/',
+  aws: 'Yahoo Finance, Alex Barrientos, relaying Business Insider of 20 Oct 2026 on Amazon’s Nvidia racks, 21 Oct 2026. finance.yahoo.com/technology/ai/articles/amazon-warehousing-billions-nvidia-ai-142317720.html',
+  w14: 'Richard A. Werner, “Can banks individually create money out of nothing? The theories and the empirical evidence”, International Review of Financial Analysis 36, Dec 2014, doi 10.1016/j.irfa.2014.07.015, read on the author’s page. professorwerner.org/?p=656',
+  boe: 'Bank of England, Michael McLeay, Amar Radia and Ryland Thomas, “Money creation in the modern economy”, Quarterly Bulletin 2014 Q1, 14 Mar 2014. bankofengland.co.uk/quarterly-bulletin/2014/q1/money-creation-in-the-modern-economy',
+  w12: 'Richard A. Werner, “Towards a new research programme on ‘banking and the economy’”, International Review of Financial Analysis 25, 2012, doi 10.1016/j.irfa.2012.06.002. ideas.repec.org/a/eee/finana/v25y2012icp1-17.html',
+  cfr: '12 CFR 217.2, high volatility commercial real estate exposure, and 217.32, general risk weights, Legal Information Institute. law.cornell.edu/cfr/text/12/217.2 and law.cornell.edu/cfr/text/12/217.32',
+  prop: 'OCC, Federal Reserve and FDIC, proposed rule on regulatory capital for Category I and II banking organisations, 27 Mar 2026, docket 2026-05959. govinfo.gov/content/pkg/FR-2026-03-27/html/2026-05959.htm',
+  cre: 'Federal Reserve, FDIC and OCC, “Interagency Guidance on Concentrations in Commercial Real Estate Lending, Sound Risk-Management Practices”, Dec 2006. federalreserve.gov/frrs/guidance/interagency-guidance-on-concentrations-in-commercial-real-estate-lending-sound-risk-management-practices.htm',
+  chi: 'Federal Reserve Bank of Chicago, Greg Cohen, Cooper Killen and Simon Lau, “Tail Risk for Banks Posed by Investments in Generative Artificial Intelligence”, Chicago Fed Insights, Feb 2026. chicagofed.org/publications/chicago-fed-insights/2026/ai-tail-risk-for-banks',
+  nahb: 'National Association of Home Builders, Eye On Housing: Emrath, “Cost of Credit for Builders Up Since the End of 2025”, 13 Aug 2026, and Wade, “Single-Family AD&C Lending Edges Higher in Q1”, 1 Jun 2026. eyeonhousing.org/2026/08/cost-of-credit-for-builders-up-since-the-end-of-2025/ and eyeonhousing.org/2026/06/single-family-adc-lending-edges-higher-in-q1/',
+  urban: 'Urban Institute, Jung Hyun Choi and Ted Tozer, “Are Data Centers Worsening America’s Housing Crisis?”, 19 Oct 2026. urban.org/urban-wire/are-data-centers-worsening-americas-housing-crisis',
+  hw: 'HousingWire, John McManus, “Are data centers the next constraint on affordable housing supply?”, 6 Aug 2026, its free opening. housingwire.com/articles/data-centers-housing-supply/',
+  pwt: 'Prince William Times, Berti, “Supervisors OK 516-home Devlin Road community for Bristow”, 11 Mar 2020. princewilliamtimes.com/news/supervisors-ok-516-home-devlin-road-community-for-bristow/article_d0de4a5e-638f-11ea-bb44-6b98e905ea6a.html',
+  pwtpc: 'Prince William Times, “Planning commission greenlights ‘Devlin Technology Park,’ a plan to bring 7 to 11 new data centers to Bristow”, 28 Jul 2022. princewilliamtimes.com/news/planning-commission-greenlights-devlin-technology-park-a-plan-to-bring-7-to-11-new-data/article_37ec44ca-0eac-11ed-a225-efa36b958fd5.html',
+  court: 'Court of Appeals of Virginia, Caparoula v. Board of County Supervisors of Prince William County, Record No. 1137-24-4, memorandum opinion, 16 Sep 2025. vacourts.gov/static/opinions/opncavwp/1137244.pdf',
+  pwtsuit: 'Prince William Times, “Bristow residents file lawsuit challenging ‘Devlin Technology Park’ data center rezoning”, 29 Dec 2023. princewilliamtimes.com/news/bristow-residents-file-lawsuit-challenging-devlin-technology-park-data-center-rezoning/article_9d0eb4b2-a697-11ee-a6df-470a70a247f3.html',
+  co: 'Commercial Observer, Trombola, “Amazon Spends $700M on Empty Land in NoVA Primed for Data Centers”, 7 Nov 2025. commercialobserver.com/2025/11/amazon-nova-data-center-land/',
+  abc: 'Associated Builders and Contractors, “Construction Industry Must Attract 439,000 Workers in 2025”, 24 Jan 2025, and “Construction Industry Must Attract 349,000 Workers in 2026 Despite Macroeconomic Headwinds”, 15 Jan 2026. abc.org/News-Media/News-Releases/abc-construction-industry-must-attract-439000-workers-in-2025 and abc.org/News-Media/News-Releases/abc-construction-industry-must-attract-349000-workers-in-2026-despite-macroeconomic-headwinds',
+  bls: 'U.S. Bureau of Labor Statistics, Occupational Outlook Handbook, “Electricians”, May 2025 data, modified 27 Aug 2026. bls.gov/ooh/construction-and-extraction/electricians.htm',
+  ttrib: 'The Texas Tribune, Dey, “Data center boom strains Texas homebuilders’ need for electricians”, 28 Apr 2026. texastribune.org/2026/04/28/data-centers-texas-electricians-builders/',
+  c30: 'U.S. Census Bureau, Value of Private Construction Put in Place, seasonally adjusted annual rate, Aug 2026 preliminary. census.gov/construction/c30/pdf/privsa.pdf',
+  feds: 'Federal Reserve Board, Brandsaas, Garcia, Kurtzman, Nichols and Zytek, “Estimating Aggregate Data Center Investment with Project-level Data”, FEDS 2025-109, 17 Dec 2025. federalreserve.gov/econres/feds/files/2025109pap.pdf',
+  kc: 'Federal Reserve Bank of Kansas City, Padma Sharma and Pierce George, “Beyond Valuations: Long-Term Financial Risks from the AI Build-Out”, Economic Bulletin, 5 Oct 2026. kansascityfed.org/research/economic-bulletin/beyond-valuations-long-term-financial-risks-from-the-ai-build-out/',
+};
+const KEYS = Object.keys(SRC);
+const c = (...k: string[]) => k.map((x) => {
+  const i = KEYS.indexOf(x);
+  if (i < 0) throw new Error(`the-middleman: no source "${x}"`);
+  return `[${String(i + 1).padStart(2, '0')}]`;
+}).join(' ');
+const sources = KEYS.map((k) => SRC[k]);
+---
+<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date} noindex={DRAFT}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
+      <Masthead right={DRAFT ? 'Draft' : undefined} />
+      <div class="grid cover-grid">
+        <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Middleman</span></h1>
+        <p class="c-a lede">{ed.lede}</p>
+        <Formats slug={ed.slug} />
+      </div>
+      <div class="foot mono cover-foot">
+        <span>{ed.dateLabel} · {SITE.author}</span>
+        <span>r = cos(kθ) · seed {ed.seed} · CoreWeave, 30 Jun 2026</span>
+      </div>
+    </section>
+    <FilmPlayer slug={ed.slug} />
+
+    <section class="surface flash" id="thesis" aria-label="Thesis">
+      <div class="grid">
+        <p class="c-full mono-b">Thesis</p>
+        <p class="c-full display thin slap">The lease is ordinary. The customer is not.</p>
+      </div>
+    </section>
+
+    <Section n="00" title="Seventy-two on five" id="number">
+      <div class="c-a prose">
+        <p class="num figure fig-m">$72.0B</p>
+        <p class="mono fig-sub">Liabilities at 30 June 2026, against $5.0 billion of equity <span class="cite">{c('q2')}</span></p>
+        <p>CoreWeave rents out Nvidia’s processors, by the hour and by the year, to the companies that train and run AI models. At 30 June 2026, the last date it has filed, it held $77.1 billion of assets against $72.0 billion of liabilities. What belonged to its shareholders was $5.0 billion. <span class="cite">{c('q2')}</span></p>
+        <p>Of the liabilities, $35.1 billion is debt and $16.5 billion is leases on data centres already in use. Those two together are the $52 billion that has been printed as its debt and lease hole. The rest include $9.7 billion its customers have paid in advance. <span class="cite">{c('q2', 'fortune')}</span></p>
+        <p>A further $35.5 billion is rent on leases it has signed and not yet begun. That is not a liability. It is an estimate of future payments, undiscounted, and it does not add to the other two: they are present values and it is not. <span class="cite">{c('q2')}</span></p>
+        <p>Since June it has drawn $1.2 billion of a new $2.6 billion loan facility and $1.2 billion of its revolving credit line, sold $4.2 billion of convertible notes and opened a programme to sell up to 35 million new shares, while $4.4 billion of its debt falls due before the year is out. It has filed nothing for the third quarter, so no current total exists. <span class="cite">{c('q2', 'ddtl55', 'conv', 'atm')}</span></p>
+      </div>
+      <div class="c-b">
+        <dl class="rail">
+          <dt>Filed</dt><dd>An SEC filing, a statute, a court record, an official statistic or a published paper. A paragraph under no mark is filed.</dd>
+          <dt>Reported</dt><dd>A named outlet or association, read where it opened. Where only a relay opened, the entry names the relay.</dd>
+          <dt>Estimate</dt><dd>Someone’s own model, named.</dd>
+        </dl>
+        <Stats class="stack" items={[
+          ['$35.1B', `debt, carrying value ${c('q2')}`],
+          ['$16.5B', `lease liabilities, data centres in use ${c('q2')}`],
+          ['$35.5B', `rent on leases signed, not begun; not a liability ${c('q2')}`],
+          ['$5.0B', `equity ${c('q2')}`],
+        ]} />
+      </div>
+    </Section>
+
+    <Section n="01" title="Atlantic Crypto Corp" ground="bottle" acid id="origin">
+      <div class="c-a prose">
+        <p>It was founded in September 2017. Its first name on the SEC’s record is Atlantic Crypto Corp, and it became CoreWeave in October 2019. It mined cryptocurrency until 30 September 2022, when Ethereum changed its rules, and before 2022 most of its small revenue came, in its own words, from “our past crypto mining offerings, which were discontinued”. <span class="cite">{c('edgar', 'ipo', 'k25')}</span></p>
+        <p>Its founders came from energy trading. Michael Intrator co-founded and ran Hudson Ridge Asset Management, a natural gas hedge fund, where Brian Venturo was a partner. Brannin McBee was a proprietary trader at Windy Bay Power, a commodity-focused hedge fund. <span class="cite">{c('proxy', 'ipo')}</span></p>
+        <p>It is now in the Nasdaq-100. It reported $5.1 billion of revenue for 2025 and $4.65 billion for the first half of 2026, and at 30 June held $103.7 billion of contracted work not yet delivered. Ninety-eight percent of its revenue comes from committed contracts, which are take-or-pay: the customer pays for the capacity whether it uses it or not. <span class="cite">{c('k25', 'q2', 'rel')}</span></p>
+        <p>In its own words, “We currently lease all of our existing data centers and offices.” Its one interest in real property is a 35 percent stake in a joint venture developing a data centre campus at Kenilworth, New Jersey, with up to $1.7 billion committed to two more. What it owns is what goes inside: $46.7 billion of servers, networking and other equipment, net of depreciation, 61 percent of its assets, much of it pledged to its lenders. <span class="cite">{c('q2', 'k25')}</span></p>
+      </div>
+      <div class="c-b prose side">
+        <p class="mono-b">Not a contractor</p>
+        <p>It owns the machines. It rents almost everything around them.</p>
+      </div>
+    </Section>
+
+    <Section n="02" title="Every four dollars" acid id="dollars">
+      <RoseField layers={div(4, 9, 0.22)} class="rose divider" />
+      <div class="c-a prose">
+        <p>In the second quarter of 2026 CoreWeave billed $2.58 billion. Its operating costs came to $2.62 billion, a loss of $49 million before interest. Net interest was $640 million, and the quarter’s net loss was $626 million. <span class="cite">{c('q2')}</span></p>
+        <p>Scaled to every $4.00 it billed: about $2.02 went to depreciation on servers and networking, $1.37 to the cost of revenue, which is data centre rent, power and the facilities’ own equipment, $0.99 to interest and $0.69 to everything else. That is $5.07 of cost and interest for $4.00 of revenue. After other income and tax it lost $0.97. <span class="cite">{c('q2', 'rel')}</span></p>
+        <p>The split is rebuilt from the filing’s own lines. Its depreciation figure is the filing’s “approximately $1.3 billion” for servers and networking in the quarter; the rest of the quarter’s $1.39 billion of depreciation sits inside the cost of revenue. <span class="cite">{c('q2', 'rel')}</span></p>
+        <p>It publishes no gross margin. Computed, revenue less the cost of revenue was 66 percent in the quarter, and it reads high because the depreciation of servers and networking sits below that line. The margins it does publish are minus 2 percent operating and minus 24 percent net; on its own adjusted measures, 59 percent EBITDA and 5 percent operating. <span class="cite">{c('q2', 'rel')}</span></p>
+      </div>
+      <div class="c-b">
+        <figure class="field bars" aria-label="Of every 4 dollars billed in the second quarter of 2026, what it went to">
+          <figcaption class="mono">Of every $4.00 billed · second quarter 2026 <span class="cite">{c('q2', 'rel')}</span></figcaption>
+          <div class="bar"><span class="mono lbl">Billed</span><span class="track"><span class="fill" style="width:100%"></span></span><span class="num val">$4.00</span></div>
+          {dollars.map(([l, v]) => (
+            <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${(v / 4) * 100}%`}></span></span><span class="num val">${v.toFixed(2)}</span></div>
+          ))}
+          <p class="mono note">Spent $5.07. Lost $0.97, after other income and tax.</p>
+        </figure>
+      </div>
+    </Section>
+
+    <Section n="03" title="Five years against <span class='acid'>eleven</span>" ground="bottle" id="tail">
+      <div class="c-a prose">
+        <p>The contracts are shorter than the leases. At the end of 2025 CoreWeave’s committed contracts had, in its words, “a weighted-average contract duration of approximately five years”, and its leases in use had eleven years left to run on average. <span class="cite">{c('k25')}</span></p>
+        <p>By 30 June 2026 the leases in use had twelve years left. Of the $103.7 billion of work under contract that day, 41 percent was due within two years, 80 percent within four, and all of it by month 78. Leases signed and not yet begun run seven to sixteen years. <span class="cite">{c('q2')}</span></p>
+        <p>The contracts are getting shorter. The $2.6 billion facility of August is, CoreWeave says, the first of its equipment loans not matched to the contracts behind it: about five years of debt against contracts that “average approximately three years in length”. In September it told investors that since June it had signed customer contracts “with terms of approximately three to six months”. <span class="cite">{c('ddtl55', 'atm')}</span></p>
+        <p>Customers pay part in advance: across its active contracts the weighted-average prepayment was 15 to 25 percent of total contract value at the end of 2025. <span class="cite">{c('k25')}</span></p>
+        <p>A long lease against shorter contracts is not unusual in this business. Equinix, which owns some of its data centres and leases the rest, reports the same twelve-year average remaining lease term. Microsoft disclosed $329.1 billion of leases, mostly data centres, signed and not yet begun, running one to twenty years. <span class="cite">{c('eqix', 'msft')}</span></p>
+        <p>What is different is the equipment. CoreWeave depreciates its servers over six years, so a lease of twelve outlasts two generations of what it was signed to hold, and each generation has to find a customer again. <span class="cite">{c('k25')}</span></p>
+        <p class="mono reg">Reported</p>
+        <p>Jeffrey Moerdler, a data centre lawyer at Haynes Boone, told Bisnow in July that neoclouds are “signing 15-year data center leases” against customer agreements of “max one to three years”. That is where the fifteen years in circulation come from: a description of an industry, not of one company’s filings. <span class="cite">{c('bis1')}</span></p>
+      </div>
+      <div class="c-b">
+        <figure class="field bars" aria-label="Contract, equipment and lease lengths in years, each at its own date">
+          <figcaption class="mono">Years, each at its own date <span class="cite">{c('k25', 'q2')}</span></figcaption>
+          {years.map(([l, v]) => (
+            <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${(v / 16) * 100}%`}></span></span><span class="num val">{v}</span></div>
+          ))}
+        </figure>
+      </div>
+    </Section>
+
+    <Section n="04" title="Three names" id="names">
+      <div class="c-a prose">
+        <p class="num figure fig-m">72%</p>
+        <p class="mono fig-sub">of revenue from three customers, second quarter 2026 <span class="cite">{c('q2')}</span></p>
+        <p>In 2025 one customer, Microsoft, was 67 percent of CoreWeave’s revenue. In the second quarter of 2026 its three largest customers were 36, 26 and 10 percent of it. <span class="cite">{c('k25', 'q2')}</span></p>
+        <p>Two of the larger contracts are public in outline. OpenAI committed in March 2025 to pay up to about $11.9 billion through October 2030, and in September 2025 up to about $6.5 billion more through May 2031. Meta committed in March 2026 to pay up to about $21.0 billion. <span class="cite">{c('k25', 'q2')}</span></p>
+        <p>CoreWeave’s bond documents say how its lenders weigh them. The indenture for its 2032 notes lets a financing vehicle borrow up to 90 percent of its value where its contracts are mostly with investment-grade customers and 75 percent where they are not, and it names one contract: OpenAI’s, at 75 percent unless OpenAI has an investment-grade rating. <span class="cite">{c('ind')}</span></p>
+        <p class="beat">The unusual risk is not the length of the lease. It is how few customers stand behind it.</p>
+      </div>
+      <div class="c-b">
+        <Stats class="stack" items={[
+          ['$11.9B', `OpenAI, up to, through Oct 2030 ${c('k25')}`],
+          ['$6.5B', `OpenAI, up to, through May 2031 ${c('q2')}`],
+          ['$21.0B', `Meta, up to, from Mar 2026 ${c('q2')}`],
+        ]} />
+      </div>
+    </Section>
+
+    <Section n="05" title="The price of a name" ground="bottle" acid id="price">
+      <div class="c-a prose">
+        <p>What the lenders price is the customer. In March 2026 CoreWeave closed an $8.5 billion loan secured by its equipment and one customer’s contract. Moody’s rated it A3, the first loan of its kind rated investment grade, and it priced at 2.25 percentage points over SOFR. In May a $3.1 billion loan backed by contracts with “two large, non-investment grade customers” was rated Ba2 and priced at 4.50 points over. The collateral was of the same kind. The customers were not. <span class="cite">{c('ddtl4', 'ddtl5')}</span></p>
+        <p>The August facility, over contracts of about three years and guaranteed by the parent, was rated Ba2 and BB+ and priced at 5.50 points over. <span class="cite">{c('ddtl55')}</span></p>
+        <p>Blackstone’s credit arm anchored the March loan. No lender says how much it advances against a processor: the March agreement sizes its loans to a projected debt service coverage of at least 1.20 to 1, and every percentage in the filed copy is redacted. <span class="cite">{c('ddtl4')}</span></p>
+        <p class="mono reg">Estimate</p>
+        <p>The 70 to 80 percent loan to value in circulation is SemiAnalysis’s own estimate, from its cost model. <span class="cite">{c('semi')}</span></p>
+        <p class="mono reg">Reported</p>
+        <p>The parent’s own debt is priced on its own name. On 15 October 2026 CoreWeave’s five-year credit default swaps touched a record 1,194.5 basis points, a price implying better than even odds of default within five years, by ICE Data Services’ measure as reported by Bloomberg. The same day Jensen Huang said CoreWeave needed no backstop from Nvidia: “Their cost of capital is actually decreasing.” <span class="cite">{c('huang')}</span></p>
+        <p>JPMorgan’s analysts, reported by Bisnow, wrote that “the cash burn is not a function of unfavorable economics per project”. <span class="cite">{c('bis2')}</span></p>
+      </div>
+      <div class="c-b">
+        <div class="field scroll" tabindex="0" role="region" aria-label="Three loans against equipment and contracts">
+          <table class="ledger">
+            <caption class="mono">Three loans against equipment and contracts, 2026 <span class="cite">{c('ddtl4', 'ddtl5', 'ddtl55')}</span></caption>
+            <thead><tr><th scope="col">Loan</th><th scope="col">Closed</th><th scope="col">Rated</th><th scope="col">Over SOFR</th><th scope="col">Behind it</th></tr></thead>
+            <tbody>
+              {loans.map(([a, d, r, s, b]) => (<tr><th scope="row">{a}</th><td>{d}</td><td>{r}</td><td class="n">{s}</td><td>{b}</td></tr>))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </Section>
+
+    <section class="surface flash" id="words" aria-label="In its own words">
+      <div class="grid">
+        <p class="c-full display slap">“the strong credit quality of many of our customers”</p>
+        <p class="c-full mono">CoreWeave, on what its financing lets it borrow against · 10-K for 2025 · {c('k25')}</p>
+      </div>
+    </section>
+
+    <Section n="06" title="Who holds the lien" ground="bottle" acid id="lien">
+      <div class="c-a prose">
+        <p>Much of the equipment sits in what CoreWeave calls “bankruptcy-remote, special-purpose consolidated subsidiaries formed to hold the financed infrastructure and the related customer contracts”. At 30 June they held $18.2 billion of long-lived assets and $2.6 billion of current assets, pledged to lenders. <span class="cite">{c('q2')}</span></p>
+        <p>The liens belong to the lenders. The March facility is secured by “perfected first priority pledges” over the subsidiary’s equity and substantially all of its assets, held for the lenders by a collateral agent. The customer signs a consent that lets that agent step into its contract. It takes no security of its own. <span class="cite">{c('ddtl4', 'q2')}</span></p>
+        <p>That the customers hold the liens is a claim in circulation. Its earliest published form, a Substack post of November 2025, says OpenAI “has a lien on the SPV’s equity” and cites nothing. No filing shows a customer as a lienholder; every filing that names one names a lender or its agent. OpenAI’s own interest in CoreWeave is shares. <span class="cite">{c('tedards', 'q2', 'k25')}</span></p>
+        <p class="mono reg">Reported</p>
+        <p>One research site, CCIR, says an unfiled agreement among CoreWeave, OpenAI and Dell Financial Services governs one facility’s contract revenue after a default. It cites no document. <span class="cite">{c('ccir')}</span></p>
+        <p class="mono reg">Filed</p>
+        <p>The wall around the subsidiaries is thin. Of $35.1 billion of debt, $3.7 billion is non-recourse to the parent; CoreWeave guarantees every one of these facilities but the March one. Behind the pledged assets stand about $14.6 billion of the parent’s unsecured notes. <span class="cite">{c('q2', 'ddtl55')}</span></p>
+        <p>Where a large technology company does stand inside such a vehicle, it stands as guarantor. Meta owns 20 percent of the two ventures developing its Louisiana and Texas campuses, leases them, and guarantees their investors up to $41.5 billion of the properties’ residual value, against which it has recorded no liability. <span class="cite">{c('meta')}</span></p>
+        <p>If a tenant fails, the law limits what a long lease is worth to its landlord. A bankrupt tenant has 120 days, extendable once by 90, to keep or reject a lease of commercial property, and the landlord’s claim for the rest is capped at the greater of a year’s rent or 15 percent of what remains, never more than three years’. <span class="cite">{c('usc')}</span></p>
+        <p>And the equipment loans were drawn to be repaid inside the contracts behind them. “When an initial contract ends,” the chief financial officer said in August, “the cluster no longer has any leverage.” <span class="cite">{c('call')}</span></p>
+      </div>
+      <div class="c-b">
+        <dl class="rail">
+          <dt>The lenders</dt><dd>The liens, through a collateral agent.</dd>
+          <dt>The customer</dt><dd>A consent letting that agent step in.</dd>
+          <dt>OpenAI</dt><dd>Shares in CoreWeave.</dd>
+          <dt>Meta, elsewhere</dt><dd>A guarantee to its landlords’ investors.</dd>
+          <dt>The noteholders</dt><dd>What remains.</dd>
+        </dl>
+      </div>
+    </Section>
+
+    <Section n="07" title="The supplier as buyer" acid id="nvidia">
+      <RoseField layers={div(6, 11, 0.67)} class="rose divider low" />
+      <div class="c-a prose">
+        <p>Every processor CoreWeave runs today is Nvidia’s. It buys them in systems from manufacturers and integrators: three suppliers made up 23, 20 and 17 percent of its purchases in 2025. In January 2026 Nvidia bought about 23 million new CoreWeave shares at $87.20, $2.0 billion in all. <span class="cite">{c('k25', 'q2')}</span></p>
+        <p>In September 2025 the two signed an order form with “an initial value of $6.3 billion” under which Nvidia must buy CoreWeave’s “residual unsold” capacity through 13 April 2032, “subject to any termination described below and satisfaction of delivery and availability of service requirements”. Either side may end it on 30 days’ notice of a breach. It is a floor under unsold capacity, not a promise of $6.3 billion. <span class="cite">{c('nvof')}</span></p>
+        <p>Nvidia’s own filing is larger and does not mention CoreWeave. At 26 July 2026 it carried $56 billion of commitments, $36 billion of them cloud agreements of the same residual kind, and guarantees with a maximum exposure of $108.5 billion. Of that, $105 billion backs lease and power payments on a 4.25 gigawatt campus in Ohio whose tenant is an affiliate of OpenAI, and OpenAI has agreed to reimburse Nvidia for anything it pays. <span class="cite">{c('nvq', 'nv8k')}</span></p>
+        <p>Add the two tables and you have the $164.5 billion that Forbes printed in October. The filing never adds them, because one is a schedule of purchases and the other a ceiling on guarantees. <span class="cite">{c('forbes', 'nvq')}</span></p>
+        <p>In August Nvidia said it would work with Apollo, BlackRock, Blackstone, Brookfield, Goldman Sachs and KKR to raise more than $500 billion for AI infrastructure. The release says memorandums of understanding were signed and remain “subject to execution of the final agreements”. It promises no guarantee. <span class="cite">{c('apollo')}</span></p>
+      </div>
+      <div class="c-b">
+        <figure class="field bars" aria-label="Nvidia's commitments and maximum guarantee exposure, quarter ended 26 July 2026, billions of dollars">
+          <figcaption class="mono">Nvidia, 26 Jul 2026 · $ billions · two tables, never summed <span class="cite">{c('nvq')}</span></figcaption>
+          {nvidia.map(([l, v]) => (
+            <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${(v / 105) * 100}%`}></span></span><span class="num val">{v}</span></div>
+          ))}
+        </figure>
+      </div>
+    </Section>
+
+    <Section n="08" title="A loss is not a cash flow" ground="bottle" acid id="labs">
+      <div class="c-a prose">
+        <p>At the top of the chain are the companies that buy the compute. In 2025 all three reported large losses and spent more cash than they took in. The two are not the same number, and most of the difference is one accounting line. <span class="cite">{c('s1', 'zit', 'spx')}</span></p>
+        <p>Anthropic’s net loss for 2025 was $42.0 billion. Of it, $34.3 billion was the rise in the fair value of convertible notes, most of them Amazon’s, which, in Anthropic’s words, “was primarily driven by an increase in the fair value of our outstanding convertible promissory notes resulting from an increase in our enterprise valuation from 2024 to 2025.” It costs no cash. It is paid in shares: in the first quarter of 2026 Amazon’s notes converted at $20.93 a share, while Series G-1 investors had paid $259.14. <span class="cite">{c('s1')}</span></p>
+        <p>So a charge like that is not a cash flow, and it is not nothing either. It measures value moving from the other shareholders to the noteholders. What it does not measure is money spent. <span class="cite">{c('s1')}</span></p>
+        <p>Measured as money spent, Anthropic’s operating loss for 2025 was $8.06 billion, a $1.5 billion legal settlement among it, and its operating cash flow less capital spending was minus $2.77 billion. In its own words it has “generated negative cash flows from operating and investing activities in 2023, 2024, and 2025.” In the first half of 2026 its operating loss narrowed to $693 million and its operations brought in $3.93 billion. SpaceX, which owns xAI and has been listed since June, took in $6.79 billion from its operations in 2025 and spent $20.74 billion on equipment. <span class="cite">{c('s1', 'spx')}</span></p>
+        <p class="mono reg">Reported</p>
+        <p>OpenAI has filed nothing public. Its 2025 accounts reached Ed Zitron and the Financial Times, and Fortune reported from the same copies: one origin. They show $20.92 billion of operating loss on $13.07 billion of revenue and a consolidated net loss of $60.35 billion; in Zitron’s words, the year’s conversion to a for-profit company led to “a $41.55 billion loss due to changes in fair value of convertible interests and warrant liability.” After $21.82 billion assigned to other holders, $38.53 billion was OpenAI’s own. Its own plan, reported by the Financial Times, has it burning $278 billion of free cash flow from 2026 to 2030. <span class="cite">{c('zit', 'fort2', 'ft278')}</span></p>
+        <p class="mono reg">Filed</p>
+        <p>Neither private one has a market price. Anthropic filed to list on 26 October with its price range left blank, and last priced in a $65 billion round it announced on 28 May, at $965 billion including the new money. SpaceX listed on 12 June at $135 a share, which on its share count valued it at $1.77 trillion. <span class="cite">{c('s1', 'seriesh', 'spx')}</span></p>
+        <p>Anthropic’s filing leaves its total committed spend blank. It discloses $265.6 billion of fixed or minimum purchase commitments and $321.4 billion of rent on leases not yet begun, both at 30 June 2026, two measures that do not add. Its arrangements with SpaceX’s AI unit, up to $120.5 billion, can be cancelled by either side on 90 days’ notice once their first periods end in January and March 2027. <span class="cite">{c('s1')}</span></p>
+        <p class="mono reg">Reported</p>
+        <p>The two trillion dollars in the press is a figure Reuters reported on 29 September that Anthropic “could” reach; no draft of the filing contains it. The same Reuters sentence gave the $518 billion of commitments in circulation, which matches six arrangements named in the drafts from August to October; the same six in the filed document come to $571.1 billion, and two of them are not firm. OpenAI last priced at $852 billion, including the new money, in March 2026, and CNBC reported on 22 October that it was raising at $1.25 trillion before the new money, terms still under negotiation. <span class="cite">{c('reut', 'drs', 's1', 'qz', 'tc')}</span></p>
+      </div>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="Three companies’ 2025 accounts">
+        <table class="ledger">
+          <caption class="mono">2025 · $ billions · OpenAI’s figures leaked, not filed, its net loss consolidated · the last column computed from each filing’s cash flow statement <span class="cite">{c('zit', 'fort2', 's1', 'spx')}</span></caption>
+          <thead><tr><th scope="col">Company</th><th scope="col">Revenue</th><th scope="col">Operating loss</th><th scope="col">Net loss</th><th scope="col">Of which, fair-value charge</th><th scope="col">Operating cash less capital spending</th></tr></thead>
+          <tbody>
+            {labs.map(([n, r, o, l, f, cf]) => (<tr><th scope="row">{n}</th><td class="n">{r}</td><td class="n">{o}</td><td class="n">{l}</td><td class="n">{f}</td><td class="n">{cf}</td></tr>))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+
+    <Section n="09" title="Contracted, not energised" acid id="power">
+      <div class="c-a prose">
+        <p>At 30 June 2026 CoreWeave had about 3.7 gigawatts of power under contract and 1.5 gigawatts of it active. The other 2.2, about 59 percent, was not yet switched on. <span class="cite">{c('rel')}</span></p>
+        <p>The share has fallen from 79 percent a year earlier. The gap has not: it has sat between 2.2 and 2.5 gigawatts for a year, because CoreWeave has been signing about as fast as it switches on. It switched on nearly 500 megawatts in the second quarter of 2026, against about 50 a year before, and six weeks later its contracted total was 4.2 gigawatts. <span class="cite">{c('q225', 'q325', 'rel', 'call')}</span></p>
+        <p>It does not say the rest waits on the grid. It calls it capacity “we expect to deploy over future periods”, its filings list limits on generation and transmission among the risks to its expansion without tying any capacity to them, and the one delay it has named was a third-party developer’s, announced in November 2025. Its annual report also says that “limited access to power will favor platforms like ours”. <span class="cite">{c('k25', 'q2')}</span></p>
+        <p>The wait for power is real elsewhere. Dominion Energy told Virginia utilities in August 2024 that connecting a data centre drawing more than 100 megawatts would take one to three years longer than the three to four it had taken. JLL puts the average wait for a grid connection in primary markets above four years; by market it runs from about two years to about ten, Northern Virginia near seven, against 18 months to put up a 50 megawatt data centre. A substation transformer took about 140 weeks to arrive in 2023 and more than 160 in 2026, by Wood Mackenzie’s count. <span class="cite">{c('dom', 'jll', 'dck1')}</span></p>
+        <p class="mono reg">Reported</p>
+        <p>Satya Nadella, Microsoft’s chief executive, a year earlier: “you may actually have a bunch of chips sitting in inventory that I can’t plug in. And in fact, that is my problem today, right? It’s not a supply issue of chips. It’s actually the fact that I don’t have warm shells to plug into.” <span class="cite">{c('bg2')}</span></p>
+        <p>In October 2026 Microsoft withdrew from its contract to take capacity at Nscale’s planned site at Loughton, in Essex, where 23,040 Nvidia processors were to run from early 2027. The Guardian reported that UK Power Networks had told Nscale it could not supply enough power until the 2030s; UK Power Networks told AFP that many data centres are “awaiting works on the national transmission network, which we do not own”. Microsoft said “this decision relates to a single site”, and Nscale still means to go ahead. <span class="cite">{c('nscale', 'dck2', 'afp')}</span></p>
+        <p>Business Insider reported in October that, under what Amazon calls Early Rack Receipt, internal emails from August expected about $5 billion of Nvidia racks to arrive before they could be deployed, and about $3 billion more each month after. Some sites had room for the racks but not the power to run them, people familiar with it said, so finished equipment waited in other warehouses. Amazon called staging hardware near its sites best business practice. How much of it waits, nobody has said. <span class="cite">{c('bij', 'aws')}</span></p>
+        <p class="mono reg">Filed</p>
+        <p>Equipment not yet placed in service does not lose book value while it waits. It sits as construction in progress, $11.9 billion of it at CoreWeave on 30 June, undepreciated, with the interest on it capitalised; its finance chief tied the rise to “the large amount of power we received very late in Q2”. Equipment already in service and then left idle does keep depreciating. What waiting costs is ground against the next generation. <span class="cite">{c('q2', 'call')}</span></p>
+      </div>
+      <div class="c-b">
+        <figure class="field bars" aria-label="CoreWeave's contracted power not yet active, gigawatts, by date">
+          <figcaption class="mono">Contracted power not yet active · gigawatts <span class="cite">{c('q225', 'q325', 'k25', 'rel')}</span></figcaption>
+          {power.map(([l, v, s]) => (
+            <div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${(v / 2.5) * 100}%`}></span></span><span class="num val">{s}</span></div>
+          ))}
+          <p class="mono note">As a share of contracted power: 79, 80, under 73 and 59 percent. 2.2 GW was also the whole contracted total in June 2025.</p>
+        </figure>
+      </div>
+    </Section>
+
+    <Section n="10" title="Credit, land and hands" ground="bottle" acid id="houses">
+      <div class="c-a prose">
+        <p>The case that this boom crowds out housing starts with banks, and with one economist’s account of them. Richard Werner showed in 2014 that a bank creates new money when it lends, and the Bank of England said the same that year. His later work splits bank credit into credit for things that count in output and credit for buying existing assets, and blames the second for bubbles. On his own split, a loan to put up a data centre or buy servers is the first kind. <span class="cite">{c('w14', 'boe', 'w12')}</span></p>
+        <p>The capital rule tilts toward housing, where it tilts at all. A mortgage on an occupied or rented home and a builder’s loan on a home already sold carry a 50 percent risk weight; other home construction loans carry 100. A construction loan on commercial property built for income, secured by it and repaid from it, carries 150, or 100 once the borrower has put in 15 percent of its finished value and the loan meets the rule’s other tests. Loans to the cloud companies themselves, or secured by servers and contracts rather than land, are corporate loans at 100. The one place homes and data centres meet is a supervisory screen of 2006 that counts all construction lending together and, in its own words, does “not constitute limits”. <span class="cite">{c('cfr', 'prop', 'cre')}</span></p>
+        <p>Banks lent about $14.9 billion to data centres in the year to the third quarter of 2025, on MSCI’s estimate as cited by the Chicago Fed, which found the exposure not material from a commercial property view; most of large banks’ lending to AI is to companies, $450 billion committed and $150 billion drawn. Lending to build single-family homes was rising, 1.9 percent on the year in the first quarter of 2026. Builders have reported tighter credit for eighteen quarters running, a run that began before data centre spending took off in 2023. <span class="cite">{c('chi', 'nahb', 'feds')}</span></p>
+        <p>Data centre construction ran at $85 billion a year in August 2026, against $519 billion for new homes, single-family and multifamily. The $370 billion a year in circulation is a Federal Reserve staff forecast of all data centre investment by mid 2026, the servers included, and its authors assume only 44 percent of it is domestic. <span class="cite">{c('c30', 'feds')}</span></p>
+        <p>Large banks’ direct exposure to the whole AI industry was about 0.8 percent of their assets, the Chicago Fed found. The Kansas City Fed found the neocloud companies at 85 percent debt to assets and their financing vehicles near 90, against 44 for the largest cloud companies, and noted that these arrangements “have not been stress-tested by an economic downturn”. <span class="cite">{c('chi', 'kc')}</span></p>
+        <p class="mono reg">Reported</p>
+        <p>The Urban Institute, which raised the question in October, wrote that “to date, no study has quantified whether data center financing has diverted capital from housing.” For land it gave one case, a site “entitled for 516 homes” sold to Amazon, which it said sought the rezoning. It took the case from HousingWire. <span class="cite">{c('urban', 'hw')}</span></p>
+        <p class="mono reg">Filed</p>
+        <p>The court record has it the other way round. The applicant for the data centre rezoning was Stanley Martin, the homebuilder that had won the 516 homes; the county board granted it in November 2023, and the parties to the appeal were the board and Stanley Martin. Amazon bought most of the land afterwards. <span class="cite">{c('court', 'pwt', 'co')}</span></p>
+        <p class="mono reg">Reported</p>
+        <p>The squeeze on trades is real and local. The builders’ association put construction’s need at 349,000 more workers in 2026, down from 439,000 in 2025, for every trade together, most of it to replace people retiring, and says demand for electricians has surged with data centre construction. Near Abilene, Texas, one electrical contractor told the Texas Tribune he could pay $20 an hour while data centres paid $35, with overtime and per diem on top, and a builder said his houses were taking two months longer since his electrician lost lead men to them. <span class="cite">{c('abc', 'ttrib')}</span></p>
+        <p class="mono reg">Filed</p>
+        <p>An electrician’s median pay was $63,190 in May 2025, and the top tenth earned more than $108,510. <span class="cite">{c('bls')}</span></p>
+      </div>
+      <div class="c-b">
+        <div class="field scroll" tabindex="0" role="region" aria-label="Risk weights">
+          <table class="ledger">
+            <caption class="mono">Risk weights, US standardised approach <span class="cite">{c('cfr', 'prop')}</span></caption>
+            <thead><tr><th scope="col">Exposure</th><th scope="col">Weight</th></tr></thead>
+            <tbody>
+              {weights.map(([e, w]) => (<tr><th scope="row">{e}</th><td class="n">{w}</td></tr>))}
+            </tbody>
+          </table>
+        </div>
+        <div class="field timeline">
+          <p class="mono">Bristow, Prince William County <span class="cite">{c('pwt', 'pwtpc', 'pwtsuit', 'court', 'co')}</span></p>
+          <ol>
+            {bristow.map(([w, t]) => (<li><span class="mono when">{w}</span><span class="what">{t}</span></li>))}
+          </ol>
+        </div>
+      </div>
+    </Section>
+
+    <Section n="11" title="Sources" id="sources">
+      <p class="c-full mono">Read on 27 October 2026, each by one reader and again by a second who tried to overturn it</p>
+      <p class="c-full mono">Not routed around where they refused this sandbox: the Financial Times, CNBC, Bloomberg, Business Insider and Forbes, read where a named relay opened; the Federal Register and eCFR pages, read through govinfo and the Legal Information Institute</p>
+      <ol class="c-full sources">
+        {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
+      </ol>
+    </Section>
+
+    <section class="surface flash" id="last-word" aria-label="The last word">
+      <div class="grid">
+        <p class="c-full display slap">Follow the money and it ends at three customers.</p>
+        <div class="c-full foot mono"><span>Aedificare · {ed.dateLabel}</span><span>{ed.title}</span></div>
+      </div>
+    </section>
+
+    <EditionEnd slug={ed.slug} seed={`seed ${ed.seed}`} />
+  </main>
+</Base>
+
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -20%; right: -14%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 40px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover .lede { max-width: 44ch; }
+  @media (max-width: 400px) { .cover h1 { font-size: 15vw; } }
+  .cover-foot { border-top-color: transparent; }
+  .divider { width: max(60vw, 60vh); height: max(60vw, 60vh); top: -30%; right: -22%; }
+  .divider.low { top: auto; bottom: -34%; left: -26%; right: auto; }
+  .surface .grid { position: relative; z-index: 1; }
+  .slap { font-size: clamp(40px, 7.4vw, 120px); }
+  .side p { max-width: 40ch; }
+  .side .mono-b { margin-bottom: 14px; }
+  .flash .foot { padding-inline: 0; border-top: 0; }
+  /* Registers, as in Edition 01. Malachite on Void; Flash on Bottle, where small Malachite fails AA. */
+  .reg { color: var(--malachite); margin-bottom: 6px; }
+  .bottle .reg { color: var(--flash); }
+  .prose .reg { margin-top: 1.4em; }
+  /* Inline citations: mono, small, Malachite; Flash on Bottle and in a field. */
+  .cite { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 500; font-size: 12px; letter-spacing: .04em; color: var(--malachite); white-space: nowrap; }
+  .bottle .cite, .field .cite { color: var(--flash); }
+  .fig-sub { margin-top: -6px; max-width: 34ch; }
+  .stack { margin-top: 32px; }
+  .note { margin-top: 14px; }
+  /* A field on Void is Bottle, where a small Malachite table head fails AA. */
+  .field thead th { color: var(--flash); }
+  .field + .field { margin-top: 14px; }
+  caption { caption-side: top; text-align: left; padding-bottom: 12px; }
+  .timeline ol { list-style: none; margin: 14px 0 0; padding: 0; display: grid; row-gap: 0; }
+  .timeline li { display: grid; grid-template-columns: 6.5em minmax(0, 1fr); column-gap: 18px; align-items: baseline; padding-block: 10px; border-top: 1px solid rgba(255, 255, 255, .16); }
+  .timeline .when { color: var(--flash); }
+  .timeline .what { font-size: 15px; line-height: 1.45; }
+  @media (max-width: 760px) {
+    .timeline li { grid-template-columns: 1fr; row-gap: 4px; }
+  }
+</style>
