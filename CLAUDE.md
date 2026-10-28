@@ -86,8 +86,11 @@ that is a reference, not documentation.
    Acid probe in `tools/verify.cjs` (text ≥ 24px or an SVG stroke ≥ 200px
    counts as "at scale"; 11px labels and 2px rules do not; an image counts
    by its pixels, when its tallest band of Acid ink, drawn at the size it
-   is shown, reaches the capital of 24px type, 16px; a film's thumbnail at
-   that size fails on its own, wherever it sits).
+   is shown, reaches the capital of 24px type, 16px; a film's small
+   thumbnail at an edition's end fails on its own at that size, wherever it
+   sits, while a film's poster, in the player and in the home's film link,
+   is shown large on purpose and counts as its surface's one Acid; Decisions
+   log, 28 Oct 2026).
 5. **Theta falls back.** Neither Bricolage Grotesque nor Martian Mono has
    Greek, so the θ in `r = cos(kθ)` renders from the system mono stack. One
    glyph, and the same thing the uploaded PDFs already did. Alternatives
@@ -266,7 +269,17 @@ for a shortlist for bios and cards, which is a separate deliverable.
   so `@astrojs/vercel` would be a dependency that serves nothing. Vercel
   detects Astro and publishes `dist/`; `tools/verify.cjs` sweeps that same
   directory so the check runs on the bytes that ship.
-- **Vercel builds a FORK of this repo, not this repo** (found 2026-09-16).
+- **Since 27 Oct 2026 Vercel builds THIS repo's `main`, on every push.**
+  The owner deleted the project that built the fork and created one
+  connected to `cherishwins/aedificare` directly (owner, 28 Oct: "when you
+  push to this repo, it will automatically deploy"). Proved the same day:
+  the live `<meta name="build">` read `c03fe43a`, this repo's `main`. The
+  project still sits on a team the Vercel connector cannot see, so its
+  settings (domains above all) are the owner's to change. The new project
+  carries no Web Analytics script (none in the live HTML), so the fork's
+  one divergence (Open 6) is gone with it. The apex/`www` direction was
+  set wrong by the new project (Open 1). What follows is the history.
+- **Until 27 Oct 2026 Vercel built a FORK of this repo, not this repo** (found 2026-09-16).
   The production project is on the owner's Hobby team "solidarity" (slug
   koreawins), which the Vercel MCP cannot see, and it is connected to
   `jessejamesvictoria/aedificare`, a fork under the owner's personal GitHub
@@ -343,7 +356,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   the link shows, the film file it was measured from (its release, name,
   size, filing time and length in seconds), the thumbnail's two files, size
   and alt text, and the release asset it was reduced from with that asset's
-  sha256. The JSON is written only by `tools/films.mjs`. The module holds
+  sha256, and the poster (the release's 1280 by 720 thumbnail byte for
+  byte, `POSTER`; Decisions log, 28 Oct 2026). The JSON is written only by `tools/films.mjs`. The module holds
   the thumbnail's size (`THUMB`, 112 by 63, and why) and the length rule
   (`lengthOf`: the file's own length rounded UP, as YouTube shows it; the
   rounded length in `meta.json` read 18:15 and 13:38 where YouTube shows
@@ -375,8 +389,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - `src/components/`: `Mark`, `RoseField`, `Dove`, `Masthead`, `Section`,
   `Rail`, `Pull`, `Stats`, `EditionEnd`, `FilmLink`, `Formats` (the row on
   an edition's cover: read, PDF, film, each only when it exists) and
-  `FilmPlayer` (the film's own surface under the cover, playing on the
-  click; Decisions log, 26 Oct 2026).
+  `FilmPlayer` (the film's own surface under the cover, its poster the
+  film's thumbnail with a play plate, playing on the click; Decisions log,
+  26 and 28 Oct 2026).
 - `src/pages/`: `index`, `the-middleman`, `the-grade`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
   `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `404`, and the generated `feed.xml.ts`,
   `llms.txt.ts`, `robots.txt.ts`, `index.json.ts` (the index as JSON for
@@ -1547,9 +1562,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   brand rules hold: no Acid on the edition surfaces, block links only,
   small Malachite never on Bottle (the Bottle block's numbers and aside go
   Flash), nothing explains what the entity does. (Since 21 Oct 2026 an
-  edition with a public film carries its thumbnail there, whose one word
-  or figure is Acid below the probe's "at scale"; whether that still keeps
-  this rule is the owner's to judge by eye. Decisions log.)
+  edition with a public film carried its thumbnail there, whose one word
+  or figure was Acid below the probe's "at scale". Since 28 Oct 2026 it
+  carries the film's poster, large, and its Acid word IS at scale: the
+  one Acid of that edition's surface, which spends no other, so "no Acid
+  on the edition surfaces" now reads "none but the film's". Decisions log,
+  28 Oct 2026; the owner's "I still don't see the videos there".)
 
 - **The code is the date** (owner, 2026-09-16: "I really hate having to
   keep a series going with the numbers that get fucked up instead of just
@@ -2747,9 +2765,10 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   press must be the embed URL and none may come before; the embed URL and
   the iframe's `allow` carry no autoplay; the poster's focus ring must lie
   inside whatever clips around it; with JavaScript off the poster must be
-  the watch-page link; Acid at scale inside a `.player` fails on its own,
-  as a thumbnail's does, so the cover above keeps the sequence's loud
-  move). The review of the first cut found four more things, each fixed
+  the watch-page link; Acid at scale inside a `.player` failed on its own,
+  as a thumbnail's does, so the cover above kept the sequence's loud
+  move, until 28 Oct 2026, when the poster became the film's own frame
+  and its Acid word the film band's one Acid; Decisions log). The review of the first cut found four more things, each fixed
   before it merged: the focus ring was clipped by the player's
   `overflow: hidden` (the poster clips its own rose now, the box clips
   nothing); the poster's rose field went on drawing after the player had
@@ -2805,9 +2824,53 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   and that reading is worth exactly what Vercel says it is, so it is
   raised here and in chat rather than settled.
 
+- **2026-10-28 · The poster is the film's own frame.** The owner, after
+  the player of 26 Oct had shipped: "I still don't see the videos there."
+  Looked at as a reader sees it, the poster was the film's quiet rose
+  field, the same picture as the cover above it, under a small "Film ·
+  16:18": it read as decoration, and the home showed each film as a 112 px
+  speck. Now the player's frame is the film's thumbnail, the frame YouTube
+  itself shows for it (filed by `tools/films.mjs` as
+  `/film/<slug>-poster.<hash>.png`, the release's file byte for byte, about
+  15 kB, checked by `src/lib/films.mjs` against the thumbnail source's
+  sha256), with a Flash play plate on it: a computed triangle, the record
+  in Void display type, "YouTube · plays here". The plate stands at the
+  thumbnail's own left margin and 70 percent down, the band all ten films'
+  thumbnails leave clear (their word sits between 36 and 63 percent of the
+  height, their labels below 89, measured over every one). The home's film
+  link shows the same poster at about a quarter of a desk's width and goes
+  to the edition's player. An independent review (two lenses, a skeptic per
+  finding) found the first cut cropped the frame's left edge on phones
+  under about 388 px (YouTube's 200 px floor makes the box taller than
+  16:9 there, and a cover-fit image lost its sides: 1,200 read ",200" at
+  320), so the frame is an uncropped 16:9 shot centred in the box with the
+  plate placed on it; and that three older passages here still stated the
+  reversed rule, now amended. **What this changes in the rules**: the poster's
+  Acid word is at scale, so it is the one Acid of its surface (override 4,
+  once per surface), counted by the sweep with the rest; the film band and
+  the home's edition surfaces spend no other. The rule of 21 and 26 Oct that
+  a film's picture is never a loud move now holds only for the small
+  thumbnail at an edition's end (`.film` without `.film-poster` in
+  `tools/verify.cjs`). The sweep is clean with every player played. The
+  play triangle is the one drawn shape on the site; it is a control, not
+  an illustration, and whether the kit should say so is the owner's call.
+  The script budget is unchanged: the poster is an image, and the rose
+  field the old poster drew is gone.
+
 ## Open
 
-1. **Resolved 2026-09-16 16:08 UTC: the apex is primary.** The owner set
+1. **Reopened 28 Oct 2026: the new project redirects the apex to `www`.**
+   Read by curl on the 28th: `https://aedificare.art/` answers 308 to
+   `https://www.aedificare.art/`, while every canonical, `og:url`, the
+   sitemap, `robots.txt`, the feed, `llms.txt`, every card and every
+   YouTube description name the apex. That is the mistake this item
+   recorded on 15 Sep: a canonical that points at a redirect. The fix is
+   the owner's, in the project's Settings → Domains, as before:
+   `aedificare.art` serves Production with no redirect, and
+   `www.aedificare.art` redirects to `aedificare.art` with 308. The site
+   is not changed to `www`: the brand is the apex, and every link already
+   in the wild names it. `verify-live` against the apex proves it after.
+   **Resolved 2026-09-16 16:08 UTC (on the old project): the apex is primary.** The owner set
    the two rows in Vercel (Settings → Domains: `aedificare.art` serves
    production, `www.aedificare.art` 308 → `aedificare.art`). Verified by
    curl from the sandbox: the apex answers 200 with its canonical and
@@ -2851,7 +2914,7 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
    The Met's record (object 398429) dates it 1575 to 1617; the Rijksmuseum
    c. 1598 to 1604. Kostis Velonis's sculpture *Circus Aedificare* (2018)
    also exists under the name. Neither appears on a surface either.
-6. **The fork.** Production deploys from `jessejamesvictoria/aedificare`
+6. **The fork (resolved 27 Oct 2026: the owner deleted the fork's project; production builds this repo, Stack above).** Production deployed from `jessejamesvictoria/aedificare`
    (Stack, above), synced by hand. Two things are the owner's to decide,
    both raised in chat on 2026-09-16. First, automate the sync: a workflow
    here that pushes `main` to the fork on every push, fast-forward only so

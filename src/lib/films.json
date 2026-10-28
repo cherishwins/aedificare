@@ -20,6 +20,11 @@
         "asset": "the-floor-thumb-1280x720.png",
         "sha256": "1a94908e253e2912020472a9d0cba361c6b6424f126bacd6fea1f3062416da6a"
       }
+    },
+    "poster": {
+      "src": "/film/the-floor-poster.1a94908e.png",
+      "width": 1280,
+      "height": 720
     }
   },
   "the-supply-cabinet": {
@@ -43,6 +48,11 @@
         "asset": "the-supply-cabinet-thumb-1280x720.png",
         "sha256": "22a16dc6b93767891e84243c3a12b6e4a58c326c1db1429759c90517b657a5e3"
       }
+    },
+    "poster": {
+      "src": "/film/the-supply-cabinet-poster.22a16dc6.png",
+      "width": 1280,
+      "height": 720
     }
   },
   "the-fourth-axis": {
@@ -66,6 +76,11 @@
         "asset": "the-fourth-axis-thumb-1280x720.png",
         "sha256": "828c1bdc1d5bd301770c0d5e5db1b71dfb2dd48d69f05a7976c51ee09bfc8670"
       }
+    },
+    "poster": {
+      "src": "/film/the-fourth-axis-poster.828c1bdc.png",
+      "width": 1280,
+      "height": 720
     }
   },
   "the-tilt-gap": {
@@ -89,6 +104,11 @@
         "asset": "the-tilt-gap-thumb-1280x720.png",
         "sha256": "46b193d89cbfdf9eeab908cf4a2d2829de54a6ce0448ed08efd75b047478f27b"
       }
+    },
+    "poster": {
+      "src": "/film/the-tilt-gap-poster.46b193d8.png",
+      "width": 1280,
+      "height": 720
     }
   },
   "ns-01": {
@@ -112,6 +132,11 @@
         "asset": "ns-01-thumb-1280x720.png",
         "sha256": "367f68b42267058e257917bc1ed6f4f538d0d104a5e13c016654dd71b0b8f492"
       }
+    },
+    "poster": {
+      "src": "/film/ns-01-poster.367f68b4.png",
+      "width": 1280,
+      "height": 720
     }
   },
   "edition-01": {
@@ -135,6 +160,11 @@
         "asset": "edition-01-thumb-1280x720.png",
         "sha256": "30e1fae187ba8d44e98102579a003cec07fc420067c9a9e80fcb91a95924da8d"
       }
+    },
+    "poster": {
+      "src": "/film/edition-01-poster.30e1fae1.png",
+      "width": 1280,
+      "height": 720
     }
   }
 }

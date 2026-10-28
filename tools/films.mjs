@@ -54,7 +54,7 @@ import crypto from 'node:crypto';
 import zlib from 'node:zlib';
 import { execFileSync } from 'node:child_process';
 import { PUBLISHED } from '../src/lib/editions.mjs';
-import { films as linked, problems, readFilms, clock, lengthOf, watchUrl, THUMB, FILMS_FILE as FILE, FILMS_DIR as DIR } from '../src/lib/films.mjs';
+import { films as linked, problems, readFilms, clock, lengthOf, watchUrl, THUMB, POSTER, FILMS_FILE as FILE, FILMS_DIR as DIR } from '../src/lib/films.mjs';
 
 const REPO = 'cherishwins/aedificare';
 
@@ -230,7 +230,7 @@ if (argv[0] === '--drop') {
     const duration = lengthOf(seconds);
     const digest = digestOf(ta);
     const source = { release: rel.tag_name, asset: meta.file, bytes: fa.size, updated: fa.updated_at, seconds };
-    if (old && old.id === id && sameFilm && old.duration === duration && old.thumb?.source?.sha256 === digest && old.thumb.width === THUMB.width && old.thumb.height === THUMB.height && !problems({ [e.slug]: old }).some((p) => !/is linked by no entry/.test(p))) {
+    if (old && old.id === id && sameFilm && old.duration === duration && old.thumb?.source?.sha256 === digest && old.thumb.width === THUMB.width && old.thumb.height === THUMB.height && old.poster && !problems({ [e.slug]: old }).some((p) => !/is linked by no entry/.test(p))) {
       console.log(`  ${e.slug}: ${id}, unchanged`);
       continue;
     }
@@ -251,10 +251,17 @@ if (argv[0] === '--drop') {
       console.log(`  ${path.join(DIR, name)}`.padEnd(48) + `${w}x${h}  ${bytes.length} B`);
       return `/film/${name}`;
     };
+    // The poster is the release's thumbnail itself, the frame YouTube shows for the film, filed byte for byte:
+    // a flat PNG of about 15 kB, so nothing is gained by reducing it and nothing of the film's own picture is lost.
+    if (img.width !== POSTER.width || img.height !== POSTER.height) fail(`${meta.thumbnail} is ${img.width}x${img.height}, not the ${POSTER.width}x${POSTER.height} the poster is filed at`);
+    const posterName = `${e.slug}-poster.${digest.slice(0, 8)}.png`;
+    fs.writeFileSync(path.join(DIR, posterName), src);
+    console.log(`  ${path.join(DIR, posterName)}`.padEnd(48) + `${img.width}x${img.height}  ${src.length} B`);
     films[e.slug] = {
       id, duration, source,
       thumb: { src: write(1), src2x: write(2), width: THUMB.width, height: THUMB.height, alt,
         source: { release: rel.tag_name, asset: meta.thumbnail, sha256: digest } },
+      poster: { src: `/film/${posterName}`, width: POSTER.width, height: POSTER.height },
     };
     console.log(`  ${e.slug}: ${watchUrl(id)}  ${clock(duration)} (${meta.file} runs ${seconds} s; meta.json says ${meta.duration})  "${alt}"`);
   }
@@ -265,7 +272,7 @@ const ordered = {};
 for (const e of PUBLISHED) if (films[e.slug]) ordered[e.slug] = films[e.slug];
 for (const slug of Object.keys(films)) if (!ordered[slug]) ordered[slug] = films[slug]; // a draft's entry stays, for the check to name
 fs.writeFileSync(FILE, JSON.stringify(ordered, null, 2) + '\n');
-const keep = new Set(Object.values(ordered).flatMap((f) => [f.thumb?.src, f.thumb?.src2x]).filter(Boolean).map((s) => path.basename(s)));
+const keep = new Set(Object.values(ordered).flatMap((f) => [f.thumb?.src, f.thumb?.src2x, f.poster?.src]).filter(Boolean).map((s) => path.basename(s)));
 if (fs.existsSync(DIR)) for (const f of fs.readdirSync(DIR)) if (!keep.has(f)) { fs.unlinkSync(path.join(DIR, f)); console.log(`  removed ${path.join(DIR, f)}`); }
 const bad = problems(ordered);
 if (bad.length) fail(`${FILE} written, and it does not hold:\n  ${bad.join('\n  ')}`);
