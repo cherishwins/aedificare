@@ -1,0 +1,110 @@
+# The research crew (.claude/skills/research/SKILL.md and .claude/agents/) on one brief from book/briefs/, run on the
+# owner's API key, so the credits pay for it and not the owner's plan. Dispatch only: every run spends money, so a
+# person starts it. --max-budget-usd stops the run at the dollar figure given, subagents included; the Console
+# workspace that holds the key carries the hard monthly limit, which no workflow can pass. What the crew writes is
+# pushed to its own branch, research/<slug>-<run id>, for a session to read and fold into a PR (a PR opened here with
+# GITHUB_TOKEN would not run verify.yml). Written 28 Oct 2026 (CLAUDE.md, Decisions log).
+name: research
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: The brief to run, book/briefs/<slug>.md
+        required: true
+      budget:
+        description: Stop at this many US dollars, subagents included
+        required: true
+        default: '25'
+
+concurrency:
+  group: research-${{ inputs.slug }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check the inputs
+        id: inputs
+        env:
+          SLUG: ${{ inputs.slug }}
+          BUDGET: ${{ inputs.budget }}
+        run: |
+          [[ "$SLUG" =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "::error::slug: lower-case letters, digits and hyphens only"; exit 1; }
+          [[ "$BUDGET" =~ ^[0-9]+(\.[0-9]+)?$ ]] || { echo "::error::budget: a number of dollars"; exit 1; }
+          test -f "book/briefs/$SLUG.md" || { echo "::error::no brief at book/briefs/$SLUG.md"; exit 1; }
+          mkdir -p "research/$SLUG"
+          echo "today=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Research
+        id: claude
+        uses: anthropics/claude-code-action@d70510b174a1244958df0b03166a54912811f3e6 # v1.0.264
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_args: >-
+            --model claude-opus-5-5
+            --max-budget-usd ${{ inputs.budget }}
+            --max-turns 200
+            --allowedTools "Agent,Read,Write,Edit,Glob,Grep,WebSearch,WebFetch"
+          prompt: |
+            Today is ${{ steps.inputs.outputs.today }}. You are running the research skill on one brief, unattended, on
+            a paid API key, so every turn costs money.
+
+            1. Read .claude/skills/research/SKILL.md and follow it. The brief is book/briefs/${{ inputs.slug }}.md.
+            2. Give each lane to a `researcher` subagent, all lanes in parallel, and each lane to a `skeptic` subagent
+               as soon as its researcher reports. Pass each one only its lane, its leads and the path it writes; its
+               findings come back in that file, not in its reply, so read the file.
+            3. Write only under research/${{ inputs.slug }}/. Do not commit or push; the workflow does that.
+            4. Write research/${{ inputs.slug }}/VERDICTS.md as each lane settles, so a run stopped by its cap still
+               leaves a table. End it with one line counting the researchers' verdicts the skeptics overturned or
+               amended. COST.md is the workflow's to write.
+
+      - name: Cost
+        if: always() && steps.claude.outputs.execution_file != ''
+        env:
+          EXEC: ${{ steps.claude.outputs.execution_file }}
+          SLUG: ${{ inputs.slug }}
+          BUDGET: ${{ inputs.budget }}
+        run: |
+          cost=$(jq -s '[.. | objects | select(has("total_cost_usd")) | .total_cost_usd] | last // "not reported"' "$EXEC")
+          turns=$(jq -s '[.. | objects | select(has("num_turns")) | .num_turns] | last // "not reported"' "$EXEC")
+          models=$(jq -s '[.. | objects | select(has("modelUsage")) | .modelUsage] | last // "not reported"' "$EXEC")
+          {
+            echo "# Cost: $SLUG"
+            echo
+            echo "- Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo "- Date: $(date -u +%Y-%m-%d)"
+            echo "- Cap, US dollars: $BUDGET"
+            echo "- Reported cost, US dollars: $cost (Claude Code's own estimate, subagents included; the Console's usage page is the bill)"
+            echo "- Main-thread turns: $turns"
+            echo
+            echo "By model:"
+            echo
+            echo '```json'
+            echo "$models"
+            echo '```'
+          } > "research/$SLUG/COST.md"
+          cat "research/$SLUG/COST.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: File the run
+        if: always()
+        env:
+          SLUG: ${{ inputs.slug }}
+        run: |
+          test -d "research/$SLUG" || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "research/$SLUG-$GITHUB_RUN_ID"
+          git add "research/$SLUG"
+          if git diff --cached --quiet; then echo "The run wrote nothing."; exit 0; fi
+          git commit -m "Research: $SLUG, run $GITHUB_RUN_ID"
+          git push origin "research/$SLUG-$GITHUB_RUN_ID"
+          echo "Filed on branch research/$SLUG-$GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"
