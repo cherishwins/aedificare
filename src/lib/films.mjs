@@ -42,6 +42,14 @@ export const FILMS_DIR = 'public/film';
  * else its surface spends.
  */
 export const THUMB = { width: 112, height: 63 };
+/**
+ * The poster is the film's own thumbnail at the size it was rendered, 1280 by 720, the release's file
+ * byte for byte (so its sha256 is the thumbnail source's): the frame YouTube itself shows for the film.
+ * The edition's player shows it whole and the home shows it as the film's link (CLAUDE.md, Decisions
+ * log, 28 Oct 2026). Its Acid word is at scale wherever it is shown large, so it is the one Acid of the
+ * surface it sits on, and tools/verify.cjs counts it like any other Acid there.
+ */
+export const POSTER = { width: 1280, height: 720 };
 export const watchUrl = (id) => `https://www.youtube.com/watch?v=${id}`;
 /**
  * The player an edition page loads when, and only when, its reader presses the poster: YouTube's
@@ -116,6 +124,23 @@ export function problems(raw) {
       const hash = crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 8);
       if (hash !== m[1]) out.push(`${slug}: ${file} hashes to ${hash}, not the ${m[1]} its name says`);
     }
+    const po = f?.poster ?? {};
+    const pm = typeof po.src === 'string' && po.src.match(new RegExp(`^/film/${slug}-poster\\.([0-9a-f]{8})\\.png$`));
+    if (!pm) out.push(`${slug}: poster ${JSON.stringify(po.src)} is not /film/${slug}-poster.<hash>.png`);
+    else if (po.width !== POSTER.width || po.height !== POSTER.height) out.push(`${slug}: the poster is ${po.width}x${po.height}, not ${POSTER.width}x${POSTER.height}`);
+    else {
+      const file = path.join('public', po.src);
+      linked.add(path.basename(po.src));
+      if (!fs.existsSync(file)) out.push(`${slug}: poster ${file} is missing`);
+      else {
+        const bytes = fs.readFileSync(file);
+        const size = pngSize(bytes);
+        const digest = crypto.createHash('sha256').update(bytes).digest('hex');
+        if (!size || size.width !== POSTER.width || size.height !== POSTER.height) out.push(`${slug}: ${file} is not a ${POSTER.width}x${POSTER.height} PNG`);
+        if (digest.slice(0, 8) !== pm[1]) out.push(`${slug}: ${file} hashes to ${digest.slice(0, 8)}, not the ${pm[1]} its name says`);
+        if (digest !== ts.sha256) out.push(`${slug}: ${file} is not the release's thumbnail byte for byte (its sha256 is not the thumbnail source's)`);
+      }
+    }
   }
   // A thumbnail nothing links would ship for nothing, and say a film is out that is not.
   if (fs.existsSync(FILMS_DIR)) for (const f of fs.readdirSync(FILMS_DIR)) if (!linked.has(f)) out.push(`${path.join(FILMS_DIR, f)} is linked by no entry`);
@@ -133,7 +158,7 @@ export const films = () => {
   if (bad.length) throw new Error(`films: ${bad.length} problem(s) in ${FILMS_FILE}; tools/films.mjs writes it\n  ${bad.join('\n  ')}`);
   cache = EDITIONS.filter((e) => raw[e.slug]).map((e) => {
     const f = raw[e.slug];
-    return { slug: e.slug, id: f.id, url: watchUrl(f.id), embed: embedUrl(f.id), duration: f.duration, length: clock(f.duration), iso: isoDuration(f.duration), thumb: f.thumb };
+    return { slug: e.slug, id: f.id, url: watchUrl(f.id), embed: embedUrl(f.id), duration: f.duration, length: clock(f.duration), iso: isoDuration(f.duration), thumb: f.thumb, poster: f.poster };
   });
   return cache;
 };

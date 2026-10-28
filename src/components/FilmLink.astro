@@ -14,6 +14,13 @@
  * the record's line, and drops under it, whole, where the two do not fit on
  * one. The length is a <time> duration, so it is not read as a time of day.
  *
+ * On the home (`to` set, the edition's own player) the picture is the film's
+ * poster, large enough to read as a film at a glance (owner, 28 Oct 2026: "I
+ * still don't see the videos there"); its Acid word is then the one Acid at
+ * scale of the home's edition surface, which carries no other, and the sweep
+ * counts it there like any other. At the edition's end it stays the small
+ * thumbnail, under the dove's surface.
+ *
  * The thumbnail stays small on purpose: its Acid word or figure stands under
  * a 24px capital, so it is not a second loud move on the surface it sits on
  * (src/lib/films.mjs holds the size, tools/verify.cjs fails a film thumbnail
@@ -29,13 +36,18 @@ const { slug, class: cls, to } = Astro.props;
 const f = film(slug);
 ---
 {f && (
-  <a class:list={['block-link', 'film', cls]} href={to ?? f.url}>
+  <a class:list={['block-link', 'film', to && 'film-poster', cls]} href={to ?? f.url}>
     <span class="record">Film · <time datetime={f.iso}>{f.length}</time>{!to && ' · YouTube'}</span>
-    <span class="field thumb"><img src={f.thumb.src} srcset={`${f.thumb.src2x} 2x`} width={f.thumb.width} height={f.thumb.height} alt={f.thumb.alt} loading="lazy" decoding="async" /></span>
+    {to
+      ? <span class="field thumb poster"><img src={f.poster.src} width={f.poster.width} height={f.poster.height} alt={f.thumb.alt} loading="lazy" decoding="async" /></span>
+      : <span class="field thumb"><img src={f.thumb.src} srcset={`${f.thumb.src2x} 2x`} width={f.thumb.width} height={f.thumb.height} alt={f.thumb.alt} loading="lazy" decoding="async" /></span>}
   </a>
 )}
 <style>
   .film { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 16px; }
   .record { white-space: nowrap; }
   .film .thumb { flex: none; display: block; padding: 6px; line-height: 0; }
+  /* The home's poster: about a quarter of a desk's width, the whole column on a phone. */
+  .film .poster { flex: 0 1 auto; width: clamp(240px, 26vw, 400px); max-width: 100%; }
+  .film .poster img { width: 100%; height: auto; }
 </style>

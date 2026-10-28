@@ -1,29 +1,31 @@
 ---
 /**
  * The film, on the edition's own page: its own surface directly under the
- * cover, a 16:9 colour field that plays the film where it sits. Nothing is
- * asked of YouTube, or of anyone else, until the reader presses it: before
- * that the field is the film's own rose shot, computed live by the client
- * script exactly as the film computes it (the same layers, seed and drift()
- * clock as tools/generate-film.mjs's quiet field, cropped as its 16:9 frame
- * crops it), and a link to the watch page that src/scripts/aed.js turns into
- * a button. The press swaps the field for YouTube's privacy-enhanced player,
- * and the reader presses that player's own play button: no autoplay, because
- * YouTube's embed rules forbid an automatic start with less than half the
- * player on screen and count no play that its own button did not start, so
- * two presses everywhere, on a phone and a desk alike. Without the script
- * the field is the plain link it was rendered as. No warm-up on hover or
- * focus: a preconnect is already a connection to Google.
+ * cover, a 16:9 frame that plays the film where it sits. Nothing is asked of
+ * YouTube, or of anyone else, until the reader presses it: before that the
+ * frame is the film's own thumbnail (the frame YouTube shows for it, served
+ * from this origin; src/lib/films.mjs, POSTER) with a play plate on it, and a
+ * link to the watch page that src/scripts/aed.js turns into a button. The
+ * press swaps the frame for YouTube's privacy-enhanced player, and the reader
+ * presses that player's own play button: no autoplay, because YouTube's embed
+ * rules forbid an automatic start with less than half the player on screen and
+ * count no play that its own button did not start, so two presses everywhere,
+ * on a phone and a desk alike. Without the script the frame is the plain link
+ * it was rendered as. No warm-up on hover or focus: a preconnect is already a
+ * connection to Google.
  *
- * Quiet on purpose: no Acid, so the cover above keeps the sequence's loud
- * move and the film is not a second one (tools/verify.cjs fails Acid at
- * scale inside a .player). The record is display type in Flash, large
- * enough to read as the film's name over the rose (3:1 is the floor for
- * type this size; it measures above 4:1 over the brightest curve); the two
- * small labels sit on strips of the field's own colour, because 11 px Flash
- * over a Malachite curve falls under 4.5:1 and no probe reads an SVG
- * background. The poster clips its own rose, not the box, so the focus
- * ring drawn 4 px outside the button stays visible.
+ * Why the thumbnail and not the rose (owner, 28 Oct 2026: "I still don't see
+ * the videos there"): the first poster was the film's quiet rose field, the
+ * same picture as the cover above it, and it read as decoration, not as a
+ * film. The thumbnail is what a reader already knows a video to look like,
+ * and its one Acid word is the band's one Acid at scale (override 4: once per
+ * surface; tools/verify.cjs counts it there like any other).
+ *
+ * The plate: Flash, Void type, a computed triangle, set at the word's own
+ * left edge in the band every thumbnail leaves empty (measured over all ten
+ * films' thumbnails: the word sits between 36 and 63 percent of the frame's
+ * height and the labels below 89, so 70 percent is clear in every one). Its
+ * record ("Film · 16:18") starts the button's name, as the sweep requires.
  *
  * The rail beside it says what the press does, and links YouTube's terms
  * and the site's privacy statement, because YouTube's API terms bind any
@@ -36,27 +38,21 @@
  * Renders nothing for an edition with no public film: src/lib/films.mjs
  * decides which films are out, and drafts never have one.
  */
-import RoseField from './RoseField.astro';
 import Rail from './Rail.astro';
 import { film } from '../lib/films.mjs';
-import { edition, seedDrift } from '../lib/editions.mjs';
-import { HOUSE } from '../lib/rose.mjs';
+import { edition } from '../lib/editions.mjs';
 interface Props { slug: string; ground?: 'void' | 'bottle' }
 const { slug, ground = 'void' } = Astro.props;
 const f = film(slug);
 const e = edition(slug);
-// The film's quiet field (tools/generate-film.mjs): the edition's k, Malachite, these opacities.
-const layers = e.k.map((k, i) => ({ k, s: HOUSE[i].s, ph: HOUSE[i].ph, w: HOUSE[i].w, c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
 ---
 {f && (
   <section class:list={['surface', 'tight', 'film-band', ground]} id="film" aria-label="Film">
     <div class="grid">
       <div class="c-a player" data-embed={f.embed} data-title={`${e.title}, film, ${f.length}, YouTube player`}>
         <a class="poster" href={f.url}>
-          <RoseField layers={layers} seed={seedDrift(e.seed)} class="rose poster-rose" />
-          <span class="rec">Film · <time datetime={f.iso}>{f.length}</time></span>
-          <span class="mono src">YouTube · plays here</span>
-          <span class="mono seed" aria-hidden="true">r = cos(kθ) · seed {e.seed}</span>
+          <img class="frame" src={f.poster.src} width={f.poster.width} height={f.poster.height} alt="" loading="lazy" decoding="async" />
+          <span class="plate"><svg class="tri" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 L10 6 L0 12 Z" /></svg><span class="rec">Film · <time datetime={f.iso}>{f.length}</time></span><span class="mono src">YouTube · plays here</span></span>
         </a>
       </div>
       <Rail class="c-b" items={[
@@ -71,17 +67,17 @@ const layers = e.k.map((k, i) => ({ k, s: HOUSE[i].s, ph: HOUSE[i].ph, w: HOUSE[
   .film-band .grid { align-items: start; }
   .film-band .rail .block-link { display: block; padding-block: 6px; }
   /* 16:9, and never under the 200 px YouTube's embedded-player rules ask for (320 px phones would be 162 tall). */
-  .player { position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 200px; background: var(--field); }
+  .player { position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 200px; background: var(--field); container-type: inline-size; }
   .player > * { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-  /* The poster clips its own rose; the box does not clip, so the focus ring 4 px outside the button shows. */
-  .player .poster { display: block; padding: 0; background: var(--field); color: var(--flash); font: inherit; text-align: left; cursor: pointer; overflow: hidden; }
-  /* The film's frame crops its field the same way: a square as wide as the frame, cut top and bottom. */
-  .player .poster-rose { width: 100%; height: auto; left: 0; top: 50%; transform: translateY(-50%); }
-  .player .rec, .player .src, .player .seed { position: absolute; color: var(--flash); }
-  .player .rec { left: clamp(14px, 2vw, 24px); top: clamp(12px, 1.8vw, 22px); font-weight: 800; font-size: clamp(24px, 3vw, 40px); line-height: 1; text-transform: uppercase; }
-  .player .src, .player .seed { background: var(--field); padding: 4px 8px; bottom: clamp(8px, 1.4vw, 14px); }
-  .player .src { left: clamp(6px, 1.4vw, 16px); }
-  .player .seed { right: clamp(6px, 1.4vw, 16px); }
+  /* The poster clips its own frame; the box does not clip, so the focus ring 4 px outside the button shows. */
+  .player .poster { display: block; padding: 0; background: var(--field); color: var(--void); font: inherit; text-align: left; cursor: pointer; overflow: hidden; }
+  .player .frame { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* At the thumbnail's own left margin (48 of 1280) and 70 percent down, the band every thumbnail leaves clear. */
+  .player .plate { position: absolute; left: 3.75%; top: 70%; display: flex; align-items: center; gap: 0.6em; background: var(--flash); color: var(--void); padding: 0.5em 0.8em; font-size: clamp(16px, 3.2cqw, 40px); line-height: 1; }
+  .player .tri { width: 0.8em; height: 0.96em; fill: currentColor; flex: none; }
+  .player .rec { font-weight: 800; font-variation-settings: 'opsz' 96, 'wdth' var(--wdth, 75), 'wght' 800; text-transform: uppercase; font-size: 1em; }
+  .player .src { font-size: 11px; letter-spacing: 0.08em; }
   .player .poster:hover .rec, .player .poster:focus-visible .rec { --wdth: 100; }
-  @media (max-width: 520px) { .player .seed { display: none; } }
+  .player .poster:hover .plate, .player .poster:focus-visible .plate { background: var(--void); color: var(--flash); }
+  @media (max-width: 520px) { .player .src { display: none; } }
 </style>

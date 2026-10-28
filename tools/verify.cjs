@@ -176,9 +176,12 @@ const TAP_PROBE = () => {
  * in Acid): drawn at the size it is shown, its tallest unbroken band of Acid
  * ink must stay under a capital of 24px type in the brand face, or it is a
  * loud move like any other. A lazy image is loaded first, so the one below
- * the fold is measured too. A film's thumbnail (an image in a .film link)
- * is never to be a loud move at all (CLAUDE.md, Decisions log, 21 Oct 2026),
- * so one at scale fails on its own, whatever else its surface spends.
+ * the fold is measured too. A film's small thumbnail (an image in a .film
+ * link at an edition's end) is never to be a loud move at all (CLAUDE.md,
+ * Decisions log, 21 Oct 2026), so one at scale fails on its own, whatever
+ * else its surface spends. A film's poster (the player's frame, and the
+ * home's .film-poster link) is shown large on purpose and is its surface's
+ * one Acid, counted with the rest (Decisions log, 28 Oct 2026).
  */
 const ACID_PROBE = async () => {
   const ACID = 'rgb(204, 255, 0)';
@@ -210,7 +213,7 @@ const ACID_PROBE = async () => {
       const ink = await acidInk(img);
       if (ink < CAP) continue;
       hits.push(`[image ${img.getAttribute('src')}]`);
-      if (img.closest('.film, .player')) out.push({ surface: label(), hits: [`[film thumbnail ${img.getAttribute('src')}: ${ink}px of Acid ink, at or over the ${CAP.toFixed(1)}px capital]`], film: true });
+      if (img.closest('.film') && !img.closest('.film-poster')) out.push({ surface: label(), hits: [`[film thumbnail ${img.getAttribute('src')}: ${ink}px of Acid ink, at or over the ${CAP.toFixed(1)}px capital]`], film: true });
     }
     for (const el of s.querySelectorAll('*')) {
       if (el.closest('.surface') !== s) continue;
@@ -219,9 +222,6 @@ const ACID_PROBE = async () => {
       if (!r.width || !r.height) continue;
       const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
       if (own && cs.color === ACID && parseFloat(cs.fontSize) >= 24) hits.push(el.textContent.trim().slice(0, 30));
-      // The film's poster is quiet: the cover above it is the loud move (CLAUDE.md, Decisions log, 26 Oct 2026).
-      if (el.closest('.player') && ((own && cs.color === ACID && parseFloat(cs.fontSize) >= 24) || el.getAttribute('stroke') === '#CCFF00'))
-        out.push({ surface: label(), hits: [`[film poster: Acid at scale in ${el.tagName.toLowerCase()}]`], film: true });
       if (el instanceof SVGElement && el.getAttribute('stroke') === '#CCFF00' && Math.max(r.width, r.height) >= 200) {
         const svg = el.closest('svg');
         if (!hits.includes('[rose]')) hits.push(svg?.dataset.dove !== undefined ? '[dove]' : '[rose]');
