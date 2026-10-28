@@ -1331,8 +1331,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   split by model: researchers on Haiku 5.5 in narrow lanes, skeptics on
   Opus 5.5 (Decisions log, 28 Oct 2026). `.github/workflows/research.yml`
   runs a brief from `book/briefs/` on the owner's API key, the repository
-  secret `ANTHROPIC_API_KEY`, and files each lane, each skeptic's pass,
-  the verdicts and the run's cost under `research/<slug>/` in a draft PR.
+  secret `ANTHROPIC_API_KEY`, with a dollar cap per run, and pushes each
+  lane, each skeptic's pass, the verdicts and the run's cost, under
+  `research/<slug>/`, to its own branch `research/<slug>-<run id>`, which
+  a session folds into a PR (one opened by the workflow's own token would
+  not run `verify.yml`).
 - `book/`: the first book: its plan and state (`book/README.md`), the
   claims logged from the owner's drops (`book/intake/`), and the briefs a
   research run takes (`book/briefs/`). Kept out of the deploy by
