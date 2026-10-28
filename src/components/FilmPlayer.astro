@@ -51,8 +51,8 @@ const e = edition(slug);
     <div class="grid">
       <div class="c-a player" data-embed={f.embed} data-title={`${e.title}, film, ${f.length}, YouTube player`}>
         <a class="poster" href={f.url}>
-          <img class="frame" src={f.poster.src} width={f.poster.width} height={f.poster.height} alt="" loading="lazy" decoding="async" />
-          <span class="plate"><svg class="tri" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 L10 6 L0 12 Z" /></svg><span class="rec">Film · <time datetime={f.iso}>{f.length}</time></span><span class="mono src">YouTube · plays here</span></span>
+          <span class="shot"><img class="frame" src={f.poster.src} width={f.poster.width} height={f.poster.height} alt="" loading="lazy" decoding="async" />
+          <span class="plate"><svg class="tri" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 L10 6 L0 12 Z" /></svg><span class="rec">Film · <time datetime={f.iso}>{f.length}</time></span><span class="mono src">YouTube · plays here</span></span></span>
         </a>
       </div>
       <Rail class="c-b" items={[
@@ -67,11 +67,16 @@ const e = edition(slug);
   .film-band .grid { align-items: start; }
   .film-band .rail .block-link { display: block; padding-block: 6px; }
   /* 16:9, and never under the 200 px YouTube's embedded-player rules ask for (320 px phones would be 162 tall). */
-  .player { position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 200px; background: var(--field); container-type: inline-size; }
+  .player { position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 200px; background: var(--field); }
   .player > * { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   /* The poster clips its own frame; the box does not clip, so the focus ring 4 px outside the button shows. */
   .player .poster { display: block; padding: 0; background: var(--field); color: var(--void); font: inherit; text-align: left; cursor: pointer; overflow: hidden; }
-  .player .frame { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* The shot is the thumbnail at exactly 16:9, centred in the box: under a 356 px column the box keeps
+     YouTube's 200 px floor and grows taller than 16:9, and a cover-fit frame there cut its left edge off
+     (1,200 read ",200" at 320 px; review, 28 Oct 2026). The shot is never cropped, and the plate is placed
+     on the shot, so it stays on the word's own left edge at every width. */
+  .player .shot { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 100%; aspect-ratio: 16 / 9; container-type: inline-size; }
+  .player .frame { display: block; width: 100%; height: 100%; }
   /* At the thumbnail's own left margin (48 of 1280) and 70 percent down, the band every thumbnail leaves clear. */
   .player .plate { position: absolute; left: 3.75%; top: 70%; display: flex; align-items: center; gap: 0.6em; background: var(--flash); color: var(--void); padding: 0.5em 0.8em; font-size: clamp(16px, 3.2cqw, 40px); line-height: 1; }
   .player .tri { width: 0.8em; height: 0.96em; fill: currentColor; flex: none; }

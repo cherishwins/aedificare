@@ -86,8 +86,11 @@ that is a reference, not documentation.
    Acid probe in `tools/verify.cjs` (text ≥ 24px or an SVG stroke ≥ 200px
    counts as "at scale"; 11px labels and 2px rules do not; an image counts
    by its pixels, when its tallest band of Acid ink, drawn at the size it
-   is shown, reaches the capital of 24px type, 16px; a film's thumbnail at
-   that size fails on its own, wherever it sits).
+   is shown, reaches the capital of 24px type, 16px; a film's small
+   thumbnail at an edition's end fails on its own at that size, wherever it
+   sits, while a film's poster, in the player and in the home's film link,
+   is shown large on purpose and counts as its surface's one Acid; Decisions
+   log, 28 Oct 2026).
 5. **Theta falls back.** Neither Bricolage Grotesque nor Martian Mono has
    Greek, so the θ in `r = cos(kθ)` renders from the system mono stack. One
    glyph, and the same thing the uploaded PDFs already did. Alternatives
@@ -1559,9 +1562,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   brand rules hold: no Acid on the edition surfaces, block links only,
   small Malachite never on Bottle (the Bottle block's numbers and aside go
   Flash), nothing explains what the entity does. (Since 21 Oct 2026 an
-  edition with a public film carries its thumbnail there, whose one word
-  or figure is Acid below the probe's "at scale"; whether that still keeps
-  this rule is the owner's to judge by eye. Decisions log.)
+  edition with a public film carried its thumbnail there, whose one word
+  or figure was Acid below the probe's "at scale". Since 28 Oct 2026 it
+  carries the film's poster, large, and its Acid word IS at scale: the
+  one Acid of that edition's surface, which spends no other, so "no Acid
+  on the edition surfaces" now reads "none but the film's". Decisions log,
+  28 Oct 2026; the owner's "I still don't see the videos there".)
 
 - **The code is the date** (owner, 2026-09-16: "I really hate having to
   keep a series going with the numbers that get fucked up instead of just
@@ -2759,9 +2765,10 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   press must be the embed URL and none may come before; the embed URL and
   the iframe's `allow` carry no autoplay; the poster's focus ring must lie
   inside whatever clips around it; with JavaScript off the poster must be
-  the watch-page link; Acid at scale inside a `.player` fails on its own,
-  as a thumbnail's does, so the cover above keeps the sequence's loud
-  move). The review of the first cut found four more things, each fixed
+  the watch-page link; Acid at scale inside a `.player` failed on its own,
+  as a thumbnail's does, so the cover above kept the sequence's loud
+  move, until 28 Oct 2026, when the poster became the film's own frame
+  and its Acid word the film band's one Acid; Decisions log). The review of the first cut found four more things, each fixed
   before it merged: the focus ring was clipped by the player's
   `overflow: hidden` (the poster clips its own rose now, the box clips
   nothing); the poster's rose field went on drawing after the player had
@@ -2832,7 +2839,13 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   thumbnails leave clear (their word sits between 36 and 63 percent of the
   height, their labels below 89, measured over every one). The home's film
   link shows the same poster at about a quarter of a desk's width and goes
-  to the edition's player. **What this changes in the rules**: the poster's
+  to the edition's player. An independent review (two lenses, a skeptic per
+  finding) found the first cut cropped the frame's left edge on phones
+  under about 388 px (YouTube's 200 px floor makes the box taller than
+  16:9 there, and a cover-fit image lost its sides: 1,200 read ",200" at
+  320), so the frame is an uncropped 16:9 shot centred in the box with the
+  plate placed on it; and that three older passages here still stated the
+  reversed rule, now amended. **What this changes in the rules**: the poster's
   Acid word is at scale, so it is the one Acid of its surface (override 4,
   once per surface), counted by the sweep with the rest; the film band and
   the home's edition surfaces spend no other. The rule of 21 and 26 Oct that
