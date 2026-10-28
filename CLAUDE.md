@@ -2710,7 +2710,9 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   Oct, The Snapshot Problem (`pJkE2cNBWvs`, 23 Oct), The Markup
   (`DFPTdSYPNkE`, 24 Oct) and The Floor (`5VFA1JW5HJk`, 26 Oct); then The
   Hand in the Water (`NhE65kjbbj0`, 16:18), public at 15:00 UTC on 27 Oct,
-  linked by the daily channel routine the same hour. **Three
+  linked by the daily channel routine the same hour, and The Closest
+  Humans (`4WlOACMJVJU`, 17:19), public at 15:00 UTC on 28 Oct, the same
+  way. **Three
   dropped on 27 Oct 2026**, the morning after their corrected renders (the
   "1 dollars billion" fix, `tools/test-narrate.py`) went up private beside
   the public films they replace: The Countersign (`xuMIlnvWbe8`, publishing

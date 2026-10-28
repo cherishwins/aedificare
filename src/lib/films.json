@@ -111,6 +111,34 @@
       "height": 720
     }
   },
+  "ns-02": {
+    "id": "4WlOACMJVJU",
+    "duration": 1039,
+    "source": {
+      "release": "film-ns-02",
+      "asset": "ns-02-film-1920x1080.mp4",
+      "bytes": 971242370,
+      "updated": "2026-10-18T22:54:43Z",
+      "seconds": 1038.209
+    },
+    "thumb": {
+      "src": "/film/ns-02.12f74139.png",
+      "src2x": "/film/ns-02-2x.c334d5c1.png",
+      "width": 112,
+      "height": 63,
+      "alt": "Thumbnail: HUMANS in acid green on black",
+      "source": {
+        "release": "film-ns-02",
+        "asset": "ns-02-thumb-1280x720.png",
+        "sha256": "2e1f6c1dcb08a13f5c1e366839a72637d42e6ff0283074c2850908d563930b04"
+      }
+    },
+    "poster": {
+      "src": "/film/ns-02-poster.2e1f6c1d.png",
+      "width": 1280,
+      "height": 720
+    }
+  },
   "ns-01": {
     "id": "NhE65kjbbj0",
     "duration": 978,
