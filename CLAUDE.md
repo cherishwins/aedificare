@@ -2755,7 +2755,17 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   morning. Until then those three pages carry no player and no film in
   their cover row, which is the honest state and the cost of the rule.
   The Countersign's (`xuMIlnvWbe8`, 8:07) was read public by `list` at
-  15:43 UTC on 29 Oct and linked the same hour.
+  15:43 UTC on 29 Oct and linked the same hour. **`retire` cannot see
+  the old cuts**: a release's ledger names only its current video,
+  never the one it replaced, so an earlier cut is found by its title, and
+  the releases had been retitled since those cuts went up (the four old
+  cuts, The Markup's Short among them, keep their old titles). Each old cut
+  reads "no render" and `retire` passes it by (0 to retire, dry, that
+  morning). It goes private by id instead, through `withdraw`, which takes
+  an earlier cut that matches no render but links the apex (dry first).
+  The lasting fix is a `replaces` id in the ledger an upload files, so a
+  superseded cut is found whatever its title; not built, because no more
+  corrected uploads are planned.
 
 - **2026-10-26 · The film plays on its page, and the three forms stand
   together.** The owner, in chat: "why don't we have the videos on the
