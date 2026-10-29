@@ -27,6 +27,34 @@
       "height": 720
     }
   },
+  "the-countersign": {
+    "id": "xuMIlnvWbe8",
+    "duration": 487,
+    "source": {
+      "release": "film-the-countersign",
+      "asset": "the-countersign-film-1920x1080.mp4",
+      "bytes": 383685150,
+      "updated": "2026-10-26T21:23:14Z",
+      "seconds": 486.1
+    },
+    "thumb": {
+      "src": "/film/the-countersign.df66d4f6.png",
+      "src2x": "/film/the-countersign-2x.ba0ef09b.png",
+      "width": 112,
+      "height": 63,
+      "alt": "Thumbnail: 9,000+ in acid green on dark green",
+      "source": {
+        "release": "film-the-countersign",
+        "asset": "the-countersign-thumb-1280x720.png",
+        "sha256": "139d164cd1ef31b1ffdcadcde994bea10234f2627fbb2331aa5953834cfa88bb"
+      }
+    },
+    "poster": {
+      "src": "/film/the-countersign-poster.139d164c.png",
+      "width": 1280,
+      "height": 720
+    }
+  },
   "the-supply-cabinet": {
     "id": "yGdOAIj1Wa8",
     "duration": 819,

@@ -2754,6 +2754,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   `youtube-channel.mjs retire` and `node tools/films.mjs <new id>` the same
   morning. Until then those three pages carry no player and no film in
   their cover row, which is the honest state and the cost of the rule.
+  The Countersign's (`xuMIlnvWbe8`, 8:07) was read public by `list` at
+  15:43 UTC on 29 Oct and linked the same hour.
 
 - **2026-10-26 · The film plays on its page, and the three forms stand
   together.** The owner, in chat: "why don't we have the videos on the
