@@ -201,6 +201,13 @@ that is a reference, not documentation.
      public-domain route (DVIDS, NASA, Prelinger, Korea War footage) in a
      prototype of The Markup's opening on 2026-09-25, which the owner
      judged "terrible" in its first, card-only form and redirected here.
+     **Since 29 Oct 2026 the public-domain archives are the builder's**
+     (owner, choosing it: the builder fetches, the owner fills the gaps):
+     a shot whose file sits on NASA, the Library of Congress, archive.org
+     or a government Flickr account is fetched by the render itself from
+     `source/episodes/<slug>.fetch.json`, its in-point set by eye first;
+     the owner still downloads anything on YouTube or a network's
+     recording, and a file the owner attaches wins (Decisions log).
    - **Public domain first, fair use by the second.** US federal video is
      public domain (the White House's own recordings, the committees' own
      hearing streams, the House and Senate floor, DVIDS, NASA); a network's
@@ -1466,7 +1473,16 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `video_id`, sets the generated title, description, chapters, captions and
   thumbnail on a video the owner uploaded by hand (not locked by the API
   audit); a push never uploads. The script format and the process are
-  `source/episodes/FORMAT.md`.
+  `source/episodes/FORMAT.md`. After the owner's footage it runs
+  `tools/fetch-footage.mjs` over `source/episodes/<slug>.fetch.json`, the
+  public-domain shots the episode fetches itself (29 Oct 2026): only https,
+  only the listed archives on every redirect hop, YouTube refused by name,
+  bytes that are an image or a video and decode, the first source of each
+  shot that passes kept and its credit line added to `credits.txt`, the
+  owner's file for a shot kept over any fetch, and a shot nothing supplies
+  left a slate with a warning. Dispatch it with `upload=no` to review a
+  render before anything reaches the channel; the input defaults to
+  `film`.
 - `.github/workflows/film-meta.yml`: manual dispatch, `slugs` and `dry`
   (true by default). Rebuilds `meta.json`, `meta-short.json` and both
   sheets on each `film-<slug>` release from that release's own script and
@@ -2900,6 +2916,27 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   It runs in Actions on the owner's key, so the credits pay for it and
   not the owner's plan, and the owner sets a spending limit on that key's
   Console workspace, which no workflow can exceed.
+
+- **2026-10-29 · The builder edits the films, and fetches their public-
+  domain footage.** The owner asked the builder to do the video editing
+  itself, from clips and paired narration. The editor had existed since 26 Sep
+  (`tools/episode.mjs`, override 8) and seven scripts were written, but no
+  `footage-*` Release had ever been made, so no episode had a picture: the
+  process put every clip on the owner. Asked three questions, the owner
+  chose the channel's voice, the builder fetching what it can with the
+  owner filling the gaps, and `pjm-data-centres` as the first film. So a
+  shot on a public-domain archive is now fetched by the render
+  (`tools/fetch-footage.mjs`), and the rule "the builder does not download
+  films or rip YouTube" holds as written: those archives are neither, and
+  YouTube is refused by name. For the first film nine of twelve shots come
+  that way. Each file was downloaded once in the build sandbox and looked
+  at on contact sheets before its in-point was typed, which corrected
+  three guesses the footage list had made from thumbnails (the Saturn V at
+  13 s, not 20; the clock hang at 2:25 of the excerpt, not 7:30; and no
+  meter anywhere in "Power and the Land", so the shot became the
+  farmhouse's first lamp, at reel 3 8:18). The three left are the
+  owner's: FERC's webcast and the White House roundtable (both on
+  YouTube) and a control room.
 
 ## Open
 

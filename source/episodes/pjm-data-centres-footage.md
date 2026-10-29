@@ -16,6 +16,23 @@ in-point rests on thumbnails the Notes say so. "Public domain" here means
 a work of the US government (17 U.S.C. 105) or an item marked CC0 or
 Public Domain Mark by its archive.
 
+**29 Oct 2026: nine shots are fetched by the render itself**, from
+`pjm-data-centres.fetch.json` through `tools/fetch-footage.mjs`, and only
+three are still the owner's: `ferc-bowring` and `wh-pledge` (on YouTube,
+which nothing here downloads) and `control-room`. Each fetched file was
+downloaded once in the build sandbox and its in-point or crop set by eye
+from contact sheets of the file itself, which moved three of the guesses
+below: the Saturn V's ignition is at 13 s, not 20 (`saturn-v-at-13.mov`);
+the clock hang is at 2:25 in the Public Domain Mark excerpt, not 7:30
+(`safety-last-at-145.mp4`); and no reel of "Power and the Land" shows a
+meter (reels 3 and 4 were read every 3 s), so `electric-meter` became
+`first-light`, the farmhouse's first lamp switched on at reel 3 8:18
+(`first-light-at-498.mp4`: the pull, the lamp, her face). The Landsat
+frame is 16 Sep 2026 (the 11 Oct 2024 granule leaves a no-data wedge), the
+night map is cropped to Chicago through Washington, and the power plant is
+Highsmith's Point Pleasant at 2208 px, with Keystone as its fallback. A file
+the owner attaches to the Release under the same name still wins.
+
 ## Found
 
 | Shot | File | Item | Licence, as the item states it | Notes |
@@ -45,7 +62,7 @@ a clip and played from its start for footage, and the render says so.
 ## Still to find
 
 - **control-room** (8.7 s at 1:20): not found as verified public domain. Tried: DOE's Flickr (tags controlroom, supercomputer, transmission, substation, and the BPA and WAPA feeds), Highsmith (the "control" hits are a REA museum), HAER, Wikimedia Commons (its API answered 429 all session), DVIDS (search and RSS returned the generic feed to the sandbox), NASA (mission control only), and web searches for BPA Dittmer, WAPA and TVA operations-centre photographs; YouTube stopped answering the sandbox before the three below could be frame-checked. Fallbacks, in order, each to be named `control-room-at-<seconds>.mp4` once the frame is found. First, "Walkthrough of TVA's System Operations Center" (channel "Tennessee Valley Authority", 2:28), https://www.youtube.com/watch?v=tOlmPxVLtTs: TVA is a federal corporation and its staff's work is a US government work, but TVA's terms page could not be read and the frames were not checked, so read the terms page and confirm a frame of the operations floor before the cut. Second, "Module 3: Overview of WAPA" (channel "Western Area Power", 11:23; WAPA is a DOE power marketing administration), https://www.youtube.com/watch?v=6NDwZmz1SHw: content unverified, a dispatch-floor shot is plausible but not confirmed, so confirm one exists before relying on it. Third, PJM's own "A Day in the Life of Dispatch" (channel "pjminterconnection", 4:54), https://www.youtube.com/watch?v=hDNouhlJWa4: PJM's own control room, the subject itself, under rule 3 only, fair use with a Content ID risk, seconds only, between commentary, logged in the credits.
-- **electric-meter** (7.0 s at 2:40): not found as a verified shot of a meter disc turning. Thumbnail sheets were read for "Power and the Land" (both copies), "The Home Electrical" (GE, 1910s), "The Power to Serve" (1957) and "Freedom and Power" (1952), and none shows a meter disc at the sampled seconds; Commons could not be searched (429). Fallback, the right film and public domain, in-point to be found by eye: "Power and the Land" (1940, creator "United States. Department of Agriculture. Office of Public Affairs.", National Archives Identifier 1714), https://archive.org/details/16-p-854-r-1, archive.org licenseurl http://creativecommons.org/publicdomain/mark/1.0/, a USDA film and a federal work; reel 3 https://archive.org/download/16-p-854-r-1/16-p-854-r3.mp4 (1920 x 1080, 580 s, 160 MB) and reel 4 https://archive.org/download/16-p-854-r-1/16-p-854-r4.mp4 (443 s). Reel 3 has the REA meeting (297 s), the 1936 and 1940 maps, linemen on poles and conductors being strung (447 to 507 s) and the family under their first electric light (537 s); reel 4 is the water heater, pump, washer and range; if the film cuts to a meter it will be between reel 3 at 8:50 and reel 4 at 1:00, so scrub there and name the file `electric-meter-at-<seconds>.mp4` from whichever reel holds it. A second copy is the FDR Library print via FedFlix, https://archive.org/details/gov.fdr.352.2a.3, licenseurl CC0, 640 x 480, the whole film in one 2288 s file.
+- **electric-meter** (7.0 s at 2:40), replaced on 29 Oct 2026 by `first-light` (above), kept for the record: not found as a verified shot of a meter disc turning. Thumbnail sheets were read for "Power and the Land" (both copies), "The Home Electrical" (GE, 1910s), "The Power to Serve" (1957) and "Freedom and Power" (1952), and none shows a meter disc at the sampled seconds; Commons could not be searched (429). Fallback, the right film and public domain, in-point to be found by eye: "Power and the Land" (1940, creator "United States. Department of Agriculture. Office of Public Affairs.", National Archives Identifier 1714), https://archive.org/details/16-p-854-r-1, archive.org licenseurl http://creativecommons.org/publicdomain/mark/1.0/, a USDA film and a federal work; reel 3 https://archive.org/download/16-p-854-r-1/16-p-854-r3.mp4 (1920 x 1080, 580 s, 160 MB) and reel 4 https://archive.org/download/16-p-854-r-1/16-p-854-r4.mp4 (443 s). Reel 3 has the REA meeting (297 s), the 1936 and 1940 maps, linemen on poles and conductors being strung (447 to 507 s) and the family under their first electric light (537 s); reel 4 is the water heater, pump, washer and range; if the film cuts to a meter it will be between reel 3 at 8:50 and reel 4 at 1:00, so scrub there and name the file `electric-meter-at-<seconds>.mp4` from whichever reel holds it. A second copy is the FDR Library print via FedFlix, https://archive.org/details/gov.fdr.352.2a.3, licenseurl CC0, 640 x 480, the whole film in one 2288 s file.
 
 The search for these two stopped on 3 Oct 2026 when Commons, DVIDS and
 YouTube stopped answering the sandbox; it can be run again.

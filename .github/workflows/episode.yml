@@ -6,7 +6,10 @@
 # (source/episodes/FORMAT.md). Drag them onto the release in the browser;
 # nothing is committed, no service is paid, and the render can start from a
 # phone. Shots still missing render as slates, so the first run is the
-# animatic and each later run fills more of it in.
+# animatic and each later run fills more of it in. A shot whose file is on a
+# public-domain archive (NASA, the Library of Congress, archive.org) the run
+# fetches itself, from source/episodes/<slug>.fetch.json through
+# tools/fetch-footage.mjs (29 Oct 2026); the owner's file for a shot wins.
 #
 # Dispatch with the episode's slug (the file source/episodes/<slug>.md on the
 # ref being run). It no longer runs on a push of this file (2026-10-17): the
@@ -106,6 +109,14 @@ jobs:
             ls -la "brand/youtube/ep-$SLUG/footage"
           else
             echo "::notice::no release footage-$SLUG yet; every owner shot renders as a slate"
+          fi
+
+      - name: Fetch the public-domain footage
+        run: |
+          if [ -f "source/episodes/$SLUG.fetch.json" ]; then
+            node tools/fetch-footage.mjs "source/episodes/$SLUG.fetch.json" "brand/youtube/ep-$SLUG/footage"
+          else
+            echo "::notice::no source/episodes/$SLUG.fetch.json; only the owner's footage is used"
           fi
 
       # Every chunk Gemini already spoke for this episode (tools/narrate_gemini.py, THE CACHE AND THE QUOTA).
