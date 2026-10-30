@@ -35,6 +35,39 @@ import { HOUSE } from './rose.mjs';
 
 const RAW = [
   {
+    slug: 'the-night-pin', path: '/the-night-pin', print: 'Edition 11',
+    title: 'The Night Pin', acid: 'Pin',
+    lede: 'Six layers of data anyone can buy. One join gives them a name.',
+    // Ported on 30 Oct 2026 from the web edition the owner uploaded with the print
+    // (source/the-night-pin.web.md), the prose verbatim. A draft until its nineteen
+    // sources have been opened and checked (research/the-night-pin/), under the
+    // standing duty: no verification pass came with it. Seed and k from the print's
+    // colophon (ROSE SEED 1130, K 5/7/3). The date is provisional, as a draft's is.
+    date: '2026-10-30', dateLabel: '30 Oct 2026',
+    seed: '1130', k: [5, 7, 3], pdf: '/pdf/edition-11.pdf',
+    draft: true,
+    contents: [
+      { n: '00', t: 'The admission', id: 'admission' },
+      { n: '01', t: 'The stack', id: 'stack' },
+      { n: '02', t: 'Structure', id: 'structure' },
+      { n: '03', t: 'Network', id: 'network' },
+      { n: '04', t: 'Attention', id: 'attention' },
+      { n: '05', t: 'Orbit', id: 'orbit' },
+      { n: '06', t: 'The device', id: 'device' },
+      { n: '07', t: 'What the bid request does not carry', id: 'overstated' },
+      { n: '08', t: 'The night pin', id: 'pin' },
+      { n: '09', t: 'Four points', id: 'proof' },
+      { n: '10', t: 'The voter file', id: 'file' },
+      { n: '11', t: 'Where the join is legal', id: 'legal' },
+      { n: '12', t: 'The three trades', id: 'trades' },
+      { n: '13', t: 'Who buys the whole stack', id: 'buyers' },
+      { n: '14', t: 'The law', id: 'law' },
+      { n: '15', t: 'View', id: 'view' },
+      { n: '16', t: 'The off switch', id: 'off' },
+      { n: '17', t: 'Sources', id: 'sources' },
+    ],
+  },
+  {
     slug: 'the-middleman', path: '/the-middleman', print: null,
     title: 'The Middleman', acid: 'Middleman',
     lede: 'Between the chips and the labs sits a company owing $72 billion on $5 billion of equity. Its leases are ordinary in length, not in weight.',
