@@ -139,6 +139,34 @@
       "height": 720
     }
   },
+  "edition-03": {
+    "id": "VRtpMEPMw9c",
+    "duration": 909,
+    "source": {
+      "release": "film-edition-03",
+      "asset": "edition-03-film-1920x1080.mp4",
+      "bytes": 738365691,
+      "updated": "2026-10-26T21:43:48Z",
+      "seconds": 908.6
+    },
+    "thumb": {
+      "src": "/film/edition-03.0b54eaeb.png",
+      "src2x": "/film/edition-03-2x.58d74219.png",
+      "width": 112,
+      "height": 63,
+      "alt": "Thumbnail: $18,214 in acid green on black",
+      "source": {
+        "release": "film-edition-03",
+        "asset": "edition-03-thumb-1280x720.png",
+        "sha256": "0ab8c88f3450984eeb5bc099230bbfac68ebbd87551c40dd5314988cf49d435a"
+      }
+    },
+    "poster": {
+      "src": "/film/edition-03-poster.0ab8c88f.png",
+      "width": 1280,
+      "height": 720
+    }
+  },
   "ns-02": {
     "id": "4WlOACMJVJU",
     "duration": 1039,

@@ -3061,7 +3061,9 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   morning. Until then those three pages carry no player and no film in
   their cover row, which is the honest state and the cost of the rule.
   The Countersign's (`xuMIlnvWbe8`, 8:07) was read public by `list` at
-  15:43 UTC on 29 Oct and linked the same hour. **`retire` cannot see
+  15:43 UTC on 29 Oct and linked the same hour; The Markup's
+  (`VRtpMEPMw9c`, 15:09) at 15:31 UTC on 30 Oct, linked the same hour,
+  its old cut `DFPTdSYPNkE` set unlisted by id. **`retire` cannot see
   the old cuts**: a release's ledger names only its current video,
   never the one it replaced, so an earlier cut is found by its title, and
   the releases had been retitled since those cuts went up (the four old
