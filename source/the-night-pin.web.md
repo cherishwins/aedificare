@@ -192,7 +192,7 @@ The intelligence community has said as much about itself. A January 2022 report 
 
 **Not decided.** Whether buying the same kind of data is a search. The FBI's position that purchased data needs no warrant has not been tested in court. [01]
 
-**Pending.** The Government Surveillance Reform Act, introduced in March 2026, would require a court-authorised warrant before federal agencies buy Americans' information from data brokers. It has not passed. Its vehicle is the renewal of Section 702, the government's warrantless foreign-intelligence surveillance law, which lapsed in June 2026 after Congress failed to agree on reauthorization; existing authorizations run to March 2027. As of late October no data-broker purchase restriction had been enacted. [01] [20] [21]
+**Pending.** The Government Surveillance Reform Act, introduced on 12 March 2026 by Senators Wyden and Lee with Representatives Davidson and Lofgren, would, in its sponsors' words, ban "the federal government from buying Americans' data from data brokers without a warrant." It has not passed. Its vehicle is the renewal of Section 702, the government's warrantless foreign-intelligence surveillance law, which lapsed in June 2026 after Congress failed to agree on reauthorization; existing authorizations run to March 2027. As of late October no federal restriction on government data purchases had been enacted. A few states, Montana among them, restrict purchases by their own agencies. [22] [20] [21] [02]
 
 **Settled.** The FTC's orders against Gravy, Venntel and Mobilewalla, and the Kochava order filed in May 2026, restrict the sale of sensitive location data by those companies. They do not regulate the buyers. [07] [18]
 
@@ -241,3 +241,4 @@ That doesn't remove you from the voter file, and it doesn't touch the IP address
 19. Mobilewalla, June 2020 protest demographics report and FTC action. https://en.wikipedia.org/wiki/Mobilewalla
 20. Proton, 12 Jun 2026, updated 15 Jun 2026. FISA Section 702 just expired. What's next for warrantless spying? https://proton.me/blog/fisa-702-expiring-surveillance-reform
 21. Brennan Center for Justice. Section 702 of FISA: 2026 resource page (updated 27 Oct 2026). https://www.brennancenter.org/our-work/research-reports/section-702-foreign-intelligence-surveillance-act-fisa-2026-resource-page
+22. Office of Senator Ron Wyden, 12 Mar 2026. Wyden, Lee, Davidson and Lofgren introduce bill to reform FISA Section 702 and plug data broker surveillance loophole. https://www.wyden.senate.gov/news/press-releases/wyden-lee-davidson-and-lofgren-introduce-bill-to-reform-fisa-section-702-protect-americans-constitutional-rights-and-plug-data-broker-surveillance-loophole
