@@ -39,9 +39,9 @@ const RAW = [
     title: 'The Night Pin', acid: 'Pin',
     lede: 'Six layers of data anyone can buy. One join gives them a name.',
     // Ported on 30 Oct 2026 from the web edition the owner uploaded with the print
-    // (source/the-night-pin.web.md), the prose verbatim. A draft until its nineteen
-    // sources have been opened and checked (research/the-night-pin/), under the
-    // standing duty: no verification pass came with it. Seed and k from the print's
+    // (source/the-night-pin.web.md), the prose verbatim. Checked 30 Oct 2026
+    // (research/the-night-pin/VERDICTS.md) and still a draft: NCSL's voter-file
+    // counts are the owner's to confirm. Seed and k from the print's
     // colophon (ROSE SEED 1130, K 5/7/3). The date is provisional, as a draft's is.
     date: '2026-10-30', dateLabel: '30 Oct 2026',
     seed: '1130', k: [5, 7, 3], pdf: '/pdf/edition-11.pdf',

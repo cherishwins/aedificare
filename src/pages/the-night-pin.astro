@@ -10,14 +10,23 @@
  * author's position, a mono label over a beat, as Editions 01, 05 and 09 set
  * it.
  *
- * A DRAFT until its nineteen sources have been opened and checked
- * (research/the-night-pin/): no verification pass came with it, and every
- * ported edition that skipped one was wrong in ways that mattered.
+ * Checked on 30 Oct 2026: nine researchers and a skeptic each opened every
+ * source, and their verdicts are applied here with the smallest true change
+ * (research/the-night-pin/VERDICTS.md). Section 14's law paragraph and
+ * sources 20 to 22 follow the owner's later web edition. Sources 23 onward are
+ * the primaries the check added. Still a DRAFT: the voter-file counts wait on
+ * NCSL's page, which refuses this sandbox, and the View is the owner's.
  *
- * The figures are computed, never drawn by hand. The parking lots, the
- * clock's pings and the fan-out are illustrations and say so; the waffle and
- * the hundred-cell grid are counts from the text, laid out by a seeded
- * shuffle so the page builds the same picture every time.
+ * The figures are computed, never drawn by hand, and each is ported from the
+ * owner's carousel (source/the-night-pin.carousel.html): its logic and its
+ * palette, laid out to reflow from 320 px up. The parking lots, the clock's
+ * pings, the fan-out and the VoterMatch join are illustrations and say so; the
+ * waffle and the hundred-cell grid are counts from the text, filled in reading
+ * order as the carousel fills them. The clock draws its pings with the
+ * carousel's own seeded generator, so it is the carousel's picture. The lots
+ * do not: the carousel fills each space by a coin weighted 0.82 and 0.41,
+ * which lands 105 and 48 of 126 (83 and 38 percent) under labels of 82 and
+ * 41, so here each lot is 100 spaces with exactly that many taken.
  */
 import Base from '../layouts/Base.astro';
 import Masthead from '../components/Masthead.astro';
@@ -84,26 +93,36 @@ const stack: [string, string, string, string][] = [
 const lot = (taken: number) => { const s = new Set(shuffled(100, R).slice(0, taken)); return Array.from({ length: 100 }, (_, i) => s.has(i)); };
 const lots: [string, number, boolean[]][] = [['Quarter A', 82, lot(82)], ['Quarter B', 41, lot(41)]];
 
-// Twelve bidders; one wins the ad, eleven keep the data.
+// Twelve bidders, the carousel's fan: one bid request leaves the exchange on
+// twelve lines; the fifth wins the ad, eleven receive the data and can keep
+// it. Each line ends at the middle of its bidder's row (twelve equal rows),
+// in a box the figure stretches to the list's height.
 const WIN = 4;
 const bidders = Array.from({ length: 12 }, (_, i) => i === WIN);
+const spray = bidders.map((won, i) => ({ won, y: 10 * i + 5 }));
 
-// The night pin: a 24-hour dial. Daytime pings scatter by hour; between
-// 22:00 and 06:00 they come to rest at one point, marked in Shock rose (on
-// Void, in the figure's field). An illustration, not data.
-const CX = 200, CY = 200, RAD = 160;
-const at = (h: number, r: number): [number, number] => [CX + r * Math.sin((h / 24) * 2 * Math.PI), CY - r * Math.cos((h / 24) * 2 * Math.PI)];
+// The night pin, as the carousel computes it: a 24-hour dial, midnight at
+// the top. The ring is Bottle and the night, 22:00 to 06:00, is a Malachite
+// arc on it. 46 daytime pings in Flash scatter by hour between 06:30 and
+// 21:30; 34 night pings in Malachite rest at one point, the dial's centre,
+// where the pin is Shock rose (on Void, in the figure's field), and one line
+// in Shock rose runs from it to the lookup. The carousel's own generator and
+// seed (an LCG, seed 3), drawn in its order, so this is its picture.
+const CK = { cx: 236, cy: 240, R: 196, W: 540, H: 480 };
+const ang = (h: number) => (h / 24) * 2 * Math.PI - Math.PI / 2;
+const pt = (h: number, r: number): [number, number] => [CK.cx + r * Math.cos(ang(h)), CK.cy + r * Math.sin(ang(h))];
 const f1 = (n: number) => n.toFixed(1);
-const day = Array.from({ length: 22 }, () => at(6.5 + R() * 15, RAD * (0.28 + R() * 0.6)));
-const [PX, PY] = at(2, RAD * 0.6);
-const night = Array.from({ length: 26 }, () => [PX + (R() - 0.5) * 30, PY + (R() - 0.5) * 30]);
-const [AX, AY] = at(22, RAD), [BX, BY] = at(6, RAD);
-const ticks = Array.from({ length: 24 }, (_, h) => [at(h, RAD - (h % 6 ? 5 : 10)), at(h, RAD + (h % 6 ? 5 : 10))]);
-const hours = [0, 6, 12, 18].map((h) => [String(h).padStart(2, '0'), ...at(h, RAD + 26)] as [string, number, number]);
-const chain = ['Home coordinate', 'Street address', 'Name', 'Year of birth', 'Party', 'Turnout history'];
+let lcgState = 3;
+const lcg = () => { lcgState = (lcgState * 9301 + 49297) % 233280; return lcgState / 233280; };
+const day = Array.from({ length: 46 }, () => { const h = 6.5 + lcg() * 15; const r = 40 + lcg() * 150; return pt(h, r); });
+const night = Array.from({ length: 34 }, () => { const a = lcg() * 2 * Math.PI, d = lcg() * 16; return [CK.cx + d * Math.cos(a), CK.cy + d * Math.sin(a)]; });
+const [AX, AY] = pt(22, CK.R), [BX, BY] = pt(30, CK.R);
+const [L22X, L22Y] = pt(22, CK.R + 30), [L06X, L06Y] = pt(6, CK.R), [LDX, LDY] = pt(14, CK.R + 30);
+// The chain: the three steps that name a person in Flash, what the file adds in Malachite.
+const chain: [string, boolean][] = [['Home coordinate', true], ['Street address', true], ['Name', true], ['Birth year or date', false], ['Party', false], ['Turnout history', false]];
 
-// Four points: of every 100 people, 95 singled out.
-const unlit = new Set(shuffled(100, R).slice(0, 5));
+// Four points: of every 100 people, 95 singled out, the first 95 in reading order.
+const hundred = Array.from({ length: 100 }, (_, i) => i < 95);
 
 // The voter file, 50 states: 29 non-commercial only, 9 election or
 // government only, 12 silent on use. Filled in that order.
@@ -116,24 +135,54 @@ const waffle = [...Array(29).fill('a'), ...Array(9).fill('m'), ...Array(12).fill
 // scheme and www. dropped.
 const SRC: Record<string, string> = {
   tcfbi: 'TechCrunch, 18 Mar 2026. FBI is buying location data to track US citizens, director confirms. techcrunch.com/2026/03/18/fbi-is-buying-location-data-to-track-us-citizens-kash-patel-wyden/',
-  eff: 'Electronic Frontier Foundation, Lena Cohen and Hudson Hongo, 5 Mar 2026. Targeted advertising gives your location to the government. Just ask CBP. eff.org/deeplinks/2026/03/targeted-advertising-gives-your-location-government-just-ask-cbp',
-  iapp: 'IAPP, citing Vice, 23 Sep 2022. Report: US military buys internet monitoring tool that covers 90% of web traffic. iapp.org/news/a/report-us-military-buys-internet-monitoring-tool-that-covers-90-of-web-traffic/',
-  sec: 'US Securities and Exchange Commission, Press Release 2021-176, 14 Sep 2021. sec.gov/newsroom/press-releases/2021-176',
+  eff: 'Electronic Frontier Foundation, Lena Cohen and Hudson Hongo, 5 Mar 2026. The Government Uses Targeted Advertising to Track Your Location. Here’s What We Need to Do. eff.org/deeplinks/2026/03/targeted-advertising-gives-your-location-government-just-ask-cbp',
+  iapp: 'Joseph Cox, Vice (Motherboard), 21 Sep 2022. Revealed: US Military Bought Mass Monitoring Tool That Includes Internet Browsing, Email Data. vice.com/en/article/us-military-bought-mass-monitoring-augury-team-cymru-browsing-email-data/',
+  sec: 'US Securities and Exchange Commission, 14 Sep 2021. In the Matter of App Annie Inc. and Bertrand Schmitt, Release No. 34-92975, the settled order (announced in Press Release 2021-176). sec.gov/litigation/admin/2021/34-92975.pdf',
   haas: 'Berkeley Haas Newsroom, May 2019. How hedge funds use satellite images to beat Wall Street and Main Street. newsroom.haas.berkeley.edu/how-hedge-funds-use-satellite-images-to-beat-wall-street-and-main-street/',
-  shodan: 'Shodan. shodan.io/',
-  record: 'The Record, 3 Dec 2024. FTC actions against Gravy Analytics, Venntel and Mobilewalla. therecord.media/ftc-location-data-brokers-gravy-venntel-mobilewalla',
+  shodan: 'Shodan Help Center. What is Shodan?, Search Query Fundamentals, and Navigating the Website. help.shodan.io/the-basics/what-is-shodan',
+  record: 'Suzanne Smalley, The Record, 3 Dec 2024. FTC targets companies that collected and sold sensitive location data. therecord.media/ftc-location-data-brokers-gravy-venntel-mobilewalla',
   tcgravy: 'TechCrunch, 13 Jan 2025. Gravy Analytics data broker breach: trove of location data threatens privacy of millions. techcrunch.com/2025/01/13/gravy-analytics-data-broker-breach-trove-of-location-data-threatens-privacy-millions/',
   moburst: 'Moburst, 2026. IDFA in 2026: what has actually happened since App Tracking Transparency launched (citing AppsFlyer and Adjust). moburst.com/blog/idfa-att-update/',
-  playio: 'Playio, 2025. Privacy Sandbox shutdown and Android game marketing. blog.playio.co/privacy-sandbox-shutdown-android-game-marketing',
+  playio: 'Playio, 20 Jul 2026. Privacy Sandbox Is Gone. What That Actually Means for Android Game Marketing. blog.playio.co/privacy-sandbox-shutdown-android-game-marketing',
   crowd: 'de Montjoye, Hidalgo, Verleysen, Blondel. Unique in the Crowd: the privacy bounds of human mobility. Scientific Reports 3, 1376 (2013). nature.com/articles/srep01376',
   ncsl: 'National Conference of State Legislatures. Access to and use of voter registration lists. ncsl.org/research/elections-and-campaigns/access-to-and-use-of-voter-registration-lists.aspx',
-  nexxen: 'Nexxen, 18 Jun 2026. Nexxen and L2 Data launch VoterMatch. nexxen.com/nexxen-and-l2-data-launch-votermatch-bringing-greater-precision-transparency-and-performance-to-political-advertising/',
-  thasos: 'PR Newswire, 20 May 2019. Thasos launches QStreams for quantitative hedge funds. prnewswire.com/news-releases/thasos-launches-qstreams-offering-quantitative-hedge-funds-unprecedented-insight-into-consumer-foot-traffic-300852747.html',
-  nyt: 'New York Times Privacy Project, 19 Dec 2019. Twelve Million Phones, One Dataset, Zero Privacy (summary via TidBITS). tidbits.com/2019/12/19/the-new-york-times-reveals-how-completely-our-every-move-is-tracked/',
-  odni: 'Fortune, 13 Jun 2023, on the ODNI Senior Advisory Group report. fortune.com/2023/06/13/u-s-intelligence-agencies-commercially-available-information-spy-on-americans',
-  chatrie: 'Chatrie v. United States, decided 29 Jun 2026. en.wikipedia.org/wiki/Chatrie_v._United_States',
+  nexxen: 'Nexxen, 18 Jun 2026. Nexxen and L2 Data Launch VoterMatch, Bringing Greater Precision, Transparency and Performance to Political Advertising. nexxen.com/nexxen-and-l2-data-launch-votermatch-bringing-greater-precision-transparency-and-performance-to-political-advertising/',
+  thasos: 'PR Newswire, 20 May 2019. Thasos Launches QStreams, Offering Quantitative Hedge Funds Unprecedented Insight Into Consumer Foot Traffic. prnewswire.com/news-releases/thasos-launches-qstreams-offering-quantitative-hedge-funds-unprecedented-insight-into-consumer-foot-traffic-300852747.html',
+  nyt: 'Stuart A. Thompson and Charlie Warzel, New York Times Opinion, 19 Dec 2019. Twelve Million Phones, One Dataset, Zero Privacy (read as quoted by Light Reading and beSpacific, and as paraphrased by TidBITS). nytimes.com/interactive/2019/12/19/opinion/location-tracking-cell-phone.html',
+  odni: 'Office of the Director of National Intelligence, Senior Advisory Group Panel on Commercially Available Information. Report to the Director of National Intelligence, 27 Jan 2022, declassified 14 Jun 2023. archive.dni.gov/files/ODNI/documents/assessments/ODNI-Declassified-Report-on-CAI-January2022.pdf',
+  chatrie: 'Supreme Court of the United States, Chatrie v. United States, No. 25-112, decided 29 Jun 2026 (slip opinion). supremecourt.gov/opinions/25pdf/25-112_0am4.pdf',
   kochava: 'PPC Land, May 2026. FTC closes Kochava location data case with strict consent rules. ppc.land/ftc-closes-kochava-location-data-case-with-strict-consent-rules/',
-  mobilewalla: 'Mobilewalla, June 2020 protest demographics report and FTC action. en.wikipedia.org/wiki/Mobilewalla',
+  mobilewalla: 'Caroline Haskins, BuzzFeed News, 25 Jun 2020. Almost 17,000 Protesters Had No Idea A Tech Company Was Tracing Their Location. buzzfeednews.com/article/carolinehaskins1/protests-tech-company-spying',
+  proton: 'Proton, 12 Jun 2026, updated 15 Jun 2026. FISA Section 702 just expired. What’s next for warrantless spying? proton.me/blog/fisa-702-expiring-surveillance-reform',
+  brennan: 'Brennan Center for Justice. Section 702 of FISA: 2026 resource page (updated 27 Oct 2026). brennancenter.org/our-work/research-reports/section-702-foreign-intelligence-surveillance-act-fisa-2026-resource-page',
+  wyden: 'Office of Senator Ron Wyden, 12 Mar 2026. Wyden, Lee, Davidson and Lofgren introduce bill to reform FISA Section 702 and plug data broker surveillance loophole. wyden.senate.gov/news/press-releases/wyden-lee-davidson-and-lofgren-introduce-bill-to-reform-fisa-section-702-protect-americans-constitutional-rights-and-plug-data-broker-surveillance-loophole',
+  // From here, sources the check of 30 Oct 2026 added (research/the-night-pin/VERDICTS.md).
+  bill: 'Government Surveillance Reform Act of 2026, S. 4082 as introduced 12 Mar 2026 (H.R. 7901, introduced the same day, carries the same sections 201 and 404). govinfo.gov/content/pkg/BILLS-119s4082is/html/BILLS-119s4082is.htm',
+  lofgren: 'Office of Representative Zoe Lofgren, 13 Mar 2026. Lofgren, Davidson, Wyden, and Lee Introduce Bipartisan FISA Reform Bill to Protect Americans’ Constitutional Rights. lofgren.house.gov/media/press-releases/lofgren-davidson-wyden-and-lee-introduce-bipartisan-fisa-reform-bill-protect',
+  cln: 'Richard Resch, Criminal Legal News, August 2026. Surveillance for Sale: The Data Broker Loophole and the Fourth Amendment After Chatrie. criminallegalnews.org/news/2026/jul/1/surveillance-for-sale-the-data-broker-loophole-and-the-fourth-amendment-after-chatrie/',
+  cisco: 'Cisco. Cisco IOS NetFlow Overview. cisco.com/en/US/docs/ios-xml/ios/netflow/configuration/15-2s/ios-netflow-ov.html',
+  cymru: 'Team Cymru, 26 Sep 2022. Team Cymru Myth vs Fact. team-cymru.com/post/team-cymru-myth-vs-fact',
+  jfqa: 'Katona, Painter, Patatoukas and Zeng. On the Capital Market Consequences of Big Data: Evidence from Outer Space. Journal of Financial and Quantitative Analysis 60(2), Mar 2025, 551 to 579. doi.org/10.1017/S0022109023001448',
+  ftcmw: 'Federal Trade Commission. Complaint, In the Matter of Mobilewalla, Inc., Docket C-4811. ftc.gov/system/files/ftc_gov/pdf/Mobilewalla-Complaint.pdf',
+  openrtb: 'IAB Tech Lab. OpenRTB 2.6 specification. github.com/InteractiveAdvertisingBureau/openrtb2.x/blob/main/2.6.md',
+  appledev: 'Apple Developer Documentation. advertisingIdentifier; and Upcoming AppTrackingTransparency requirements, 20 Apr 2021. developer.apple.com/documentation/adsupport/asidentifiermanager/advertisingidentifier',
+  adjust: 'Adjust. Mobile app trends: 2026 edition (data to January 2026), p. 7. a.storyblok.com/f/47007/x/8e101e06f9/mobile-app-trends-2026.pdf',
+  appsflyer: 'AppsFlyer, 24 Apr 2025. AppsFlyer Data Shows Market Adaptation to Privacy-First Ecosystem Four Years After ATT. appsflyer.com/company/newsroom/pr/post-att-growth/',
+  gps2025: 'Anthony Chavez, Google, 17 Oct 2025. Update on Plans for Privacy Sandbox Technologies. privacysandbox.google.com/blog/update-on-plans-for-privacy-sandbox-technologies',
+  gps2022: 'Anthony Chavez, Google, 16 Feb 2022. Introducing the Privacy Sandbox on Android. blog.google/products/android/introducing-privacy-sandbox-android/',
+  playad: 'Google Play Console Help. Advertising ID. support.google.com/googleplay/android-developer/answer/6048248',
+  eac: 'US Election Assistance Commission. Voter Roll Privacy, state table (last updated 3 Jan 2023; its sources include NCSL’s page). eac.gov/sites/default/files/2024-03/Voter_Roll_Privacy.pdf',
+  kochavaorder: 'FTC v. Kochava, Inc., No. 2:22-cv-00377-BLW (D. Idaho). Stipulated Order for Injunction and Other Relief, entered 25 Jun 2026. ftc.gov/system/files/ftc_gov/pdf/Kochava-Order.pdf',
+  fedscoop: 'John Hewitt Jones, FedScoop, 5 Apr 2022. FBI purchases 5,000 licenses for Babel X social media OSINT tool. fedscoop.com/babel-x-fbi-purchases-5000-licenses/',
+  aclu: 'American Civil Liberties Union, 18 Jul 2022. New Records Detail DHS Purchase and Use of Vast Quantities of Cell Phone Location Data. aclu.org/press-releases/new-records-detail-dhs-purchase-and-use-vast-quantities-cell-phone-location-data-0',
+  cbppta: 'DHS Privacy Office. Privacy Threshold Analysis, AdID Efficacy Pilot (CBP, OFO/NTC), approved 30 Sep 2020, in CBP’s FOIA production to the ACLU (file dated 6 Oct 2023), pp. 22 to 33. assets.aclu.org/live/uploads/2022/07/2023-10-06-CBPs-Additional-Production.pdf',
+  citizenlab: 'Christl, Perry, Garcia, Anstis and Deibert, Citizen Lab, 9 Apr 2026. Uncovering Webloc: An Analysis of Penlink’s Ad-based Geolocation Surveillance Tech. citizenlab.ca/research/analysis-of-penlinks-ad-based-geolocation-surveillance-tech/',
+  googleads: 'Google Privacy & Terms. Advertising (how to delete the advertising ID on an Android device). policies.google.com/technologies/ads',
+  samsung: 'Samsung US Support. Use Security and privacy settings on Galaxy phones and tablets. samsung.com/us/support/answer/ANS00088122',
+  apple: 'Apple Support, 19 Dec 2025. If an app asks to track your activity. support.apple.com/en-us/102420',
+  // Added by the recheck of 30 Oct 2026, for the two ledger rows of section 06.
+  ftcgravypr: 'Federal Trade Commission, 3 Dec 2024. FTC Takes Action Against Gravy Analytics, Venntel for Unlawfully Selling Location Data Tracking Consumers to Sensitive Sites. ftc.gov/news-events/news/press-releases/2024/12/ftc-takes-action-against-gravy-analytics-venntel-unlawfully-selling-location-data-tracking-consumers',
+  ftcmwpr: 'Federal Trade Commission, 3 Dec 2024. FTC Takes Action Against Mobilewalla for Collecting and Selling Sensitive Location Data. ftc.gov/news-events/news/press-releases/2024/12/ftc-takes-action-against-mobilewalla-collecting-selling-sensitive-location-data',
 };
 const KEYS = Object.keys(SRC);
 const c = (...k: string[]) => k.map((x) => {
@@ -163,8 +212,8 @@ const sources = KEYS.map((k) => SRC[k]);
     <Section n="00" title="The admission" ground="bottle" id="admission">
       <div class="c-a prose">
         <p class="num figure fig-l" aria-hidden="true">18.03.2026</p>
-        <p>On 18 March 2026, Senator Ron Wyden asked the director of the FBI whether the Bureau would commit to not buying Americans’ location data. Kash Patel did not commit. He said the FBI “uses all tools” to do its mission, and then: “We do purchase commercially available information that is consistent with the Constitution and the laws under the Electronic Communications Privacy Act, and it has led to some valuable intelligence for us.” <span class="cite">{c('tcfbi')}</span></p>
-        <p>It was the first time since 2023 that the FBI had confirmed buying from data brokers. The Bureau holds that data it pays for needs no warrant. No court has tested that theory. <span class="cite">{c('tcfbi')}</span></p>
+        <p>On 18 March 2026, Senator Ron Wyden asked the director of the FBI whether the Bureau would commit to not buying Americans’ location data. Kash Patel did not commit. He said the FBI “uses all tools” to do its mission, and then: “We do purchase commercially available information that is consistent with the Constitution and the laws under the Electronic Communications Privacy Act” and “it has led to some valuable intelligence for us …” <span class="cite">{c('tcfbi')}</span></p>
+        <p>According to Politico, it was the first time since 2023 that the FBI had confirmed buying access to data from data brokers. The Bureau holds that it needs no warrant to use the data it buys. As of March 2026 that theory had not been tested in court. <span class="cite">{c('tcfbi')}</span></p>
         <p>What follows is the stack that sentence refers to. It has six layers. Four of them watch things. Two of them watch people. The interesting part is not any single layer. It is the one lookup where the last two meet.</p>
         <p class="mono reg">Position</p>
         <p class="beat">Nothing in this stack is secret, and nearly all of it is for sale. The step that turns it into surveillance of a named person is a single database join, and in most US states the input that makes that join possible is not supposed to be used commercially at all.</p>
@@ -180,21 +229,18 @@ const sources = KEYS.map((k) => SRC[k]);
     </Section>
 
     <Section n="01" title="The stack" id="stack">
-      <div class="c-full field scroll" tabindex="0" role="region" aria-label="The six layers, top to bottom">
-        <table class="layers">
-          <caption class="mono">Six layers, top to bottom · 1 to 4 watch things, 5 and 6 watch people</caption>
-          <thead><tr><th scope="col">Layer</th><th scope="col">Source</th><th scope="col">What it sees</th></tr></thead>
-          <tbody>
-            {stack.map(([n, name, src, sees]) => (
-              <tr class:list={[n === '06' && 'hot']}>
-                <th scope="row"><span class="mono ln">{n}</span> <span class="lname">{name}</span></th>
-                <td>{src}</td>
-                <td>{sees}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <figure class="c-full stack-fig">
+        <figcaption class="mono">Six layers, top to bottom · 1 to 4 watch things, 5 and 6 watch people</figcaption>
+        <ol class="layers">
+          {stack.map(([n, name, src, sees]) => (
+            <li class:list={[n === '06' && 'hot']}>
+              <span class="mono ln">{n}</span>
+              <span class="lname">{name}</span>
+              <span class="lsrc"><b>{src}</b><br>{sees}</span>
+            </li>
+          ))}
+        </ol>
+      </figure>
       <div class="c-a prose">
         <p>Layers one to four are about infrastructure, traffic and objects. They move markets and they interest militaries, but on their own they rarely name anyone. Layers five and six are about bodies. The rest of this edition walks up the stack in order, and corrects the version of it that circulates.</p>
       </div>
@@ -202,16 +248,16 @@ const sources = KEYS.map((k) => SRC[k]);
 
     <Section n="02" title="Structure" ground="bottle" acid id="structure">
       <div class="c-a prose">
-        <p>Shodan is a search engine for machines. It crawls the internet and indexes every device that answers: servers, webcams, routers, building controllers, industrial equipment. You can search it by port, by product, by country, by the network that owns the address. <span class="cite">{c('shodan')}</span></p>
+        <p>Shodan is a search engine for machines. It crawls the internet and, in its words, gathers information about “all devices directly connected to the Internet”, webcams and industrial control systems among them. You can search it by port, by product, by country, by the network that owns the address. <span class="cite">{c('shodan')}</span></p>
         <p>It is the base map. It tells you where the infrastructure is and what it runs. It does not tell you who is using it. A camera on Shodan is a camera, not a person.</p>
       </div>
     </Section>
 
     <Section n="03" title="Network" id="network">
       <div class="c-a prose">
-        <p class="num figure fig-m" aria-hidden="true">90%</p>
-        <p>NetFlow is the metadata of internet traffic. It records which address talked to which, when, on what port, and how much. It doesn’t record what was said. <span class="cite">{c('iapp')}</span></p>
-        <p>That makes it sound harmless until you see the scale it is sold at. Team Cymru’s Augury product draws on 550 collection points worldwide and adds at least 100 billion records a day. Contracting records reviewed by Vice put its reach at about 90 percent of global internet traffic. Its buyers included several branches of the US military. <span class="cite">{c('iapp')}</span></p>
+        <p class="num figure fig-m" aria-hidden="true">90%+</p>
+        <p>NetFlow is the metadata of internet traffic. It records which address talked to which, when, on what port, and how much. It doesn’t record what was said. <span class="cite">{c('cisco', 'cymru')}</span></p>
+        <p>That makes it sound harmless until you see the scale it is sold at. A US government procurement record reviewed by Vice describes Team Cymru’s Augury product as drawing on over 550 collection points worldwide and being updated with at least 100 billion new records each day. It claims to cover over 90 percent of the world’s internet traffic, Vice reported. Its buyers included several branches of the US military. Vice found that the Navy, Army, Cyber Command and the Defense Counterintelligence and Security Agency paid at least $3.5 million between them for access. <span class="cite">{c('iapp')}</span></p>
       </div>
       <figure class="c-b field flow" aria-label="An illustrative flow record, with documentation addresses, not real traffic">
         <figcaption class="mono">Illustrative flow record · documentation addresses, not real traffic</figcaption>
@@ -224,7 +270,7 @@ const sources = KEYS.map((k) => SRC[k]);
       <div class="c-a prose">
         <p class="num figure fig-l" aria-hidden="true">$10,000,000</p>
         <p>Panels estimate what people download, open and stream. Investment firms buy the estimates because app usage moves before revenue does, so a good panel lets a fund see a quarter before the company reports it.</p>
-        <p>The first securities-fraud case against an alternative-data vendor came out of this layer. On 14 September 2021 the SEC settled with App Annie and its co-founder, Bertrand Schmitt. App Annie had told the companies sharing their app data that it would be aggregated and anonymised. From late 2014 to mid-2018 it used the non-aggregated, non-anonymised data to adjust the estimates it sold to trading firms, while telling those firms its process respected the consents it had obtained. The firm paid $10 million. Schmitt paid $300,000 and accepted a three-year bar from serving as an officer or director of a public company. <span class="cite">{c('sec')}</span></p>
+        <p>The SEC’s first securities-fraud case against an alternative-data vendor came out of this layer. On 14 September 2021 the SEC settled with App Annie and its co-founder, Bertrand Schmitt. According to the SEC’s order, App Annie had told the companies sharing their app data that it would be aggregated and anonymised. From late 2014 to mid-2018 it used the non-aggregated, non-anonymised data to adjust the estimates it sold to trading firms, while telling those firms its process respected the consents it had obtained. App Annie and Schmitt neither admitted nor denied the findings. App Annie agreed to pay a $10 million penalty. Schmitt agreed to pay a $300,000 penalty and accepted a three-year bar from serving as an officer or director of a public company. <span class="cite">{c('sec')}</span></p>
         <p>The lesson for anyone building on this stack is that the legal risk lives in provenance, not in the model. A clean model trained on dirty data is a dirty product.</p>
       </div>
     </Section>
@@ -232,7 +278,7 @@ const sources = KEYS.map((k) => SRC[k]);
     <Section n="05" title="Orbit" acid id="orbit">
       <div class="c-a prose">
         <p>The most famous alternative dataset is also the most innocent. Satellites photograph retailers’ parking lots, and software counts the cars.</p>
-        <p>Researchers at Berkeley Haas studied 4.8 million such images from RS Metrics, later combined with Orbital Insight, covering 67,000 stores belonging to 44 major US retailers from 2011 to 2017. Funds with the data earned 4 to 5 percent in the three days around earnings announcements. The edge was largest on the short side: funds bet against retailers heading for bad quarters while individual investors, who can see short interest only twice a month and with a lag, were buying the same stocks. <span class="cite">{c('haas')}</span></p>
+        <p>Researchers at Berkeley Haas studied 4.7 million daily parking-lot observations from RS Metrics, later combined with Orbital Insight’s data, covering 67,078 stores belonging to 44 major US retailers from 2011 to 2017. A strategy that traded on the data, buying retailers with rising counts and shorting those with falling ones, beat the market by about 4.6 percent, net of stock-loan fees, in the three days around earnings announcements. The edge was largest on the short side: funds bet against retailers heading for bad quarters while individual investors, who can see short interest only twice a month and with a lag, were buying the same stocks. <span class="cite">{c('jfqa', 'haas')}</span></p>
         <p>Nobody in a parking lot is identified. That is why this layer is legal almost everywhere, and why it is the version funds talk about in public.</p>
       </div>
       <figure class="c-b field lots" aria-label="Illustration: two parking lots of 100 spaces, Quarter A 82 percent full, Quarter B 41 percent full">
@@ -248,29 +294,34 @@ const sources = KEYS.map((k) => SRC[k]);
 
     <Section n="06" title="The device" ground="bottle" id="device">
       <div class="c-a prose">
-        <p>Every ad inside a free app is sold in an auction that lasts a fraction of a second. To run it, the app broadcasts a bid request. Depending on permissions, that request can carry the phone’s advertising ID, GPS coordinates, IP address, device details, inferred interests and the app in use. Every bidder receives it, including the ones that lose. EFF’s summary is blunt: once data is broadcast this way, “it’s almost impossible to know who receives it or control how it’s used.” <span class="cite">{c('eff')}</span></p>
-        <p>The losing bidders are the business. A company can join auctions it never intends to win, keep the requests and sell what it collects. This is called bidstream data.</p>
+        <p>Every ad inside a free app is sold in an auction that lasts a fraction of a second. To run it, the app broadcasts a bid request. Depending on permissions, that request can carry the phone’s advertising ID, GPS coordinates, IP address, device details, inferred interests and the app in use. Every bidder receives it, including the ones that lose. <span class="cite">{c('eff', 'ftcmw')}</span> EFF’s summary is blunt: once data is broadcast this way, “it’s almost impossible to know who receives it or control how it’s used.” <span class="cite">{c('eff')}</span></p>
+        <p>The losing bidders are a business of their own. Anyone posing as an ad buyer can get the data, EFF says, and data brokers have used that “to harvest data at a staggering scale.” The FTC alleged that Mobilewalla kept the bid request “even when it did not have a winning bid” and sold access to the data. The information in a bid request is called bidstream data. <span class="cite">{c('eff', 'ftcmw')}</span></p>
       </div>
-      <figure class="c-full field fan" aria-label="One bid request, from a phone through an exchange to twelve bidders. One wins the ad. Eleven keep the data.">
+      <figure class="c-full field fan" aria-label="One bid request, from a phone through an exchange to twelve bidders. One wins the ad. Eleven receive the data, and can keep it.">
         <figcaption class="mono">One bid request, twelve bidders · illustration</figcaption>
         <div class="fan-row" aria-hidden="true">
-          <span class="node phone mono-b">Phone</span>
-          <span class="wire"></span>
-          <span class="node mono-b">Exchange</span>
-          <span class="wire"></span>
+          <div class="fan-src">
+            <div class="ph">
+              <span class="mono carries"><span>Ad ID</span><span class="dot"> · </span><span>GPS</span><span class="dot"> · </span><span>IP</span></span>
+              <span class="node phone mono-b">Phone</span>
+              <span class="wire"></span>
+            </div>
+            <span class="node ex mono-b">Exchange</span>
+          </div>
+          <div class="spray"><svg viewBox="0 0 100 120" preserveAspectRatio="none">
+            {spray.map(({ won, y }) => (<line x1="0" y1="60" x2="100" y2={y} stroke={won ? '#FFFFFF' : '#00B24F'} stroke-width={won ? 3 : 1.6} vector-effect="non-scaling-stroke" />))}
+          </svg></div>
           <ol class="bidders">
-            {bidders.map((won, i) => (
-              <li class:list={[won && 'won']}><span class="mono">{String(i + 1).padStart(2, '0')}</span> {won ? 'wins the ad' : 'keeps the data'}</li>
-            ))}
+            {bidders.map((won) => (<li class:list={['mono', won && 'won']}>{won ? 'Wins the ad' : 'Receives the data'}</li>))}
           </ol>
         </div>
-        <p class="mono note">One wins the ad. Eleven keep the data.</p>
+        <p class="mono note">One wins the ad. Eleven receive the data, and can keep it.</p>
       </figure>
       <dl class="c-full ledger-stats">
         <dt class="num">About 1,000,000,000 phones.</dt>
-        <dd>Gravy Analytics and its subsidiary Venntel say they gather more than 17 billion signals a day from about a billion smartphones. <span class="cite">{c('record')}</span></dd>
+        <dd>Gravy Analytics and its subsidiary Venntel claimed, according to the FTC in December 2024, to collect more than 17 billion signals a day from about a billion mobile devices. <span class="cite">{c('record', 'ftcgravypr')}</span></dd>
         <dt class="num">More than 500,000,000 advertising IDs</dt>
-        <dd>matched to precise location by Mobilewalla between 2018 and 2020, according to the FTC. An estimated 60 percent of its data came from ad auctions. <span class="cite">{c('record', 'eff')}</span></dd>
+        <dd>paired with precise location were collected by Mobilewalla between January 2018 and June 2020, the FTC alleges. Mobilewalla itself estimated that about 60 percent of its consumer data in that period came from ad auctions. <span class="cite">{c('record', 'ftcmw', 'ftcmwpr')}</span></dd>
         <dt class="num">More than 30,000,000 location points</dt>
         <dd>in one sample leaked from Gravy Analytics in January 2025, including devices at the White House, the Kremlin, Vatican City and military bases. Apps named in the data included dating, fitness and transit apps. <span class="cite">{c('tcgravy')}</span></dd>
       </dl>
@@ -280,10 +331,10 @@ const sources = KEYS.map((k) => SRC[k]);
       <div class="c-a prose">
         <p class="mono reg">Correction</p>
         <p>The popular telling of this stack overstates layer five in four ways.</p>
-        <p><strong>Card purchases.</strong> The claim that bidstream data shows “what they purchase via credit-card point-of-sale systems” is wrong. Transaction data is a separate product, sold from card and bank panels. A bid request carries the ID, location, IP, device and app. It doesn’t carry your receipt. <span class="cite">{c('eff')}</span></p>
-        <p><strong>A guaranteed iPhone ID.</strong> Since Apple’s App Tracking Transparency prompt in 2021, an app has to ask before it can use the iPhone’s advertising ID. Measured opt-in rates sit at roughly 35 to 50 percent globally, depending on whose panel you trust and which kind of app is asking. Many iPhones in the auction show no ID at all. <span class="cite">{c('moburst')}</span></p>
-        <p><strong>Always GPS.</strong> Much of the leaked Gravy data turned out to be location inferred from IP addresses rather than satellite fixes. Plenty of points in these datasets are a city block wide, not a doorstep. <span class="cite">{c('tcgravy')}</span></p>
-        <p><strong>But Android.</strong> Google announced in October 2025 that it was winding down Privacy Sandbox, its planned replacement for the Android advertising ID. The ID stays on unless the user deletes it. <span class="cite">{c('playio')}</span></p>
+        <p><strong>Card purchases.</strong> The claim that bidstream data shows “what they purchase via credit-card point-of-sale systems” is wrong. The industry’s bid request standard, OpenRTB 2.6, has no field for a card transaction. A bid request carries the ID, location, IP, device, app and inferred interests, and can carry audience segments from outside data providers. It doesn’t carry your receipt. <span class="cite">{c('openrtb', 'eff')}</span></p>
+        <p><strong>A guaranteed iPhone ID.</strong> Since Apple’s App Tracking Transparency prompt in 2021, an app has to ask before it can use the iPhone’s advertising ID. <span class="cite">{c('appledev')}</span> Measured opt-in rates sit at roughly 35 to 50 percent globally, depending on whose panel you trust, and lower for some kinds of app. Many iPhones in the auction show no ID at all. <span class="cite">{c('moburst', 'adjust', 'appsflyer')}</span></p>
+        <p><strong>Always GPS.</strong> 404 Media found that large amounts of the leaked Gravy data were location inferred from IP addresses rather than the phone’s precise GPS coordinates. Plenty of points in these datasets give an approximate location, not a doorstep. <span class="cite">{c('tcgravy')}</span></p>
+        <p><strong>But Android.</strong> Google said on 17 October 2025 that it was retiring Privacy Sandbox on Android, which it had built to run ads without the Android advertising ID. The ID stays unless the user deletes it. <span class="cite">{c('gps2025', 'gps2022', 'playad', 'playio')}</span></p>
         <p>None of this makes the layer weak. It makes it uneven, and an analyst who treats it as complete will be confidently wrong about the people it misses.</p>
       </div>
     </Section>
@@ -291,26 +342,32 @@ const sources = KEYS.map((k) => SRC[k]);
     <Section n="08" title="The night pin" ground="bottle" id="pin">
       <div class="c-a prose">
         <p>An advertising ID is a long random string. It is pseudonymous, not anonymous, and it stops being even that the moment you ask where it sleeps.</p>
-        <p>A phone that comes to rest at the same coordinate between 22:00 and 06:00, night after night, has a home. A home has an address. An address has registered voters. That single lookup, from coordinate to address to voter record, is where a string of letters becomes a name, a year of birth, often a party and a voting history.</p>
+        <p>A phone that comes to rest at the same coordinate between 22:00 and 06:00, night after night, has a home. A home has an address. An address has registered voters. That single lookup, from coordinate to address to voter record, is where a string of letters becomes a name and, often, a year or date of birth, a party and a voting history.</p>
         <p>This is the night pin. Everything above it in this edition is context. This is the mechanism.</p>
       </div>
-      <figure class="c-full field clock" aria-label="Illustration: one phone's pings around a 24-hour clock. By day they scatter; between 22:00 and 06:00 they gather at one point, the night pin, which leads to a home coordinate, a street address, a name, a year of birth, a party and a turnout history.">
+      <figure class="c-full field clock" aria-label="Illustration: one phone's pings around a 24-hour clock. By day they scatter; between 22:00 and 06:00 they gather at one point, the night pin, which leads to a home coordinate, a street address, a name, a year or date of birth, a party and a turnout history.">
         <figcaption class="mono">Illustration · one phone, 24 hours · the arc marks 22:00 to 06:00</figcaption>
         <div class="clock-row">
-          <svg viewBox="0 0 400 400" aria-hidden="true">
-            <circle cx={CX} cy={CY} r={RAD} fill="none" stroke="#00B24F" stroke-width="1.5" />
-            {ticks.map(([[x1, y1], [x2, y2]]) => (<line x1={f1(x1)} y1={f1(y1)} x2={f1(x2)} y2={f1(y2)} stroke="#00B24F" stroke-width="1.5" />))}
-            <path d={`M ${f1(AX)} ${f1(AY)} A ${RAD} ${RAD} 0 0 1 ${f1(BX)} ${f1(BY)}`} fill="none" stroke="#FFFFFF" stroke-width="4" />
-            {hours.map(([t, x, y]) => (<text x={f1(x)} y={f1(y + 7)} text-anchor="middle" class="svg-t">{t}</text>))}
-            {day.map(([x, y]) => (<circle cx={f1(x)} cy={f1(y)} r="4.5" fill="#00B24F" />))}
-            {night.map(([x, y]) => (<circle cx={f1(x)} cy={f1(y)} r="3" fill="#FFFFFF" />))}
-            <line x1={f1(PX + 28)} y1={f1(PY)} x2="400" y2={f1(PY)} stroke="#FFFFFF" stroke-width="1.5" />
-            <circle cx={f1(PX)} cy={f1(PY)} r="28" fill="none" stroke="#FF1F5A" stroke-width="2" />
-            <circle cx={f1(PX)} cy={f1(PY)} r="5" fill="#FF1F5A" />
+          <div class="dial" style={`--pin: ${((CK.cx + 24) / CK.W * 100).toFixed(3)}%`}>
+          <svg viewBox={`0 0 ${CK.W} ${CK.H}`} aria-hidden="true">
+            <circle cx={CK.cx} cy={CK.cy} r={CK.R} fill="none" stroke="#063B22" stroke-width="26" />
+            <path d={`M ${f1(AX)} ${f1(AY)} A ${CK.R} ${CK.R} 0 0 1 ${f1(BX)} ${f1(BY)}`} fill="none" stroke="#00B24F" stroke-width="26" />
+            <text x={f1(L22X - 6)} y={f1(L22Y - 4)} text-anchor="end" class="svg-t">22:00</text>
+            <text x={f1(L06X + 24)} y={f1(L06Y - 30)} class="svg-t">06:00</text>
+            <text x={f1(LDX + 10)} y={f1(LDY + 26)} text-anchor="middle" class="svg-t">DAYTIME</text>
+            {day.map(([x, y]) => (<rect x={f1(x - 4)} y={f1(y - 4)} width="8" height="8" fill="#FFFFFF" />))}
+            {night.map(([x, y]) => (<rect x={f1(x - 4)} y={f1(y - 4)} width="8" height="8" fill="#00B24F" />))}
+            <circle cx={CK.cx} cy={CK.cy} r="11" fill="#FF1F5A" />
+            <path class="j-narrow" d={`M ${CK.cx + 24} ${CK.cy} H ${CK.W - 1} V ${CK.H}`} fill="none" stroke="#FF1F5A" stroke-width="2" vector-effect="non-scaling-stroke" />
           </svg>
-          <ol class="chain">
-            {chain.map((s) => (<li>{s}</li>))}
-          </ol>
+          <span class="link" aria-hidden="true"></span>
+          </div>
+          <div class="chain-w">
+            <p class="mono lookup">One lookup</p>
+            <ol class="chain">
+              {chain.map(([s, names]) => (<li class:list={['mono', !names && 'adds']}>{s}</li>))}
+            </ol>
+          </div>
         </div>
       </figure>
     </Section>
@@ -319,18 +376,18 @@ const sources = KEYS.map((k) => SRC[k]);
       <div class="c-a prose">
         <p class="num figure fig-m" aria-hidden="true">4 → 95%</p>
         <p>The idea that a location trail can be anonymised has been tested, and it failed. In 2013, researchers studying 15 months of mobility data for 1.5 million people found that four points in space and time were enough to single out 95 percent of them. That was at hourly resolution, using cell-tower locations, which is coarser than the GPS in a modern bid request. <span class="cite">{c('crowd')}</span></p>
-        <p>In December 2019 the New York Times obtained a file of more than 50 billion location pings from over 12 million phones, covering several months of 2016 and 2017. Its reporters followed military officials, police and lawyers by name. One phone belonged to a Microsoft employee who visited an Amazon office and took a job there a month later. <span class="cite">{c('nyt')}</span></p>
+        <p>In December 2019 the New York Times obtained a file of more than 50 billion location pings from over 12 million phones, covering several months of 2016 and 2017. Its reporters followed military officials, police and lawyers. One phone belonged to a Microsoft employee who visited an Amazon office and took a job there a month later. <span class="cite">{c('nyt')}</span></p>
         <p>That last example is the whole trading pitch in one sentence. It’s also why the pitch runs into the law.</p>
       </div>
       <figure class="c-b field hundred" aria-label="Of every 100 people, four points single out 95">
         <figcaption class="mono">Of every 100 people, four points single out 95 <span class="cite">{c('crowd')}</span></figcaption>
-        <div class="cells-100" aria-hidden="true">{Array.from({ length: 100 }, (_, i) => (<span class:list={['px', !unlit.has(i) && 'lit']}></span>))}</div>
+        <div class="cells-100" aria-hidden="true">{hundred.map((lit) => (<span class:list={['px', lit && 'lit']}></span>))}</div>
       </figure>
     </Section>
 
     <Section n="10" title="The voter file" ground="bottle" id="file">
       <div class="c-a prose">
-        <p>A voter file is the most reliable identity list in American public life. Almost every state’s file carries name and home address. Many add party, voting history and year of birth. A few add phone numbers, sex or race. <span class="cite">{c('ncsl')}</span></p>
+        <p>A voter file is the most reliable identity list in American public life. Almost every state’s file carries name and home address. Many add party, voting history and year or full date of birth. Some add phone numbers; a few add sex or race. <span class="cite">{c('ncsl', 'eac')}</span></p>
         <p>It is public, but it is not free to use however you like. According to the National Conference of State Legislatures:</p>
         <ul class="key">
           <li><span class="sw a" aria-hidden="true"></span><span><strong>29 states</strong> restrict use of the voter list to non-commercial purposes.</span></li>
@@ -343,14 +400,38 @@ const sources = KEYS.map((k) => SRC[k]);
       <figure class="c-b field waffle-fig" aria-label="Fifty states: 29 restrict the voter list to non-commercial use, 9 to election, political or government use, 12 are silent on use">
         <figcaption class="mono">Fifty states, one cell each <span class="cite">{c('ncsl')}</span></figcaption>
         <div class="waffle" aria-hidden="true">{waffle.map((t) => (<span class:list={['w', t]}></span>))}</div>
+        <dl class="wkey" aria-hidden="true">
+          <div><dt class="num">29</dt><dd class="mono">Non-commercial only</dd></div>
+          <div class="m"><dt class="num">9</dt><dd class="mono">Election, political or government</dd></div>
+          <div><dt class="num">12</dt><dd class="mono">Silent on use</dd></div>
+        </dl>
       </figure>
     </Section>
 
     <Section n="11" title="Where the join is legal" acid id="legal">
       <div class="c-a prose">
         <p>The join is legal, and growing, in the place the voter file was built for: politics.</p>
-        <p>On 18 June 2026, the ad-tech company Nexxen and the data firm L2 launched VoterMatch. It joins L2’s national voter file to Nexxen’s ad-auction logs so that campaigns can see which registered voters an ad reached and how often. Neither company disclosed the matching method or match rates. <span class="cite">{c('nexxen')}</span></p>
-        <p>Layers five and six have also been combined in public, outside a campaign. In June 2020 Mobilewalla published the race, gender and age mix of protesters in New York, Los Angeles, Minneapolis and Atlanta, derived from phone data. Its founder said no agency had asked for it. <span class="cite">{c('mobilewalla')}</span> In December 2024 the FTC alleged that Mobilewalla had built audience segments of protesters and of women visiting health clinics, and its order bars the company from selling sensitive location data. <span class="cite">{c('record')}</span></p>
+        <p>On 18 June 2026, the ad-tech company Nexxen and the data firm L2 launched VoterMatch. It combines L2’s national voter file with Nexxen’s log-level ad data so that campaigns can see, in the companies’ words, “which voters have been reached, and how frequently”, which the release itself calls “voter-level modeled exposure”. The launch release does not describe the matching method or give match rates. <span class="cite">{c('nexxen')}</span></p>
+      </div>
+      <figure class="c-full join" aria-label="Illustration: VoterMatch joins a voter file, name, address, party and turnout, to log-level ad data, an ad ID, an impression, its time and the app, and gives reach and frequency per voter. The release names the two datasets, not their fields or how they are matched.">
+        <figcaption class="mono">Illustration · the release names the two datasets, not their fields or how they are matched <span class="cite">{c('nexxen')}</span></figcaption>
+        <div class="join-row" aria-hidden="true">
+          <div class="jl">
+            <p class="mono jh">Voter file</p>
+            <ul class="mono-b"><li>Name</li><li>Address</li><li>Party</li><li>Turnout</li></ul>
+          </div>
+          <span class="jw jw1"></span>
+          <span class="jbox mono-b">Join</span>
+          <span class="jw jw2"></span>
+          <div class="jr">
+            <p class="mono jh">Log-level ad data</p>
+            <ul class="mono-b"><li>Ad ID</li><li>Impression</li><li>Time</li><li>App</li></ul>
+          </div>
+          <p class="mono jo">Reach and frequency, per voter, modeled</p>
+        </div>
+      </figure>
+      <div class="c-a prose">
+        <p>Layers five and six have also been combined in public, outside a campaign. In June 2020 Mobilewalla published the race, gender and age mix of protesters in New York, Los Angeles, Minneapolis and Atlanta, derived from phone data. Its founder and chief executive, Anindya Datta, said it had not been prepared for law enforcement or a public agency. <span class="cite">{c('mobilewalla')}</span> In December 2024 the FTC alleged that Mobilewalla had built audience segments of protesters and of women visiting health clinics, and its order bars the company from selling sensitive location data. <span class="cite">{c('record')}</span></p>
       </div>
     </Section>
 
@@ -369,7 +450,7 @@ const sources = KEYS.map((k) => SRC[k]);
           <p class="mono n">02</p>
           <p class="trade-t mono-b">Named people</p>
           <p class="verdict display">Barred at the source.</p>
-          <p class="note">Tracking specific people at offices and homes is what the FTC has spent two years shutting down. The Gravy, Venntel and Mobilewalla orders bar the sale of sensitive location data, and Mobilewalla’s explicitly covers data showing where people live. Kochava’s order, filed in May 2026, bars sale of sensitive location data without the consumer’s express consent. <span class="cite">{c('record', 'kochava')}</span> And a firm that trades on data obtained by breaking the promise under which it was shared is in App Annie’s position. <span class="cite">{c('sec')}</span></p>
+          <p class="note">Tracking specific people at offices and homes is what the FTC has spent two years shutting down. The Gravy, Venntel and Mobilewalla orders bar the sale of sensitive location data, and Mobilewalla’s explicitly covers data showing where people live. Kochava’s order, entered by a federal court in June 2026, bars the sale of sensitive location data unless the company has a direct relationship with the consumer, the consumer gives affirmative express consent, and the data is used for a service the consumer asked for. <span class="cite">{c('record', 'kochava', 'kochavaorder')}</span> And a vendor that sells data obtained by breaking the promise under which it was shared, while telling buyers otherwise, is in App Annie’s position. <span class="cite">{c('sec')}</span></p>
         </div>
         <div class="trade field">
           <p class="mono n">03</p>
@@ -385,18 +466,18 @@ const sources = KEYS.map((k) => SRC[k]);
 
     <Section n="13" title="Who buys the whole stack" id="buyers">
       <div class="c-a prose">
-        <p class="num figure fig-l" aria-hidden="true">$27,000,000</p>
+        <p class="num figure fig-l" aria-hidden="true">113,654</p>
         <p>If funds mostly buy aggregates, who buys at the level of a person? The public record answers it. States.</p>
       </div>
       <dl class="c-full defs">
-        <div><dt class="mono-b">FBI.</dt><dd>A 2022 contract worth up to $27 million for 5,000 licences to Babel Street’s Locate X, which runs on Venntel’s location data. <span class="cite">{c('record')}</span></dd></div>
-        <div><dt class="mono-b">DHS.</dt><dd>According to the ACLU, about 113,654 location points obtained over three days in 2018. <span class="cite">{c('record')}</span></dd></div>
-        <div><dt class="mono-b">CBP.</dt><dd>A 2019 to 2021 pilot using “commercially available marketing location data”, including data sourced from ad auctions. CBP’s own document says “RTB-sourced location data is recorded when an advertisement is served.” <span class="cite">{c('eff')}</span></dd></div>
-        <div><dt class="mono-b">ICE.</dt><dd>Bought the Webloc tool in 2025. It tracks millions of phones and can filter by advertising ID. <span class="cite">{c('eff')}</span></dd></div>
-        <div><dt class="mono-b">The US military.</dt><dd>Several branches bought access to Augury’s NetFlow data. <span class="cite">{c('iapp')}</span></dd></div>
+        <div><dt class="mono-b">FBI.</dt><dd>A 2022 contract, reported then as worth up to $27 million, for 5,000 licences to Babel Street’s Babel X, a text analytics tool for searching social media and other online sources, bought through the reseller Panamerica Computers. <span class="cite">{c('record', 'fedscoop')}</span></dd></div>
+        <div><dt class="mono-b">DHS.</dt><dd>According to the ACLU, about 113,654 location points obtained over three days in 2018. <span class="cite">{c('aclu')}</span></dd></div>
+        <div><dt class="mono-b">CBP.</dt><dd>A pilot dated 1 May 2019 to 1 May 2021 to test “commercially available marketing location data associated with Advertising IDs”. CBP’s own privacy assessment names two sources, apps’ SDKs and ad auctions: “RTB-sourced location data is recorded when an advertisement is served.” <span class="cite">{c('eff', 'cbppta')}</span></dd></div>
+        <div><dt class="mono-b">ICE.</dt><dd>Bought Webloc licences for September 2025 to September 2026. EFF says the tool gathers the locations of millions of phones and can filter them by advertising ID. <span class="cite">{c('eff', 'citizenlab')}</span></dd></div>
+        <div><dt class="mono-b">The US military.</dt><dd>Several branches bought access to Augury, which carries NetFlow and, in some cases, email and browsing data. <span class="cite">{c('iapp')}</span></dd></div>
       </dl>
       <div class="c-a prose">
-        <p>The intelligence community has said as much about itself. A January 2022 report by a senior advisory group to the Director of National Intelligence, declassified in June 2023, states that commercially available information “includes information on nearly everyone,” and that it could be used “to cause harm to an individual’s reputation, emotional well-being, or physical safety.” <span class="cite">{c('odni')}</span></p>
+        <p>The intelligence community has said as much about itself. A January 2022 report by a senior advisory group to the Director of National Intelligence, declassified in June 2023, states that commercially available information “includes information on nearly everyone”, and that it could be used “to cause harm to an individual’s reputation, emotional well-being, or physical safety.” <span class="cite">{c('odni')}</span></p>
       </div>
     </Section>
 
@@ -405,10 +486,10 @@ const sources = KEYS.map((k) => SRC[k]);
         <p class="num figure fig-m" aria-hidden="true">29.06.26</p>
       </div>
       <dl class="c-full defs">
-        <div><dt class="mono-b">Decided.</dt><dd>On 29 June 2026 the Supreme Court held in Chatrie v. United States that police conducted a Fourth Amendment search when they obtained a person’s phone location data from Google. Justice Kagan wrote for the Court. Questions of warrant particularity and good faith went back to the lower courts. <span class="cite">{c('chatrie')}</span></dd></div>
-        <div><dt class="mono-b">Not decided.</dt><dd>Whether buying the same kind of data is a search. The FBI’s position that purchased data needs no warrant has not been tested in court. <span class="cite">{c('tcfbi')}</span></dd></div>
-        <div><dt class="mono-b">Pending.</dt><dd>The Government Surveillance Reform Act, introduced in March 2026, would require a court-authorised warrant before federal agencies buy Americans’ information from data brokers. <span class="cite">{c('tcfbi')}</span></dd></div>
-        <div><dt class="mono-b">Settled.</dt><dd>The FTC’s orders against Gravy, Venntel and Mobilewalla, and the Kochava order filed in May 2026, restrict the sale of sensitive location data by those companies. They do not regulate the buyers. <span class="cite">{c('record', 'kochava')}</span></dd></div>
+        <div><dt class="mono-b">Decided.</dt><dd>On 29 June 2026 the Supreme Court held in Chatrie v. United States that police “conducted a Fourth Amendment search when they acquired Chatrie’s location data from Google”, in this case through a geofence warrant. Justice Kagan wrote for the Court; the vote was 6 to 3. Whether the warrant met the particularity and probable-cause requirements at each step, and whether the good-faith exception still lets the evidence in, went back to the Fourth Circuit. <span class="cite">{c('chatrie')}</span></dd></div>
+        <div><dt class="mono-b">Not decided.</dt><dd>Whether buying the same kind of data is a search. The FBI’s position that it needs no warrant to use purchased data had not been tested in court as of March 2026 <span class="cite">{c('tcfbi')}</span>, and as of August no court appeared to have squarely resolved it. <span class="cite">{c('cln')}</span></dd></div>
+        <div><dt class="mono-b">Pending.</dt><dd>The Government Surveillance Reform Act, introduced on 12 March 2026 by Senators Wyden and Lee with Representatives Davidson and Lofgren, would, in its sponsors’ words, ban “the federal government from buying Americans’ data from data brokers without a warrant.” <span class="cite">{c('wyden', 'lofgren')}</span> In its text, section 201 says a federal law enforcement agency “may not obtain in exchange for anything of value covered personal data” from a non-government organisation, with narrow exceptions, and section 404 says “an element of the intelligence community may not acquire a dataset that includes covered data”, with listed exceptions, among them a FISA order or a court’s authorisation of its collection. <span class="cite">{c('bill')}</span> It has not passed. It is written as a four-year renewal of Section 702, the government’s warrantless foreign-intelligence surveillance law, which lapsed in June 2026 after Congress failed to agree on reauthorization; existing authorizations run to March 2027. <span class="cite">{c('bill', 'proton', 'brennan')}</span> As of late October no federal restriction on government data purchases had been enacted. <span class="cite">{c('brennan')}</span> Montana in 2025 became the first state to pass a law blocking the government from buying sensitive data it would otherwise need a warrant to obtain. <span class="cite">{c('eff')}</span></dd></div>
+        <div><dt class="mono-b">Settled.</dt><dd>The FTC’s orders against Gravy, Venntel and Mobilewalla, and the Kochava order entered in June 2026, restrict the sale of sensitive location data by those companies. They do not regulate the buyers. <span class="cite">{c('record', 'kochavaorder')}</span></dd></div>
       </dl>
     </Section>
 
@@ -427,12 +508,12 @@ const sources = KEYS.map((k) => SRC[k]);
 
     <Section n="16" title="The off switch" ground="bottle" acid id="off">
       <div class="c-a prose">
-        <p>Layer five is the only layer in this stack that you control directly, and it takes about a minute.</p>
+        <p>Layer five is the only layer in this stack that you control directly.</p>
       </div>
       <dl class="c-full defs">
-        <div><dt class="mono-b">Android.</dt><dd>Settings, Privacy, Ads, Delete advertising ID. The exact path varies by manufacturer.</dd></div>
-        <div><dt class="mono-b">iPhone.</dt><dd>Settings, Privacy &amp; Security, Tracking. Turn off Allow Apps to Request to Track.</dd></div>
-        <div><dt class="mono-b">Every app.</dt><dd>Give location access only while the app is in use, and choose approximate location wherever the app still works with it. <span class="cite">{c('eff')}</span></dd></div>
+        <div><dt class="mono-b">Android.</dt><dd>Settings, Privacy, Ads, Delete advertising ID. The exact path varies by manufacturer. <span class="cite">{c('googleads', 'samsung')}</span></dd></div>
+        <div><dt class="mono-b">iPhone.</dt><dd>Settings, Privacy &amp; Security, Tracking. Turn off Allow Apps to Request to Track. <span class="cite">{c('apple')}</span></dd></div>
+        <div><dt class="mono-b">Location.</dt><dd>Give location only to apps that need it. Where an app needs it, allow it only while the app is in use, and turn off precise location wherever the app still works without it. <span class="cite">{c('eff')}</span></dd></div>
       </dl>
       <div class="c-a prose">
         <p>That doesn’t remove you from the voter file, and it doesn’t touch the IP address every connection carries. It does take the most precise identifier out of the auction.</p>
@@ -473,14 +554,22 @@ const sources = KEYS.map((k) => SRC[k]);
   /* A field on Void is Bottle, where a small Malachite table head fails AA. */
   .field thead th { color: var(--flash); }
 
-  /* The stack: six bands, Identity the one Acid of its surface. */
-  .layers th, .layers td { vertical-align: middle; padding-block: 14px; }
-  .layers th[scope="row"] { white-space: nowrap; }
-  .layers .ln { color: var(--flash); margin-right: 10px; }
-  .layers .lname { font-variation-settings: 'opsz' 96, 'wdth' 75, 'wght' 800; font-size: clamp(20px, 2.6vw, 34px); text-transform: uppercase; line-height: 1; }
-  .layers tr.hot th, .layers tr.hot td, .layers tr.hot .ln { background: var(--acid); color: var(--void); }
-  .layers tr.hot th { padding-left: 12px; }
-  .layers tbody th { padding-left: 12px; }
+  /* The stack, as the carousel draws it: six bands, full bleed, Bottle on Void
+     with a Void gap between them, Identity on top in Acid, the one Acid of its
+     surface (a ground, not type at scale). */
+  .stack-fig figcaption { margin-bottom: 14px; }
+  .layers { list-style: none; margin: 0 calc(-1 * var(--gutter)); padding: 0; display: grid; row-gap: 8px; }
+  .layers li { display: grid; grid-template-columns: 2.2em minmax(0, 13em) minmax(0, 1fr); column-gap: clamp(14px, 2.4vw, 28px); align-items: center; min-height: clamp(72px, 7.4vw, 108px); padding: 14px var(--gutter); background: var(--bottle); }
+  .layers .ln { color: var(--flash); }
+  .layers .lname { font-variation-settings: 'opsz' 96, 'wdth' 75, 'wght' 800; font-size: clamp(24px, 3.8vw, 56px); text-transform: uppercase; line-height: .9; overflow-wrap: anywhere; }
+  .layers .lsrc { font-size: clamp(15px, 1.35vw, 19px); line-height: 1.3; }
+  .layers .lsrc b { font-variation-settings: 'opsz' 14, 'wdth' 100, 'wght' 700; }
+  .layers li.hot { background: var(--acid); color: var(--void); }
+  .layers li.hot .ln { color: var(--void); }
+  @media (max-width: 560px) {
+    .layers li { grid-template-columns: 2em minmax(0, 1fr); row-gap: 6px; align-items: baseline; }
+    .layers .lsrc { grid-column: 2; }
+  }
 
   /* One flow record, broken between its fields so it never leaves a phone's frame. */
   .flow .rec { margin-top: 14px; color: var(--flash); line-height: 2; }
@@ -491,22 +580,37 @@ const sources = KEYS.map((k) => SRC[k]);
   .lot-wrap .mono-b { margin-bottom: 8px; }
   .lot { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); gap: 3px; max-width: 520px; }
   .sp { display: block; aspect-ratio: 1 / 1.6; background: var(--void); }
-  .sp.car { background: var(--malachite); }
+  .sp.car { background: var(--flash); }
 
-  /* The fan-out: a phone, an exchange, twelve bidders. */
-  .fan-row { display: grid; grid-template-columns: max-content 48px max-content 48px minmax(0, 1fr); align-items: center; margin-top: 18px; }
-  .node { display: block; padding: 12px 16px; border: 1px solid var(--flash); color: var(--flash); }
-  .node.phone { background: var(--acid); border-color: var(--acid); color: var(--void); }
-  .wire { display: block; height: 1px; background: var(--malachite); }
-  .bidders { list-style: none; margin: 0; padding: 0 0 0 20px; border-left: 1px solid var(--malachite); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 20px; }
-  .bidders li { position: relative; font-size: 15px; line-height: 1.3; padding: 6px 10px; border: 1px solid rgba(0, 178, 79, .5); }
-  .bidders li .mono { color: var(--flash); margin-right: 6px; }
-  .bidders li.won { background: var(--flash); border-color: var(--flash); color: var(--void); }
-  .bidders li.won .mono { color: var(--void); }
+  /* The fan-out, as the carousel draws it: the phone in Acid, what it sends
+     over it, the exchange in Flash, twelve lines fanning to twelve bidders,
+     the winner's line and mark in Flash, the rest in Malachite. On a phone the
+     phone stands over the exchange and the fan keeps its shape. */
+  .fan-row { display: grid; grid-template-columns: max-content minmax(40px, 320px) max-content; align-items: center; margin-top: 48px; }
+  .fan-src { display: flex; align-items: center; }
+  .ph { position: relative; display: flex; align-items: center; }
+  .carries { position: absolute; left: 0; bottom: 100%; margin-bottom: 10px; white-space: nowrap; color: var(--malachite); }
+  .node { display: block; padding: 12px 16px; }
+  .node.phone { background: var(--acid); color: var(--void); padding-block: 30px; }
+  .node.ex { background: var(--flash); color: var(--void); }
+  .wire { display: block; width: clamp(24px, 4vw, 64px); height: 3px; background: var(--malachite); }
+  .spray { position: relative; align-self: stretch; }
+  .spray svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .bidders { list-style: none; margin: 0; padding: 0; display: grid; grid-auto-rows: 1fr; }
+  .bidders li { display: flex; align-items: center; gap: 12px; padding-block: 5px; color: var(--malachite); }
+  .bidders li::before { content: ''; flex: none; width: 10px; height: 10px; background: currentColor; }
+  .bidders li.won { color: var(--flash); }
   @media (max-width: 760px) {
-    .fan-row { grid-template-columns: 1fr; justify-items: start; }
-    .wire { width: 1px; height: 24px; margin-left: 24px; }
-    .bidders { border-left: 0; padding-left: 0; width: 100%; grid-template-columns: 1fr; }
+    .fan-row { grid-template-columns: max-content minmax(20px, 1fr) minmax(0, max-content); margin-top: 18px; }
+    .fan-src { display: grid; grid-template-rows: 1fr auto 1fr; justify-items: start; align-self: stretch; }
+    .ph { grid-row: 1; align-self: end; flex-direction: column; align-items: flex-start; }
+    .carries { position: static; margin: 0 0 8px; }
+    .carries > span { display: block; }
+    .carries .dot { display: none; }
+    .node.phone { padding-block: 18px; }
+    .wire { width: 3px; height: 18px; margin-left: 20px; }
+    .node.ex { grid-row: 2; padding-inline: 10px; }
+    .bidders li { gap: 8px; }
   }
 
   /* A ledger of three counts: the figure, then what it counts. */
@@ -516,33 +620,72 @@ const sources = KEYS.map((k) => SRC[k]);
   .ledger-stats dd { font-size: 17px; line-height: 1.5; max-width: 62ch; }
   @media (max-width: 760px) { .ledger-stats { grid-template-columns: 1fr; row-gap: 8px; } .ledger-stats dd { margin-bottom: 14px; } }
 
-  /* The night pin: a 24-hour dial and the chain it leads to. */
-  .clock-row { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); column-gap: 0; align-items: start; margin-top: 12px; }
-  .clock svg { width: 100%; height: auto; }
-  .svg-t { font-family: 'Martian Mono', ui-monospace, monospace; font-size: 20px; letter-spacing: .04em; fill: #FFFFFF; }
-  .chain { list-style: none; margin: 0; padding: 0 0 0 20px; border-left: 1px solid var(--flash); display: grid; row-gap: 0; margin-top: calc(min(420px, 100%) * .2); }
-  .chain li { font-variation-settings: 'opsz' 36, 'wdth' 82, 'wght' 700; font-size: clamp(18px, 2vw, 24px); line-height: 1.2; padding-block: 10px; border-top: 1px solid rgba(255, 255, 255, .16); }
-  .chain li:first-child { border-top: 0; }
+  /* The night pin, as the carousel draws it: the dial, then one Shock rose
+     line from the pin to the lookup, which runs on across the gap to the
+     chain. On a phone the chain drops under the dial and the line turns down
+     the dial's right edge into the rule over it. */
+  .clock-row { --jg: clamp(40px, 6vw, 88px); display: grid; grid-template-columns: minmax(0, 470px) max-content; align-items: center; margin-top: 12px; }
+  .dial { position: relative; }
+  .clock svg { display: block; width: 100%; height: auto; }
+  .svg-t { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 500; font-size: 22px; letter-spacing: .08em; fill: #00B24F; }
+  .j-narrow { display: none; }
+  /* One element from the pin to the lookup, so the line has no seam: it starts
+     where the dial's centre is drawn (cx + 24 of the viewBox's width) and runs
+     across the gap to 16 px short of the chain. */
+  .clock .link { position: absolute; top: calc(50% - 1px); left: var(--pin); right: calc(16px - var(--jg)); height: 2px; background: var(--shock); }
+  .chain-w { position: relative; padding-left: var(--jg); }
+  .chain-w .lookup { position: absolute; left: var(--jg); bottom: 100%; margin-bottom: 18px; color: var(--shock); }
+  .chain { list-style: none; margin: 0; padding: 0; display: grid; row-gap: clamp(12px, 1.6vw, 22px); }
+  .chain li { font-size: clamp(13px, 1.3vw, 17px); letter-spacing: .14em; color: var(--flash); }
+  .chain li.adds { color: var(--malachite); }
   @media (max-width: 760px) {
-    .clock-row { grid-template-columns: 1fr; row-gap: 18px; }
-    .chain { margin-top: 0; }
+    .clock-row { grid-template-columns: minmax(0, 1fr); }
+    .clock .link { display: none; }
+    .j-narrow { display: inline; }
+    .chain-w { border-top: 2px solid var(--shock); padding: 14px 0 0; }
+    .chain-w .lookup { position: static; margin: 0 0 14px; }
   }
 
-  /* A hundred cells, 95 lit. */
-  .cells-100 { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; max-width: 360px; margin-top: 14px; }
-  .px { display: block; aspect-ratio: 1; background: var(--void); border: 1px solid rgba(0, 178, 79, .5); }
-  .px.lit { background: var(--malachite); border-color: var(--malachite); }
+  /* A hundred cells as the carousel lays them, 25 by 4: the first 95 Flash,
+     the last 5 Void, on the field's Bottle. */
+  .cells-100 { display: grid; grid-template-columns: repeat(25, minmax(0, 1fr)); gap: clamp(2px, .3vw, 5px); max-width: 560px; margin-top: 14px; }
+  .px { display: block; aspect-ratio: 1; background: var(--void); }
+  .px.lit { background: var(--flash); }
 
   /* Fifty states, one cell each. On Bottle, so the field is Void. */
   .waffle { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; max-width: 360px; margin-top: 14px; }
   .w, .sw { display: block; aspect-ratio: 1; }
   .w.a, .sw.a { background: var(--acid); }
   .w.m, .sw.m { background: var(--malachite); }
-  .w.d, .sw.d { background: var(--bottle); border: 1px solid rgba(255, 255, 255, .5); }
+  .w.d { background: var(--bottle); }
+  .sw.d { background: var(--bottle); border: 1px solid rgba(255, 255, 255, .5); }
+  /* The waffle's own key, as the carousel sets it: the count, then the rule. */
+  .wkey { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 14px; max-width: 460px; margin-top: 18px; }
+  .wkey dt { font-variation-settings: 'wdth' 75, 'wght' 300; font-size: clamp(30px, 3vw, 40px); letter-spacing: -.02em; line-height: 1; }
+  .wkey .m dt { color: var(--malachite); }
+  .wkey dd { margin-top: 8px; line-height: 1.4; }
   .key { list-style: none; margin: 0 0 1.1em; padding: 0; display: grid; row-gap: 10px; max-width: 62ch; }
   .key li { display: grid; grid-template-columns: 18px minmax(0, 1fr); column-gap: 14px; align-items: baseline; }
   .key .sw { width: 18px; height: 18px; align-self: start; margin-top: .3em; }
   .key .sw.d { background: var(--void); }
+
+  /* The VoterMatch join, as the carousel draws it: the voter file and the ad
+     data meet in one Flash box; under it what comes out. On a phone the two
+     stand over and under the box. */
+  .join-row { display: grid; grid-template-columns: max-content minmax(24px, 1fr) max-content minmax(24px, 1fr) max-content; grid-template-areas: "l w1 j w2 r" ". . o o o"; align-items: center; row-gap: 18px; margin-top: 22px; max-width: 760px; }
+  .jl { grid-area: l; } .jr { grid-area: r; text-align: right; }
+  .jw1 { grid-area: w1; } .jw2 { grid-area: w2; }
+  .jw { display: block; height: 3px; background: var(--malachite); }
+  .jbox { grid-area: j; display: grid; place-items: center; width: clamp(72px, 7vw, 100px); aspect-ratio: 1; background: var(--flash); color: var(--void); font-size: clamp(13px, 1.2vw, 16px); }
+  .jo { grid-area: o; color: var(--malachite); }
+  .join .jh { color: var(--malachite); margin-bottom: 10px; }
+  .join ul { list-style: none; margin: 0; padding: 0; display: grid; row-gap: 10px; font-size: clamp(12px, 1.2vw, 15px); }
+  @media (max-width: 760px) {
+    .join-row { grid-template-columns: 72px minmax(0, 1fr); grid-template-areas: "l l" "w1 ." "j o" "w2 ." "r r"; column-gap: 16px; row-gap: 0; }
+    .jr { text-align: left; }
+    .jw { width: 3px; height: 26px; justify-self: center; }
+    .jl { margin-bottom: 16px; } .jr { margin-top: 16px; }
+  }
 
   /* The three trades, each in its own field, as The Countersign's claims. */
   .trades { display: grid; row-gap: 14px; }
