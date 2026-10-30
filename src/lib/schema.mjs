@@ -21,12 +21,18 @@
 import fs from 'node:fs';
 import { SITE, abs } from '../config.mjs';
 import { LICENCE, SERIES, edition, describe, headline } from './editions.mjs';
-import { zoned } from './dates.mjs';
+import { zoned, zonedInstant } from './dates.mjs';
+import { lead } from './lead.mjs';
+import { film } from './films.mjs';
+import { transcript } from './transcripts.mjs';
 
 const OG = JSON.parse(fs.readFileSync('src/lib/og-manifest.json', 'utf8'));
 
 export const ORG_ID = `${SITE.origin}/#org`;
-export const PERSON_ID = `${SITE.origin}/#jesse`;
+// The author's node lives on /about since 30 Oct 2026, the page that is about him (it was the home's #jesse).
+export const PERSON_ID = `${SITE.origin}/about#jesse`;
+/** An edition's watch page: its film's own page (CLAUDE.md, Decisions log, 30 Oct 2026). */
+export const watchPath = (e) => `${e.path}/film`;
 
 // A bare host is a URL only when it is written in lower case and ends in a
 // known top-level domain or carries a path: "Unite.AI" names an outlet,
@@ -132,6 +138,7 @@ export const person = () => ({
   '@type': 'Person',
   '@id': PERSON_ID,
   name: SITE.author,
+  url: abs('/about'),
   sameAs: [SITE.channel, SITE.linkedin],
 });
 
@@ -159,8 +166,12 @@ export const articleGraph = (e, { alternativeHeadline, sources } = {}) => {
     inLanguage: SITE.locale,
     author: { '@type': 'Person', '@id': PERSON_ID, name: SITE.author },
     publisher: { '@id': ORG_ID },
-    image: card ? [abs(card.src)] : [],
+    // The lead image's three frames first (a figure of the edition's own, not text; src/lib/lead.mjs), then the
+    // type card, which stays og:image (override 2). A draft has no lead image yet.
+    image: [...(e.draft ? [] : lead(e.slug)?.frames ?? []).map((f) => abs(f.src)), ...(card ? [abs(card.src)] : [])],
   };
+  // The film, by reference only: its VideoObject lives on the watch page, whose main content it is.
+  if (!e.draft && film(e.slug)) article.video = { '@id': `${abs(watchPath(e))}#video` };
   const cited = citations(sources);
   if (cited.length) article.citation = cited;
   if (e.amends) article.isBasedOn = abs(edition(e.amends).path);
@@ -173,4 +184,64 @@ export const articleGraph = (e, { alternativeHeadline, sources } = {}) => {
     ],
   };
   return { '@context': 'https://schema.org', '@graph': [article, organization(), person(), crumbs] };
+};
+
+/**
+ * A watch page's graph (CLAUDE.md, Decisions log, 30 Oct 2026): the VideoObject whose page it is, the Organization,
+ * the Person and the breadcrumbs. Every value is read from src/lib/films.json (the id, the measured length, the
+ * poster and the thumbnail), the film's transcript (src/lib/transcripts, the ledger's upload time and the chapters)
+ * and the edition. uploadDate is the ledger's upload time, in SITE.timeZone with its offset; a Clip per chapter runs
+ * from its start to the next chapter's, and its url is the watch page at that second (?t=), which the page's player
+ * starts from.
+ */
+export const videoGraph = (e) => {
+  const f = film(e.slug);
+  const t = transcript(e.slug);
+  const url = abs(watchPath(e));
+  const name = `${e.title}: the film`;
+  const video = {
+    '@type': 'VideoObject',
+    '@id': `${url}#video`,
+    name,
+    description: describe(e),
+    thumbnailUrl: [abs(f.poster.src), abs(f.thumb.src2x), abs(f.thumb.src)],
+    uploadDate: zonedInstant(t.uploaded),
+    duration: f.iso,
+    embedUrl: f.embed,
+    url,
+    mainEntityOfPage: url,
+    inLanguage: SITE.locale,
+    isAccessibleForFree: true,
+    publisher: { '@id': ORG_ID },
+    creator: { '@type': 'Person', '@id': PERSON_ID, name: SITE.author },
+    isBasedOn: abs(e.path),
+    transcript: t.chapters.map((c) => c.paragraphs.join('\n\n')).join('\n\n'),
+    hasPart: t.chapters.map((c) => ({ '@type': 'Clip', name: c.title, startOffset: c.t, endOffset: c.end, url: `${url}?t=${c.t}` })),
+  };
+  const crumbs = {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: SITE.name, item: abs('/') },
+      { '@type': 'ListItem', position: 2, name: e.title, item: abs(e.path) },
+      { '@type': 'ListItem', position: 3, name: 'Film', item: url },
+    ],
+  };
+  return { '@context': 'https://schema.org', '@graph': [video, organization(), person(), crumbs] };
+};
+
+/** /about, /standards and /amendments: a ProfilePage whose mainEntity is the Person on /about, a WebPage elsewhere. */
+export const pageGraph = ({ path, name, description, profile = false }) => {
+  const url = abs(path);
+  const page = {
+    '@type': profile ? 'ProfilePage' : 'WebPage',
+    '@id': `${url}#page`,
+    name,
+    description,
+    url,
+    inLanguage: SITE.locale,
+    isPartOf: { '@type': 'WebSite', name: SITE.name, url: SITE.origin },
+    publisher: { '@id': ORG_ID },
+    ...(profile ? { mainEntity: { '@id': PERSON_ID } } : { author: { '@id': PERSON_ID } }),
+  };
+  return { '@context': 'https://schema.org', '@graph': [page, organization(), person()] };
 };

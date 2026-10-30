@@ -1,0 +1,202 @@
+{
+  "the-floor": {
+    "figure": "figure[aria-label=\"Measured throughput by channel width, against the chip's peak\"]",
+    "why": "The bench bars are the edition: what the radio measured at each channel width, against the 32.5 Mbps peak the datasheet gives.",
+    "alt": "A figure from The Floor: Measured throughput by channel width, against the chip's peak, on dark green.",
+    "16x9": {
+      "src": "/lead/the-floor-16x9.9b16efdb.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/the-floor-4x3.d1981896.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/the-floor-1x1.f7c5292d.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "edition-02": {
+    "figure": "div.scroll[aria-label^=\"One die, five permissions\"]",
+    "why": "No chart on the page; the delta table is its one figure, the same die in five configurations, and it is the argument.",
+    "alt": "A figure from The Subtraction: One die, five permissions: the specification delta, on black.",
+    "16x9": {
+      "src": "/lead/edition-02-16x9.5804cfe5.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/edition-02-4x3.10009681.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/edition-02-1x1.d1c709b1.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "the-countersign": {
+    "figure": "figure[aria-label=\"GOAT market value at four reported points, log scale\"]",
+    "why": "The climb, launch to peak on a log scale: the one picture of the money the edition is about.",
+    "alt": "A figure from The Countersign: GOAT market value at four reported points, log scale, on black.",
+    "16x9": {
+      "src": "/lead/the-countersign-16x9.1117541d.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/the-countersign-4x3.ecacc719.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/the-countersign-1x1.33585460.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "the-supply-cabinet": {
+    "figure": "figure[aria-label=\"What 100 agents did after one of them found the hole\"]",
+    "why": "The split: what a hundred agents did once one found the hole, the four-way figure the print set as its cover number.",
+    "alt": "A figure from The Supply Cabinet: What 100 agents did after one of them found the hole, on black.",
+    "16x9": {
+      "src": "/lead/the-supply-cabinet-16x9.b34f9a22.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/the-supply-cabinet-4x3.cf8d4130.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/the-supply-cabinet-1x1.f6313218.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "the-fourth-axis": {
+    "figure": "figure[aria-label=\"Qwen3-Next 80B-A3B, 48 layers: 36 linear, 12 full attention\"]",
+    "why": "Qwen3-Next's 48 layers in their 3:1 order: the token axis as a shipped model lays it out, a grid of cells that fills the frame, where the path diagrams are thin strips.",
+    "alt": "A figure from The Fourth Axis: Qwen3-Next 80B-A3B, 48 layers: 36 linear, 12 full attention, on dark green.",
+    "16x9": {
+      "src": "/lead/the-fourth-axis-16x9.3c2a5c8d.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/the-fourth-axis-4x3.ea1607c9.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/the-fourth-axis-1x1.160e0c29.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "the-tilt-gap": {
+    "figure": "figure[aria-label=\"Hours of play behind each result, log scale\"]",
+    "why": "Hours of play behind each result on a log scale: the exhaust the thesis rests on, as bars.",
+    "alt": "A figure from The Tilt Gap: Hours of play behind each result, log scale, on black.",
+    "16x9": {
+      "src": "/lead/the-tilt-gap-16x9.f80efe4c.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/the-tilt-gap-4x3.68c45fc6.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/the-tilt-gap-1x1.61562c14.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "edition-03": {
+    "figure": "figure[aria-label=\"USD per node, log scale\"]",
+    "why": "The four node prices on a log scale: the markup itself.",
+    "alt": "A figure from The Markup: USD per node, log scale, on black.",
+    "16x9": {
+      "src": "/lead/edition-03-16x9.70d485ad.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/edition-03-4x3.ccedf429.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/edition-03-1x1.8d055273.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "ns-02": {
+    "figure": "section[aria-labelledby=\"days-h\"] > .grid",
+    "why": "No chart on the page; the twenty-four days as eight dates in two columns is its one figure, the timeline the edition is built on.",
+    "alt": "A figure from The Closest Humans: , on dark green.",
+    "16x9": {
+      "src": "/lead/ns-02-16x9.99436c15.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/ns-02-4x3.3554b45c.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/ns-02-1x1.d5aaecec.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "ns-01": {
+    "figure": "div.field.doors",
+    "why": "The four doors, with the two OpenAI went through marked: the diagram the edition turns on.",
+    "alt": "A figure from The Hand in the Water: The four admissible answers, on dark green.",
+    "16x9": {
+      "src": "/lead/ns-01-16x9.873996ba.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/ns-01-4x3.7f6b4851.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/ns-01-1x1.87e5121e.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "edition-01": {
+    "figure": "figure[aria-label=\"Exploit rate across 13 frontier models, range\"]",
+    "why": "The exploit-rate range across thirteen models: measured bars, where the cliff chart beside it is a schematic and the plasticity chart a qualitative placement.",
+    "alt": "A figure from The Snapshot Problem: Exploit rate across 13 frontier models, range, on black.",
+    "16x9": {
+      "src": "/lead/edition-01-16x9.ad498c4e.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/edition-01-4x3.d37361a7.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/edition-01-1x1.f93429f6.png",
+      "width": 1200,
+      "height": 1200
+    }
+  }
+}

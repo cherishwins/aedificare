@@ -35,6 +35,7 @@ import Section from '../components/Section.astro';
 import SameThread from '../components/SameThread.astro';
 import EditionEnd from '../components/EditionEnd.astro';
 import Formats from '../components/Formats.astro';
+import Byline from '../components/Byline.astro';
 import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { edition, describe, pageTitle, seedDrift, seedNumber } from '../lib/editions.mjs';
@@ -192,7 +193,7 @@ const graph = articleGraph(ed, { alternativeHeadline: `Printed as ${ed.print}`, 
         <Formats slug={ed.slug} />
       </div>
       <div class="foot mono cover-foot">
-        <span>{ed.dateLabel} · {SITE.author}</span>
+        <Byline e={ed} />
         <span>r = cos(kθ) · seed {ed.seed} · k 5/7/3</span>
       </div>
     </section>

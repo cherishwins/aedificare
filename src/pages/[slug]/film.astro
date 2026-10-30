@@ -1,0 +1,123 @@
+---
+/**
+ * A film's watch page, /<slug>/film (CLAUDE.md, Decisions log, 30 Oct 2026): a page whose main content is the film,
+ * so it can stand in video results. Google gives those only to such a page and does not run a player that waits for
+ * a click, so here, and only here, YouTube's player is a real iframe in the server's HTML and loads as the page
+ * opens; the edition's own page keeps click-to-play (src/components/FilmPlayer.astro), and the sweep proves both
+ * (tools/verify.cjs). The rail says what the page loads, as /standards does.
+ *
+ * Everything is read, nothing typed: the film from src/lib/films.json, the transcript and chapters from
+ * src/lib/transcripts/<slug>.json (tools/transcripts.mjs, from the release the film's ledger names), the words from
+ * the edition. A chapter is a link to this page at its second (?t=), and the one inline script below passes that
+ * second to the player as `start` before it has loaded anything; without the script the player starts at 0:00.
+ */
+import Base from '../../layouts/Base.astro';
+import Masthead from '../../components/Masthead.astro';
+import Rail from '../../components/Rail.astro';
+import SiteLinks from '../../components/SiteLinks.astro';
+import { edition, describe, label, LICENCE } from '../../lib/editions.mjs';
+import { films, film, clock, isoDuration } from '../../lib/films.mjs';
+import { transcript } from '../../lib/transcripts.mjs';
+import { videoGraph, watchPath } from '../../lib/schema.mjs';
+import { zonedInstant } from '../../lib/dates.mjs';
+
+export function getStaticPaths() {
+  return films().map((f) => ({ params: { slug: f.slug } }));
+}
+const { slug } = Astro.params;
+const e = edition(slug);
+const f = film(slug);
+const t = transcript(slug);
+const path = watchPath(e);
+const name = `${e.title}: the film`;
+// The acid word of the title, as on the edition's cover: this surface's one Acid.
+const [before, after] = e.title.split(e.acid);
+const day = zonedInstant(t.uploaded).slice(0, 10);
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const dayLabel = `${+day.slice(8)} ${MONTHS[+day.slice(5, 7) - 1]} ${day.slice(0, 4)}`;
+---
+<Base title={name} description={describe(e)} path={path} ogImage={`/og/${e.slug}.png`} schema={[videoGraph(e)]}>
+  <main id="main">
+    <section class="surface watch-cover" aria-label="Cover">
+      <Masthead />
+      <div class="grid">
+        <h1 class="c-full display watch-h">{before}<span class="acid">{e.acid}</span>{after}: the film{e.dek && <span class="dek"><span class="sr">. </span>{e.dek}</span>}</h1>
+        <p class="c-full mono-b record">Film · <time datetime={f.iso}>{f.length}</time> · Uploaded <time datetime={day}>{dayLabel}</time> · Voice synthetic</p>
+      </div>
+    </section>
+
+    <section class="surface tight bottle" id="film" aria-label="Film">
+      <div class="grid">
+        <div class="c-a watch-player">
+          <iframe id="player" src={f.embed} title={`${e.title}, film, ${f.length}, YouTube player`} width="1280" height="720" loading="eager" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          <script is:inline>(() => { const s = +new URLSearchParams(location.search).get('t'); if (Number.isInteger(s) && s > 0) { const p = document.getElementById('player'); p.src += '&start=' + s; } })();</script>
+        </div>
+        <Rail class="c-b" items={[
+          ['Player', 'YouTube, in its privacy-enhanced mode, loaded as this page opens: this page is the film’s, so the player does not wait for a press. From then YouTube’s terms and Google’s privacy policy apply to it. The edition’s own page loads nothing from YouTube until its poster is pressed.'],
+          ['Links', `<a class="block-link mono-b" href="${f.url}">youtube.com · ${f.length}</a><a class="block-link mono-b" href="https://www.youtube.com/t/terms">YouTube terms</a><a class="block-link mono-b" href="/privacy.txt">Privacy</a>`],
+        ]} />
+      </div>
+    </section>
+
+    <section class="surface" aria-labelledby="about-h">
+      <div class="grid">
+        <h2 class="c-full mono-b" id="about-h">The edition</h2>
+        <p class="c-a lede">{describe(e)}</p>
+        <a class="c-full block-link mono-b back" href={e.path}>Read the edition · {label(e)}</a>
+      </div>
+    </section>
+
+    <section class="surface bottle" id="chapters" aria-labelledby="chapters-h">
+      <div class="grid">
+        <h2 class="c-full display sub" id="chapters-h">Chapters</h2>
+        <ol class="c-full chapters mono-b">
+          {t.chapters.map((c) => (
+            <li><a class="block-link" href={`${path}?t=${c.t}`}><time datetime={isoDuration(c.t)}>{clock(c.t)}</time> · {c.title}</a></li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <section class="surface" id="transcript" aria-labelledby="transcript-h">
+      <div class="grid">
+        <h2 class="c-full display sub" id="transcript-h">Transcript</h2>
+        <p class="c-full mono note">The narration as the film speaks it, chapter by chapter. The voice is synthetic; the words are the edition’s.</p>
+        {t.chapters.map((c) => (
+          <div class="c-a prose part">
+            <h3 class="mono-b" id={`at-${c.t}`}>{clock(c.t)} · {c.title}</h3>
+            {c.paragraphs.filter((p, i) => !(i === 0 && p === c.title)).map((p) => <p>{p}</p>)}
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <footer class="foot mono">
+      <span>Aedificare · {e.dateLabel} · <a href={LICENCE.url} rel="license">{LICENCE.name}</a></span>
+      <SiteLinks />
+      <span>Film · {f.length}</span>
+    </footer>
+  </main>
+</Base>
+
+<style>
+  .watch-cover { padding-block: 0 clamp(32px, 6vh, 72px); }
+  .watch-h { font-size: clamp(44px, 8.4vw, 150px); max-width: 16ch; margin-top: clamp(24px, 5vh, 64px); }
+  .watch-h .dek { margin-left: 0; }
+  .record { color: var(--malachite); }
+  .watch-player { position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 200px; background: var(--field); align-self: start; }
+  .watch-player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  #film .rail .block-link { display: block; padding-block: 6px; }
+  .back { color: var(--flash); }
+  .back:hover, .back:focus-visible { color: var(--acid); }
+  .sub { font-size: clamp(40px, 7vw, 112px); }
+  .chapters { list-style: none; columns: 2; column-gap: clamp(24px, 4vw, 64px); max-width: 90ch; }
+  .chapters li { break-inside: avoid; }
+  .chapters a { padding-block: 8px; }
+  .chapters a:hover, .chapters a:focus-visible { color: var(--acid); }
+  .note { color: var(--malachite); }
+  .part h3 { margin-bottom: 14px; color: var(--malachite); }
+  .part { margin-top: 12px; }
+  /* A quoted file name runs as one word ("hundreds_[...]_please"): it breaks rather than run off a phone. */
+  .part p { overflow-wrap: anywhere; }
+  @media (max-width: 760px) { .chapters { columns: 1; } }
+</style>

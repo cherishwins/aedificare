@@ -17,6 +17,11 @@ This site uses YouTube API Services to show that player. Aedificare
 receives nothing from the player and keeps no record of who pressed it or
 what they watched.
 
+Each film also has its own page, at the edition's address followed by
+/film, which exists to show the film with its chapters and transcript.
+There the same player loads as the page opens, without a press, and from
+that moment the same terms and policy apply to it.
+
 
 2. The Aedificare uploader
 

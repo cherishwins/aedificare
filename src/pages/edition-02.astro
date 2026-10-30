@@ -14,6 +14,7 @@ import Masthead from '../components/Masthead.astro';
 import RoseField from '../components/RoseField.astro';
 import EditionEnd from '../components/EditionEnd.astro';
 import Formats from '../components/Formats.astro';
+import Byline from '../components/Byline.astro';
 import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { edition, LICENCE, describe, pageTitle } from '../lib/editions.mjs';
@@ -110,7 +111,7 @@ const graph = articleGraph(ed, { sources });
         <Formats slug={ed.slug} />
       </div>
       <div class="foot mono cover-foot">
-        <span>{ed.dateLabel} · Jesse James</span>
+        <Byline e={ed} />
         <span>r = cos(kθ) · seed k 5/7/3 · NVIDIA CMP 170HX / GA100</span>
       </div>
     </section>

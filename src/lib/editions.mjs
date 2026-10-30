@@ -18,7 +18,9 @@
  *
  * `amends: '<slug>'` links an amendment to what it amends. Both sides get
  * a note, typed nowhere: the amendment says what it amends, the amended
- * says when, and only once the amendment is published.
+ * says when, and only once the amendment is published. `amendSummary` is
+ * what /amendments says the amendment changed (30 Oct 2026); a published
+ * amendment without one fails the build there.
  *
  * `youtube: { film, short }` is the film's and the Short's YouTube title
  * (owner, 20 Oct 2026): the searchable noun inside the first 40 characters,
@@ -159,6 +161,9 @@ const RAW = [
     modified: '2026-10-18',
     series: 'haven', seriesOrder: 2,
     amends: 'edition-03', pdf: null,
+    // What /amendments says this amendment changed: the checker's wording of 30 Oct 2026, which names both lines The
+    // Floor answers (the throughput row and the Canada line) and which chip each number belongs to.
+    amendSummary: "The Markup filled its throughput row from a datasheet: 43.3 Mbps, the physical-layer peak of the chip it priced. A year earlier the builder of the radio had measured the first version, on the chip before it, at 15 Mbps each way on an 8 MHz channel, and the chipmaker's own bench put the newer chip at up to 30. The Markup also said point-to-point links in Canada may run a higher e.i.r.p.; RSS-247 allows that at 2.4 and 5.8 GHz, not at 902 to 928 MHz. The price stands. The throughput row and the Canada line do not.",
     contents: [
       { n: '00', t: 'The number', id: 'number' },
       { n: '01', t: 'What The Markup did not have', id: 'missing' },
@@ -346,6 +351,9 @@ const RAW = [
     series: 'navier-stokes', seriesOrder: 2,
     seed: '0902', k: [6, 11], pdf: '/pdf/ns-02.pdf',
     amends: 'ns-01',
+    // What /amendments says this amendment changed: the checker's wording of 30 Oct 2026, which names all three lines
+    // The Closest Humans answers (whose method, the second author, OpenAI's later denial).
+    amendSummary: "The Hand in the Water read as though the forcing method belonged to Buckmaster and Alpöge. It belongs to Diego Córdoba and Luis Martínez-Zoroa in Madrid, and Buckmaster and Alpöge built on it. It also named one man where there were two: Alpöge is a co-equal author. And it quoted OpenAI's first word, that it could not rule out de-identified usage data helping its models. On 10 September OpenAI said its own investigation showed Buckmaster's Codex prompts could not have influenced the system.",
     // The contents, as printed on the home. tools/check-contents.cjs fails
     // the build if any id or title here is missing from the built page.
     contents: [

@@ -21,6 +21,7 @@ import Section from '../components/Section.astro';
 import Stats from '../components/Stats.astro';
 import EditionEnd from '../components/EditionEnd.astro';
 import Formats from '../components/Formats.astro';
+import Byline from '../components/Byline.astro';
 import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { edition, LICENCE, describe, seedDrift, pageTitle } from '../lib/editions.mjs';
@@ -214,7 +215,7 @@ const graph = articleGraph(ed, { sources });
         <Formats slug={ed.slug} />
       </div>
       <div class="foot mono cover-foot">
-        <span>{ed.dateLabel} · {SITE.author}</span>
+        <Byline e={ed} />
         <span>r = cos(kθ) · seed {ed.seed} · CoreWeave, 30 Jun 2026</span>
       </div>
     </section>

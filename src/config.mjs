@@ -15,6 +15,9 @@ export const SITE = {
   channel: 'https://www.youtube.com/@aedificare_art',
   // The author's own profile, written here and nowhere else: the JSON-LD Person's sameAs reads it (30 Oct 2026).
   linkedin: 'https://www.linkedin.com/in/jessecares',
+  // The author's contact address for /about, written here and nowhere else once the owner sends it (30 Oct 2026).
+  // Until then it is null and /about prints no contact line: a placeholder never reaches a live page.
+  contact: null,
   // The author's local time, which an edition's date is in. A date with no time is set at its 00:00 there.
   timeZone: 'America/Vancouver',
 };

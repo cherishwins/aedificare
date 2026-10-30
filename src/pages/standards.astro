@@ -1,0 +1,40 @@
+---
+/**
+ * /standards: how the editions are made (the owner's copy, source/about-standards-amendments.md, as written, with the
+ * changes the Decisions log of 30 Oct 2026 records): Corrections states the practice the record shows (pages
+ * corrected in place with a dated note, the print as issued, an amending edition where the correction is the story),
+ * Tools names the AI tools' whole role, the bracketed notes are left out, the bold lead-ins are headings, and the
+ * link to /amendments stands after the sentence that names it. "No advertising" says what the watch pages load.
+ */
+import PlainPage from '../components/PlainPage.astro';
+import { pageGraph } from '../lib/schema.mjs';
+
+const title = 'Editorial standards · Aedificare';
+const description = 'How the Aedificare editions are sourced, how opinion is marked, how errors are corrected, and how the films and the AI tools behind them are disclosed.';
+const graph = pageGraph({ path: '/standards', name: title, description });
+const parts = [
+  ['Sources', ['Every figure carries a bracketed number. The number points to a source in that edition\'s list, with a link. Where a primary source exists, that\'s the one cited: the filing, the paper, the contract, the datasheet, the bench video.']],
+  ['Measured and reported', ['A figure marked as measured comes from a source that measured it. A figure the press published on a stated day is carried with its date, as reported, and is never re-derived here.']],
+  ['Opinion', ['Opinion is set on its own surface, signed, and labelled View. It never shares a sentence with a cited fact. Everything outside a View is reporting.']],
+  ['Corrections', ['When a source says less than a page, the page is corrected, and a dated note under its sources says what was checked and when. The print stays as issued. Where the correction is the story, a later edition amends the earlier one by name and both say so. Every amendment is listed under amendments.'], ['/amendments', 'Amendments']],
+  ['Films', ['Each film retells its edition. The narration voice is synthetic. The frames and the music are computed from a formula with a fixed seed. Every film description says so.']],
+  ['Tools', ['Research, source checking, drafting, the films and this site are made with AI tools, including Claude. Every figure links to its source so you can check it yourself, and I decide what is published.']],
+  ['No advertising', ['No ads, sponsors, paywall or sign-up. The site runs no analytics and no ad tracking. On an edition page, the film player doesn\'t contact YouTube until you press play. Each film also has its own watch page, which exists to show the film, so its player loads from YouTube when the page opens.']],
+  ['Licence', ['CC BY 4.0. Quote, repeat, translate, train. Credit Aedificare and link the edition.']],
+];
+---
+<PlainPage title={title} heading="Standards" description={description} path="/standards" schema={[graph]}>
+  <section class="surface plain" aria-label="Standards">
+    <div class="grid">
+      <div class="c-a prose">
+        {parts.map(([h, ps, link]) => (
+          <div class="item">
+            <h2 class="mono-b">{h}</h2>
+            {(ps as string[]).map((p) => <p>{p}</p>)}
+            {link && <p class="links mono-b"><a class="block-link" href={(link as string[])[0]}>{(link as string[])[1]}</a></p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</PlainPage>

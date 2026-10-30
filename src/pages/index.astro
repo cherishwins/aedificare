@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import Masthead from '../components/Masthead.astro';
 import RoseField from '../components/RoseField.astro';
 import FilmLink from '../components/FilmLink.astro';
+import SiteLinks from '../components/SiteLinks.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { PUBLISHED, LICENCE, numberWord } from '../lib/editions.mjs';
 import fs from 'node:fs';
@@ -66,6 +67,7 @@ const fullTitle = 'Aedificare · Dated editions on technology, by Jesse James';
 
     <footer class="foot mono">
       <span>Aedificare · 2026 · <a href={LICENCE.url} rel="license">{LICENCE.name}</a></span>
+      <SiteLinks />
       <span>Mark seed AED-M-01 · k = 5</span>
     </footer>
   </main>

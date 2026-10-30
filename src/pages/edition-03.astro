@@ -7,6 +7,7 @@ import Rail from '../components/Rail.astro';
 import Stats from '../components/Stats.astro';
 import EditionEnd from '../components/EditionEnd.astro';
 import Formats from '../components/Formats.astro';
+import Byline from '../components/Byline.astro';
 import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { edition, LICENCE, describe, pageTitle } from '../lib/editions.mjs';
@@ -71,7 +72,7 @@ const graph = articleGraph(ed, { alternativeHeadline: `Printed as ${ed.print}`, 
         <Formats slug={ed.slug} />
       </div>
       <div class="foot mono cover-foot">
-        <span>{ed.dateLabel} · {SITE.author}</span>
+        <Byline e={ed} />
         <span>r = cos(kθ) · seed {ed.seed}</span>
       </div>
     </section>

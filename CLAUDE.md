@@ -40,11 +40,14 @@ Shipped (2026-09-15):
 | `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01), eleven sections, fifty-four sources | live (2026-10-18, sourced from scratch, every source that could be opened opened; the three lines The Closest Humans answers stay as printed) |
 | `/ns-02` | 13 Sep 2026 · *The Closest Humans* (printed as NS-02), amends The Hand in the Water, eleven sections, forty-four sources | live (2026-10-18, sourced from scratch, each side of the disputed calls given with its own source) |
 | `/edition-02` | 18 Oct 2026 · *The Subtraction* (printed as Edition 02), nine sections, thirty-six sources | live (2026-10-18, sourced from scratch; no PDF, none was issued) |
+| `/<slug>/film` | each linked film's watch page (eight: `/the-floor/film`, `/the-countersign/film`, `/the-supply-cabinet/film`, `/the-fourth-axis/film`, `/the-tilt-gap/film`, `/ns-02/film`, `/ns-01/film`, `/edition-01/film`): the player as a real iframe in the server's HTML, length, upload day, the description, chapters as `?t=` links, the full transcript, `VideoObject` with a Clip per chapter (Decisions log, 30 Oct 2026) | generated |
+| `/about` `/standards` `/amendments` | the person, the method, and every amendment generated from the editions list; the owner's copy (`source/about-standards-amendments.md`) with the changes the Decisions log of 30 Oct 2026 records; linked from every page's footer | live |
 | `/404` | | live |
-| `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/sitemap-news.xml` `/ai.txt` `/humans.txt` | discoverability (`/sitemap.xml` 308s to the index; Discoverability) | generated or static |
+| `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/sitemap-news.xml` `/sitemap-video.xml` `/ai.txt` `/humans.txt` | discoverability (`/sitemap.xml` 308s to the index; Discoverability) | generated or static |
 | `/68ce724887380cc177ba53cc75658d16.txt` | the IndexNow key, public by design (`public/68ce724887380cc177ba53cc75658d16.txt`; Discoverability) | static |
-| `/privacy.txt` | the privacy statement: first the films' player on the editions (what the press loads, what applies from then on; YouTube's API terms require it of a site that embeds the player, 2026-10-26), then the YouTube uploader's, which Google's consent screen needs before the app can leave Testing (2026-10-17); plain text like `humans.txt`, not a page, linked from the rail beside every player | static |
+| `/privacy.txt` | the privacy statement: first the films' player on the editions (what the press loads, what applies from then on; YouTube's API terms require it of a site that embeds the player, 2026-10-26) and on the watch pages (loaded as the page opens, 2026-10-30), then the YouTube uploader's, which Google's consent screen needs before the app can leave Testing (2026-10-17); plain text like `humans.txt`, not a page, linked from the rail beside every player | static |
 | `/index.json` `/og/desk.png` | the index as JSON and the desk's card, for apt.grok.me to fetch and hotlink | generated |
+| `/lead/*.png` | each published edition's lead image, one of its own figures rendered alone at 16:9, 4:3 and 1:1, content-hashed (`src/lib/lead-manifest.json`), first in its NewsArticle's `image` (Decisions log, 30 Oct 2026) | rendered by hand, checked by the build |
 | `/film/*.png` | each linked film's own thumbnail, reduced and content-hashed, beside a link to its YouTube watch page at the edition's end and on the home (Decisions log, 21 Oct 2026) | generated |
 | `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-09.pdf` `/pdf/edition-10.pdf` `/pdf/edition-11.pdf` | the print editions as uploaded | as uploaded |
 
@@ -259,7 +262,24 @@ published edition in the sitemap (a page the sitemap drops fails, and is
 still checked), drafts noindex and out of the sitemap, a pages sitemap in
 the index, every sitemap `<loc>` a built page with no slash, and no
 trailing slash on any address of this origin in the feed, `llms.txt`,
-`index.json` or a page's links. `tools/films.mjs --check`,
+`index.json` or a page's links; since part B (30 Oct 2026) also every
+watch page and `/about`, `/standards` and `/amendments` in the sitemap with
+one h1 and their canonical, the video sitemap listing every watch page
+with its embed URL, length and dated upload, a watch page's `VideoObject`
+whole (name, description, thumbnails that are built files, an offset
+`uploadDate`, the measured duration, the embed URL, publisher, creator,
+transcript, a Clip per chapter whose url is the page at its second), exactly
+one iframe in its HTML (the embed URL, no autoplay) and no iframe on any
+other page, every chapter link one of its chapters, every published
+edition's NewsArticle opening its `image` with its lead figure's three
+frames and ending with the card and naming its film by `@id` alone, every
+edition's byline dated as its `datePublished`, every Person node the one on
+`/about`, and every page's footer linking the three pages on the method.
+`node tools/transcripts.mjs --check`, the build's second step, holds
+`src/lib/transcripts` to the linked films (one per film, for its current
+id, none left over), and `src/lib/lead.mjs` holds the lead manifest to the
+published editions and the files under `public/lead/` on first use, so the
+build stops on either. `tools/films.mjs --check`,
 the build's first step, holds `src/lib/films.json` to the published editions,
 each entry to its own edition's release and the thumbnails on disk, and
 `tools/films.mjs --check --online` in `verify.yml` holds each link to what its
@@ -270,7 +290,12 @@ live, every field's reduced-motion still, and no request to any host but the
 page's own until the reader plays a film (then one iframe, YouTube's
 privacy-enhanced player, made by the click and never shipped in a page;
 the film probe plays every player by mouse, Space and Enter and proves
-it; Decisions log, 26 Oct 2026).
+it; Decisions log, 26 Oct 2026). **The one exception is a watch page**
+(`/<slug>/film`, Decisions log, 30 Oct 2026): it ships its player in the
+server's HTML, and the sweep asserts exactly one iframe there, the embed
+URL with no autoplay, that the only request off the origin it makes is
+that player, and that `?t=61` starts it at 61 seconds; every other page
+keeps the rule as it was.
 
 **Human duties** (cannot fail a build; review by eye on every PR): one loud
 move per surface; never explain what the entity does; twelve words maximum
@@ -278,7 +303,9 @@ in display copy; the dove once per *sequence* (the sweep can count doves per
 page, "sequence" is editorial); no building pun; no tagline; no call to
 action; every source of a ported edition opened before `draft` is
 flipped; after `npm run og`, every card whose content did not change
-restored to its committed bytes (see Discoverability); the home's
+restored to its committed bytes (see Discoverability), and the same for
+`node tools/generate-lead.mjs`, whose renders are machine-dependent too: commit
+only the editions whose chosen figure or content changed; the home's
 description (`src/pages/index.astro`) read again when an edition on a
 subject it does not name is published, because its subjects are typed and
 only its length is checked; an edition's dek, seoTitle and description
@@ -431,6 +458,31 @@ for a shortlist for bios and cards, which is a separate deliverable.
   YouTube", the length a `<time>` duration), on the baseline of the links
   beside it, the thumbnail hanging after it; `src/pages/index.json.ts`,
   `src/pages/llms.txt.ts` and `tools/generate-llms-full.cjs` carry its URL.
+- `src/lib/transcripts.mjs` and `src/lib/transcripts/` (one JSON per linked
+  film): each film's narration as spoken, in its chapters, for its watch
+  page, written by `tools/transcripts.mjs` from the release the film's
+  ledger names (the ledger must still name the linked id, the narration
+  must have been filed before that upload, the chapters must equal the ones
+  `meta.json`'s description files, and citation marks, which the voice never
+  says, are left out). Committed, never fetched at build time; the module
+  checks them against `src/lib/films.json` with no network. Relinking a film
+  (`node tools/films.mjs <id>`) fails the build until
+  `node tools/transcripts.mjs` writes the new one.
+- `src/lib/lead.mjs` and `src/lib/lead-manifest.json`: the lead images
+  (Decisions log, 30 Oct 2026), the three frames (`FRAMES`), and the check
+  that the manifest names every published edition and nothing else, each
+  file on disk at its size and its hash. `tools/generate-lead.mjs` renders
+  them from `dist/` and carries the table of which figure each edition uses
+  and why. `src/lib/schema.mjs` lists them first in the NewsArticle's
+  `image`, before the card; `og:image` stays the card (override 2).
+- `src/lib/dates.mjs`: an edition's day at 00:00 in the author's zone with
+  its offset (`zoned`), RSS dates, and since 30 Oct 2026 `zonedInstant`, an
+  instant from a ledger in that zone with its offset (a watch page's
+  `uploadDate`).
+- `src/lib/schema.mjs`: the graphs: `articleGraph` (every edition),
+  `videoGraph` (a watch page) and `pageGraph` (`/about` as a ProfilePage,
+  `/standards` and `/amendments` as WebPages). The Person's `@id` is
+  `/about#jesse` and its url `/about` (30 Oct 2026).
 - `src/lib/rose.mjs`: `rhodonea()`, the house configuration, the mark seed,
   the dove outline, and `drift()`, the clock a live field's k follows (a
   5.5 s cycle of amplitude 0.085 around the seed). The ONLY place the curve
@@ -448,12 +500,16 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `Rail`, `Pull`, `Stats`, `EditionEnd`, `FilmLink`, `Formats` (the row on
   an edition's cover: read, PDF, film, each only when it exists) and
   `FilmPlayer` (the film's own surface under the cover, its poster the
-  film's thumbnail with a play plate, playing on the click; Decisions log,
-  26 and 28 Oct 2026).
+  film's thumbnail with a play plate, playing on the click, its rail linking
+  the watch page; Decisions log, 26 and 28 Oct 2026), `Byline` (the cover's
+  "By Jesse James · date · Updated date", the name linked to `/about`),
+  `SiteLinks` (the footer's links to `/about`, `/standards` and
+  `/amendments`, on every page) and `PlainPage` (the frame of those three).
 - `src/pages/`: `index`, `the-middleman`, `the-grade`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
-  `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `404`, and the generated `feed.xml.ts`,
+  `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `about`, `standards`, `amendments`, `404`,
+  `[slug]/film.astro` (the watch pages, one per linked film), and the generated `feed.xml.ts`,
   `llms.txt.ts`, `robots.txt.ts`, `sitemap-news.xml.ts` (the Google News
-  sitemap), `index.json.ts` (the index as JSON for
+  sitemap), `sitemap-video.xml.ts` (the video sitemap), `index.json.ts` (the index as JSON for
   the desk and any companion; `vercel.json` sends it with
   `Access-Control-Allow-Origin: *`). Shared figure styles (big numbers by length, computed
   bars, sources lists) live in `src/styles/base.css`, not per page.
@@ -464,6 +520,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - `public/og/`: content-hashed cards; `src/lib/og-manifest.json` maps stable
   path to hashed path and alt text. Generated by `tools/generate-og.mjs`.
 - `public/pdf/`: the uploaded print editions.
+- `public/lead/`: the lead images, content-hashed, rendered by
+  `tools/generate-lead.mjs` and named by `src/lib/lead-manifest.json`;
+  `vercel.json` caches them for a year like `/og/`.
 - `public/film/`: each linked film's thumbnail at 112 by 63 and 224 by 126,
   content-hashed, written by `tools/films.mjs`; `vercel.json` caches it
   for a year like `/og/`, since a new picture is a new name.
@@ -2673,6 +2732,17 @@ for a shortlist for bios and cards, which is a separate deliverable.
   re-scrape cannot refresh a stale card; only a new URL can. Pages write
   the stable path and never see the hash. The unhashed copy stays so links
   in the wild resolve. Rerun `npm run og` when a title or lede changes.
+- **Watch pages, a video sitemap and lead figures** (part B, 30 Oct 2026;
+  Decisions log). Each linked film has `/<slug>/film`, in the pages sitemap
+  and in `/sitemap-video.xml`, whose `VideoObject` is the film's and whose
+  Clips are its chapters; the edition's NewsArticle names it by `@id` alone,
+  and its rail links it ("Film page · m:ss"). Each published edition's
+  NewsArticle opens its `image` with its lead figure (16:9, then 4:3, then
+  1:1), then the card. The lead image is a render of a figure the page
+  already shows, so the page carries no second copy of it: the figure on
+  the page IS the lead image, seen where it belongs. Every edition carries
+  a byline linked to `/about`, whose ProfilePage holds the Person every
+  graph names.
 - **`npm run og` is NOT reproducible across machines, and the churn must be
   thrown away** (found 2026-10-17). A fresh build sandbox rendered every
   card about 2 percent larger than the committed bytes with no content
@@ -3205,6 +3275,59 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   the contact email stays a placeholder until the owner sends it; and the
   old cuts the corrected films replace go unlisted, not private, so links
   already shared keep working (The Countersign's `6j4BfaF8ZvM`, 30 Oct).
+  **Built the same day (part B).** Eight watch pages, one per linked film:
+  `src/pages/[slug]/film.astro`, the iframe in the HTML with
+  `loading="eager"`, its size and a title, no autoplay; a chapter is a link
+  to `?t=<second>`, and one inline script (164 B gzipped, the same on every
+  watch page, so the budget counts it once: 3,106 of 5,120) adds
+  `&start=<second>` to the player before it loads, which was smaller than
+  linking chapters to the embed itself and keeps the reader on the page.
+  The transcript is the narration as spoken (`tools/transcripts.mjs`), in
+  the film's own chapters as its description lists them; its first line in
+  a chapter that repeats the chapter's title is shown as that heading, and
+  every word is in the `VideoObject`'s `transcript`. `uploadDate` is the
+  ledger's upload time, the one time the repository records: YouTube's
+  publish time is not readable here, and a ledger's `publishAt` is what the
+  upload asked for, not what happened (The Fourth Axis went public two days
+  early by hand). The watch page's h1 is "<Title>: the film" with the dek
+  after it, joined for a screen reader by a full stop, not a second colon
+  (the review of part A struck a second colon from a headline). The lead
+  figures, proposed by the builder and the owner's to change (the table at
+  the top of `tools/generate-lead.mjs` says why each): The Floor, the bench
+  bars by channel width; The Subtraction, the delta table (the page has no
+  chart, and a table is text-heavy, so a chart for it is worth making);
+  The Countersign, GOAT's market value on a log scale; The Supply Cabinet,
+  what a hundred agents did after the hole was found; The Fourth Axis,
+  Qwen3-Next's 48 layers (the residual-path diagram was tried first and is
+  a thin strip in any frame); The Tilt Gap, hours of play behind each
+  result; The Markup, the four node prices; The Closest Humans, the
+  twenty-four days as eight dates (no chart either; a timeline of text);
+  The Hand in the Water, the four doors; The Snapshot Problem, the
+  exploit-rate range across thirteen models (measured, where the cliff is a
+  schematic and plasticity a qualitative placement). Each is laid out at
+  whichever width fills its frame best, never narrower than its own
+  content. The byline replaces the cover foot's "date · name": "By Jesse
+  James · date", plus "Updated date" only where `modified` is later than
+  the date, since four editions carry a `modified` equal to their date and
+  "Updated" on the same day says nothing. `/about`, `/standards` and
+  `/amendments` carry the owner's copy with the decided changes; what a
+  rule forced: the notes to the owner and the builder dropped, bold
+  lead-ins set as mono headings, links that sat inside a sentence ("See
+  the standards", "listed under amendments") set after it as block links,
+  the sentence kept without them; no contact line, because `SITE.contact`
+  is null until the owner sends the address (the "placeholder" settled
+  above lives in `src/config.mjs`, never on the page); YouTube and
+  LinkedIn read from `src/config.mjs`. `/amendments` is generated from
+  `amends` and `amendSummary`; the two summaries are the checker's
+  amended wording, not the copy's, because the checker found both of the
+  copy's incomplete (The Floor's left out the Canada line it amends; The
+  Closest Humans' left out OpenAI's later denial, the third line it
+  answers). Still the owner's: the amendments page's opening line, "When
+  an edition is wrong, a later edition fixes it in public", which is the
+  older rule `/standards` now corrects (pages are corrected in place, an
+  amending edition only where the correction is the story); and the films
+  line in `/standards`, "the frames ... are computed", which holds for
+  every film linked today and would not for a re-cut with page shots.
 
 - **2026-10-30 · The search packaging was fact-checked before it went
   in.** Each published edition got a dek, a seoTitle and a description

@@ -1,0 +1,39 @@
+---
+/**
+ * The frame of the three pages about the method (/about, /standards, /amendments; 30 Oct 2026): the masthead, one
+ * h1 on Void, the page's own surfaces in the slot, and the footer every page carries. No rose and no Acid: these
+ * pages explain how the editions are made and never what the entity is (the kit's rule), so they make no loud move.
+ * The words are the owner's copy (source/about-standards-amendments.md), as decided in the Decisions log.
+ */
+import Base from '../layouts/Base.astro';
+import Masthead from './Masthead.astro';
+import SiteLinks from './SiteLinks.astro';
+import { LICENCE } from '../lib/editions.mjs';
+interface Props { title: string; heading: string; description: string; path: string; schema: unknown[] }
+const { title, heading, description, path, schema } = Astro.props;
+---
+<Base title={title} fullTitle={title} description={description} path={path} schema={schema}>
+  <main id="main">
+    <section class="surface plain-cover" aria-label="Cover">
+      <Masthead />
+      <div class="grid">
+        <h1 class="c-full display plain-h">{heading}</h1>
+      </div>
+    </section>
+    <slot />
+    <footer class="foot mono">
+      <span>Aedificare · 2026 · <a href={LICENCE.url} rel="license">{LICENCE.name}</a></span>
+      <SiteLinks />
+    </footer>
+  </main>
+</Base>
+<style is:global>
+  .plain-cover { padding-block: 0 clamp(32px, 6vh, 72px); }
+  .plain-h { font-size: var(--fs-h2); margin-top: clamp(24px, 6vh, 80px); }
+  .plain .item + .item { margin-top: 36px; }
+  .plain h2 { color: var(--malachite); margin-bottom: 10px; }
+  .plain.bottle h2 { color: var(--flash); }
+  .plain .links { display: flex; flex-wrap: wrap; gap: 0 28px; margin-top: 4px; }
+  .plain .links a { padding-block: 8px; }
+  .plain .links a:hover, .plain .links a:focus-visible { color: var(--acid); }
+</style>

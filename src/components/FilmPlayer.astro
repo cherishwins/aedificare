@@ -27,8 +27,9 @@
  * height and the labels below 89, so 70 percent is clear in every one). Its
  * record ("Film · 16:18") starts the button's name, as the sweep requires.
  *
- * The rail beside it says what the press does, and links YouTube's terms
- * and the site's privacy statement, because YouTube's API terms bind any
+ * The rail beside it says what the press does, links the film's own watch
+ * page (/<slug>/film, whose player loads as it opens, and says so; Decisions
+ * log, 30 Oct 2026), and links YouTube's terms and the site's privacy statement, because YouTube's API terms bind any
  * site that embeds its player to a published privacy policy and a link to
  * those terms (Decisions log, 26 Oct 2026).
  *
@@ -56,8 +57,8 @@ const e = edition(slug);
         </a>
       </div>
       <Rail class="c-b" items={[
-        ['Player', 'YouTube, in its privacy-enhanced mode, loaded when the poster is pressed and not before. From that press YouTube’s terms and Google’s privacy policy apply to the player.'],
-        ['Links', `<a class="block-link mono-b" href="${f.url}">youtube.com · ${f.length}</a><a class="block-link mono-b" href="https://www.youtube.com/t/terms">YouTube terms</a><a class="block-link mono-b" href="/privacy.txt">Privacy</a>`],
+        ['Player', 'YouTube, in its privacy-enhanced mode, loaded when the poster is pressed and not before. From that press YouTube’s terms and Google’s privacy policy apply to the player. The film page, with the chapters and the transcript, loads the same player as it opens.'],
+        ['Links', `<a class="block-link mono-b" href="${e.path}/film">Film page · ${f.length}</a><a class="block-link mono-b" href="${f.url}">youtube.com · ${f.length}</a><a class="block-link mono-b" href="https://www.youtube.com/t/terms">YouTube terms</a><a class="block-link mono-b" href="/privacy.txt">Privacy</a>`],
       ]} />
     </div>
   </section>

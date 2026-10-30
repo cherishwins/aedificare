@@ -1,0 +1,138 @@
+{
+  "slug": "the-fourth-axis",
+  "id": "9joaycmFqsU",
+  "uploaded": "2026-10-17T20:06:51.128Z",
+  "source": {
+    "release": "film-the-fourth-axis",
+    "asset": "narration.json",
+    "sha256": "ff59df519f050dafaa651d5a64784b34956e6916a2c3d6a2ec2604ae02d511bd",
+    "updated": "2026-10-17T18:24:58Z",
+    "voice": "sacfsNbCahgH0qw7PIO8",
+    "model": "eleven_v4_turbo"
+  },
+  "chapters": [
+    {
+      "t": 0,
+      "title": "The Fourth Axis",
+      "paragraphs": [
+        "The Fourth Axis",
+        "Depth, tokens, time. Three solved. The fourth is where the money went."
+      ]
+    },
+    {
+      "t": 13,
+      "title": "The filing",
+      "paragraphs": [
+        "The filing",
+        "OpenAI holds 69 published patent families. Forty-nine were filed by OpenAI itself, the earliest with a priority date of July 2022; the other twenty were acquired. A patent analyst who read all 69 found the portfolio protects products, not the models themselves. The exceptions are few: image-model training, the Whisper architecture, an embedding pretraining method.",
+        "What the company patents, again and again, is how a product keeps state. A granted patent for stateful custom GPTs. A published application for ChatGPT Memory. Granted patents for prompt caching and server-side conversation state. Most of the brain goes on arXiv. The notebook goes to the patent office.",
+        "Every architectural breakthrough of the last decade gave information a place to persist.",
+        "The identity path let it persist across depth. Registers let it persist across tokens. State-space memory let it persist across time. Nobody has given it a way to persist across runs.",
+        "Three axes solved. The fourth is unsolved, and it is where the money went."
+      ]
+    },
+    {
+      "t": 97,
+      "title": "Across depth",
+      "paragraphs": [
+        "Across depth",
+        "Plain networks got worse as they got deeper: a 34-layer plain net trained to higher error than an 18-layer one. The identity path fixed it in 2015: Highway Networks in May, ResNet in December at 152 layers, a 1001-layer pre-activation ResNet on CIFAR the next year. The reason it worked was stranger than the fix.",
+        "Veit and colleagues showed a residual net behaves as an ensemble of short paths. Delete a block and half the paths survive. In a 110-layer network almost all of the gradient comes from paths ten to thirty-four layers deep. The long paths contribute almost nothing.",
+        "The identity path then kept its form for nearly a decade, in DeepSeek's phrase It is being rewired now. Hyper-connections widened the stream into n parallel streams with a learned mixing matrix DeepSeek's manifold-constrained version pins that matrix to a doubly stochastic form, which tamed the loss surge and gradient-norm instability the first version showed at 27B scale Value residuals send first-layer values to every layer: the same loss with 16 percent fewer parameters. A variant that shares the first layer's values outright halves the KV cache, at a small cost in loss",
+        "The one wire that kept its form for a decade is now a switchboard. Depth is no longer a line. It is a bus."
+      ]
+    },
+    {
+      "t": 200,
+      "title": "Depth as time",
+      "paragraphs": [
+        "Depth as time",
+        "The second rewiring treats depth as a dial. A looped transformer runs one block L times over the same tokens with the same weights. MIT's Hyperloop adds a hyper-connection per pass and matches or beats depth-matched baselines, and the stabilized mHC baseline, in its main runs at 240M, 1B and 2B scale, with roughly half the parameters. A wave of looped and recurrent-depth papers landed between April and June 2026 on the same idea: latent reasoning, fixed-point reasoners, looped world models",
+        "If the ensemble paper was right, depth was never the thing. Paths were. A loop is a way to buy paths without buying layers.",
+        "The practical result is that a model can think longer on a hard token and shorter on an easy one. Earlier looped models already set the count per token Depth has a knob."
+      ]
+    },
+    {
+      "t": 268,
+      "title": "Across tokens",
+      "paragraphs": [
+        "Across tokens",
+        "Large vision transformers were caught repurposing their own input. About two percent of patch tokens, mostly over blank background, carried norms roughly ten times normal and held little of their own pixels. Trained as classifiers, those stolen patches named the car. The model needed somewhere to hold the whole image and took the least useful tokens it had. Learned register tokens, discarded at output, made the artifact vanish; one was enough, and the authors used four.",
+        "Language models do the same thing with the first token: attention sinks In 2025 OpenAI designed the sink in rather than leaving the model to improvise one, a learned per-head logit with no value row In 2026 MiniMax tested the same trick: it took over the sink in some heads but not others, gave no consistent gain, and was left out of the final model A mechanistic account of sinks in GPT-2 traced them to one circuit of three parts, each necessary in GPT-2, and each missing from some other model that still has a sink",
+        "A model with nowhere to put a thought will steal a token. Give it one on purpose. Then check that it took it."
+      ]
+    },
+    {
+      "t": 354,
+      "title": "Across time",
+      "paragraphs": [
+        "Across time",
+        "Persistence across time shipped as a ratio. Qwen3-Next runs 48 layers at three to one: 36 linear-attention layers carrying a delta-rule state, 12 full attention Kimi Linear cuts the KV cache by up to 75 percent against full attention, and at a million tokens the freed memory buys up to six times the decoding throughput Mamba-3 gives the state complex values, and parity, a state-tracking test where Mamba-2 sat near random, goes to about 100 percent; at 1.5B its MIMO variant scores 1.8 points of average accuracy above Gated DeltaNet, the next best model; the base variant, 0.6",
+        "One lab walked it back. MiniMax-M2 runs full attention in every layer. Its technical report says no efficient-attention variant reliably matched full attention in production on reasoning, coding and agent tasks.",
+        "Time persistence is solved for the benchmark and contested for the agent. The state is cheap to carry and expensive to trust.",
+        "They patented the notepad"
+      ]
+    },
+    {
+      "t": 436,
+      "title": "Across runs",
+      "paragraphs": [
+        "Across runs",
+        "Weights are a photograph taken the day training stopped. Everything after is read off a caption. The fourth axis is whether the photograph can change without tearing.",
+        "The attempts are serious and all partial. Titans adds a neural memory that learns at test time, gated by surprise; an independent reproduction found the memory helps but the full model does not always win Google's HOPE treats its own weights as writable memory with blocks updating at different frequencies, with no public code and no forgetting curve: its continual-learning results are end-of-sequence accuracies, not retention across repeated updates SEAL lets a model write its own training data and apply it: on an ARC subset, 0 percent in context, 20 percent with untrained self-edits, 72.5 percent with SEAL. Repeat the edits and it forgets Retrievable Gradients store a gradient per document, apply it, then revert, so nothing drifts and nothing stays",
+        "Every row is partial. The partial is always in the same column. Nobody has a weight that learns on Tuesday and remembers Monday."
+      ]
+    },
+    {
+      "t": 518,
+      "title": "What shipped",
+      "paragraphs": [
+        "What shipped",
+        "Persistence across runs shipped. It shipped around the weights, not in them. OpenAI's application for what reads as ChatGPT Memory describes a human-readable personalization notepad capped at a set number of notes; the model may be trained by reinforcement learning, or use heuristics, to decide what is saved, and an offline pass rewrites similar notes into one Prompt caching hashes a prompt's prefix so a repeat request lands on the same server and reuses its computed tokens, for minutes to an hour The Responses API keeps conversation state server-side and resumes from an identifier A stateful-GPT patent has a custom GPT change state mid-conversation, rewriting its system prompt when a user's message calls for it Groq's granted patent gives its tensor streaming processors a deterministic, globally addressed memory whose reads and writes the compiler schedules; priority 2021, this continuation filed 2024",
+        "The software mirror: a 2026 preprint argues that for streaming workloads, session state kept across requests is not an optimization but a requirement for constant query latency At CES 2026 NVIDIA announced a context-memory storage tier for KV cache that it says extends AI agents' long-term memory; its technical blog puts it on NVMe flash, and NVIDIA has a published application on moving multi-turn KV cache between memory tiers down to SSD",
+        "Nothing shipped in the weights. Everything shipped around them. That is the market telling you where the unsolved problem is."
+      ]
+    },
+    {
+      "t": 636,
+      "title": "The map",
+      "paragraphs": [
+        "The map",
+        "What a lab publishes is what it is proud of. What it patents is what it sells.",
+        "Outside the frontier labs, papers get patented too. A Korean university patented the continual-learning method it had already posted to arXiv: prompts summed over time on a frozen backbone, filed in the US in September 2025, published April 2026. Reading the patent tells you what the university thinks is worth owning; reading arXiv would not.",
+        "No patent was located for Titans, Memory Layers, hyper-connections, attention sinks, registers or mHC. Applications publish eighteen months after their earliest priority date, unless the applicant asks for earlier publication, or for none. A Titans filing made before the paper posted would have published by mid-2026, and none has been located. One filed later in the US grace year, or under a non-publication request, could still be dark. Absence of a record is not absence of a filing.",
+        "Read the filings. They are the only place a lab tells you, on the record, what it thinks is worth owning."
+      ]
+    },
+    {
+      "t": 720,
+      "title": "The clock",
+      "paragraphs": [
+        "The clock",
+        "Three clocks run at different speeds. Papers post within weeks of a result. Filings surface eighteen months after priority. Products ship when the business is ready, which is sometimes before the paper exists.",
+        "ChatGPT Memory went to a test group in February 2024 and to every tier that September. Titans, Google's test-time memory, was posted on 31 December 2024, and test-time training goes back to 2019 The notepad reached users before Titans did, and the gap has not closed.",
+        "If you want to know what persistence will look like in 2028, the filings of 2026 are the only forward-looking document that exists.",
+        "Where it is wrong"
+      ]
+    },
+    {
+      "t": 775,
+      "title": "Sources",
+      "paragraphs": [
+        "Sources",
+        "Set in Bricolage Grotesque and Martian Mono. The cover rose is computed from r = cos(kθ), frozen at k = 21/4, 37/5 and 19/6: a still from a film. Preprints dated 2026 are recent; open them before citing. Patent numbers from a patent analyst should be opened at the office record before they are repeated."
+      ]
+    },
+    {
+      "t": 807,
+      "title": "The axis",
+      "paragraphs": [
+        "The axis",
+        "A decade of architecture can be read as one project with three finished parts. The identity path taught a network to carry a signal through a hundred layers without losing it. Registers taught it to hold a thought that belongs to no token. State-space memory taught it to carry that thought across a million positions.",
+        "Then the run ends, the state is discarded, and the next run starts from the photograph.",
+        "Three axes are architecture. The fourth is still a product feature. Until a weight can learn on Tuesday and keep Monday, that is the whole business.",
+        "The Fourth Axis. 6 October 2026. Twelve sections, 38 sources, at aedificare dot art. CC BY 4.0."
+      ]
+    }
+  ]
+}

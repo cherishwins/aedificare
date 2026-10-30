@@ -49,3 +49,16 @@ export const rfc822 = (date) => {
 
 /** The instant of 00:00 on `date` in the zone, as a Date. */
 export const instant = (date) => new Date(midnight(date).t);
+
+/**
+ * An instant (an ISO string in UTC, as a ledger records it) in the zone's own time with that instant's offset:
+ * "2026-10-18T20:37:10.330Z" is "2026-10-18T13:37:10-07:00". Seconds are kept, fractions dropped.
+ */
+export const zonedInstant = (iso, zone = SITE.timeZone) => {
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) throw new Error(`zonedInstant: ${iso} is not an instant`);
+  const off = offsetAt(t, zone);
+  const local = new Date(t + off * 60000);
+  const d = `${local.getUTCFullYear()}-${pad(local.getUTCMonth() + 1)}-${pad(local.getUTCDate())}`;
+  return `${d}T${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}:${pad(local.getUTCSeconds())}${sign(off, true)}`;
+};

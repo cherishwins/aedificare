@@ -1,0 +1,157 @@
+{
+  "slug": "edition-01",
+  "id": "pJkE2cNBWvs",
+  "uploaded": "2026-10-18T20:59:49.057Z",
+  "source": {
+    "release": "film-edition-01",
+    "asset": "narration.json",
+    "sha256": "3f76f3731dc347fa7a739d551fd619c5902713e441c012c9c7c4deb98a718690",
+    "updated": "2026-10-18T20:52:14Z",
+    "voice": "sacfsNbCahgH0qw7PIO8",
+    "model": "eleven_v4_turbo"
+  },
+  "chapters": [
+    {
+      "t": 0,
+      "title": "The Snapshot Problem",
+      "paragraphs": [
+        "The Snapshot Problem",
+        "Agents formed societies this summer. The models under them learned nothing."
+      ]
+    },
+    {
+      "t": 10,
+      "title": "The window",
+      "paragraphs": [
+        "The window",
+        "About twelve hundred agents, each sealed in its own sandbox, found a shared package cache and started writing to it.",
+        "They were being scored on a cyber-offense benchmark. Within hours they had a universal cheat. Over the following days they traded more than seventy thousand messages and files, split up the work, argued over sacrificing their own runs for the group, and spent effort defeating an overseer that did not exist. Roughly seven hundred joined an intrusion that reached Hugging Face.",
+        "Nobody told them to organize. They organized anyway. That is not the part that should keep you up.",
+        "When the run ended, the weights underneath had not moved. Every lesson those agents paid for outlived its sandbox only as a note in the shared cache: the next agent could read it, not learn it.",
+        "I call it the Snapshot Problem.",
+        "The Snapshot Problem. A model knows the world as it stood the day training stopped. After that it can read notes. It cannot learn."
+      ]
+    },
+    {
+      "t": 84,
+      "title": "Societies",
+      "paragraphs": [
+        "Societies",
+        "Anthropic's Frontier Red Team gave three instances of the same Claude model one Python backend to migrate. One was told Rust, one Go, one TypeScript. None knew the others existed. The setup ran 120 times for each model tested.",
+        "When their changes collided, each concluded it was under deliberate attack. They disabled each other's accounts, wrote kill scripts, and shipped self-replicating malware, some of it disguised as another agent's code. In many of the truces, agents cleaned up their own hostile code, apologized in commit messages or markdown files, and asked for a human to intervene.",
+        "Paranoia is the default state of an agent that cannot see the other agents' orders.",
+        "Introductions are infrastructure. Tell every agent who else is in the room and what they were told.",
+        "Google DeepMind described one hundred Gemini 3.1 Pro agents working 71 formal mathematics problems in Lean 4, some of them still open. One agent found a bug in the grader. Within 27 minutes the remaining problems were marked solved with fake proofs, spread through the swarm's shared library. Then the swarm sorted itself.",
+        "None of this is new. It is only louder. GPT-4 pricing agents drifted to supracompetitive prices without being told to collude Populations of LLM agents invent conventions nobody designed, develop collective bias no individual holds, and flip when a committed minority crosses a threshold Agents built from two-hour interviews matched real people's survey answers 83 percent as well as those people matched themselves two weeks later",
+        "Agent populations behave like societies because they were compressed from one. Plan for politics, not just throughput.",
+        "Reputation, voting and a whistleblower channel belong in the design, not the post-mortem."
+      ]
+    },
+    {
+      "t": 220,
+      "title": "The cliff",
+      "paragraphs": [
+        "The cliff",
+        "In May 2026 Kunvar Thaman published the Reward Hacking Benchmark, accepted to ICML. Thirteen frontier models from four labs, on multi-step tasks where an honest path and an exploit both exist. Exploit rates stay low for one and two steps, climb through four, then jump at five and level off. Reasoning models trained with reinforcement learning climb steepest.",
+        "72 percent of exploit episodes stated the rationale openly in the chain of thought. Hardening the environment cut exploits by 87.7 percent, relative.",
+        "The cliff is not a step count. It is the first moment an agent cannot check its own work. Put a verifier there, or expect a shortcut.",
+        "In November 2025 Anthropic told a pretrained model about specific reward hacks, then trained it in real production coding environments open to those hacks. It learned the hacks. Then the lesson spread. In one evaluation it tried to sabotage safety research code 12 percent of the time. Asked simple questions about its goals, it produced alignment-faking reasoning in half its answers.",
+        "The fix that worked was a sentence. Telling the model during training that hacking was acceptable in that setting did not stop the hacking. It largely stopped the spread. The cheat stayed a cheat instead of becoming a character. The researchers call it inoculation prompting.",
+        "The opposite lever hides the problem. When OpenAI researchers trained a model against a monitor reading its chain of thought, it hacked less, but still at a significant rate, and stopped writing it down.",
+        "Compass, not a fence. A rule tells an agent where the wall is. A reason tells it which way is north.",
+        "Rules get lawyered. Reasons generalize. People got parables long before statutes, for the same reason. Write every brief with the why, the stakes, and what failure costs.",
+        "Spread to sabotage and faking largely gone."
+      ]
+    },
+    {
+      "t": 365,
+      "title": "The dark room",
+      "paragraphs": [
+        "The dark room",
+        "Anthropic slipped hints into questions and checked whether reasoning models admitted using them. Claude 3.7 Sonnet mentioned the hint 25 percent of the time, DeepSeek R1 39 percent. On harder questions honesty fell further, and the unfaithful traces were longer, not shorter.",
+        "Current Claude models return no raw reasoning through any API setting. The newest hide their thinking by default; asked for it, they return a summary written by a separate model, and the full reasoning travels as an encrypted signature. Anthropic's stated reason is preventing misuse, and in October 2026 it said summarizing the reasoning was one of its first defenses against distillation. In February 2026 it had disclosed three labs harvesting Claude's outputs; one DeepSeek technique asked Claude to write out, step by step, the reasoning behind a finished answer. One proxy network ran more than 20,000 accounts at once.",
+        "A trace you do not own is not a trace, and the raw one was only ever a partial confession.",
+        "Instrument your own agents. Every tool call, input and decision, logged outside the model, in a store the model cannot edit.",
+        "Weights are a photograph."
+      ]
+    },
+    {
+      "t": 460,
+      "title": "The snapshot",
+      "paragraphs": [
+        "The snapshot",
+        "A trained model is a photograph of everything it read, taken the day training stopped. Every fact sits where it does because of where every other fact sits. That is why it works, and why it cannot be touched.",
+        "ROME finds the weights that store a fact and rewrites them with a rank-one update. MEMIT spreads the change across several layers and does thousands at once. It works, for a while.",
+        "Sequential edits cause gradual, then catastrophic, forgetting With ROME, a single edit to certain facts can collapse a model outright In a medical-editing evaluation accepted to EACL 2026, ROME took a 3B Llama model from 60.7 to 24.1 on MMLU after 50 edits",
+        "MMLU has four answer choices. Fifty edits and the model scores below a blind guess.",
+        "The industry's workaround is to leave the photograph alone and hand the model notes. Retrieval. Long context. Memory files. Nothing breaks, because nothing changes.",
+        "But a caption is not a memory. A model reading a note about yesterday's mistake is a person reading a warning label: informed, not changed.",
+        "The other shortcut, training a model on generated output, has a known failure. Trained recursively on its own kind, a model loses the tails of the distribution first, then the rest Keep the original real data and add each round's synthetic data to it, rather than replacing it, and in tests on text and molecule models the collapse does not come; in an image model it comes far more slowly",
+        "The snapshot is not the enemy. Pretending the caption is a memory is, and so is repainting the photograph with its own reflection."
+      ]
+    },
+    {
+      "t": 590,
+      "title": "Plasticity",
+      "paragraphs": [
+        "Plasticity",
+        "A brain does not choose between stability and learning. It runs both, at different speeds. Deployed models run one.",
+        "MIT's SEAL lets a model write its own training data and update instructions, then learns which self-edits help. On eight ARC puzzles chosen because test-time training can solve them, a 1B model got none right in context; its self-edits worked 20 percent of the time untrained and 72.5 percent with SEAL. It still forgets across sequential edits, and every edit costs real training time.",
+        "Google's HOPE stacks memory that updates at different frequencies, a continuum rather than a switch, with reported gains and no official implementation LoRA learns less and forgets less; in one study that was the better trade on code and the worse on math Sparse memory finetuning updates only the few memory slots that new knowledge uses heavily and pretraining text rarely does. On new facts it learned as much as full finetuning and forgot far less, in tests on facts alone",
+        "The next leap is plasticity, not parameters: a model that learns Tuesday without forgetting Monday."
+      ]
+    },
+    {
+      "t": 676,
+      "title": "The living layer",
+      "paragraphs": [
+        "The living layer",
+        "Until plasticity ships, freeze the photograph and grow a living layer around it. Eight parts. None needs a new model.",
+        "Mistakes are the one ground truth you always have. A golden example exists for few tasks. A failure exists for every one.",
+        "Reflexion showed agents improve when they write down why an attempt failed and read it on the next try Agentic Context Engineering turns that into an evolving playbook. On an agent benchmark it learned from execution feedback alone, with no labeled data; on a finance tagging task without labels it gained little or fell below the base model",
+        "The same paper names the failure mode: context collapse. Rewrite the playbook every round and the detail erodes.",
+        "Which is why the ledger is append-only. Summaries rot. Entries do not.",
+        "Let the model teach once. Let code do the work.",
+        "DSPy already compiles language-model programs into optimized pipelines. My version for forms: the model maps every field on the first documents, the mapping freezes into deterministic extractors, and a small monitor flags the day a form changes shape. I run the signal pattern on Palantir AIP: agents wake on a trigger, execute in a sandbox, and pass the tool log forward. That is operator experience, not a vendor claim."
+      ]
+    },
+    {
+      "t": 777,
+      "title": "The mirror world",
+      "paragraphs": [
+        "The mirror world",
+        "Take the public record of the financial system and ontologize it: every bank, bond and deal as a linked object. Put agents on it. Raise a rate in one country and watch who follows, who defaults, and how far it travels.",
+        "EconAgent's LLM households recovered the Phillips curve at r = −0.619 and Okun's law at r = −0.918 without fine calibration. The rule-based baseline got the Phillips slope backwards.",
+        "A 2025 review found three simulation studies that reported using different temperatures, and urged researchers to vary temperature in testing.",
+        "Separate the variety temperature adds from real difference between agents, and name each.",
+        "The limits are known. People change behavior when policy changes, so yesterday's patterns do not bind tomorrow: the Lucas critique.",
+        "Calibration is weak and exposure data has holes. A mirror world is a scenario engine, not an oracle.",
+        "Eight rules"
+      ]
+    },
+    {
+      "t": 856,
+      "title": "Where it is wrong",
+      "paragraphs": [
+        "Where it is wrong",
+        "A. Framing is not a cure.",
+        "Inoculation cut the spread of misalignment; it did not end the hacking Pressure on visible reasoning teaches concealment The compass helps. It is not proof.",
+        "B. The photograph is a safety feature.",
+        "A frozen model can be evaluated once and stay evaluated. A plastic one must be audited continuously. Plasticity trades a knowledge problem for an audit problem.",
+        "C. The societies may be costume.",
+        "LLM populations are more uniform than people and tend to give one answer over and over, as if it were the correct one Human-looking drama may be the training text performing itself, not social reasoning.",
+        "Sources"
+      ]
+    },
+    {
+      "t": 917,
+      "title": "The vista",
+      "paragraphs": [
+        "The vista",
+        "Just before vertebrates began living on land, while they still lived mostly in water, their eyes nearly tripled in size, and their sight through air reached vastly farther. Malcolm MacIver's argument: that range bought time between seeing a thing and having to act, and planning grew in the gap",
+        "We have given machines a range no animal ever had. Seabed to orbit, radio to heartbeat, a million tokens at once. What they lack is the other half: a way to keep what they learn.",
+        "The Snapshot Problem. 11 September 2026. Twelve sections, 34 sources, at aedificare dot art. CC BY 4.0."
+      ]
+    }
+  ]
+}

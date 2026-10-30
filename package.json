@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "node tools/films.mjs --check && astro build && node tools/generate-llms-full.cjs && node tools/check-brand.cjs && node tools/check-budget.cjs && node tools/check-docs.cjs && node tools/check-contents.cjs && node tools/check-discovery.cjs",
+    "build": "node tools/films.mjs --check && node tools/transcripts.mjs --check && astro build && node tools/generate-llms-full.cjs && node tools/check-brand.cjs && node tools/check-budget.cjs && node tools/check-docs.cjs && node tools/check-contents.cjs && node tools/check-discovery.cjs",
     "preview": "astro preview",
     "check": "astro check",
     "verify": "node tools/verify.cjs",

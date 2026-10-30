@@ -1,0 +1,169 @@
+{
+  "slug": "ns-01",
+  "id": "NhE65kjbbj0",
+  "uploaded": "2026-10-18T23:03:52.537Z",
+  "source": {
+    "release": "film-ns-01",
+    "asset": "narration.json",
+    "sha256": "9c4fc06044e32d20b86617c584a271c9525b35b0766c88bc3e74503f7c0388cb",
+    "updated": "2026-10-18T22:28:43Z",
+    "voice": "sacfsNbCahgH0qw7PIO8",
+    "model": "eleven_v4_turbo"
+  },
+  "chapters": [
+    {
+      "t": 0,
+      "title": "The Hand in the Water",
+      "paragraphs": [
+        "The Hand In the Water",
+        "OpenAI opened doors C and D. Most headlines did not say which."
+      ]
+    },
+    {
+      "t": 11,
+      "title": "The post",
+      "paragraphs": [
+        "The post",
+        "Just before midnight on Monday, a mathematician at New York University hit post.",
+        "Tristan Buckmaster had spent months on a problem worth a million dollars. He had used OpenAI's coding tool the whole time. By OpenAI's own account, its machines reached a proof on Saturday.",
+        "What he wrote that night is the second most interesting thing about this story.",
+        "The first is that most headlines never said which problem was solved.",
+        "The Navier-Stokes equations describe how fluids move. They are the reason a weather model works at all, and the reason turbulence is still not understood. In 2000 the Clay Mathematics Institute put a million dollars on one question about them and made it one of seven Millennium Prize Problems.",
+        "Ninety years ago, Jean Leray proved something unsettling. He showed that solutions to these equations always exist in a weak sense, and then admitted he could not rule out that they tear themselves apart. Nobody has closed that gap since.",
+        "On Tuesday the world was told a machine closed it in eighty-eight hours.",
+        "That is not what happened. What happened is more interesting, and it turns entirely on a single word that no headline had room for."
+      ]
+    },
+    {
+      "t": 99,
+      "title": "Four doors",
+      "paragraphs": [
+        "Four doors",
+        "Charles Fefferman wrote the official problem statement in 2000. Most people think the problem asks one question. It asks four, and you only have to answer one of them.",
+        "Door A: Open space stays smooth forever",
+        "Door B: A looped box stays smooth forever",
+        "Door C: Open space can be torn apart",
+        "Door D: A looped box can be torn apart",
+        "Doors A and B are the ones everybody pictures. They say water left completely alone stays smooth forever, and they ask you to prove it. Nothing pushes. Nothing stirs.",
+        "Doors C and D are different. They let you apply an outside force to the fluid and ask only that you make something break. Build the push, break the water, and you have answered the question.",
+        "You never had to answer the question everyone is asking. You only had to answer one of the four.",
+        "OpenAI opened the third and fourth doors, C and D. That is a legitimate answer to a real Millennium question and it deserves the attention it is getting. It is also not the question anyone outside the field thinks was being asked, and nobody reading a headline could reasonably be expected to know the difference."
+      ]
+    },
+    {
+      "t": 190,
+      "title": "The hand in the water",
+      "paragraphs": [
+        "The hand in the water",
+        "A forcing term is a hand.",
+        "It is an outside push, smooth, and in this case switched off outside a bounded region of space and a bounded window of time. Stir a cup of coffee and your spoon is a forcing term.",
+        "OpenAI's theorem builds one very particular push. Under that push, in finite time, the speed of the fluid runs away to infinity while its total energy stays bounded. The water tears. The hand is what tore it.",
+        "Door A asks whether water tears itself. Door C asks whether water can be torn.",
+        "That is the whole story, and it is the one thing a headline cannot fit.",
+        "Why ninety years of attempts broke here",
+        "In two dimensions, water behaves. In three, it might not, and the difference has a name. A spinning tube of fluid in three dimensions can be pulled thin. Pull it thin and it spins faster, the way a skater pulls in her arms. Faster spin pulls harder. It feeds itself. Two dimensions forbid the move entirely.",
+        "In 2014 Terence Tao built a fake Navier-Stokes, close enough to the real one to share its energy budget, and proved the fake one blows up. The point was never the fake equation. The point was that any proof leaning on the energy budget alone is dead on arrival, because a doomed equation passes the identical test.",
+        "He called it the supercriticality barrier. It is the wall every serious attempt has hit.",
+        "Trapped flat. Cannot stretch.",
+        "Pulled thin. Spins faster. It feeds itself."
+      ]
+    },
+    {
+      "t": 310,
+      "title": "Eighty-eight hours from the first agent launched to the answer",
+      "paragraphs": [
+        "Eighty-eight hours from the first agent launched to the answer",
+        "The loudest number is not the interesting one. Within the same eighty-eight hours, roughly a hundred agents spent about fifty hours disproving regularity for the unforced Euler equations, which strip out viscosity entirely. Only after that did OpenAI move agents from other open problems onto Navier-Stokes.",
+        "On cost, OpenAI said only millions of dollars. Every dollar figure you have seen since, from six million to forty, is an outsider multiplying token counts by public API prices. Some of those estimates price the whole multi-problem sprint, not this proof. Treat them as arithmetic, not disclosure."
+      ]
+    },
+    {
+      "t": 362,
+      "title": "What a proof checker checks",
+      "paragraphs": [
+        "What a proof checker checks",
+        "About 341,000 lines of Lean 4 went up on GitHub on 8 September. They compile. The machine agrees the Lean proof is valid, and a paper of 6 October shows that proof departs from the 166-page one in places.",
+        "Here is the part every engineer already knows in their bones. A proof assistant returns exactly one bit. It tells you the theorem follows from the assumptions you wrote down. It does not tell you that the theorem you wrote down is the theorem you meant.",
+        "The tests pass. The spec is not OpenAI's.",
+        "Somebody credible has to read the formal statement, line by line, and confirm it encodes Fefferman's door C and not a cousin of it. The statement it proves was written and reviewed in public before the proof, and a named outside check found no mathematical change in OpenAI's copy. No named specialist in partial differential equations has signed it since.",
+        "This is not a reason to assume the proof is wrong. It is a reason to notice that the loudest evidence being waved around, the green compile, is evidence for a narrower claim than the one being celebrated.",
+        "Anthropic hit the same wall four days earlier. It also matched its statement to one written beforehand, and it had a named outside expert review the proof. Its model produced a machine-checked Fermat's Last Theorem, thirteen million lines of Lean, and Kevin Buzzard at Imperial College went on the record that it proves the theorem from the axioms alone. A named human vouched for the statement. Here the statement was vouched for before the proof existed. What is missing is a named expert who has reviewed the proof and vouched for it, as Buzzard did for Fermat."
+      ]
+    },
+    {
+      "t": 486,
+      "title": "Telephone",
+      "paragraphs": [
+        "Telephone",
+        "Four caveats travel with this story. OpenAI's own page carries two, the force and the fight, and says it will not claim the prize. The force is required. No referee has checked it. Clay has not accepted it. There is a priority fight. Watch which ones survive the trip.",
+        "Nobody lied. The BBC says plainly that the work is unverified and that Clay has not accepted it. The trade piece that pivoted to healthcare warns its readers against rebuilding anything around an unverified headline.",
+        "Look at what went missing. The short pieces dropped the force, the caveat that needs a sentence of mathematics. The long science pieces kept it and dropped Clay.",
+        "The force died of word count. The Clay caveat went missing from pieces that had room for it.",
+        "Notice what grew instead. By the time the story reached the vertical press it had sprouted a section on healthcare research, which is speculation bolted to a result that changes nothing in any laboratory on earth."
+      ]
+    },
+    {
+      "t": 561,
+      "title": "Page fifty six",
+      "paragraphs": [
+        "Page fifty six",
+        "In 2014 the Kazakh mathematician Mukhtarbay Otelbaev announced he had solved Navier-Stokes. Serious people took it seriously. Then he emailed Stephen Montgomery-Smith.",
+        "To my shame, on the page 56 the inequality (6.34) is incorrect therefore the proposition 6.3 (p. 54) isn't proved. I am so sorry.",
+        "Grigori Perelman posted his Poincaré proof in 2002 and 2003. It was right. Three separate teams then spent years writing out the verification so the field could check it, and Clay awarded him the prize in 2010. He turned it down.",
+        "More than seven years, for a proof that was correct the day it appeared.",
+        "Clay's own rules require publication in a qualifying outlet, then a two year wait, then general acceptance by the mathematical community. Run that clock from a paper no journal has published.",
+        "The earliest this can be an accepted Millennium result is 2028, and only if it is right."
+      ]
+    },
+    {
+      "t": 641,
+      "title": "Four days",
+      "paragraphs": [
+        "Four days",
+        "This is a sequence, not an accusation. Read it and decide for yourself what it means.",
+        "In March, OpenAI closed what it called the largest funding round in Silicon Valley history: a hundred and twenty two billion dollars at an eight hundred and fifty two billion valuation. In June it said it had filed confidentially for an offering, reportedly at up to a trillion. In May, Anthropic passed it on paper at nine hundred and sixty five billion.",
+        "On the fourth of September, Anthropic announced a machine-checked proof of Fermat's Last Theorem. On the eighth, OpenAI announced Navier-Stokes.",
+        "There is a precedent for how this company handles a scoreboard. In July 2025 it announced a gold-medal score at the International Mathematical Olympiad, graded by a panel it assembled itself, published just after the closing ceremony and reportedly against the organisers' wishes. Google DeepMind posted the same score and had it certified by the olympiad. Same number. Different epistemics.",
+        "Announce fast. Grade yourself. Let the correction arrive later, to fewer people.",
+        "None of this makes the mathematics wrong. Incentives do not refute theorems. They do tell you how hard to squint at a claim that arrived with a press call attached and no referee in sight, and how much weight to put on a superlative still waiting for its first referee."
+      ]
+    },
+    {
+      "t": 743,
+      "title": "The input was a rumour",
+      "paragraphs": [
+        "The input was a rumour",
+        "Terence Tao has not assessed OpenAI's manuscript. He praised different work, by other people, and said clearly that it had not reached Navier-Stokes. If you saw his name attached to an endorsement this week, you saw a misreading.",
+        "What he did say is the part that should keep the builders awake.",
+        "We have now seen that even the rumor of someone working on a problem can trigger a massive amount of AI-powered effort to flatten it before the original research project has time to reach its full potential.",
+        "Sit with what OpenAI volunteered about its own timeline. The trigger was not a paper. It was not a public preprint. It was a rumour that somebody had already solved two Millennium problems.",
+        "Run that forward. If saying out loud what you are working on summons ten thousand agents to get there first, the rational move is to stop saying it. Open science runs on the exact opposite habit, and it has for centuries.",
+        "The risk is not that machines do the mathematics. It is that people stop talking."
+      ]
+    },
+    {
+      "t": 821,
+      "title": "What would change my mind",
+      "paragraphs": [
+        "What would change my mind",
+        "Three things would move this from serious claim to settled result, in order of how much they should move you.",
+        "01 A named expert in partial differential equations confirms in public that the formal statement encodes Fefferman's door C.",
+        "02 An outside group reproduces the check independently.",
+        "03 A refereed journal accepts it.",
+        "Two things would move it the other way. A specific error surfacing in the construction, which is exactly how Otelbaev ended, on page fifty six. Or a demonstration that the method cannot survive losing the hand. That one has come. On 17 September Peter Constantin, Mihaela Ignatova and Vlad Vicol posted a proof that in OpenAI's construction the force cannot be switched off near the point where the water tears. It leaves door C standing, and it means this method cannot answer whether water tears itself. Stan Palasek at Princeton had already argued that viscosity blocks removing the force from blowups of the kind Buckmaster and Levent Alpöge were building, which, experts now say, OpenAI's resembles only on the surface.",
+        "As of 18 October an outside build of the Lean code has passed, but no named specialist in partial differential equations has confirmed the formal statement and no journal has accepted it. Two Fudan mathematicians have written out part of the construction in readable form; a Cambridge and King's College London paper showed two places where the Lean code departs from the written proof, and said they may not be the only ones.",
+        "So hold both. The capability is real. The result is unverified, narrower than reported, and contested by the people whose method it was built on.",
+        "Everything in the gap between those two sentences is a preposition.",
+        "Water that tears itself. Water that can be torn."
+      ]
+    },
+    {
+      "t": 958,
+      "title": "Sources",
+      "paragraphs": [
+        "Sources",
+        "The Hand in the Water. 11 September 2026. Eleven sections, 54 sources, at aedificare dot art. CC BY 4.0."
+      ]
+    }
+  ]
+}
