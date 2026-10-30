@@ -32,11 +32,13 @@ import Base from '../layouts/Base.astro';
 import Masthead from '../components/Masthead.astro';
 import RoseField from '../components/RoseField.astro';
 import Section from '../components/Section.astro';
+import SameThread from '../components/SameThread.astro';
 import EditionEnd from '../components/EditionEnd.astro';
 import Formats from '../components/Formats.astro';
 import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
-import { edition, LICENCE, describe, seedDrift, seedNumber } from '../lib/editions.mjs';
+import { edition, describe, pageTitle, seedDrift, seedNumber } from '../lib/editions.mjs';
+import { articleGraph } from '../lib/schema.mjs';
 import { SITE, abs } from '../config.mjs';
 
 const ed = edition('the-night-pin');
@@ -50,20 +52,6 @@ const behind = [
   { k: 7, s: 0.71, ph: 0.51, w: 0.7, c: '#00B24F', o: 0.28 },
 ];
 
-const article = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: ed.title,
-  alternativeHeadline: `Printed as ${ed.print}`,
-  datePublished: ed.date,
-  author: { '@type': 'Person', name: SITE.author },
-  publisher: { '@type': 'Organization', name: SITE.name, url: SITE.origin },
-  url: abs(ed.path),
-  mainEntityOfPage: abs(ed.path),
-  license: LICENCE.url,
-  isAccessibleForFree: true,
-  description: ed.lede,
-};
 
 // A seeded shuffle, so a laid-out count is the same picture on every build.
 const rng = (seed: number) => () => {
@@ -191,14 +179,15 @@ const c = (...k: string[]) => k.map((x) => {
   return `[${String(i + 1).padStart(2, '0')}]`;
 }).join(' ');
 const sources = KEYS.map((k) => SRC[k]);
+const graph = articleGraph(ed, { alternativeHeadline: `Printed as ${ed.print}`, sources });
 ---
-<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date} noindex={DRAFT}>
+<Base title={pageTitle(ed)} ogTitle={ed.seoTitle} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[graph]} published={ed.date} noindex={DRAFT} modified={ed.modified}>
   <main id="main">
     <section class="surface cover" aria-label="Cover">
       <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
       <Masthead right={DRAFT ? 'Draft' : undefined} />
       <div class="grid cover-grid">
-        <h1 class="c-full display" data-flex="cursor">The Night<br><span class="acid">Pin</span></h1>
+        <h1 class="c-full display" data-flex="cursor">The Night<br><span class="acid">Pin</span>{ed.dek && <span class="dek"><span class="sr">: </span>{ed.dek}</span>}</h1>
         <p class="c-a lede">{ed.lede}</p>
         <Formats slug={ed.slug} />
       </div>
@@ -520,6 +509,7 @@ const sources = KEYS.map((k) => SRC[k]);
       </div>
     </Section>
 
+    <SameThread slug={ed.slug} />
     <Section n="17" title="Sources" id="sources">
       <ol class="c-full sources">
         {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}

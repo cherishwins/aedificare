@@ -27,6 +27,7 @@ Shipped (2026-09-15):
 | Route | What | State |
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
+| `/the-night-pin` | 30 Oct 2026 · *The Night Pin* (printed as Edition 11), eighteen sections, forty-seven sources, three registers | **held** (2026-10-30): every source opened by nine lanes, a researcher and a skeptic each, and a second skeptic over every change (Findings 0k); out of search until the owner's yes on the View, the title and NCSL's counts (`docs/release-the-night-pin.md`) |
 | `/the-middleman` | 27 Oct 2026 · *The Middleman*, no print, written from an unsourced research deck, twelve sections, seventy-five sources, three registers | **draft**: sourced from scratch, six researchers and a skeptic each (Findings 0j); title and lede the owner's to confirm |
 | `/the-grade` | 22 Oct 2026 · *The Grade* (printed as Edition 10), twelve sections, fourteen sources | **draft**: ported and swept, every source still to be opened |
 | `/the-countersign` | 16 Oct 2026 · *The Countersign* (printed as Edition 09), fifteen sections, twenty-two sources, three registers | live |
@@ -45,7 +46,7 @@ Shipped (2026-09-15):
 | `/privacy.txt` | the privacy statement: first the films' player on the editions (what the press loads, what applies from then on; YouTube's API terms require it of a site that embeds the player, 2026-10-26), then the YouTube uploader's, which Google's consent screen needs before the app can leave Testing (2026-10-17); plain text like `humans.txt`, not a page, linked from the rail beside every player | static |
 | `/index.json` `/og/desk.png` | the index as JSON and the desk's card, for apt.grok.me to fetch and hotlink | generated |
 | `/film/*.png` | each linked film's own thumbnail, reduced and content-hashed, beside a link to its YouTube watch page at the edition's end and on the home (Decisions log, 21 Oct 2026) | generated |
-| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-09.pdf` `/pdf/edition-10.pdf` | the print editions as uploaded | as uploaded |
+| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-09.pdf` `/pdf/edition-10.pdf` `/pdf/edition-11.pdf` | the print editions as uploaded | as uploaded |
 
 ## Brand — source of truth, and the overrides
 
@@ -1389,6 +1390,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   routes, what must be true before a render goes up, analytics, quota,
   failures). A project skill, so every session on this repo loads it; it
   restates no decision, it points here.
+- `docs/release-the-night-pin.md`: the steps that release a held edition,
+  written for The Night Pin (owner, 30 Oct 2026).
 - `.claude/skills/research/SKILL.md` and `.claude/agents/`: the house
   method for sourcing (Findings 0g to 0j) as a project skill, and its crew
   split by model: researchers on Haiku 5.5 in narrow lanes, skeptics on
@@ -2273,6 +2276,59 @@ for a shortlist for bios and cards, which is a separate deliverable.
    before printing them. A negative ("no filing", "not in any source") is
    the claim a skeptic most needs to test, because a search that misses is
    silent. Reports are in the session's scratchpad.
+
+0k. **Edition 11 · The Night Pin arrived as a finished print (2026-10-30)**,
+   twenty-one pages, with a web edition in the owner's field names, a
+   carousel source whose figures are computed SVG, a film script and two
+   prompt packs (the packs kept out of the repo; the edition files are in
+   `source/`: `source/the-night-pin.web.md`,
+   `source/the-night-pin.carousel.html`,
+   `source/film/the-night-pin.script.md`). The owner's text came in three
+   versions the same day (19, 21 and 22 sources); the page follows the
+   third. Ported with the prose verbatim and the carousel's figures (the
+   six-layer stack, the auction fan-out, the 24-hour clock and its join to
+   a voter record, the 100-cell grid, the 50-state waffle, the voter-file
+   join and the two lots), each computed and responsive, one Acid per
+   surface and Shock rose on the night pin, on Void. **Checked before
+   release, and held** (the owner, with The Grade's pattern): nine lanes, a
+   researcher on Haiku and a skeptic on Opus each, then a second pair of
+   skeptics over every changed hunk; `research/the-night-pin/VERDICTS.md`
+   has every row. Of 45 claims 12 stood as written (two only after a
+   skeptic overturned the researcher's flag), 30 were amended, 2 were
+   wrong and 1 could not be opened, two more lines were amended outside
+   the list, the skeptics changed 36 of the 45 researcher verdicts, and
+   47 sources now stand behind the page where 22 did. The largest: the FBI's $27 million (5,000 licences, 2022)
+   bought Babel X, a tool for searching social media and other online
+   sources, through a reseller (FedScoop, read by the main thread), not
+   Locate X location data: the edition had joined two paragraphs of The
+   Record, so section 13's figure is now DHS's 113,654 location points;
+   Augury's "90 percent" is the tool's own claim as Motherboard reported
+   it, and its 550 collection points and 100 billion records a day come
+   from a procurement record; the satellite paper reports a strategy that
+   beat the market by about 4.6 percent net of stock-loan fees, not what
+   funds earned, on 4.7 million observations; Kochava's order was entered
+   by the court in June, not filed in May; Chatrie was 6 to 3 and sent
+   good faith back to the Fourth Circuit; the Gravy leak's IP-inferred
+   points are 404 Media's finding; the Times did not follow people "by
+   name"; Mobilewalla's founder said the protest report was not prepared
+   for law enforcement or a public agency, where Wikipedia's wording had
+   become "no agency had asked". The law paragraph is the owner's third
+   text, the sponsors' own words for the Government Surveillance Reform
+   Act (Wyden's release, confirmed in Lofgren's), then one sentence from
+   the bill itself: section 201 bars a federal law enforcement agency from
+   buying covered data "in exchange for anything of value", with narrow
+   exceptions, and section 404 bars an intelligence agency from acquiring
+   such a dataset, with listed exceptions; the bill is itself a four-year
+   renewal of Section 702, which lapsed on 12 June 2026 after the
+   extension failed 198 to 218. Montana is cited through EFF [02], which
+   names it; Maryland is not added (owner). **NCSL refused this sandbox**
+   and was not worked round: the page keeps 29 / 9 / 12 and "38 states"
+   until the owner reads NCSL's current page, because the one readable
+   table built partly from it (the EAC's, January 2023) gives 26 / 12 / 12.
+   The View is the owner's and was not edited; it was shown to the owner
+   as it renders and waits for their yes. Its film is held for the
+   ElevenLabs reset on 17 Nov and will be cut B, without the sceptic
+   voice (owner); its watch page comes with the film.
 
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text

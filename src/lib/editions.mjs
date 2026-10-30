@@ -54,6 +54,12 @@ const RAW = [
     slug: 'the-night-pin', path: '/the-night-pin', print: 'Edition 11',
     title: 'The Night Pin', acid: 'Pin',
     lede: 'Six layers of data anyone can buy. One join gives them a name.',
+    // The owner's packaging from the web edition, read against the checked page on
+    // 30 Oct 2026; checked again with its title before release.
+    dek: "How six layers of commercial data turn a phone into a named person, and who buys it all",
+    seoTitle: "The Night Pin: How Bought Location Data Becomes a Name",
+    description: "The FBI says it buys commercial data. How six layers, from Shodan to ad IDs and voter files, join into one named person, and what the usual version gets wrong.",
+    series: 'data', seriesOrder: 1,
     // Ported on 30 Oct 2026 from the web edition the owner uploaded with the print
     // (source/the-night-pin.web.md), the prose verbatim. Checked 30 Oct 2026
     // (research/the-night-pin/VERDICTS.md) and still a draft: NCSL's voter-file
