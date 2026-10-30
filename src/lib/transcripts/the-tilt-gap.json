@@ -1,0 +1,189 @@
+{
+  "slug": "the-tilt-gap",
+  "id": "mCq1v6d3GVs",
+  "uploaded": "2026-10-18T20:58:45.780Z",
+  "source": {
+    "release": "film-the-tilt-gap",
+    "asset": "narration.json",
+    "sha256": "4b0a3b76f40fe48b665d32f229509844af40806591fa388e8b7c7fec57e223f1",
+    "updated": "2026-10-18T20:50:09Z",
+    "voice": "sacfsNbCahgH0qw7PIO8",
+    "model": "eleven_v4_turbo"
+  },
+  "chapters": [
+    {
+      "t": 0,
+      "title": "The Tilt Gap",
+      "paragraphs": [
+        "The Tilt Gap",
+        "Games, exhaust, and the thing no credential certifies.",
+        "You have tilted.",
+        "It was a Thursday, late, and the meeting had gone badly. You wrote the email anyway. You read it twice, you sent it, and the version of you that woke up the next morning would not have sent it.",
+        "Poker players have a word for the state you were in. Tilt. Judgment that was working an hour ago stops working because something hurt, and the person tilting is the last to know.",
+        "Nobody recorded your Thursday. But somewhere right now a ranked match is recording someone else's, keystroke by keystroke, with the outcome attached.",
+        "That record is the subject of this edition. Who owns it, what it is worth, and whether a machine can learn from it the one thing your résumé has never been able to prove about you.",
+        "A founder handed me a thesis. I was asked to break it.",
+        "The thesis has four parts. Multiplayer games produce the purest behavioural data on earth, because nobody performs for a scoreboard. The rarest thing in AI is judgment under pressure, and games log it every match. Player skill and model skill must be the same action by construction, or players will game the data. And the company is a plugin, not a game: free moderation for studios in exchange for the behavioural exhaust, refined and sold to whoever needs judgment most.",
+        "Here is the verdict first. The loud version of this thesis fails. The quiet version is buildable, and the distance between the two is this whole document.",
+        "Every material claim below carries one of three marks."
+      ]
+    },
+    {
+      "t": 120,
+      "title": "Nobody performs for a scoreboard.",
+      "paragraphs": [
+        "Nobody performs for a scoreboard.",
+        "Put a person in a lab, hand them a puzzle, and tell them a scientist is watching. They behave for the scientist. Researchers call it the observer effect and it contaminates much of what we think we know about people under stress.",
+        "A ranked match has no scientist. Players are trying to win. Where they move, when they hesitate, what they say to a teammate at 2am: all of it is logged as a side effect of trying. That side effect is exhaust.",
+        "The scale is not hypothetical. Call of Duty's text moderation, now in 20 languages, has blocked over 45 million messages since November 2023. Riot keeps every Valorant voice clip for at least 24 hours whether or not anyone complains, and keeps the record of a penalised one, as a transcript, for seven years in Brazil.",
+        "People are unreliable witnesses to their own matches. The log is not. Two corrections before anyone gets excited: players know the microphone is on, because Riot and Activision said so in public, and a match is not a life. Fixed rules, instant feedback, low stakes. Cleaner than a lab. Narrower than the world."
+      ]
+    },
+    {
+      "t": 211,
+      "title": "July 2026. The smartest fund in the room.",
+      "paragraphs": [
+        "July 2026. The smartest fund in the room.",
+        "Leopold Aschenbrenner's fund, Situational Awareness, had returned 439 percent for the year through June. At the start of July it managed as much as 45 billion dollars by one report, 20 to 24 billion by others. By July 30, Bloomberg reported assets of about 10 billion after Citadel bought the bulk of its public positions.",
+        "The mechanism was leverage, reported as high as 400 percent. Its top disclosed positions, Nebius, Sandisk, Micron and CoreWeave, each fell more than 35 percent in a month, while short bets against software names like Adobe went the wrong way. Margin calls from Bank of America, Goldman Sachs and JPMorgan forced the sale.",
+        "What this shows: being right about the decade does not protect you from the month. Concentration plus leverage turns a temporary drop into a permanent loss, and it happened to someone with elite credentials and elite backers. What it does not show is tilt. No report says a decision was made in anger or fear. Call it a risk failure under pressure. Do not call it emotion.",
+        "Models tilt. On the record.",
+        "The thesis calls judgment under pressure the scarcest capability in AI. Scarcest is rhetoric. A measurable weakness is a finding, and the finding exists.",
+        "Tell a language model you are desperate and it pays you more. In NegotiationArena, models that pretended to be desolate and desperate improved their payoff by 20 percent against a standard GPT-4. Emotional prompts move benchmark scores both ways; the EmotionAttack work found that distressing context, a dead friend, a broken trust, degrades performance. A 2026 preprint on multi-agent negotiation found angry buyers reached a deal 0.39 percent of the time.",
+        "So the gap is real: the same model, neutral versus pressured, scores differently. Call that difference the tilt gap. It is the number this whole thesis lives or dies on, and it has a human version. Yours was measured on a Thursday."
+      ]
+    },
+    {
+      "t": 376,
+      "title": "Pay for comebacks and you will get thrown rounds.",
+      "paragraphs": [
+        "Pay for comebacks and you will get thrown rounds.",
+        "Goodhart's law in one sentence: when a measure becomes a target, it stops measuring. Reward players for clutch comebacks and they will lose early rounds on purpose to manufacture them. The data turns to garbage the moment it is worth something.",
+        "Two systems have solved this. Numerai asks data scientists to predict stocks and stake its token on the prediction. Good predictions earn more. Bad ones are burned, destroyed so that nobody, not even Numerai, can get them back. Only staked predictions enter the model the hedge fund trades, and roughly 700 million dollars sits under that arrangement.",
+        "Foldit made the score the science itself, a protein energy function. In 2011 its players modelled a monkey virus enzyme that had defeated crystallographers for over a decade. The puzzle was open three weeks. That was enough.",
+        "The rule that falls out: the only signal a player cannot fake without actually playing well is the win. Train on the win, or on the win probability each decision added. Treat the emotion as context, never as reward."
+      ]
+    },
+    {
+      "t": 463,
+      "title": "45,000 years.",
+      "paragraphs": [
+        "45,000 years.",
+        "That is how long OpenAI Five played Dota 2 against itself before it beat the world champions in April 2019. Ten months of real time. Eight hundred petaflop/s-days. It then played 7,257 public games in four days and lost 42.",
+        "Human data was almost absent from that result. AlphaStar started from human replays and kept them as a leash throughout self-play; imitation alone reached better than 84 percent of players, and self-play, biased toward human strategies, took it past 99.8 percent. OpenAI's Minecraft agent learned from 70,000 hours of human video, and still only ever saw 6.4 seconds of history at a time.",
+        "Human games mattered in exactly one place: when the machine had to work with humans. Meta's CICERO trained on 125,261 real Diplomacy games, 40,408 of them with dialogue, 12.9 million messages, and over 40 online games ranked in the top 10 percent of players who played more than once.",
+        "Here is the reversal. Frontier labs do not need your judgment. Self-play makes judgment. What self-play cannot make is a human.",
+        "Self-play makes judgment."
+      ]
+    },
+    {
+      "t": 566,
+      "title": "Four ways to point a game at a machine.",
+      "paragraphs": [
+        "Four ways to point a game at a machine.",
+        "Every precedent the thesis leans on points one of three proven directions. The thesis itself points a fourth way, and nobody has walked it yet.",
+        "The product that survives contact with this table is a model of how humans behave under pressure: for characters that feel real, for simulators that train people, for agents that must negotiate with us. Not a superhuman judgment engine. The buyer is anyone who needs a believable human, and that is a narrower market than the thesis imagined."
+      ]
+    },
+    {
+      "t": 608,
+      "title": "A plugin, three layers, one refinery.",
+      "paragraphs": [
+        "A plugin, three layers, one refinery.",
+        "The company is not a game. It is a plugin that sits inside other people's games and emits structured events: state, inputs, timestamps, outcomes, and voice features extracted on the device. Raw audio never leaves. Studios get moderation for free. The operator keeps the derived features.",
+        "This trade already exists. GameAnalytics is free with no user cap, prices its paid products from 49 to 499 dollars a month, and its current terms grant it a perpetual, irrevocable licence to use studio data to run and improve its service, which already lets it train a performance model on de-identified data. From November 2, 2026 the new terms say it plainly, in the company's own summary: we may use data from the services to train and improve our models.",
+        "The model is validated. The window is closing in the same breath.",
+        "One record per life.",
+        "The bronze layer is one immutable record per player per spawn. Four design rules are not negotiable: no raw audio, no voiceprint, pseudonymous IDs rotated per studio, and an age band on every record so that anyone under 18 is excluded from anything commercial."
+      ]
+    },
+    {
+      "t": 704,
+      "title": "Studios sell exhaust by the kilo. Labs buy judgment by the carat.",
+      "paragraphs": [
+        "Studios sell exhaust by the kilo. Labs buy judgment by the carat.",
+        "The spread is real. Meta paid 14.3 billion dollars for 49 percent of Scale AI, a 29 billion valuation on roughly 870 million of 2024 revenue. Bloomberg reported Surge AI at 1.2 billion in 2024 revenue and in talks at a 25 billion valuation. Google's own estimate put a human preference label at 67 cents against 6 cents for a machine label.",
+        "Investment managers spent about 2.8 billion dollars on alternative data in 2025, by Neudata's count across the 2,805 datasets it tracks. In Neudata's 2024 buyer survey the average buyer spent 1.6 million a year across 20 vendors, about 80,000 dollars each.",
+        "Three things shrink the spread. Labs buy capability, not volume, and self-play competes for free. Studios reprice the moment they notice, and GameAnalytics already has. And gamer tilt predicts no asset price, so the hedge fund product is talent, not data."
+      ]
+    },
+    {
+      "t": 790,
+      "title": "The microphone is the moat and the minefield.",
+      "paragraphs": [
+        "The microphone is the moat and the minefield.",
+        "Voice is what makes the dataset different from every analytics plugin on the market. It is also where three legal systems are already busy with companies that look exactly like this one.",
+        "Three rules survive every jurisdiction. Never store a voiceprint or raw audio. Keep only non-identifying features from consenting adults. Keep anyone under 18 out of the commercial set entirely.",
+        "The regulator is making the sales call.",
+        "Ofcom's guidance for games says its Register of Risks finds online games more likely to carry an increased risk of illegal harm, and lists the Act's 17 kinds, grooming in particular. The UK's illegal-harms duties became enforceable on March 17, 2025, and with them the grooming defaults: children's profiles hidden from unconnected users, unconnected accounts unable to message them. Its children's codes followed on July 25, 2025. The US House passed the KIDS Act 267 to 117 on June 29, 2026 without a duty of care; the Senate's own child-safety sponsors called it a pale imitation.",
+        "Activision's numbers close the pitch. Exposure to disruptive voice chat fell 43 percent after January 2024, and repeat offenders fell 67 percent across two titles. Sell the plugin as Online Safety Act evidence that a studio can hand to a regulator. Never sell it as emotion analysis."
+      ]
+    },
+    {
+      "t": 908,
+      "title": "Moderation loses money. The data must pay.",
+      "paragraphs": [
+        "Moderation loses money. The data must pay.",
+        "Modelled, not measured. At ten indie studios and 50,000 player hours a day, sampled server-side voice processing costs 1,200 to 7,500 dollars a month. Three studios on a 400 dollar tier pay 1,200. At 500 studios the voice bill runs 120,000 to 750,000 a month against about 37,000 in subscriptions.",
+        "Cloud credits bridge the first gap. AWS Activate starts at 1,000 dollars for self-funded founders and runs to 200,000 for portfolio startups, Google for Startups lists up to 350,000 for AI companies, and NVIDIA Inception costs nothing and takes no equity.",
+        "Nothing bridges the second. The business exists only if data and model licensing clears 1.5 to 9 million dollars a year, and that only happens if the tilt gap is real."
+      ]
+    },
+    {
+      "t": 983,
+      "title": "Build nothing until this number moves.",
+      "paragraphs": [
+        "Build nothing until this number moves.",
+        "No tilt benchmark exists. So the first product is the benchmark. Take a small open model, 7 to 8 billion parameters. Fine-tune it on winning decisions made under pressure: after a loss streak, against a hostile channel, with seconds on the clock. Fine-tune an identical twin on the same number of calm decisions from the same game. Without the twin, any gain is just more game data.",
+        "A convincing result: the pressured twin shrinks the tilt gap by 30 percent or more, keeps its neutral score within a point of the control, and holds across three seeds and two base models.",
+        "My prior is that it will not clear 20. I would be glad to be wrong, and the whole point of the design is that I will find out for a few thousand dollars."
+      ]
+    },
+    {
+      "t": 1044,
+      "title": "Dated. Falsifiable. Mine.",
+      "paragraphs": [
+        "Dated. Falsifiable. Mine.",
+        "Six claims with expiry dates. Each one says what would prove it wrong."
+      ]
+    },
+    {
+      "t": 1056,
+      "title": "Demo. Paper. Plugin. Then the giants.",
+      "paragraphs": [
+        "Demo. Paper. Plugin. Then the giants.",
+        "A game you control comes first, with a consent flow you wrote, because it removes every third-party rights problem from the experiment. The paper comes second and ships whether the result is positive or negative; a clean negative saves two years. The plugin is built only if the paper is positive. Distribution comes last.",
+        "Partners in the same order. University labs working on multi-agent generalisation, human cooperation and negotiation robustness first, because they need novel datasets and lend credibility. Cloud credit programmes on day one. Indie studios with a live toxicity problem next, then trust-and-safety counsel, then mid-size studios.",
+        "Giants come last. Before you have a result, a publisher, a frontier lab or an engine vendor will either copy you or set the price. After you have one, they negotiate."
+      ]
+    },
+    {
+      "t": 1128,
+      "title": "Three cheap ways to find out.",
+      "paragraphs": [
+        "Three cheap ways to find out.",
+        "Run these before writing a line of plugin code. Each one is designed to kill the thesis as fast as possible, which is the only honest way to validate it.",
+        "One fails and two passes: you own a moderation company. One and three pass: you own the company. All three fail: you saved two years."
+      ]
+    },
+    {
+      "t": 1159,
+      "title": "Your tilt gap is already being measured.",
+      "paragraphs": [
+        "Your tilt gap is already being measured.",
+        "Not by a lab. By the systems you already live inside: the inbox, the trading screen, the on-call pager, the ranked queue. Each one logs the decision and the outcome and never once asks how you felt.",
+        "The thesis I was handed wanted to sell that record to the people building machines. The honest version sells something smaller and truer: a measure of the distance between who you are and who you are under pressure, and a way to close it.",
+        "The gap exists whether or not anyone measures it. The only open question is who holds the record."
+      ]
+    },
+    {
+      "t": 1206,
+      "title": "Sources",
+      "paragraphs": [
+        "Sources",
+        "Several 2026 figures rest on single sources or anonymous-source reporting, the Situational Awareness numbers in particular; they are reported, not established. The May 2026 BIPA complaints are filed, not decided. All unit economics are modelled assumptions. None of this is legal advice.",
+        "The Tilt Gap. 3 October 2026. 16 sections, 51 sources, at aedificare dot art. CC BY 4.0."
+      ]
+    }
+  ]
+}

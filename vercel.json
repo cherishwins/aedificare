@@ -1,5 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/sitemap.xml", "destination": "/sitemap-index.xml", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/fonts/(.*)",
@@ -10,6 +14,10 @@
     },
     {
       "source": "/og/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/lead/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     },
     {
@@ -35,9 +43,52 @@
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" },
-        { "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\"" }
+        { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" }
       ]
+    },
+    {
+      "source": "/((?!pdf/).*)",
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\"" }]
+    },
+    {
+      "source": "/pdf/edition-11.pdf",
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\"" }]
+    },
+    {
+      "source": "/pdf/edition-10.pdf",
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\"" }]
+    },
+    {
+      "source": "/pdf/edition-09.pdf",
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\", <https://aedificare.art/the-countersign>; rel=\"canonical\"" }]
+    },
+    {
+      "source": "/pdf/edition-06.pdf",
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\", <https://aedificare.art/the-supply-cabinet>; rel=\"canonical\"" }]
+    },
+    {
+      "source": "/pdf/edition-05.pdf",
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\", <https://aedificare.art/the-fourth-axis>; rel=\"canonical\"" }]
+    },
+    {
+      "source": "/pdf/edition-04.pdf",
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\", <https://aedificare.art/the-tilt-gap>; rel=\"canonical\"" }]
+    },
+    {
+      "source": "/pdf/edition-03.pdf",
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\", <https://aedificare.art/edition-03>; rel=\"canonical\"" }]
+    },
+    {
+      "source": "/pdf/ns-02.pdf",
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\", <https://aedificare.art/ns-02>; rel=\"canonical\"" }]
+    },
+    {
+      "source": "/pdf/ns-01.pdf",
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\", <https://aedificare.art/ns-01>; rel=\"canonical\"" }]
+    },
+    {
+      "source": "/pdf/edition-01.pdf",
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\", <https://aedificare.art/edition-01>; rel=\"canonical\"" }]
     }
   ]
 }

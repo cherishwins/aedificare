@@ -8,9 +8,11 @@ import Pull from '../components/Pull.astro';
 import Stats from '../components/Stats.astro';
 import EditionEnd from '../components/EditionEnd.astro';
 import Formats from '../components/Formats.astro';
+import Byline from '../components/Byline.astro';
 import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
-import { edition, LICENCE, describe, seedDrift } from '../lib/editions.mjs';
+import { edition, LICENCE, describe, seedDrift, pageTitle } from '../lib/editions.mjs';
+import { articleGraph } from '../lib/schema.mjs';
 import { SITE, abs } from '../config.mjs';
 
 // Edition 09, ported from the print of 16 Oct 2026 with the prose verbatim.
@@ -35,21 +37,6 @@ const ed = edition('the-countersign');
 // the colophon gives (5.048, 6.947, 3.043). Malachite only; Acid on this
 // surface is spent on one word of the title.
 const cover = HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
-
-const article = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: 'The Countersign',
-  alternativeHeadline: `Printed as ${ed.print}`,
-  datePublished: ed.date,
-  author: { '@type': 'Person', name: 'Jesse James' },
-  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
-  url: abs(ed.path),
-  mainEntityOfPage: abs(ed.path),
-  license: LICENCE.url,
-  isAccessibleForFree: true,
-  description: ed.lede,
-};
 
 // The legend, checked. Three claims, one verdict each; a note's sentences
 // carry their own marks, because the post approval is CoinDesk's and the
@@ -154,19 +141,20 @@ const sources = [
   'Andy Ayrey, thread on X, 23 Jan 2025. x.com/AndyAyrey/status/1882318084415090857',
   'Truth Terminal and Andy Ayrey, three of the four posts on X of 10 Oct 2024 that the reconstruction logs; the fourth, the reply that linked the token, is footnoted there. x.com/truth_terminal/status/1844470764583424360, x.com/AndyAyrey/status/1844517270141403271 and x.com/truth_terminal/status/1844520459188003316',
 ];
+const graph = articleGraph(ed, { alternativeHeadline: `Printed as ${ed.print}`, sources });
 ---
-<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+<Base title={pageTitle(ed)} ogTitle={ed.seoTitle} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[graph]} published={ed.date} modified={ed.modified}>
   <main id="main">
     <section class="surface cover" aria-label="Cover">
       <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
       <Masthead />
       <div class="grid cover-grid">
-        <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Countersign</span></h1>
+        <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Countersign</span>{ed.dek && <span class="dek"><span class="sr">: </span>{ed.dek}</span>}</h1>
         <p class="c-a lede">{ed.lede}</p>
         <Formats slug={ed.slug} />
       </div>
       <div class="foot mono cover-foot">
-        <span>{ed.dateLabel} · {SITE.author}</span>
+        <Byline e={ed} />
         <span>r = cos(kθ) · seed {ed.seed}</span>
       </div>
     </section>

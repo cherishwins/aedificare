@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Night Pin</title>
+<style>
+@font-face{font-family:"Bricolage";src:url(fonts/bricolage-grotesque-latin-standard-normal.woff2) format("woff2");font-weight:200 800;font-stretch:75% 100%;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Bricolage";src:url(fonts/bricolage-grotesque-latin-ext-standard-normal.woff2) format("woff2");font-weight:200 800;font-stretch:75% 100%;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Martian";src:url(fonts/martian-mono-latin-standard-normal.woff2) format("woff2");font-weight:100 800;font-stretch:75% 112.5%;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Martian";src:url(fonts/martian-mono-latin-ext-standard-normal.woff2) format("woff2");font-weight:100 800;font-stretch:75% 112.5%;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1E9F,U+2113,U+A720-A7FF}
+
+:root{--acid:#CCFF00;--mal:#00B24F;--bottle:#063B22;--void:#050A06;--flash:#FFFFFF;--rose:#FF1F5A}
+@page{size:1080px 1350px;margin:0}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--void);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:"Bricolage",sans-serif;color:var(--flash);font-variation-settings:"opsz" 24}
+.s{width:1080px;height:1350px;position:relative;overflow:hidden;break-after:page;page-break-after:always;break-inside:avoid}
+.s:last-child{break-after:auto;page-break-after:auto}
+.void{background:var(--void)}.bottle{background:var(--bottle)}.flash{background:var(--flash);color:var(--void)}
+.in{position:absolute;left:96px;right:96px;top:104px;bottom:132px;display:flex;flex-direction:column}
+.k{font-family:"Martian";font-stretch:75%;font-weight:500;font-size:22px;letter-spacing:.14em;text-transform:uppercase;color:var(--mal)}
+.flash .k{color:var(--bottle)}
+.d{font-weight:800;font-stretch:75%;font-variation-settings:"opsz" 96;line-height:.86;letter-spacing:-.01em;text-transform:uppercase}
+.x{font-weight:200;font-stretch:100%;font-variation-settings:"opsz" 96;line-height:1.02;letter-spacing:-.02em}
+p{font-size:33px;line-height:1.34;font-weight:400;font-stretch:100%}
+p+p{margin-top:24px}
+.m{font-family:"Martian";font-stretch:75%;letter-spacing:.06em}
+.r{font-family:"Martian";font-stretch:75%;font-size:20px;letter-spacing:.1em;color:var(--mal);vertical-align:.5em;margin-left:4px;white-space:nowrap}
+.flash .r{color:var(--bottle)}
+.acid{color:var(--acid)}.mal{color:var(--mal)}
+.foot{position:absolute;left:96px;right:96px;bottom:56px;display:flex;justify-content:space-between;font-family:"Martian";font-stretch:75%;font-size:18px;letter-spacing:.14em;color:var(--mal)}
+.flash .foot{color:var(--bottle)}
+.grow{flex:1}
+.rule{height:6px;background:var(--bottle);margin:36px 0}
+.bottle .rule{background:var(--void)}
+.flash .rule{background:var(--void)}
+.row{display:flex;gap:40px}
+svg text{font-family:"Martian";font-stretch:75%}
+</style>
+</head>
+<body>
+
+<!-- 01 COVER -->
+<section class="s void">
+  <svg id="coverRose" width="1080" height="1350" style="position:absolute;inset:0"></svg>
+  <div class="in">
+    <div class="k">Aedificare &nbsp;/&nbsp; Ed. 11 &nbsp;/&nbsp; 30.10.2026</div>
+    <div class="grow"></div>
+    <div class="d" style="font-size:224px;margin-left:-8px;white-space:nowrap">The<br>Night<br>Pin</div>
+    <div class="x" style="font-size:56px;margin-top:40px;max-width:860px">Six layers of data anyone can buy. One join gives them a name.</div>
+  </div>
+  <div class="foot"><span>01</span><span>ROSE SEED 1130 &nbsp;K 5/7/3</span></div>
+</section>
+
+<!-- 02 ADMISSION -->
+<section class="s bottle">
+  <div class="in">
+    <div class="k">18.03.2026 &nbsp;/&nbsp; US Senate &nbsp;/&nbsp; Under oath</div>
+    <div style="height:72px"></div>
+    <div class="x" style="font-size:92px">"We do purchase commercially available information ... and it has led to some <span class="acid" style="font-weight:700">valuable intelligence</span> for us."</div>
+    <div class="m" style="font-size:24px;margin-top:40px;color:var(--mal)">KASH PATEL, FBI DIRECTOR, TO SEN. RON WYDEN<span class="r">[1]</span></div>
+    <div class="grow"></div>
+    <p>Asked to commit to not buying Americans' location data, he did not. The FBI holds that it needs no warrant for data it pays for. No court has tested that theory.<span class="r">[1]</span></p>
+  </div>
+  <div class="foot"><span>02</span><span>AEDIFICARE.ART</span></div>
+</section>
+
+<!-- 03 STACK -->
+<section class="s void">
+  <div class="in" style="left:0;right:0">
+    <div style="padding:0 96px">
+      <div class="k">The stack</div>
+      <div class="d" style="font-size:170px;margin-top:28px">Six<br>layers</div>
+    </div>
+    <div class="grow"></div>
+    <div id="stack"></div>
+  </div>
+  <div class="foot"><span>03</span><span>1 TO 4 WATCH THINGS. 5 AND 6 WATCH PEOPLE.</span></div>
+</section>
+
+<!-- 04 LAYERS 1-2 -->
+<section class="s bottle">
+  <div class="in">
+    <div class="k">01 &nbsp;Structure</div>
+    <div class="d" style="font-size:96px;margin-top:20px">Shodan</div>
+    <p style="margin-top:24px">A search engine that crawls the internet and indexes every device that answers: servers, webcams, routers, industrial controllers. It maps machines, not people.<span class="r">[6]</span></p>
+    <div class="rule"></div>
+    <div class="k">02 &nbsp;Network</div>
+    <div class="row" style="align-items:flex-end;margin-top:20px">
+      <div class="d" style="font-size:96px">NetFlow</div>
+      <div class="m acid" style="font-size:150px;line-height:.8;margin-left:auto;font-weight:300">90%</div>
+    </div>
+    <p style="margin-top:24px">Traffic metadata: which address talked to which, when, how much. Team Cymru's Augury draws on 550 collection points and adds 100 billion records a day. Contract records put its reach near 90 percent of global traffic. Buyers included several branches of the US military.<span class="r">[3]</span></p>
+    <div class="grow"></div>
+    <div class="k">One flow record &nbsp;/&nbsp; Illustrative, documentation addresses</div>
+    <div class="m" style="font-size:25px;line-height:1.7;margin-top:14px;background:var(--void);padding:22px 26px;letter-spacing:.04em">
+      <span class="mal">SRC</span> 203.0.113.7 &nbsp;<span class="mal">DST</span> 198.51.100.24<br>
+      <span class="mal">PORT</span> 443 &nbsp;<span class="mal">BYTES</span> 18,442 &nbsp;<span class="mal">T</span> 14:02:11<br>
+      <span class="mal">NO CONTENT. JUST WHO, WHERE, WHEN, HOW MUCH.</span>
+    </div>
+  </div>
+  <div class="foot"><span>04</span><span>AEDIFICARE.ART</span></div>
+</section>
+
+<!-- 05 LAYER 3 -->
+<section class="s void">
+  <div class="in">
+    <div class="k">03 &nbsp;Attention</div>
+    <div class="d" style="font-size:150px;margin-top:24px">The<br>panel</div>
+    <p style="margin-top:36px">Panels estimate what people download, open and stream. Funds buy the estimates to see a quarter before the company reports it.</p>
+    <div class="grow"></div>
+    <div class="k">14.09.2021 &nbsp;/&nbsp; SEC &nbsp;/&nbsp; First alternative-data fraud case</div>
+    <div class="m acid" style="font-size:132px;line-height:1;margin-top:20px;font-weight:300;letter-spacing:-.02em">$10,000,000</div>
+    <p style="margin-top:24px">App Annie told companies their app data would be aggregated and anonymized. From 2014 to 2018 it used the raw data to tune estimates it sold to trading firms. Its founder paid $300,000 and took a three-year officer bar.<span class="r">[4]</span></p>
+  </div>
+  <div class="foot"><span>05</span><span>THE RISK LIVES IN PROVENANCE</span></div>
+</section>
+
+<!-- 06 LAYER 4 -->
+<section class="s bottle">
+  <div class="in">
+    <div class="k">04 &nbsp;Orbit</div>
+    <div class="m acid" style="font-size:210px;line-height:.9;margin-top:24px;font-weight:300;letter-spacing:-.04em">4 to 5%</div>
+    <p style="margin-top:28px">Earned in the three days around earnings by funds that counted cars in retailers' parking lots from orbit. Berkeley Haas: 4.8 million images, 67,000 stores, 44 retailers, 2011 to 2017.<span class="r">[5]</span></p>
+    <div class="grow"></div>
+    <svg id="lots" width="888" height="300"></svg>
+    <p style="margin-top:28px">The edge was biggest on the short side. Individual investors were buying the same stocks the funds were betting against.<span class="r">[5]</span></p>
+  </div>
+  <div class="foot"><span>06</span><span>ILLUSTRATION: TWO LOTS, TWO QUARTERS</span></div>
+</section>
+
+<!-- 07 LAYER 5 MECHANISM -->
+<section class="s void">
+  <div class="in">
+    <div class="k">05 &nbsp;Device</div>
+    <div class="d" style="font-size:132px;margin-top:24px">Every ad<br>is an<br>auction</div>
+    <div class="grow"></div>
+    <svg id="auction" width="888" height="440"></svg>
+    <p style="margin-top:28px">When an app shows an ad it broadcasts a bid request: advertising ID, GPS when permitted, IP address, device, app. Every bidder receives it, including the ones that lose.<span class="r">[2]</span></p>
+  </div>
+  <div class="foot"><span>07</span><span>BIDSTREAM</span></div>
+</section>
+
+<!-- 08 LAYER 5 SCALE -->
+<section class="s bottle">
+  <div class="in">
+    <div class="k">05 &nbsp;Device &nbsp;/&nbsp; Scale</div>
+    <div class="m acid" style="font-size:118px;line-height:1;margin-top:28px;font-weight:300;letter-spacing:-.03em">1,000,000,000</div>
+    <p style="margin-top:16px">Phones Gravy Analytics and Venntel say they draw on, at 17 billion signals a day.<span class="r">[7]</span></p>
+    <div class="rule"></div>
+    <div class="m" style="font-size:74px;line-height:1;font-weight:300">500,000,000+</div>
+    <p style="margin-top:16px">Ad IDs Mobilewalla matched to precise location, 2018 to 2020. An estimated 60 percent came from ad auctions.<span class="r">[7][2]</span></p>
+    <div class="rule"></div>
+    <div class="m" style="font-size:74px;line-height:1;font-weight:300">30,000,000+</div>
+    <p style="margin-top:16px">Location points in one leaked Gravy sample, January 2025. Devices at the White House, the Kremlin, the Vatican and military bases.<span class="r">[8]</span></p>
+  </div>
+  <div class="foot"><span>08</span><span>AEDIFICARE.ART</span></div>
+</section>
+
+<!-- 09 CORRECTIONS -->
+<section class="s flash">
+  <div class="in">
+    <div class="k">Correction &nbsp;/&nbsp; What the pitch overstates</div>
+    <div class="d" style="font-size:112px;margin-top:24px">Not in the<br>bid request</div>
+    <div class="grow"></div>
+    <div class="m" style="font-size:26px;font-weight:700;letter-spacing:.12em">CARD PURCHASES</div>
+    <p style="margin-top:8px">Transaction data is a separate product from card and bank panels. The auction does not carry it.<span class="r">[2]</span></p>
+    <div class="rule"></div>
+    <div class="m" style="font-size:26px;font-weight:700;letter-spacing:.12em">A GUARANTEED IPHONE ID</div>
+    <p style="margin-top:8px">Tracking has been opt-in since 2021. Measured opt-in runs about 35 to 50 percent.<span class="r">[9]</span></p>
+    <div class="rule"></div>
+    <div class="m" style="font-size:26px;font-weight:700;letter-spacing:.12em">ALWAYS GPS</div>
+    <p style="margin-top:8px">Much of the leaked Gravy data was inferred from IP addresses.<span class="r">[8]</span></p>
+    <div class="rule"></div>
+    <div class="m" style="font-size:26px;font-weight:700;letter-spacing:.12em">BUT ANDROID</div>
+    <p style="margin-top:8px">Google ended Privacy Sandbox in October 2025. The ad ID stays on unless deleted.<span class="r">[10]</span></p>
+  </div>
+  <div class="foot"><span>09</span><span>AEDIFICARE.ART</span></div>
+</section>
+
+<!-- 10 THE JOIN -->
+<section class="s void">
+  <div class="in">
+    <div class="k">06 &nbsp;Identity &nbsp;/&nbsp; The join</div>
+    <div class="d" style="font-size:150px;margin-top:24px">22:00<br>to 06:00</div>
+    <div class="grow"></div>
+    <svg id="clock" width="888" height="520"></svg>
+    <p style="margin-top:28px">A phone that rests at one coordinate every night has a home. A home has an address. An address has registered voters. That single lookup is where an ad ID becomes a person.</p>
+  </div>
+  <div class="foot"><span>10</span><span>THE NIGHT PIN</span></div>
+</section>
+
+<!-- 11 PROOF -->
+<section class="s bottle">
+  <div class="in">
+    <div class="k">Proof &nbsp;/&nbsp; Scientific Reports, 2013</div>
+    <div class="row" style="align-items:baseline;margin-top:28px">
+      <div class="m" style="font-size:200px;line-height:.9;font-weight:300">4</div>
+      <div class="m mal" style="font-size:120px;line-height:.9;font-weight:200">&rarr;</div>
+      <div class="m acid" style="font-size:200px;line-height:.9;font-weight:300;letter-spacing:-.04em">95%</div>
+    </div>
+    <p style="margin-top:32px">Four points in place and time singled out 95 percent of 1.5 million people in a mobile dataset, even at hourly, cell-tower precision. Anonymous traces are not anonymous.<span class="r">[11]</span></p>
+    <div class="grow"></div>
+    <svg id="hundred" width="888" height="200"></svg>
+    <div class="grow"></div>
+    <div class="k">New York Times &nbsp;/&nbsp; 2019</div>
+    <p style="margin-top:16px">Reporters took 50 billion pings from 12 million phones and followed officials, lawyers and police by name. One Microsoft employee visited an Amazon office and took a job there a month later.<span class="r">[15]</span></p>
+  </div>
+  <div class="foot"><span>11</span><span>AEDIFICARE.ART</span></div>
+</section>
+
+<!-- 12 VOTER FILE -->
+<section class="s void">
+  <div class="in">
+    <div class="k">06 &nbsp;Identity &nbsp;/&nbsp; The voter file</div>
+    <div class="d" style="font-size:118px;margin-top:24px">Name. Address.<br>Party. Turnout.</div>
+    <p style="margin-top:28px">Almost every state file carries name and home address. Many add party, voting history and year of birth.<span class="r">[12]</span></p>
+    <div class="grow"></div>
+    <svg id="waffle" width="888" height="330"></svg>
+    <p style="margin-top:28px">No state's rules expressly allow any use. A trading desk is a commercial user. The pitch skips this.<span class="r">[12]</span></p>
+  </div>
+  <div class="foot"><span>12</span><span>NCSL STATE-BY-STATE SURVEY</span></div>
+</section>
+
+<!-- 13 WHERE IT IS LEGAL -->
+<section class="s bottle">
+  <div class="in">
+    <div class="k">Where the join is legal</div>
+    <div class="d" style="font-size:150px;margin-top:24px">Politics</div>
+    <p style="margin-top:32px">On 18 June 2026, L2 and Nexxen launched VoterMatch, joining L2's national voter file to ad-auction logs so campaigns can see which voters an ad reached and how often. The matching method and match rates are not disclosed.<span class="r">[13]</span></p>
+    <div class="grow"></div>
+    <svg id="joinD" width="888" height="250"></svg>
+    <div class="grow"></div>
+    <div class="k">17.06.2020 &nbsp;/&nbsp; Layers 5 and 6, demonstrated</div>
+    <p style="margin-top:16px">Mobilewalla published the race, gender and age mix of protesters in New York, Los Angeles, Minneapolis and Atlanta, from phone data. Its founder said no agency asked for it. The FTC later barred it from selling sensitive location data.<span class="r">[19][7]</span></p>
+  </div>
+  <div class="foot"><span>13</span><span>AEDIFICARE.ART</span></div>
+</section>
+
+<!-- 14 THE THREE TRADES -->
+<section class="s void">
+  <div class="in">
+    <div class="k">The pitch &nbsp;/&nbsp; Three trades, checked</div>
+    <div class="d" style="font-size:250px;margin-top:24px">Alpha?</div>
+    <div class="grow"></div>
+    <div class="m acid" style="font-size:30px;font-weight:700;letter-spacing:.14em">01 &nbsp;FOOT TRAFFIC &nbsp;/&nbsp; WORKS</div>
+    <p style="margin-top:10px">Sold as store-level counts, not people. In 2019 Thasos offered quant funds daily visits to 600,000 US properties.<span class="r">[14][5]</span></p>
+    <div class="rule"></div>
+    <div class="m" style="font-size:30px;font-weight:700;letter-spacing:.14em">02 &nbsp;NAMED PEOPLE &nbsp;/&nbsp; BARRED</div>
+    <p style="margin-top:10px">FTC orders bar the big brokers from selling sensitive location data, including where people live. Trading on data obtained by breaking a promise is the App Annie case.<span class="r">[7][18][4]</span></p>
+    <div class="rule"></div>
+    <div class="m" style="font-size:30px;font-weight:700;letter-spacing:.14em">03 &nbsp;VOTER BLOCKS &nbsp;/&nbsp; UNPROVEN</div>
+    <p style="margin-top:10px">38 states limit the input. No published evidence it beats polling.<span class="r">[12]</span></p>
+  </div>
+  <div class="foot"><span>14</span><span>AEDIFICARE.ART</span></div>
+</section>
+
+<!-- 15 WHO RUNS ALL SIX -->
+<section class="s bottle">
+  <div class="in">
+    <div class="k">Who buys the whole stack</div>
+    <div class="d" style="font-size:210px;margin-top:24px">Not funds.<br>States.</div>
+    <div class="grow"></div>
+    <div class="m acid" style="font-size:112px;line-height:1;font-weight:300;letter-spacing:-.03em">$27,000,000</div>
+    <p style="margin-top:12px">FBI contract ceiling for 5,000 Locate X licenses, 2022. Locate X runs on Venntel data.<span class="r">[7]</span></p>
+    <div class="rule"></div>
+    <p><span class="m mal" style="font-size:26px">DHS &nbsp;</span>113,654 location points in three days, 2018.<span class="r">[7]</span></p>
+    <p><span class="m mal" style="font-size:26px">CBP &nbsp;</span>Ad-auction location pilot, 2019 to 2021.<span class="r">[2]</span></p>
+    <p><span class="m mal" style="font-size:26px">ICE &nbsp;</span>Bought Webloc in 2025. It filters millions of phones by ad ID.<span class="r">[2]</span></p>
+  </div>
+  <div class="foot"><span>15</span><span>AEDIFICARE.ART</span></div>
+</section>
+
+<!-- 16 ODNI -->
+<section class="s void">
+  <div class="in">
+    <div class="k">ODNI Senior Advisory Group &nbsp;/&nbsp; Jan 2022, declassified Jun 2023</div>
+    <div class="grow"></div>
+    <div class="x" style="font-size:134px;line-height:.98">"CAI includes information on <span class="acid" style="font-weight:700">nearly everyone</span>."</div>
+    <div class="grow"></div>
+    <p>CAI is commercially available information. The same report says it can be used to harm a person's reputation, emotional well-being or physical safety.<span class="r">[16]</span></p>
+  </div>
+  <div class="foot"><span>16</span><span>AEDIFICARE.ART</span></div>
+</section>
+
+<!-- 17 THE LAW -->
+<section class="s bottle">
+  <div class="in">
+    <div class="k">The law, as of today</div>
+    <div class="m acid" style="font-size:186px;line-height:1;margin-top:24px;font-weight:300;letter-spacing:-.05em">29.06.26</div>
+    <p style="margin-top:20px">Chatrie v. United States. Getting a phone's location history from Google is a Fourth Amendment search.<span class="r">[17]</span></p>
+    <div class="rule"></div>
+    <div class="m mal" style="font-size:26px;letter-spacing:.14em">NOT DECIDED</div>
+    <p style="margin-top:8px">Data the government buys. The FBI's no-warrant theory is untested.<span class="r">[1]</span></p>
+    <div class="rule"></div>
+    <div class="m mal" style="font-size:26px;letter-spacing:.14em">PENDING</div>
+    <p style="margin-top:8px">The Government Surveillance Reform Act would require a warrant before federal agencies buy Americans' data from brokers.<span class="r">[1]</span></p>
+    <div class="rule"></div>
+    <div class="m mal" style="font-size:26px;letter-spacing:.14em">SETTLED</div>
+    <p style="margin-top:8px">Kochava order, filed May 2026: no sale of sensitive location data without express consent.<span class="r">[18]</span></p>
+  </div>
+  <div class="foot"><span>17</span><span>AEDIFICARE.ART</span></div>
+</section>
+
+<!-- 18 VIEW -->
+<section class="s void">
+  <svg id="viewRose" width="1080" height="1350" style="position:absolute;inset:0"></svg>
+  <div class="in">
+    <div class="k">View &nbsp;/&nbsp; Jesse James</div>
+    <div class="grow"></div>
+    <div class="x" style="font-size:68px">Chatrie put a warrant in front of the data police ask for.</div>
+    <div class="x" style="font-size:68px;margin-top:32px">Nothing stands in front of the data they buy.</div>
+    <div class="d acid" style="font-size:104px;margin-top:48px">The cheapest warrant is a purchase order.</div>
+  </div>
+  <div class="foot"><span>18</span><span>ROSE SEED 1131 &nbsp;K 5/7/3</span></div>
+</section>
+
+<!-- 19 OFF SWITCH -->
+<section class="s flash">
+  <div class="in">
+    <div class="k">Layer 5 has an off switch</div>
+    <div class="d" style="font-size:230px;margin-top:24px">Delete<br>the ID</div>
+    <div class="grow"></div>
+    <div class="m" style="font-size:26px;font-weight:700;letter-spacing:.12em">ANDROID</div>
+    <p style="margin-top:8px">Settings, Privacy, Ads, Delete advertising ID. The path varies by maker.</p>
+    <div class="rule"></div>
+    <div class="m" style="font-size:26px;font-weight:700;letter-spacing:.12em">IPHONE</div>
+    <p style="margin-top:8px">Settings, Privacy &amp; Security, Tracking. Allow Apps to Request to Track: off.</p>
+    <div class="rule"></div>
+    <div class="m" style="font-size:26px;font-weight:700;letter-spacing:.12em">EVERY APP</div>
+    <p style="margin-top:8px">Location only while using, approximate where possible.<span class="r">[2]</span></p>
+  </div>
+  <div class="foot"><span>19</span><span>AEDIFICARE.ART</span></div>
+</section>
+
+<!-- 20-21 SOURCES -->
+<section class="s bottle"><div class="in"><div class="k">Sources &nbsp;1 to 10</div><div id="src1" style="margin-top:36px"></div></div><div class="foot"><span>20</span><span>AEDIFICARE.ART</span></div></section>
+<section class="s bottle"><div class="in"><div class="k">Sources &nbsp;11 to 19</div><div id="src2" style="margin-top:36px"></div><div class="grow"></div><div class="m mal" style="font-size:20px;letter-spacing:.14em">AEDIFICARE &nbsp;/&nbsp; ED. 11 &nbsp;/&nbsp; THE NIGHT PIN &nbsp;/&nbsp; 30.10.2026</div></div><div class="foot"><span>21</span><span>AEDIFICARE.ART</span></div></section>
+
+<script>
+const C={acid:"#CCFF00",mal:"#00B24F",bottle:"#063B22",void:"#050A06",flash:"#FFFFFF",rose:"#FF1F5A"};
+const NS="http://www.w3.org/2000/svg";
+function el(p,t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+function txt(p,x,y,s,a){const e=el(p,"text",Object.assign({x,y},a));e.textContent=s;return e}
+
+// rhodonea r = cos(k*theta)
+function rose(svg,cx,cy,R,k,phase,color,w){
+  let d="";const N=2400;
+  for(let i=0;i<=N;i++){const t=i/N*2*Math.PI;const r=R*Math.cos(k*t);
+    const x=cx+r*Math.cos(t+phase),y=cy+r*Math.sin(t+phase);d+=(i?"L":"M")+x.toFixed(2)+" "+y.toFixed(2)}
+  el(svg,"path",{d,fill:"none",stroke:color,"stroke-width":w,"stroke-linejoin":"round"});
+}
+function field(id,cx,cy,R,seed,op){
+  const s=document.getElementById(id);const g=el(s,"g",{opacity:op});
+  const ph=(seed%97)/97*Math.PI/5;
+  rose(g,cx,cy,R,5,ph,C.acid,2);
+  rose(g,cx,cy,R*.78,7,ph+.11,C.mal,2);
+  rose(g,cx,cy,R*.54,3,ph+.23,C.mal,2);
+}
+field("coverRose",760,520,560,1130,1);
+(function(){ // view page rose, malachite only (acid spent on type)
+  const s=document.getElementById("viewRose");const g=el(s,"g",{opacity:.45});const ph=(1131%97)/97*Math.PI/5;
+  rose(g,880,300,420,5,ph,C.mal,2);rose(g,880,300,420*.78,7,ph+.11,C.mal,2);rose(g,880,300,420*.54,3,ph+.23,C.mal,2);
+})();
+
+// stack
+(function(){
+  const L=[["06","IDENTITY","Voter files","the name on the door"],["05","DEVICE","Ad IDs from ad auctions","where a phone sleeps and goes"],["04","ORBIT","Satellite imagery","cars, tanks, ships"],["03","ATTENTION","App and web panels","what people open"],["02","NETWORK","NetFlow","who talks to whom"],["01","STRUCTURE","Shodan","machines on the internet"]];
+  const h=document.getElementById("stack");
+  L.forEach((l,i)=>{const top=i==0;
+    const d=document.createElement("div");
+    d.style.cssText=`height:118px;margin-top:${i?8:0}px;background:${top?C.acid:C.bottle};color:${top?C.void:C.flash};display:flex;align-items:center;padding:0 96px;gap:28px`;
+    d.innerHTML=`<span class="m" style="font-size:22px;letter-spacing:.14em;color:${top?C.void:C.mal}">${l[0]}</span><span class="d" style="font-size:62px;width:380px">${l[1]}</span><span style="font-size:25px;line-height:1.25;flex:1"><b style="font-weight:700">${l[2]}</b><br>${l[3]}</span>`;
+    h.appendChild(d)});
+})();
+
+// parking lots
+(function(){
+  const s=document.getElementById("lots");const cols=18,rows=7,w=18,hh=30,gx=5,gy=8;
+  function lot(x0,fill,label,seed){let r=seed;const rnd=()=>{r=(r*9301+49297)%233280;return r/233280};
+    for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){const on=rnd()<fill;
+      el(s,"rect",{x:x0+i*(w+gx),y:44+j*(hh+gy),width:w,height:hh,fill:on?C.flash:C.void})}
+    txt(s,x0,24,label,{fill:C.mal,"font-size":19,"letter-spacing":"2.6"});}
+  lot(0,.82,"QUARTER A  /  82% FULL",7);lot(470,.41,"QUARTER B  /  41% FULL",11);
+})();
+
+// auction fan-out
+(function(){
+  const s=document.getElementById("auction");
+  const px=40,py=220,ex=330,ey=220;const n=12;
+  el(s,"line",{x1:px+40,y1:py,x2:ex-26,y2:ey,stroke:C.mal,"stroke-width":3});
+  for(let i=0;i<n;i++){const y=20+i*(400/(n-1));const win=i==4;
+    el(s,"line",{x1:ex+26,y1:ey,x2:650,y2:y,stroke:win?C.flash:C.mal,"stroke-width":win?3:1.6});
+    el(s,"rect",{x:650,y:y-7,width:14,height:14,fill:win?C.flash:C.mal});
+    txt(s,680,y+7,win?"WINS THE AD":"KEEPS THE DATA",{fill:win?C.flash:C.mal,"font-size":17,"letter-spacing":"1.6"});}
+  el(s,"rect",{x:px-20,y:py-60,width:60,height:120,fill:C.acid});
+  el(s,"rect",{x:ex-26,y:ey-26,width:52,height:52,fill:C.flash});
+  txt(s,px-20,py+100,"PHONE",{fill:C.flash,"font-size":19,"letter-spacing":"2.6"});
+  txt(s,ex-60,ey+62,"EXCHANGE",{fill:C.flash,"font-size":19,"letter-spacing":"2.6"});
+  txt(s,px-20,py-82,"AD ID / GPS / IP",{fill:C.mal,"font-size":19,"letter-spacing":"2.6"});
+})();
+
+// night clock
+(function(){
+  const s=document.getElementById("clock");const cx=270,cy=270,R=196;
+  el(s,"circle",{cx,cy,r:R,fill:"none",stroke:C.bottle,"stroke-width":26});
+  // night arc 22:00 -> 06:00 (8h) drawn as thicker malachite
+  const a=h=>(h/24)*2*Math.PI-Math.PI/2;const pt=(h,r)=>[cx+r*Math.cos(a(h)),cy+r*Math.sin(a(h))];
+  const [x1,y1]=pt(22,R),[x2,y2]=pt(30,R);
+  el(s,"path",{d:`M${x1} ${y1} A${R} ${R} 0 0 1 ${x2} ${y2}`,fill:"none",stroke:C.mal,"stroke-width":26});
+  {const[x,y]=pt(22,R+30);txt(s,x-6,y-4,"22:00",{fill:C.mal,"font-size":20,"text-anchor":"end","letter-spacing":"1.5"});}
+  {const[x,y]=pt(6,R);txt(s,x+24,y-30,"06:00",{fill:C.mal,"font-size":20,"letter-spacing":"1.5"});}
+  {const[x,y]=pt(14,R+30);txt(s,x+10,y+24,"DAYTIME",{fill:C.mal,"font-size":18,"letter-spacing":"1.5","text-anchor":"middle"});}
+  // daytime scattered pings
+  let r=3;const rnd=()=>{r=(r*9301+49297)%233280;return r/233280};
+  for(let i=0;i<46;i++){const h=6.5+rnd()*15;const rr=40+rnd()*150;const[x,y]=pt(h,rr);el(s,"rect",{x:x-4,y:y-4,width:8,height:8,fill:C.flash,opacity:.85})}
+  // night cluster at one point
+  const hx=cx,hy=cy;
+  for(let i=0;i<34;i++){const ang=rnd()*2*Math.PI,d=rnd()*16;el(s,"rect",{x:hx+d*Math.cos(ang)-4,y:hy+d*Math.sin(ang)-4,width:8,height:8,fill:C.mal})}
+  el(s,"circle",{cx:hx,cy:hy,r:11,fill:C.rose});
+  // join chain
+  el(s,"line",{x1:hx+24,y1:hy,x2:560,y2:hy,stroke:C.rose,"stroke-width":2});
+  const rows=[["HOME COORDINATE",C.flash],["STREET ADDRESS",C.flash],["NAME",C.flash],["YEAR OF BIRTH",C.mal],["PARTY",C.mal],["TURNOUT HISTORY",C.mal]];
+  rows.forEach((rw,i)=>{const y=hy-125+i*50;txt(s,580,y+7,rw[0],{fill:rw[1],"font-size":21,"letter-spacing":"2.6"})});
+  txt(s,580,hy-170,"ONE LOOKUP",{fill:C.rose,"font-size":19,"letter-spacing":"2.6"});
+})();
+
+// 100 people, 95 singled out
+(function(){
+  const s=document.getElementById("hundred");const sz=26,g=9;
+  for(let i=0;i<100;i++){const c=i%25,r=Math.floor(i/25);
+    el(s,"rect",{x:c*(sz+g)+4,y:r*(sz+g)+12,width:sz,height:sz,fill:i<95?C.flash:C.void})}
+})();
+// voter file join diagram
+(function(){
+  const s=document.getElementById("joinD");
+  const L=["VOTER FILE","name","address","party","turnout"],R=["AD-AUCTION LOG","ad ID","impression","time","app"];
+  L.forEach((t,i)=>txt(s,0,26+i*48,i?t.toUpperCase():t,{fill:i?C.flash:C.mal,"font-size":i?21:19,"letter-spacing":"2.4"}));
+  R.forEach((t,i)=>txt(s,888,26+i*48,i?t.toUpperCase():t,{fill:i?C.flash:C.mal,"font-size":i?21:19,"letter-spacing":"2.4","text-anchor":"end"}));
+  el(s,"line",{x1:200,y1:120,x2:380,y2:120,stroke:C.mal,"stroke-width":3});
+  el(s,"line",{x1:508,y1:120,x2:688,y2:120,stroke:C.mal,"stroke-width":3});
+  el(s,"rect",{x:394,y:70,width:100,height:100,fill:C.flash});
+  txt(s,444,130,"JOIN",{fill:C.void,"font-size":22,"letter-spacing":"2.4","text-anchor":"middle","font-weight":700});
+  txt(s,444,224,"REACH + FREQUENCY, PER VOTER",{fill:C.mal,"font-size":19,"letter-spacing":"2.4","text-anchor":"middle"});
+})();
+
+// waffle 50 states
+(function(){
+  const s=document.getElementById("waffle");const sz=50,g=8;
+  for(let i=0;i<50;i++){const c=i%10,r=Math.floor(i/10);const col=i<29?C.acid:i<38?C.mal:C.bottle;
+    el(s,"rect",{x:c*(sz+g),y:r*(sz+g),width:sz,height:sz,fill:col})}
+  const lx=10*(sz+g)+20;
+  txt(s,lx,40,"29",{fill:C.flash,"font-size":44,"font-weight":300});txt(s,lx,72,"NON-COMMERCIAL ONLY",{fill:C.flash,"font-size":15,"letter-spacing":"1.6"});
+  txt(s,lx,150,"9",{fill:C.mal,"font-size":44,"font-weight":300});txt(s,lx,182,"ELECTION OR GOVERNMENT",{fill:C.flash,"font-size":15,"letter-spacing":"1.6"});
+  txt(s,lx,260,"12",{fill:C.flash,"font-size":44,"font-weight":300});txt(s,lx,292,"SILENT ON USE",{fill:C.flash,"font-size":15,"letter-spacing":"1.6"});
+})();
+
+// sources
+const SRC=[
+["TechCrunch, 18 Mar 2026. FBI is buying location data to track US citizens, director confirms.","techcrunch.com/2026/03/18/fbi-is-buying-location-data-to-track-us-citizens-kash-patel-wyden"],
+["EFF, 5 Mar 2026. Targeted advertising gives your location to the government. Just ask CBP.","eff.org/deeplinks/2026/03/targeted-advertising-gives-your-location-government-just-ask-cbp"],
+["IAPP, citing Vice, 23 Sep 2022. US military buys internet monitoring tool that covers 90% of web traffic.","iapp.org/news/a/report-us-military-buys-internet-monitoring-tool-that-covers-90-of-web-traffic"],
+["US SEC, Press Release 2021-176, 14 Sep 2021. App Annie and founder charged.","sec.gov/newsroom/press-releases/2021-176"],
+["Berkeley Haas, May 2019. How hedge funds use satellite images to beat Wall Street and Main Street.","newsroom.haas.berkeley.edu/how-hedge-funds-use-satellite-images-to-beat-wall-street-and-main-street"],
+["Shodan. Search engine for internet-connected devices.","shodan.io"],
+["The Record, 3 Dec 2024. FTC actions against Gravy Analytics, Venntel and Mobilewalla.","therecord.media/ftc-location-data-brokers-gravy-venntel-mobilewalla"],
+["TechCrunch, 13 Jan 2025. Gravy Analytics breach: trove of location data threatens privacy of millions.","techcrunch.com/2025/01/13/gravy-analytics-data-broker-breach-trove-of-location-data-threatens-privacy-millions"],
+["Moburst, 2026. IDFA in 2026: what has happened since App Tracking Transparency (AppsFlyer, Adjust data).","moburst.com/blog/idfa-att-update"],
+["Playio, 2025. Privacy Sandbox shutdown and Android advertising ID.","blog.playio.co/privacy-sandbox-shutdown-android-game-marketing"],
+["de Montjoye et al., Scientific Reports 3, 1376 (2013). Unique in the Crowd: the privacy bounds of human mobility.","nature.com/articles/srep01376"],
+["NCSL. Access to and use of voter registration lists.","ncsl.org/research/elections-and-campaigns/access-to-and-use-of-voter-registration-lists.aspx"],
+["Nexxen, 18 Jun 2026. Nexxen and L2 Data launch VoterMatch.","nexxen.com/nexxen-and-l2-data-launch-votermatch-bringing-greater-precision-transparency-and-performance-to-political-advertising"],
+["PR Newswire, 20 May 2019. Thasos launches QStreams for quantitative hedge funds.","prnewswire.com/news-releases/thasos-launches-qstreams-offering-quantitative-hedge-funds-unprecedented-insight-into-consumer-foot-traffic-300852747.html"],
+["New York Times, 19 Dec 2019. Twelve Million Phones, One Dataset, Zero Privacy (summary via TidBITS).","tidbits.com/2019/12/19/the-new-york-times-reveals-how-completely-our-every-move-is-tracked"],
+["Fortune, 13 Jun 2023. US intelligence agencies buy commercially available information (ODNI report).","fortune.com/2023/06/13/u-s-intelligence-agencies-commercially-available-information-spy-on-americans"],
+["Chatrie v. United States, decided 29 Jun 2026.","en.wikipedia.org/wiki/Chatrie_v._United_States"],
+["PPC Land, May 2026. FTC closes Kochava location data case with strict consent rules.","ppc.land/ftc-closes-kochava-location-data-case-with-strict-consent-rules"],
+["Mobilewalla: June 2020 protest demographics report and FTC action.","en.wikipedia.org/wiki/Mobilewalla"]];
+function fill(id,from,to){const h=document.getElementById(id);
+  for(let i=from;i<to;i++){const d=document.createElement("div");d.style.cssText="margin-bottom:18px;display:flex;gap:22px";
+    d.innerHTML=`<span class="m acid" style="font-size:22px;width:44px;flex:none;${i==from?"":"color:"+C.mal}">${String(i+1).padStart(2,"0")}</span><span><span style="font-size:22px;line-height:1.28;display:block">${SRC[i][0]}</span><span class="m" style="font-size:16px;line-height:1.35;color:${C.mal};word-break:break-all;display:block;margin-top:3px">${SRC[i][1]}</span></span>`;
+    h.appendChild(d)}}
+fill("src1",0,10);fill("src2",10,19);
+</script>
+</body>
+</html>

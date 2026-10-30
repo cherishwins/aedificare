@@ -1,0 +1,15 @@
+---
+/**
+ * The three pages about the method, linked from every page's footer and nowhere else (30 Oct 2026): who writes the
+ * editions, how they are sourced and corrected, and every amendment. Footer only, so the masthead stays the index of
+ * editions and nothing more; each a link of its own, never inside a sentence (CLAUDE.md, block links only).
+ */
+const here = Astro.url.pathname.replace(/\/$/, '');
+const LINKS = [['/about', 'About'], ['/standards', 'Standards'], ['/amendments', 'Amendments']];
+---
+<nav class="site-links" aria-label="Site">
+  {LINKS.map(([href, name]) => <a href={href} aria-current={here === href ? 'page' : undefined}>{name}</a>)}
+</nav>
+<style>
+  .site-links { display: flex; flex-wrap: wrap; gap: 0 24px; }
+</style>

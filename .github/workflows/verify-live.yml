@@ -46,8 +46,14 @@ jobs:
           for d in $(node -e "const {EDITIONS}=await import('./src/lib/editions.mjs');console.log(EDITIONS.filter(e=>e.draft).map(e=>e.path).join(' '))" --input-type=module); do
             echo "$d $(curl -sS "$U$d" | grep -oE 'name="robots" content="[^"]*"')"
             curl -sS "$U$d" | grep -q 'content="noindex' || { echo "NOT noindex: $d"; exit 1; }
-            test "$(curl -sS "$U/sitemap-0.xml" | grep -c "$d/")" = "0"
+            test "$(curl -sS "$U/sitemap-0.xml" | grep -c "<loc>[^<]*$d</loc>")" = "0"
           done
+          echo "--- one URL per page"
+          code=$(curl -sS -o /dev/null -w "%{http_code} %{redirect_url}" "$U/ns-02/"); echo "/ns-02/ -> $code"; [ "$code" = "308 $U/ns-02" ]
+          code=$(curl -sS -o /dev/null -w "%{http_code} %{redirect_url}" "$U/sitemap.xml"); echo "/sitemap.xml -> $code"; [ "$code" = "308 $U/sitemap-index.xml" ]
+          # vercel.json names production in a PDF's canonical whatever host serves it, so the check reads it from src/config.mjs.
+          P=$(node --input-type=module -e "const {PRODUCTION_ORIGIN}=await import('./src/config.mjs');console.log(PRODUCTION_ORIGIN)")
+          curl -sSI "$U/pdf/ns-02.pdf" | grep -i "^link:" | grep -qF "<$P/ns-02>; rel=\"canonical\"" || { echo "no canonical on /pdf/ns-02.pdf"; exit 1; }
       - name: Which commit is live
         run: |
           set -e

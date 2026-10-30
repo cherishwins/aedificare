@@ -1,8 +1,9 @@
 ---
 /**
  * The end of a dossier: the dove (the sequence's one resolve), the closing
- * lines, then the footer with the PDF, the film where one is out, and the
- * neighbouring editions as block links. Acid is spent on the dove, so the
+ * lines, the footer (the record, and the links to /about, /standards and
+ * /amendments that every page's footer carries), then the PDF, the film
+ * where one is out, and the neighbouring editions as block links. Acid is spent on the dove, so the
  * closing lines stay Flash.
  *
  * Everything here is read from the editions list by slug: the date, the
@@ -12,6 +13,7 @@
  */
 import Dove from './Dove.astro';
 import FilmLink from './FilmLink.astro';
+import SiteLinks from './SiteLinks.astro';
 import { LICENCE, edition, neighbours, label } from '../lib/editions.mjs';
 interface Props { slug: string; seed?: string }
 const { slug, seed } = Astro.props;
@@ -27,6 +29,7 @@ const { newer, older } = neighbours(slug);
 </section>
 <footer class="foot mono">
   <span>Aedificare · {e.dateLabel} · <a href={LICENCE.url} rel="license">{LICENCE.name}</a></span>
+  <SiteLinks />
   <span>r = cos(kθ) · seed {seed ?? e.seed}</span>
 </footer>
 <nav class="surface tight" aria-label="Editions">

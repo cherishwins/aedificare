@@ -7,9 +7,11 @@ import Rail from '../components/Rail.astro';
 import Stats from '../components/Stats.astro';
 import EditionEnd from '../components/EditionEnd.astro';
 import Formats from '../components/Formats.astro';
+import Byline from '../components/Byline.astro';
 import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
-import { edition, LICENCE, describe, seedDrift } from '../lib/editions.mjs';
+import { edition, LICENCE, describe, seedDrift, pageTitle } from '../lib/editions.mjs';
+import { articleGraph } from '../lib/schema.mjs';
 import { SITE, abs } from '../config.mjs';
 
 // Edition 04, ported from the print of 3 Oct 2026 with the prose verbatim.
@@ -22,21 +24,6 @@ const ed = edition('the-tilt-gap');
 // Cover field runs Malachite only: Acid on this surface is spent on one word
 // of the title.
 const cover = HOUSE.map((L, i) => ({ ...L, c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
-
-const article = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: 'The Tilt Gap',
-  alternativeHeadline: `Printed as ${ed.print}`,
-  datePublished: ed.date,
-  author: { '@type': 'Person', name: 'Jesse James' },
-  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
-  url: abs(ed.path),
-  mainEntityOfPage: abs(ed.path),
-  license: LICENCE.url,
-  isAccessibleForFree: true,
-  description: ed.lede,
-};
 
 // Figures. Every bar is computed from the number it shows, never drawn.
 const log = (v, lo, hi) => (((Math.log10(v) - lo) / (hi - lo)) * 100).toFixed(1);
@@ -172,19 +159,20 @@ const sources = [
 ];
 // The print's marks, as inline labels. Expanded for assistive tech; one letter on screen.
 const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
+const graph = articleGraph(ed, { alternativeHeadline: `Printed as ${ed.print}`, sources });
 ---
-<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+<Base title={pageTitle(ed)} ogTitle={ed.seoTitle} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[graph]} published={ed.date} modified={ed.modified}>
   <main id="main">
     <section class="surface cover" aria-label="Cover">
       <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
       <Masthead />
       <div class="grid cover-grid">
-        <h1 class="c-full display" data-flex="cursor">The Tilt<br><span class="acid">Gap</span></h1>
+        <h1 class="c-full display" data-flex="cursor">The Tilt<br><span class="acid">Gap</span>{ed.dek && <span class="dek"><span class="sr">: </span>{ed.dek}</span>}</h1>
         <p class="c-a lede">{ed.lede}</p>
         <Formats slug={ed.slug} />
       </div>
       <div class="foot mono cover-foot">
-        <span>{ed.dateLabel} · {SITE.author}</span>
+        <Byline e={ed} />
         <span>r = cos(kθ) · seed {ed.seed}</span>
       </div>
     </section>

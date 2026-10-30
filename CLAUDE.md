@@ -27,6 +27,7 @@ Shipped (2026-09-15):
 | Route | What | State |
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
+| `/the-night-pin` | 30 Oct 2026 · *The Night Pin* (printed as Edition 11), eighteen sections, forty-seven sources, three registers | **held** (2026-10-30): every source opened by nine lanes, a researcher and a skeptic each, and a second skeptic over every change (Findings 0k); out of search until the owner's yes on the View, the title and NCSL's counts (`docs/release-the-night-pin.md`) |
 | `/the-middleman` | 27 Oct 2026 · *The Middleman*, no print, written from an unsourced research deck, twelve sections, seventy-five sources, three registers | **draft**: sourced from scratch, six researchers and a skeptic each (Findings 0j); title and lede the owner's to confirm |
 | `/the-grade` | 22 Oct 2026 · *The Grade* (printed as Edition 10), twelve sections, fourteen sources | **draft**: ported and swept, every source still to be opened |
 | `/the-countersign` | 16 Oct 2026 · *The Countersign* (printed as Edition 09), fifteen sections, twenty-two sources, three registers | live |
@@ -39,12 +40,16 @@ Shipped (2026-09-15):
 | `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01), eleven sections, fifty-four sources | live (2026-10-18, sourced from scratch, every source that could be opened opened; the three lines The Closest Humans answers stay as printed) |
 | `/ns-02` | 13 Sep 2026 · *The Closest Humans* (printed as NS-02), amends The Hand in the Water, eleven sections, forty-four sources | live (2026-10-18, sourced from scratch, each side of the disputed calls given with its own source) |
 | `/edition-02` | 18 Oct 2026 · *The Subtraction* (printed as Edition 02), nine sections, thirty-six sources | live (2026-10-18, sourced from scratch; no PDF, none was issued) |
+| `/<slug>/film` | each linked film's watch page (nine: `/the-floor/film`, `/the-countersign/film`, `/the-supply-cabinet/film`, `/the-fourth-axis/film`, `/the-tilt-gap/film`, `/ns-02/film`, `/ns-01/film`, `/edition-01/film`, `/edition-03/film`): the player as a real iframe in the server's HTML, length, upload day, the description, chapters as `?t=` links, the full transcript, `VideoObject` with a Clip per chapter (Decisions log, 30 Oct 2026) | generated |
+| `/about` `/standards` `/amendments` | the person, the method, and every amendment generated from the editions list; the owner's copy (`source/about-standards-amendments.md`) with the changes the Decisions log of 30 Oct 2026 records; linked from every page's footer | live |
 | `/404` | | live |
-| `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/ai.txt` `/humans.txt` | discoverability | generated or static |
-| `/privacy.txt` | the privacy statement: first the films' player on the editions (what the press loads, what applies from then on; YouTube's API terms require it of a site that embeds the player, 2026-10-26), then the YouTube uploader's, which Google's consent screen needs before the app can leave Testing (2026-10-17); plain text like `humans.txt`, not a page, linked from the rail beside every player | static |
+| `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/sitemap-news.xml` `/sitemap-video.xml` `/ai.txt` `/humans.txt` | discoverability (`/sitemap.xml` 308s to the index; Discoverability) | generated or static |
+| `/68ce724887380cc177ba53cc75658d16.txt` | the IndexNow key, public by design (`public/68ce724887380cc177ba53cc75658d16.txt`; Discoverability) | static |
+| `/privacy.txt` | the privacy statement: first the films' player on the editions (what the press loads, what applies from then on; YouTube's API terms require it of a site that embeds the player, 2026-10-26) and on the watch pages (loaded as the page opens, 2026-10-30), then the YouTube uploader's, which Google's consent screen needs before the app can leave Testing (2026-10-17); plain text like `humans.txt`, not a page, linked from the rail beside every player | static |
 | `/index.json` `/og/desk.png` | the index as JSON and the desk's card, for apt.grok.me to fetch and hotlink | generated |
+| `/lead/*.png` | each published edition's lead image, one of its own figures that is not text rendered alone (seven; The Subtraction, The Closest Humans and The Hand in the Water have none, `NO_FIGURE`) at 16:9, 4:3 and 1:1, content-hashed (`src/lib/lead-manifest.json`), first in its NewsArticle's `image` (Decisions log, 30 Oct 2026) | rendered by hand, checked by the build |
 | `/film/*.png` | each linked film's own thumbnail, reduced and content-hashed, beside a link to its YouTube watch page at the edition's end and on the home (Decisions log, 21 Oct 2026) | generated |
-| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-09.pdf` `/pdf/edition-10.pdf` | the print editions as uploaded | as uploaded |
+| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-09.pdf` `/pdf/edition-10.pdf` `/pdf/edition-11.pdf` | the print editions as uploaded | as uploaded |
 
 ## Brand — source of truth, and the overrides
 
@@ -240,7 +245,42 @@ italic or underline (properties and tags), never centred, durations only
 exclamation in a heading, no emoji, no sentence "Aedificare is", none of
 the banned self-praise adjectives. `tools/check-contents.cjs` keeps every
 contents list true to the built edition, drafts included and every published
-page's meta description within 100 to 200 characters. `tools/films.mjs --check`,
+page's meta description within 100 to 200 characters, every published
+edition's dek, seoTitle and description present and in their lengths (title
+and dek 110 at most, seoTitle 70, description 140 to 160, no em dash), and
+`vercel.json`'s PDF Link headers equal to the editions list (the licence on
+every print, a canonical naming its page on a published edition's, none on
+a draft's), and no dek with a colon (the headline joins title and dek with
+one). `tools/check-discovery.cjs`, the build's last step, holds what a search
+engine reads off `dist/`, for the home, every published edition and every
+draft, taken from the editions list and never from the sitemap: one URL per page (canonical, `og:url` and every
+JSON-LD url naming the page are the origin and its path, no trailing slash),
+one `<h1>`, every JSON-LD block parsing, a NewsArticle whose headline is the
+h1's own text and whose dates carry an offset, a published edition's
+`<title>` its seoTitle and its description 140 to 160, the home and every
+published edition in the sitemap (a page the sitemap drops fails, and is
+still checked), drafts noindex and out of the sitemap, a pages sitemap in
+the index, every sitemap `<loc>` a built page with no slash, and no
+trailing slash on any address of this origin in the feed, `llms.txt`,
+`index.json` or a page's links; since part B (30 Oct 2026) also every
+watch page and `/about`, `/standards` and `/amendments` in the sitemap with
+one h1 and their canonical, the video sitemap listing every watch page
+with its embed URL, length and dated upload, a watch page's `VideoObject`
+whole (name, description, thumbnails that are built files, an offset
+`uploadDate`, the measured duration, the embed URL, publisher, creator,
+transcript, a Clip per chapter whose url is the page at its second), exactly
+one iframe in its HTML (the embed URL, no autoplay) and no iframe on any
+other page, every chapter link one of its chapters, every published
+edition's NewsArticle opening its `image` with its lead figure's three
+frames (where it has one) and ending with the card and naming its film by `@id` alone, every
+edition's byline dated as its `datePublished`, every Person node the one on
+`/about`, and every page's footer linking the three pages on the method,
+`/404` included.
+`node tools/transcripts.mjs --check`, the build's second step, holds
+`src/lib/transcripts` to the linked films (one per film, for its current
+id, none left over), and `src/lib/lead.mjs` holds the lead manifest to the
+published editions and the files under `public/lead/` on first use, so the
+build stops on either. `tools/films.mjs --check`,
 the build's first step, holds `src/lib/films.json` to the published editions,
 each entry to its own edition's release and the thumbnails on disk, and
 `tools/films.mjs --check --online` in `verify.yml` holds each link to what its
@@ -251,7 +291,12 @@ live, every field's reduced-motion still, and no request to any host but the
 page's own until the reader plays a film (then one iframe, YouTube's
 privacy-enhanced player, made by the click and never shipped in a page;
 the film probe plays every player by mouse, Space and Enter and proves
-it; Decisions log, 26 Oct 2026).
+it; Decisions log, 26 Oct 2026). **The one exception is a watch page**
+(`/<slug>/film`, Decisions log, 30 Oct 2026): it ships its player in the
+server's HTML, and the sweep asserts exactly one iframe there, the embed
+URL with no autoplay, that the only request off the origin it makes is
+that player, and that `?t=61` starts it at 61 seconds; every other page
+keeps the rule as it was.
 
 **Human duties** (cannot fail a build; review by eye on every PR): one loud
 move per surface; never explain what the entity does; twelve words maximum
@@ -259,7 +304,15 @@ in display copy; the dove once per *sequence* (the sweep can count doves per
 page, "sequence" is editorial); no building pun; no tagline; no call to
 action; every source of a ported edition opened before `draft` is
 flipped; after `npm run og`, every card whose content did not change
-restored to its committed bytes (see Discoverability); and a linked film
+restored to its committed bytes (see Discoverability), and the same for
+`node tools/generate-lead.mjs`, whose renders are machine-dependent too: commit
+only the editions whose chosen figure or content changed; the home's
+description (`src/pages/index.astro`) read again when an edition on a
+subject it does not name is published, because its subjects are typed and
+only its length is checked; an edition's dek, seoTitle and description
+changed only with the same check against the page that wrote them
+(Decisions log, 30 Oct 2026), because `tools/check-contents.cjs` holds their
+lengths and not their truth; and a linked film
 kept public and current: the day a film the site links is withdrawn, held,
 retired or replaced, `node tools/films.mjs --drop <slug>` (or the
 replacement's id, once it is public) and a commit. Only the channel can say
@@ -306,9 +359,18 @@ for a shortlist for bios and cards, which is a separate deliverable.
   "builds this repo's main, proved 2026-09-15 05:33" was true only because
   the fork had just been synced. The domain is pointed (Vercel anycast
   `216.198.79.1`, `64.29.17.1`); the apex is primary and `www` redirects
-  to it (Open 1, resolved). `src/config.mjs` is the only place the origin
-  is written;
-  `SITE_ORIGIN` overrides it for previews.
+  to it (Open 1, resolved; reopened 28 Oct). In code the origin is written
+  once, `PRODUCTION_ORIGIN` in `src/config.mjs`; `SITE.origin` is it unless
+  `SITE_ORIGIN` overrides it for previews, and `tools/indexnow.mjs`,
+  `tools/check-contents.cjs`, `tools/check-discovery.cjs` and the two
+  workflows that name production (`indexnow.yml`, `verify-live.yml`) read
+  `PRODUCTION_ORIGIN`. It is also typed where nothing can import it, each
+  held or named: `vercel.json`'s PDF canonicals (held to it by
+  `tools/check-contents.cjs`), and, unchecked, `verify-live.yml`'s default
+  `url` input, the static `public/humans.txt`, `public/ai.txt` and
+  `public/privacy.txt`, and the readme text in
+  `tools/generate-design-system.mjs`; a move of domain changes those by
+  hand.
 - Dependencies: `astro`, `@astrojs/sitemap`, `@astrojs/rss`; dev: `axe-core`.
   **Playwright is deliberately NOT in `package.json`**: Vercel installs
   devDependencies to build, and a browser-automation library has no place in
@@ -322,9 +384,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   question before any service is "is it free, and does it stay free at
   scale."
 - **Client JS budget: 5 kB gzipped for the whole site**, enforced by
-  `tools/check-budget.cjs` in the build. **Measured: 2,896 B** (the client
-  script `src/scripts/aed.js`, inlined on every page, 1,780 B, plus Astro's
-  prefetch module `page.*.js`, 1,116 B; 2,660 until the film's player on the
+  `tools/check-budget.cjs` in the build. **Measured: 3,106 B** (the client
+  script `src/scripts/aed.js`, inlined on every page, 1,828 B, plus Astro's
+  prefetch module `page.*.js`, 1,114 B, plus the watch pages' one inline
+  script, 164 B, the same on all nine and counted once; 2,942 until the
+  watch pages, 30 Oct 2026; 2,896 until the cursor flex, 30 Oct
+  2026, measured the display title without the dek now inside its h1, 46 B;
+  2,660 until the film's player on the
   reader's press, 26 Oct 2026, whose 236 B are the whole of it, and before
   that the two parts were misnamed here as a bundled script and a hydration
   shim; 2,672 until vite 8.3.4's newer rolldown, 21
@@ -351,13 +417,28 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - `src/config.mjs`: the origin, name, author, the channel's `NARRATOR` (the
   one place the voice is written), and `BUILD`, the first eight
   characters of `VERCEL_GIT_COMMIT_SHA` ("dev" locally), shipped as
-  `<meta name="build">` by `src/layouts/Base.astro`.
+  `<meta name="build">` by `src/layouts/Base.astro`; the author's LinkedIn
+  (the one place it is written; the JSON-LD Person's sameAs) and
+  `timeZone`, America/Vancouver, the zone an edition's date is a day in.
+- `src/lib/dates.mjs`: an edition's date as an instant: 00:00 in that zone
+  with the offset Intl gives for that day (`zoned`, ISO 8601; `rfc822`, for
+  the feed; `instant`), never a typed -07:00.
+- `src/lib/schema.mjs`: `articleGraph()`, each edition page's one JSON-LD
+  `@graph` (NewsArticle, Organization, Person, BreadcrumbList), and the
+  reading of a page's own sources list into `citation` (Discoverability).
+- `src/components/SameThread.astro`: "Same thread · <series>", the other
+  published editions in an edition's `series`, above its sources, as block
+  links in the mono and lede styles, on Bottle; a `nav`, so the film script
+  and the facts reading leave it out.
 - `src/lib/editions.mjs`: **the editions, once.** Home, feed, llms.txt,
   robots, sitemap filter, OG cards and each edition's own page read it, so a
   title or date cannot disagree with itself. The code, the seed, the k and
   the neighbour links are derived there, never typed per page (see "The
   code is the date"). `amends: '<slug>'` links an amendment both ways.
-  `draft: true` hides an edition everywhere but the build.
+  `draft: true` hides an edition everywhere but the build. `dek`,
+  `seoTitle` and `description` are the search packaging, `modified` the day
+  of the last correction after issue, `series` and `seriesOrder` the thread
+  (`SERIES`), all since 30 Oct 2026 (Discoverability).
 - `src/lib/films.mjs` and `src/lib/films.json`: the films the site links
   (Decisions log, 21 Oct 2026), keyed by edition: the video id, the length
   the link shows, the film file it was measured from (its release, name,
@@ -380,6 +461,35 @@ for a shortlist for bios and cards, which is a separate deliverable.
   YouTube", the length a `<time>` duration), on the baseline of the links
   beside it, the thumbnail hanging after it; `src/pages/index.json.ts`,
   `src/pages/llms.txt.ts` and `tools/generate-llms-full.cjs` carry its URL.
+- `src/lib/transcripts.mjs` and `src/lib/transcripts/` (one JSON per linked
+  film): each film's narration as spoken, in its chapters, for its watch
+  page, written by `tools/transcripts.mjs` from the release the film's
+  ledger names (the ledger must still name the linked id, the narration
+  must have been filed before that upload, the chapters must equal the ones
+  `meta.json`'s description files, and citation marks, which the voice never
+  says, are left out, as are The Tilt Gap's F, I and Q register marks,
+  labels and not prose, which `--check` fails if one is printed). Committed, never fetched at build time; the module
+  checks them against `src/lib/films.json` with no network. Relinking a film
+  (`node tools/films.mjs <id>`) fails the build until
+  `node tools/transcripts.mjs` writes the new one.
+- `src/lib/lead.mjs` and `src/lib/lead-manifest.json`: the lead images
+  (Decisions log, 30 Oct 2026), the three frames (`FRAMES`), the editions
+  with no figure that is not text and why (`NO_FIGURE`), and the check
+  that the manifest names every other published edition and nothing else,
+  each file on disk at its size and its hash, and alt text that names the
+  edition and the figure (an empty name, as The Closest Humans' first cut
+  had, fails). `tools/generate-lead.mjs` renders
+  them from `dist/` and carries the table of which figure each edition uses
+  and why. `src/lib/schema.mjs` lists them first in the NewsArticle's
+  `image`, before the card; `og:image` stays the card (override 2).
+- `src/lib/dates.mjs`: an edition's day at 00:00 in the author's zone with
+  its offset (`zoned`), RSS dates, and since 30 Oct 2026 `zonedInstant`, an
+  instant from a ledger in that zone with its offset (a watch page's
+  `uploadDate`).
+- `src/lib/schema.mjs`: the graphs: `articleGraph` (every edition),
+  `videoGraph` (a watch page) and `pageGraph` (`/about` as a ProfilePage,
+  `/standards` and `/amendments` as WebPages). The Person's `@id` is
+  `/about#jesse` and its url `/about` (30 Oct 2026).
 - `src/lib/rose.mjs`: `rhodonea()`, the house configuration, the mark seed,
   the dove outline, and `drift()`, the clock a live field's k follows (a
   5.5 s cycle of amplitude 0.085 around the seed). The ONLY place the curve
@@ -397,11 +507,16 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `Rail`, `Pull`, `Stats`, `EditionEnd`, `FilmLink`, `Formats` (the row on
   an edition's cover: read, PDF, film, each only when it exists) and
   `FilmPlayer` (the film's own surface under the cover, its poster the
-  film's thumbnail with a play plate, playing on the click; Decisions log,
-  26 and 28 Oct 2026).
+  film's thumbnail with a play plate, playing on the click, its rail linking
+  the watch page; Decisions log, 26 and 28 Oct 2026), `Byline` (the cover's
+  "By Jesse James · date · Updated date", the name linked to `/about`),
+  `SiteLinks` (the footer's links to `/about`, `/standards` and
+  `/amendments`, on every page) and `PlainPage` (the frame of those three).
 - `src/pages/`: `index`, `the-middleman`, `the-grade`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
-  `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `404`, and the generated `feed.xml.ts`,
-  `llms.txt.ts`, `robots.txt.ts`, `index.json.ts` (the index as JSON for
+  `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `about`, `standards`, `amendments`, `404`,
+  `[slug]/film.astro` (the watch pages, one per linked film), and the generated `feed.xml.ts`,
+  `llms.txt.ts`, `robots.txt.ts`, `sitemap-news.xml.ts` (the Google News
+  sitemap), `sitemap-video.xml.ts` (the video sitemap), `index.json.ts` (the index as JSON for
   the desk and any companion; `vercel.json` sends it with
   `Access-Control-Allow-Origin: *`). Shared figure styles (big numbers by length, computed
   bars, sources lists) live in `src/styles/base.css`, not per page.
@@ -412,6 +527,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - `public/og/`: content-hashed cards; `src/lib/og-manifest.json` maps stable
   path to hashed path and alt text. Generated by `tools/generate-og.mjs`.
 - `public/pdf/`: the uploaded print editions.
+- `public/lead/`: the lead images, content-hashed, rendered by
+  `tools/generate-lead.mjs` and named by `src/lib/lead-manifest.json`;
+  `vercel.json` caches them for a year like `/og/`.
 - `public/film/`: each linked film's thumbnail at 112 by 63 and 224 by 126,
   content-hashed, written by `tools/films.mjs`; `vercel.json` caches it
   for a year like `/og/`, since a new picture is a new name.
@@ -447,7 +565,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `check-contents.cjs` (every contents entry in
   `src/lib/editions.mjs` must exist as an id and a heading in the built
   edition page, and every published page's meta description must run 100
-  to 200 characters, or the build fails), `films.mjs` (the films the site
+  to 200 characters, or the build fails; since 30 Oct 2026 also the
+  packaging's lengths and the PDF canonical headers), `check-discovery.cjs`
+  (the discovery gate over `dist/`, the build's last step; "Enforced by
+  machine" above), `indexnow.mjs` (the changed published URLs between two
+  commits, whether the key answers on the origin with no redirect, and the
+  POST, for `.github/workflows/indexnow.yml`), `films.mjs` (the films the site
   links, 21 Oct 2026: given the ids that are public, which nothing here can
   read without the channel's secrets, it matches each to the release whose
   `youtube.json` files it as the edition's film, so an earlier cut or a
@@ -1333,6 +1456,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   routes, what must be true before a render goes up, analytics, quota,
   failures). A project skill, so every session on this repo loads it; it
   restates no decision, it points here.
+- `docs/release-the-night-pin.md`: the steps that release a held edition,
+  written for The Night Pin (owner, 30 Oct 2026).
 - `.claude/skills/research/SKILL.md` and `.claude/agents/`: the house
   method for sourcing (Findings 0g to 0j) as a project skill, and its crew
   split by model: researchers on Haiku 5.5 in narrow lanes, skeptics on
@@ -1512,7 +1637,29 @@ for a shortlist for bios and cards, which is a separate deliverable.
   aedificare.art; a clean runner can. Run it after every production deploy.
   It also reads `<meta name="build">` on the live `/` and fails unless it
   matches the dispatched ref's head (or the `sha` input), so a green run
-  proves WHICH commit is live: a healthy stale deploy still fails.
+  proves WHICH commit is live: a healthy stale deploy still fails. Since 30
+  Oct 2026 it also proves one URL per page live: `/ns-02/` 308s to
+  `/ns-02`, `/sitemap.xml` to the index, a PDF names its page as canonical,
+  and a draft is matched in the sitemap without a trailing slash (the old
+  match looked for one, and would have passed vacuously once none was left).
+- `.github/workflows/indexnow.yml`: on every push to `main`, waits (up to
+  twenty minutes by the clock, green with a warning if it never comes)
+  until the live `<meta name="build">` is the push's commit or a later
+  one, checks that the key file and the home answer 200 on the production
+  origin with no redirect, and sends the published pages changed between
+  the last commit whose pages were sent (recorded in the Actions cache as
+  `indexnow-sent-*`) and the live one: a page's own file, its entry in
+  `src/lib/editions.mjs` or its film in `src/lib/films.json`, and the home
+  when its page, any published entry or film, or the published list
+  changed. A run cancelled while pending, a deploy superseded before its
+  run saw it, and a 429, a 5xx or no connection leave the record where it
+  was, so the next run sends those pages too; with no record it sends
+  every published page. Only a 400, 403 or 422 is red, because the key or
+  the request is ours to fix. **It sends nothing while Open 1 stands**:
+  IndexNow reads the key on the host it is given, and while the apex 308s
+  to `www` every run ends green with a warning naming Open 1, the record
+  unmoved, so the first run after the owner's fix sends every page changed
+  since.
 
 ## Design decisions, with the reasoning
 
@@ -1846,6 +1993,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
    primaries could not be reached from the sandbox at all (Bloomberg,
    CNBC, Quartz, Ofcom, callofduty.com) and were tested at second hand;
    the owner, on a normal connection, can open them.
+   **Its film reads the marks aloud** (found 30 Oct 2026): the film script
+   step read each F, I and Q mark as a word, so the film public since 22
+   Oct says "F" or "I" after about fifty sentences. `tools/generate-film.mjs`
+   now leaves `.mark` out of what it reads, as it leaves out the dek; the
+   published film is unchanged until it is rendered again, which costs
+   about 3,000 credits against the month's balance and is the owner's call.
 
 0d. **Edition 05 · The Fourth Axis arrived as a finished print (2026-10-06)**,
    fourteen pages, thirty-one sources, Chromium-rendered 00:12 UTC, with the
@@ -2196,6 +2349,59 @@ for a shortlist for bios and cards, which is a separate deliverable.
    the claim a skeptic most needs to test, because a search that misses is
    silent. Reports are in the session's scratchpad.
 
+0k. **Edition 11 · The Night Pin arrived as a finished print (2026-10-30)**,
+   twenty-one pages, with a web edition in the owner's field names, a
+   carousel source whose figures are computed SVG, a film script and two
+   prompt packs (the packs kept out of the repo; the edition files are in
+   `source/`: `source/the-night-pin.web.md`,
+   `source/the-night-pin.carousel.html`,
+   `source/film/the-night-pin.script.md`). The owner's text came in three
+   versions the same day (19, 21 and 22 sources); the page follows the
+   third. Ported with the prose verbatim and the carousel's figures (the
+   six-layer stack, the auction fan-out, the 24-hour clock and its join to
+   a voter record, the 100-cell grid, the 50-state waffle, the voter-file
+   join and the two lots), each computed and responsive, one Acid per
+   surface and Shock rose on the night pin, on Void. **Checked before
+   release, and held** (the owner, with The Grade's pattern): nine lanes, a
+   researcher on Haiku and a skeptic on Opus each, then a second pair of
+   skeptics over every changed hunk; `research/the-night-pin/VERDICTS.md`
+   has every row. Of 45 claims 12 stood as written (two only after a
+   skeptic overturned the researcher's flag), 30 were amended, 2 were
+   wrong and 1 could not be opened, two more lines were amended outside
+   the list, the skeptics changed 36 of the 45 researcher verdicts, and
+   47 sources now stand behind the page where 22 did. The largest: the FBI's $27 million (5,000 licences, 2022)
+   bought Babel X, a tool for searching social media and other online
+   sources, through a reseller (FedScoop, read by the main thread), not
+   Locate X location data: the edition had joined two paragraphs of The
+   Record, so section 13's figure is now DHS's 113,654 location points;
+   Augury's "90 percent" is the tool's own claim as Motherboard reported
+   it, and its 550 collection points and 100 billion records a day come
+   from a procurement record; the satellite paper reports a strategy that
+   beat the market by about 4.6 percent net of stock-loan fees, not what
+   funds earned, on 4.7 million observations; Kochava's order was entered
+   by the court in June, not filed in May; Chatrie was 6 to 3 and sent
+   good faith back to the Fourth Circuit; the Gravy leak's IP-inferred
+   points are 404 Media's finding; the Times did not follow people "by
+   name"; Mobilewalla's founder said the protest report was not prepared
+   for law enforcement or a public agency, where Wikipedia's wording had
+   become "no agency had asked". The law paragraph is the owner's third
+   text, the sponsors' own words for the Government Surveillance Reform
+   Act (Wyden's release, confirmed in Lofgren's), then one sentence from
+   the bill itself: section 201 bars a federal law enforcement agency from
+   buying covered data "in exchange for anything of value", with narrow
+   exceptions, and section 404 bars an intelligence agency from acquiring
+   such a dataset, with listed exceptions; the bill is itself a four-year
+   renewal of Section 702, which lapsed on 12 June 2026 after the
+   extension failed 198 to 218. Montana is cited through EFF [02], which
+   names it; Maryland is not added (owner). **NCSL refused this sandbox**
+   and was not worked round: the page keeps 29 / 9 / 12 and "38 states"
+   until the owner reads NCSL's current page, because the one readable
+   table built partly from it (the EAC's, January 2023) gives 26 / 12 / 12.
+   The View is the owner's and was not edited; it was shown to the owner
+   as it renders and waits for their yes. Its film is held for the
+   ElevenLabs reset on 17 Nov and will be cut B, without the sceptic
+   voice (owner); its watch page comes with the film.
+
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text
    as the owner's Markdown. Ported to `src/pages/edition-03.astro` with
@@ -2432,9 +2638,96 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - Every page: canonical, Open Graph (article type with published time on
   editions), Twitter card, `rel=license`, `meta license`, `ai-training`,
   alternate links to the feed, llms.txt and llms-full.txt, `humans.txt`.
-  JSON-LD: WebSite on every page, Article on every edition, both carrying
-  the licence.
-- **Meta descriptions are generated, never typed** (2026-09-15). LinkedIn's
+  JSON-LD: WebSite on every page, and on every edition the graph below.
+- **One URL per page** (30 Oct 2026). The origin is the apex, written once
+  in code as `PRODUCTION_ORIGIN` in `src/config.mjs` and typed only where
+  nothing can import it (Stack, which names each place and what holds it;
+  the `www` redirect is the owner's Vercel setting, Open 1). No path carries a trailing slash: `astro.config.mjs` sets
+  `trailingSlash: 'never'` and keeps `build.format: 'directory'`, because
+  every tool here reads `dist/<slug>/index.html` and Vercel serves that file
+  at `/<slug>`; `vercel.json` sets `trailingSlash: false`, so `/the-floor/`
+  308s to `/the-floor`, and 308s `/sitemap.xml` to `/sitemap-index.xml`.
+  The canonical, `og:url`, the JSON-LD, the sitemap, the feed (its
+  `trailingSlash: false`), `llms.txt` and `index.json` all print the bare
+  path; `tools/check-discovery.cjs` fails the build otherwise. The feed's
+  guids lost their slash with it, so a feed reader may show every item once
+  more. Each print PDF answers with `Link: <its page>; rel="canonical"`
+  beside the licence, so a search engine credits the page and not the file;
+  `vercel.json` is static, so the map is typed there, the catch-all licence
+  header skips `/pdf/` so the two cannot collide, and
+  `tools/check-contents.cjs` holds the map to the editions list. A draft's
+  print (The Grade's) carries the licence and no canonical: its page is
+  noindex and out of the sitemap, and a canonical naming it would tell
+  crawlers about it; the canonical goes in with the flip of `draft`, and the
+  check fails until it does.
+- **The packaging** (30 Oct 2026). A published edition carries a `dek`, a
+  `seoTitle` and a `description` in `src/lib/editions.mjs`, each written
+  for search and checked against its page (Decisions log, 30 Oct 2026). The
+  dek is set INSIDE the page's `<h1>`, after the title, as `<span
+  class="dek">` in the lede's type (one rule in `src/styles/base.css`: its
+  own axes, so the h1's data-flex width does not reach it), with a
+  visually hidden colon before it so the heading reads "Title: dek", which
+  is the NewsArticle headline exactly; the lede paragraph stays where it
+  was. `tools/generate-film.mjs` leaves the dek out of the title a film
+  reads, and `/llms-full.txt` sets it on the title's next line. The `<title>` is the seoTitle and " · Aedificare"; `og:title` and
+  `twitter:title` the seoTitle; the meta, OG and Twitter descriptions, the
+  feed's and the JSON-LD's are the description. The home's `<title>` is
+  "Aedificare · Dated editions on technology, by Jesse James" and its
+  description is written once in `src/pages/index.astro`, naming what the
+  editions cover and never what Aedificare is (the owner's to confirm).
+- **The graph** (30 Oct 2026). Each edition page's JSON-LD is one `@graph`
+  from `articleGraph()` in `src/lib/schema.mjs`: a NewsArticle (headline,
+  the print's name as alternativeHeadline, the description, datePublished
+  and dateModified at 00:00 America/Vancouver with that day's offset,
+  url, isAccessibleForFree, the licence, the author and publisher by id,
+  the OG card as image, the page's own sources that print an address as
+  `citation`, `isBasedOn` for an amendment, `isPartOf` its series), the
+  Organization (logo `public/icon-512.png`, sameAs the channel), the Person
+  (sameAs the channel and LinkedIn) and a BreadcrumbList. A page passes
+  only its alternativeHeadline and its sources list. Every property
+  describes something on the page, no rating and no FAQ, with one
+  exception kept on purpose: alternativeHeadline is the print's name
+  ("Printed as Edition 03"), which "The code is the date" keeps off every
+  surface and in the JSON-LD so a reader holding the print finds the page.
+  The brief for the graph asked for the lede there; keeping the print's
+  name over a visible value on the nine pages whose print was issued is the
+  owner's call, not settled (The Subtraction, whose print was never issued,
+  and The Middleman, which has none, carry the lede). A citation is a
+  source that prints its own document's address: a bare host names the
+  publisher, not the document, and an address inside the clauses after a
+  source's colon is one the document quotes ("manuscript at
+  alpo.ge/s6.pdf" in an entry for posts on X), so neither is cited, and a
+  source naming several documents is named by the one whose publisher the
+  address is on (`pick` and `nameOf` in `src/lib/schema.mjs`). `dateModified` is
+  `modified`, the day the page was last corrected after issue (Findings),
+  else the date, and it is also the sitemap's `<lastmod>`, never the build
+  time.
+- **The news sitemap and IndexNow** (30 Oct 2026). `/sitemap-news.xml`
+  lists the published editions dated within two days of the build (empty
+  most days), with the seoTitle and the date with its offset; it is in
+  `/sitemap-index.xml` through `@astrojs/sitemap`'s `customSitemaps`, so
+  `robots.txt` keeps its one Sitemap line. On every push to `main`,
+  `.github/workflows/indexnow.yml` waits for the push to be live and sends
+  the published pages it changed to IndexNow, which Bing and the others
+  read; the key is the public file named in the routes table. It needs the
+  apex to serve, not redirect (Open 1), and sends nothing until it does.
+- **Same thread.** An edition in a `series` (Navier-Stokes: The Hand in the
+  Water and The Closest Humans; Haven: The Markup and The Floor; Agents:
+  The Snapshot Problem and The Supply Cabinet) lists the series' other
+  published editions above its sources (`src/components/SameThread.astro`),
+  and its NewsArticle says it isPartOf the series. The series' names are
+  `SERIES` in `src/lib/editions.mjs`; the block's label shows the one it
+  is in ("Same thread · Haven"), so isPartOf names what the page shows, and
+  the names are the owner's to change. The block is Bottle: it sits on the
+  Void sources list, which cannot be Bottle (its small Malachite numbers),
+  so on Void the two ran together. Where the section above is Void the
+  grounds alternate; on The Markup, The Hand in the Water and The Snapshot
+  Problem the section above is Bottle and two Bottle surfaces meet, which
+  no order of two grounds avoids between a Bottle section and Void sources;
+  the owner's to judge by eye.
+- **Meta descriptions are generated, never typed** (2026-09-15; for a
+  published edition and the home superseded on 30 Oct 2026 by the checked
+  packaging above, which drafts without it still fall back to). LinkedIn's
   Post Inspector warned on the home: "The description should be at least
   100 characters long", and the home's was 30, two of the NS ledes 48. An
   edition's description is `describe()` in `src/lib/editions.mjs`: the lede
@@ -2452,6 +2745,19 @@ for a shortlist for bios and cards, which is a separate deliverable.
   re-scrape cannot refresh a stale card; only a new URL can. Pages write
   the stable path and never see the hash. The unhashed copy stays so links
   in the wild resolve. Rerun `npm run og` when a title or lede changes.
+- **Watch pages, a video sitemap and lead figures** (part B, 30 Oct 2026;
+  Decisions log). Each linked film has `/<slug>/film`, in the pages sitemap
+  and in `/sitemap-video.xml`, whose `VideoObject` is the film's and whose
+  Clips are its chapters; the edition's NewsArticle names it by `@id` alone,
+  and its rail links it ("Film page · m:ss"). Each published edition with
+  a figure that is not text (seven of ten; `NO_FIGURE` in `src/lib/lead.mjs`
+  names the three without one and why) opens its NewsArticle's `image`
+  with its lead figure (16:9, then 4:3, then
+  1:1), then the card. The lead image is a render of a figure the page
+  already shows, so the page carries no second copy of it: the figure on
+  the page IS the lead image, seen where it belongs. Every edition carries
+  a byline linked to `/about`, whose ProfilePage holds the Person every
+  graph names.
 - **`npm run og` is NOT reproducible across machines, and the churn must be
   thrown away** (found 2026-10-17). A fresh build sandbox rendered every
   card about 2 percent larger than the committed bytes with no content
@@ -2951,6 +3257,148 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   farmhouse's first lamp, at reel 3 8:18). The three left are the
   owner's: FERC's webcast and the White House roundtable (both on
   YouTube) and a control room.
+
+- **2026-10-30 · Two reversals for search, and the copy that explains
+  the method.** The owner brought a discovery audit and two prompt packs
+  from a claude.ai chat (kept out of the repo; the copy they carry is in
+  `source/about-standards-amendments.md`). Two of its asks reverse
+  decisions above, and the owner made both calls in chat:
+  **The watch pages load the player as the page opens.** Each film gets
+  `/<slug>/film`, a page whose main content is the film, with a real
+  YouTube iframe in the server's HTML, its transcript and chapters, and
+  `VideoObject` markup. The reason: Google gives video results only to a
+  page whose main content is the video and does not run a player that
+  waits for a click (its video SEO guidance and its December 2023 note),
+  so a click-to-play poster can never rank there. This reverses, for those
+  pages alone, the rule of 21 and 26 Oct that no page asks another host
+  for anything before the reader's press: **edition pages keep
+  click-to-play**, the sweep keeps proving it on them, and a watch page
+  says what it loads, as `/standards` does.
+  **Each edition gets a lead image that is a figure, not a card**
+  (where its page has a figure that is not text; part B, below). A
+  16:9 render of one of the edition's own figures goes FIRST in the
+  article's structured-data `image`, so Google has a picture that is not
+  text for Discover, which asks for large images and not text-heavy ones.
+  `og:image` stays the type card with the mark (override 2, 15 Sep): the
+  cards are right for LinkedIn and X and are not replaced.
+  **Settled the same day**: The Night Pin (Edition 11) is held, built
+  and live at its URL as a draft (noindex, disallowed, out of every
+  index), as The Grade is, and its View section, which goes out under the
+  owner's name, is shown to the owner as it renders and waits for their
+  yes; `/standards` states the practice the record shows, pages corrected
+  in place with a dated note under their sources and the print left as
+  issued, an amending edition where the correction is the story (owner,
+  choosing it over "never edited"), and names the AI tools' whole role
+  (owner: research, source checking, drafting, the films and the site);
+  the contact email stays a placeholder until the owner sends it; and the
+  old cuts the corrected films replace go unlisted, not private, so links
+  already shared keep working (The Countersign's `6j4BfaF8ZvM`, 30 Oct).
+  **Built the same day (part B).** Eight watch pages, one per linked film:
+  `src/pages/[slug]/film.astro`, the iframe in the HTML with
+  `loading="eager"`, its size and a title, no autoplay; a chapter is a link
+  to `?t=<second>`, and one inline script (164 B gzipped, the same on every
+  watch page, so the budget counts it once: 3,106 of 5,120) adds
+  `&start=<second>` to the player before it loads, which was smaller than
+  linking chapters to the embed itself and keeps the reader on the page.
+  The transcript is the narration as spoken (`tools/transcripts.mjs`), in
+  the film's own chapters as its description lists them; its first line in
+  a chapter that repeats the chapter's title, case aside ("The Hand In the
+  Water"), is shown as that heading; the register marks a page carries
+  (The Tilt Gap's F, I and Q) are left out, because they are labels and not
+  prose, though that film's narration was given them to read and so may
+  say them (whether to render it again is the owner's, by credits); and
+  every word is in the `VideoObject`'s `transcript`. `uploadDate` is the
+  ledger's upload time, the one time the repository records: YouTube's
+  publish time is not readable here, and a ledger's `publishAt` is what the
+  upload asked for, not what happened (The Fourth Axis went public two days
+  early by hand). The watch page's h1 is "<Title>: the film" with the dek
+  after it, joined for a screen reader by a full stop, not a second colon
+  (the review of part A struck a second colon from a headline). The lead
+  figures, proposed by the builder and the owner's to change (the table at
+  the top of `tools/generate-lead.mjs` says why each): The Floor, the bench
+  bars by channel width; The Countersign, GOAT's market value on a log
+  scale; The Supply Cabinet, what a hundred agents did after the hole was
+  found; The Fourth Axis, top-1 on the Cars dataset from one token, three
+  bars (Qwen3-Next's 48 layers were the first cut, and the review found
+  them a strip of cells under a block of type; the residual-path diagram
+  is a thin strip in any frame); The Tilt Gap, hours of play behind each
+  result; The Markup, the four node prices; The Snapshot Problem, the
+  exploit-rate range across thirteen models (measured, where the cliff is a
+  schematic and plasticity a qualitative placement). Each is laid out at
+  whichever width fills its frame best, never narrower than its own
+  content. **Three editions have no lead image**, because their pages
+  carry no figure that is not text, and a picture of type is what the
+  brief excludes: The Subtraction (its one figure is the specification
+  table), The Closest Humans (the timeline, eight dates beside prose) and
+  The Hand in the Water (the four doors, letters and captions). The first
+  cut rendered all three, admitted two of them as text-heavy and called
+  the doors a diagram; the review found all three type (`NO_FIGURE` in
+  `src/lib/lead.mjs`). Their articles list the card alone, as before part
+  B, until each page has a chart, which is worth making and is the
+  owner's to ask for. The byline replaces the cover foot's "date · name": "By Jesse
+  James · date", plus "Updated date" only where `modified` is later than
+  the date, since four editions carry a `modified` equal to their date and
+  "Updated" on the same day says nothing. `/about`, `/standards` and
+  `/amendments` carry the owner's copy with the decided changes; what a
+  rule forced: the notes to the owner and the builder dropped, bold
+  lead-ins set as mono headings, links that sat inside a sentence ("See
+  the standards", "listed under amendments") set after it as block links,
+  the sentence kept without them; no contact line, because `SITE.contact`
+  is null until the owner sends the address (the "placeholder" settled
+  above lives in `src/config.mjs`, never on the page); YouTube and
+  LinkedIn read from `src/config.mjs`. `/amendments` is generated from
+  `amends` and `amendSummary`; the two summaries are the checker's
+  amended wording, not the copy's, because the checker found both of the
+  copy's incomplete (The Floor's left out the Canada line it amends; The
+  Closest Humans' left out OpenAI's later denial, the third line it
+  answers). **That is a builder's choice, not settled**: the copy says its
+  two summaries are the text, so the longer wording waits for the owner's
+  yes, and the owner's two lines go back in if it does not come. The
+  review of part B held the checker's wording to its pages: OpenAI's
+  denial covers Buckmaster's prompts "from the two months before the
+  announcement", and the earlier months are unaddressed, where the first
+  cut stated it without the limit, wider than OpenAI did; and the
+  chipmaker's 30 is down, over UDP. Still the owner's, each a line of
+  the owner's copy that the decided `/standards` text now contradicts or
+  that the record outruns: the amendments page's opening line, "When an
+  edition is wrong, a later edition fixes it in public", its description
+  ("Every correction to an Aedificare edition, dated ...") and its title
+  ("Amendments and corrections"), and `/about`'s "Corrections are listed
+  under amendments", all four the older rule `/standards` now corrects
+  (pages are corrected in place with a dated note, an amending edition
+  only where the correction is the story, so `/amendments` lists two
+  entries while 98 claims of The Supply Cabinet, 56 of The Snapshot
+  Problem and 29 of The Markup were corrected in place); `/standards`'s
+  "No ads, sponsors, paywall or sign-up", beside the watch pages, whose
+  player loads as the page opens and, `public/privacy.txt` says, may show
+  YouTube's ads once played (as the edition pages' players may after the
+  press; the Vercel question of 26 Oct is the same one); and the films
+  line in `/standards`, "the frames ... are computed", which holds for
+  every film linked today and would not for a re-cut with page shots.
+
+- **2026-10-30 · The search packaging was fact-checked before it went
+  in.** Each published edition got a dek, a seoTitle and a description
+  written for search (Discoverability). Copy written to be found leans
+  toward the bigger claim, so a checker and a skeptic per edition read
+  every proposed line against its built page and its corrections before
+  any was typed: 17 of the 34 proposed lines changed, chiefly
+  overstatements, and two had repeated errors the editions' own checks had
+  already corrected. The lines are typed once, in `src/lib/editions.mjs`,
+  and `tools/check-contents.cjs` holds their lengths; their wording is the
+  checked wording and is not to be sharpened without the same check (a
+  human duty, listed). One changed on review the same day: The Closest
+  Humans' dek had read "Corrections to our Navier-Stokes coverage: whose
+  method it was, and two calls on a Sunday", a "we" the page never speaks
+  in, an unnamed companion where Findings 0h names it, and a second colon
+  in the headline; it reads "Amends The Hand in the Water on whose method it
+  was, and on two calls on a Sunday", the same two claims, and its seoTitle
+  took title case like the rest. The cursor flex now measures only the
+  display title, not the dek under it in the h1; the title itself still sits
+  higher on every cover by the dek's height, the owner's to see by eye. The
+  same day the site went to one URL per page with no trailing slash, the
+  JSON-LD became one graph per edition, the sitemap took real lastmod dates
+  and a news sitemap, IndexNow was wired to every push, and the editions
+  in a thread link each other; `tools/check-discovery.cjs` holds all of it.
 
 ## Open
 

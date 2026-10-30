@@ -1,0 +1,108 @@
+# IndexNow (30 Oct 2026): once a push to main is live, tell the search engines
+# that read IndexNow (Bing, Yandex, Seznam, Naver and the rest) which published
+# pages changed. Vercel builds main on every push (CLAUDE.md, Stack), so the
+# job waits until the live <meta name="build"> is this push's commit or a
+# later one. What it sends is the span from the last commit whose pages were
+# sent (kept in the Actions cache as indexnow-sent-*) to the commit that is
+# live, never one push's own diff: a run cancelled while pending, a deploy
+# superseded before its run saw it, or a 429 or 5xx from the service leaves
+# the record where it was, and the next run sends those pages too. With no
+# record (the first run, a cache GitHub dropped after seven idle days, a force
+# push) it sends every published page.
+#
+# Nothing here fails for the site's or the service's sake: a deploy slower
+# than twenty minutes, an origin that redirects (CLAUDE.md, Open 1: while the
+# apex 308s to www, IndexNow cannot read the key there), a 429, a 5xx or no
+# connection ends green with a warning and nothing recorded. Only a request
+# IndexNow calls wrong (400, 403, 422) fails. The key file is public by
+# design: public/<key>.txt, read by tools/indexnow.mjs.
+name: indexnow
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: indexnow
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: The last commit whose pages were sent
+        uses: actions/cache/restore@v4
+        with:
+          path: .indexnow-sent
+          key: indexnow-sent-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: indexnow-sent-
+
+      - name: Wait until this commit, or a later one, is live
+        id: live
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          origin=$(node --input-type=module -e "const {PRODUCTION_ORIGIN}=await import('./src/config.mjs');console.log(PRODUCTION_ORIGIN)")
+          deadline=$((SECONDS + 1200))
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            live=$(curl -sSL --max-time 20 "$origin/" | grep -oE 'name="build" content="[^"]*"' | sed -E 's/.*content="([^"]*)".*/\1/' || true)
+            echo "live build: ${live:-none}   want: ${SHA:0:8} or later"
+            if [ -n "$live" ] && [ "$live" != "dev" ]; then
+              git fetch -q origin main || true
+              full=$(git rev-parse -q --verify "${live}^{commit}" || true)
+              if [ -n "$full" ] && git merge-base --is-ancestor "$SHA" "$full"; then
+                echo "sha=$full" >> "$GITHUB_OUTPUT"; echo "ok=true" >> "$GITHUB_OUTPUT"; exit 0
+              fi
+            fi
+            sleep 30
+          done
+          echo "::warning::${SHA:0:8} was not live after 20 minutes; IndexNow not sent, and the next run sends these pages"
+          echo "ok=false" >> "$GITHUB_OUTPUT"
+
+      - name: Can the key be read on the origin itself
+        id: ready
+        if: steps.live.outputs.ok == 'true'
+        run: node tools/indexnow.mjs ready
+
+      - name: Which published pages changed since the last send
+        if: steps.ready.outputs.ready == 'true'
+        env:
+          LIVE: ${{ steps.live.outputs.sha }}
+        run: |
+          from=$(cat .indexnow-sent 2>/dev/null || true)
+          if [ -n "$from" ] && ! git merge-base --is-ancestor "$from" "$LIVE" 2>/dev/null; then
+            echo "::notice::the last sent commit ${from:0:8} is not behind $LIVE; sending every published page"
+            from=""
+          fi
+          echo "from ${from:-(no record)} to $LIVE"
+          node tools/indexnow.mjs urls "$from" "$LIVE" | tee urls.txt
+
+      - name: Send them
+        id: send
+        if: steps.ready.outputs.ready == 'true'
+        run: node tools/indexnow.mjs post urls.txt
+
+      - name: Record what was sent
+        if: steps.send.outputs.sent == 'true'
+        env:
+          LIVE: ${{ steps.live.outputs.sha }}
+        run: echo "$LIVE" > .indexnow-sent
+
+      - name: Keep the record
+        if: steps.send.outputs.sent == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .indexnow-sent
+          key: indexnow-sent-${{ github.run_id }}-${{ github.run_attempt }}

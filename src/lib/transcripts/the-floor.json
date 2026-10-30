@@ -1,0 +1,124 @@
+{
+  "slug": "the-floor",
+  "id": "5VFA1JW5HJk",
+  "uploaded": "2026-10-18T20:37:10.330Z",
+  "source": {
+    "release": "film-the-floor",
+    "asset": "narration.json",
+    "sha256": "68d83a8e036073cf1f8177a868570f1632c1d20e261f056cbda1e0a286899ef2",
+    "updated": "2026-10-18T20:24:38Z",
+    "voice": "sacfsNbCahgH0qw7PIO8",
+    "model": "eleven_v4_turbo"
+  },
+  "chapters": [
+    {
+      "t": 0,
+      "title": "The Floor",
+      "paragraphs": [
+        "The Floor",
+        "The Markup quoted the datasheet. The builder had measured the first Haven a year before."
+      ]
+    },
+    {
+      "t": 10,
+      "title": "The number",
+      "paragraphs": [
+        "The number",
+        "The Markup put a throughput row in its ledger and filled it from a datasheet: 43.3 megabits per second at the physical layer, the second-generation chip's peak on an 8 MHz channel. It had no measurement, because the vendor's product page does not publish one.",
+        "The vendor's channel does. In September 2025, a year before The Markup was written, the builder behind the Haven guide published a video of the first version of the radio on a bench and on a beach, reading the numbers off the screen. This amendment carries them.",
+        "The price does not move. The throughput row does."
+      ]
+    },
+    {
+      "t": 55,
+      "title": "What The Markup did not have",
+      "paragraphs": [
+        "What The Markup did not have",
+        "The Markup priced a Haven 2 node from the vendor's list: a Raspberry Pi 5, a Morse Micro MM8108, a four-cell battery hat, a printed case, $208 to $450. It quoted the chip. It did not quote a field.",
+        "Tim, the builder behind Data Slayer and Parallel, had already published one. His video of September 2025 is titled I Built a $20,000 Military Router for $106.23. The radio in it is the first Haven: a Raspberry Pi 4, the first-generation HaLow chip on a fifteen-dollar card, two cells and a dongle, no case.",
+        "Everything below is that radio. It is the floor under The Markup in both senses, the cheapest build and the lowest numbers, and the numbers are measured."
+      ]
+    },
+    {
+      "t": 119,
+      "title": "The build",
+      "paragraphs": [
+        "The build",
+        "The motherboard is a Raspberry Pi 4, not a 5, because, he says, some of the OpenWrt firmware did not quite work on the 5 yet. A year on, OpenMANET, the OpenWrt build the first Haven runs, still lists the 4, the 3B and the Zero 2 W and not the 5. The vendor's Haven 2 runs a separate OpenWrt image he builds himself, on the newer chip over USB, because, his repository says, the first chip does not yet bind on the 5 over SPI.",
+        "A HAT for a mini PCIe card, about twenty dollars. The card, about fifteen: Seeed listed the Wio-WM6108 at $14.99 on 18 October 2026, a Quectel module around the Morse Micro MM6108, built for 902 to 928 MHz. A sub-gigahertz antenna on an SMA to U.FL lead; any Meshtastic antenna will do, he says, being in the same range. A Waveshare battery hat on pogo pins with two 21700 cells, 5,000 milliampere-hours each, charged over USB-C. A USB Wi-Fi dongle, which he says brings 2.4 and 5 GHz, as an intermediary: the Pi has both bands on board, but he says it cannot do HaLow with them. The vendor's parts list now names a 2.4 GHz dongle and leaves 5 GHz to the Pi. No case.",
+        "The title of the video says $106.23. The parts he priced on camera add up to thirty-five of it."
+      ]
+    },
+    {
+      "t": 233,
+      "title": "The bench",
+      "paragraphs": [
+        "The bench",
+        "He plays one of his own videos over the link, on a 1 MHz channel to a router some way off: a 915 MHz antenna into the HaLow card on the Pi, Ethernet into the laptop. Then he gives the rate his tests measured at each channel width. At 8 MHz, about fifteen megabits per second each way. At 4, 7.3. At 2, 4.4. At 1, 1.8.",
+        "He calls fifteen right on the theoretical ceiling. It is not the chip's ceiling, which is 32.5 at the physical layer. It is what a link usually carries under that ceiling, and the vendor's own reference puts real-world throughput at 40 to 60 percent of the physical rate. Fifteen is 46 percent of 32.5.",
+        "In May 2026 three researchers at KAUST posted a similar test: two dongle-class nodes, no line of sight, a video file of about thirty seconds sent across at each channel width. At one metre, 13.0, 9.1, 4.2 and 1.6. Two tests, published eight months apart on two continents, one overall fall: from 8 MHz to 1 the rate drops about eightfold in both, though not by the same steps. At 63 metres the paper's 1 MHz channel still read 1.5, while 8 MHz had fallen from 13.0 to 6.1, still four times faster. Past about 120 metres the link failed at every width.",
+        "The datasheet is not wrong. It is a ceiling, and links run under it."
+      ]
+    },
+    {
+      "t": 347,
+      "title": "The power",
+      "paragraphs": [
+        "The power",
+        "Out of the box the card transmits at 21 dBm, an eighth of a watt. OpenMANET's board file raises it to about 27, half a watt.",
+        "The rule for unlicensed digital radios between 902 and 928 MHz in the United States is one watt at the connector, 30 dBm, on an antenna of no more than 6 dBi; a bigger antenna costs a decibel of power for every decibel of gain. Half a watt is legal with three decibels in hand. Canada's rule, in The Markup, reads the same watt.",
+        "One line in The Markup goes further than the rule. It says point-to-point links may run a higher e.i.r.p. under the same document. RSS-247 allows that at 2.4 and 5.8 GHz, not between 902 and 928 MHz."
+      ]
+    },
+    {
+      "t": 411,
+      "title": "The field",
+      "paragraphs": [
+        "The field",
+        "Then he takes it off the grid. A stretch of coast with no fibre. A Starlink dish into node one. Node two goes for a walk. Far out, he guesses about a mile and is still watching YouTube; in the voice-over he puts the same spot at two thousand feet, just under a megabit down and almost three up.",
+        "The KAUST team, with line of sight, held a single hop to 814 metres, at 0.15 megabits at its farthest point, and reached 1,110 metres with three fixed relays. Two thousand feet is 610 metres. Near there the paper's single hop read about half a megabit, 0.53 at 569 metres and 0.47 at 626. He read about twice that down and almost three up, on other hardware and measured another way: the same order of magnitude, not the same test.",
+        "Two thousand feet of video on a hundred-dollar radio is The Markup in one sentence, and it was on film a year before The Markup was written."
+      ]
+    },
+    {
+      "t": 489,
+      "title": "The other radio",
+      "paragraphs": [
+        "The other radio",
+        "The comparison he makes at the end is the honest one. Meshtastic, the LoRa mesh, is rated at 1.07 kilobits a second on its default preset and 21.88 on its fastest, before packet headers, hops and retransmissions. The HaLow radio at its narrowest channel measured 1.8 megabits: eighty times the rated speed of Meshtastic's fastest preset, seventeen hundred times the default's.",
+        "They are not rivals. One carries text and GPS pings a long way on very little power. The other carries video two thousand feet on two cells the size of thumbs, and speaks IP, so everything that already speaks IP works on it."
+      ]
+    },
+    {
+      "t": 541,
+      "title": "What it carried",
+      "paragraphs": [
+        "What it carried",
+        "Over the link he runs the things a radio like this exists for. ATAK, the Android situational-awareness app, from one node to the other with no server between them, messages and images on a shared map by multicast. Mumble, for push-to-talk voice, through a public server on the internet, at low latency. A camera stream by RTSP, UDP or plain HTTP.",
+        "The HaLow link is encrypted with WPA3-SAE, and the chip does the AES and SHA-2 in hardware. He calls it the handshake of enterprise Wi-Fi, encrypted end to end. It is neither. SAE is the personal mode of WPA3, and enterprise WPA3 signs in through 802.1X. The encryption covers each radio hop, and the vendor's own repository keeps end to end for Reticulum, an optional layer on top.",
+        "Slower on the bench. Still forty-four to one."
+      ]
+    },
+    {
+      "t": 615,
+      "title": "Where The Markup stands",
+      "paragraphs": [
+        "Where The Markup stands",
+        "The ledger row that read 43.3 megabits now reads five numbers: 43.3 on the datasheet for the chip The Markup priced; up to 30 for the same chip on the chipmaker's own bench, over UDP; about 19 down on the builder's own test of that chip; 15 on his bench for the chip that came before it; about one down at two thousand feet, on foot.",
+        "The chipmaker says as much itself. Morse Micro's chips page calls 43.3 a physical-layer rate, \"not the data rate your application will receive.\" Its release notes of 2 September 2026, a fortnight before The Markup, measured the MM8108 at 8 MHz at 24 megabits up and 30 down over UDP, against 22 each way for the chip before it. Over TCP it read 8.5 and 10. Every run had a microcontroller at one end.",
+        "The builder had tested it too. In January 2026 he ran one phone speed test at 8 MHz on both chips, the internet reaching the phone only over HaLow. The older chip gave 15 each way on a good day. The MM8108 gave about 19 down, pretty consistently, he said. It also read 47 up, more than the chip's own physical-layer peak, and he said himself that these tests are not perfect.",
+        "The other rows were checked on The Markup's own page on 18 October 2026 and corrected there. The ratio The Markup was about was price, forty-four to one, one government radio against two nodes, and the price did not move: on 18 October 2026 the vendor's list still read $208 to $450 a node. What moved is a number that should never have come from a datasheet. It came from one because the datasheet is where The Markup looked. The vendor had written down more by then, a rule of thumb in his repository and a rough real-world figure on his blog; the chipmaker had published a measurement; and he had filmed the rest.",
+        "One sentence about Canada is amended too. Point-to-point links at 902 to 928 MHz get no higher e.i.r.p. under RSS-247; the allowance is for 2.4 and 5.8 GHz."
+      ]
+    },
+    {
+      "t": 778,
+      "title": "Sources",
+      "paragraphs": [
+        "Sources",
+        "Bracketed figures in the sections above are from these sources. Every number the builder gave on camera is his, from the video; every number beside it is from the paper, the regulators, the chip and parts makers, the projects' own pages or The Markup, and the two are never added together. Conversions and ratios, an eighth of a watt or 610 metres, are worked from them.",
+        "The Floor. 18 October 2026. Ten sections, 16 sources, at aedificare dot art. CC BY 4.0."
+      ]
+    }
+  ]
+}

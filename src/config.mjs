@@ -1,14 +1,25 @@
-// The one place the public origin is written down. Canonicals, OG, sitemap,
-// feed, robots and llms.txt all read it, so moving domains is a one-line
-// change. SITE_ORIGIN overrides it for previews.
+// The one place the public origin is written down in code. Canonicals, OG,
+// sitemap, feed, robots and llms.txt read SITE.origin; tools that must name
+// production even under a preview (tools/indexnow.mjs, tools/check-contents.cjs,
+// tools/check-discovery.cjs) read PRODUCTION_ORIGIN. SITE_ORIGIN overrides
+// SITE.origin for previews. vercel.json cannot import it, so its PDF
+// canonicals are typed and tools/check-contents.cjs holds them to this.
+export const PRODUCTION_ORIGIN = 'https://aedificare.art';
 export const SITE = {
-  origin: process.env.SITE_ORIGIN || 'https://aedificare.art',
+  origin: process.env.SITE_ORIGIN || PRODUCTION_ORIGIN,
   name: 'Aedificare',
   author: 'Jesse James',
   locale: 'en',
   // The one other place the brand is published. Feeds the JSON-LD sameAs; the
   // static public/humans.txt repeats it, so change both (CLAUDE.md, Open 9).
   channel: 'https://www.youtube.com/@aedificare_art',
+  // The author's own profile, written here and nowhere else: the JSON-LD Person's sameAs reads it (30 Oct 2026).
+  linkedin: 'https://www.linkedin.com/in/jessecares',
+  // The author's contact address for /about, written here and nowhere else once the owner sends it (30 Oct 2026).
+  // Until then it is null and /about prints no contact line: a placeholder never reaches a live page.
+  contact: null,
+  // The author's local time, which an edition's date is in. A date with no time is set at its 00:00 there.
+  timeZone: 'America/Vancouver',
 };
 
 // The channel's narrator (CLAUDE.md, override 6): the ElevenLabs voice designed in the owner's account. The film

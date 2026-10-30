@@ -1,6 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 import Masthead from '../components/Masthead.astro';
+import SiteLinks from '../components/SiteLinks.astro';
+import { LICENCE } from '../lib/editions.mjs';
 ---
 <Base title="404" description="Nothing at this address." noindex={true}>
   <main id="main">
@@ -11,5 +13,9 @@ import Masthead from '../components/Masthead.astro';
         <a class="c-full block-link mono-b" href="/">Home</a>
       </div>
     </section>
+    <footer class="foot mono">
+      <span>Aedificare · 2026 · <a href={LICENCE.url} rel="license">{LICENCE.name}</a></span>
+      <SiteLinks />
+    </footer>
   </main>
 </Base>

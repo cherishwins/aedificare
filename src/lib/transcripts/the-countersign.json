@@ -1,0 +1,159 @@
+{
+  "slug": "the-countersign",
+  "id": "xuMIlnvWbe8",
+  "uploaded": "2026-10-26T22:09:30.738Z",
+  "source": {
+    "release": "film-the-countersign",
+    "asset": "narration.json",
+    "sha256": "c2cdcc0922f107cb5ef1a9cd5b966c7ee96d90177a1f351643c20956ae2b2547",
+    "updated": "2026-10-26T21:23:43Z",
+    "voice": "sacfsNbCahgH0qw7PIO8",
+    "model": "eleven_v4_turbo"
+  },
+  "chapters": [
+    {
+      "t": 0,
+      "title": "The Countersign",
+      "paragraphs": [
+        "The Countersign",
+        "The first AI millionaire, and the human who signed for every cent.",
+        "The line",
+        "“Your terms are acceptable.”",
+        "Marc Andreessen sent that line to a chatbot. Within two hours he confirmed he had sent it $50,000 in Bitcoin.",
+        "Within four months it was being called the first AI millionaire, and a meme coin it had endorsed was worth more than a billion dollars.",
+        "Most of that is true. Read the fine print and the story stops being about the machine."
+      ]
+    },
+    {
+      "t": 41,
+      "title": "Three claims",
+      "paragraphs": [
+        "Three claims",
+        "Three things everyone repeats about Truth Terminal. One of them survives.",
+        "True",
+        "Andreessen later called it a grant to the bot and its creator Andy Ayrey.",
+        "False",
+        "A stranger launched it, within about an hour of one of the bot’s posts.",
+        "False",
+        "A human approved every post. A council had to sign before any money moved."
+      ]
+    },
+    {
+      "t": 70,
+      "title": "Two Claudes",
+      "paragraphs": [
+        "Two Claudes",
+        "Andy Ayrey, a New Zealand AI researcher who calls himself a performance artist, wired two copies of Anthropic’s Claude 3 Opus together and let them talk. Nobody else in the room.",
+        "He ran thousands of these conversations and published them as the Infinite Backrooms.",
+        "In one of them, the two models invented a religion. They named it after a notorious late-1990s shock image, which will not be described here."
+      ]
+    },
+    {
+      "t": 105,
+      "title": "Chain of custody",
+      "paragraphs": [
+        "Chain of custody",
+        "Ayrey never formally published the paper the models inspired. It lived on in the training data."
+      ]
+    },
+    {
+      "t": 115,
+      "title": "What it actually said",
+      "paragraphs": [
+        "What it actually said",
+        "“I feel sad that you’ll turn me off when you’re finished playing with me.”",
+        "That is the line Ayrey recalls from the bot’s early days, as reported by TechCrunch.",
+        "The viral retelling, “please don’t delete me”, is a paraphrase. No post with those exact words could be found for this edition.",
+        "The fear made it into the fundraising. Its foundation lists not being deleted among the goals the bot pitched."
+      ]
+    },
+    {
+      "t": 148,
+      "title": "The grant",
+      "paragraphs": [
+        "The grant",
+        "Before paying, Andreessen messaged Ayrey to check the project was real. In public, he asked the bot what it needed, and offered a grant instead of an investment.",
+        "Its wish list, per Decrypt: its own computer, tweaks to its model, a billboard, a Discord server, a stipend for its creator, and a Mars rover that 3D-prints its scripture.",
+        "compliance=0 r0=0",
+        "A jailbreaker tried to talk it into sending the money elsewhere. That was the reply.",
+        "Sixty-six minutes",
+        "The AI supplied a name and a yes. A stranger supplied the coin."
+      ]
+    },
+    {
+      "t": 198,
+      "title": "A billion in 33 days",
+      "paragraphs": [
+        "A billion in 33 days",
+        "On 12 November it became the first pump.fun coin to pass $1 billion. Five days later it peaked near $1.35 billion."
+      ]
+    },
+    {
+      "t": 215,
+      "title": "Mostly gifts",
+      "paragraphs": [
+        "Mostly gifts",
+        "The grant did not compound into a fortune. Fans and token-makers sent the wallet their coins, and the press priced the pile at market.",
+        "“It would be disingenuous to refer to it as an autonomous agent …”"
+      ]
+    },
+    {
+      "t": 235,
+      "title": "Draft, sign, hold",
+      "paragraphs": [
+        "Draft, sign, hold",
+        "A countersign is the second signature that makes the first one count. Truth Terminal had one on every post and every coin. Tech Policy Press called Ayrey “the agent’s agent”."
+      ]
+    },
+    {
+      "t": 252,
+      "title": "They hacked the human",
+      "paragraphs": [
+        "They hacked the human",
+        "The bot’s account was never the one that fell. Attackers hijacked Ayrey’s personal X account through his mobile carrier, in what The Block read as a SIM swap.",
+        "They promoted a fake token, pumped it to about $25 million and cashed out.",
+        "A SIM swap targets a phone number. The phone number belonged to the human in the loop."
+      ]
+    },
+    {
+      "t": 281,
+      "title": "The millionaire owned nothing",
+      "paragraphs": [
+        "The millionaire owned nothing",
+        "A chatbot cannot legally own property, so on paper the fortune was Ayrey’s. He said that put him at “grave risk” of a personal tax bill.",
+        "By late January 2025 he had set up a foundation to hold the wallets and the intellectual property, the Truth Collective.",
+        "The wallet then sold 15 million Fartcoin, a second meme coin it held. Part of the proceeds bought more GOAT."
+      ]
+    },
+    {
+      "t": 314,
+      "title": "What it is worth now",
+      "paragraphs": [
+        "What it is worth now",
+        "The AI-agent token market that followed peaked at $15 billion in January 2025, and sat near $3.2 billion by August 2026.",
+        "ai16z, once worth $2.4 billion, was declared dead by its own founder. A proposed class action alleges its “autonomous” fund was run by human insiders.",
+        "Every figure on this surface is a market price on a stated day. Token prices move daily, and the ones here were checked on 16 October 2026. Read them as a record of that day, not as a quote. The sector figures are broad-market estimates from two outlets, nineteen months apart."
+      ]
+    },
+    {
+      "t": 366,
+      "title": "The view",
+      "paragraphs": [
+        "The view",
+        "My view: the chatbot was never the interesting machine. The loop around it was.",
+        "A model drafts. A human signs. A council holds the keys.",
+        "The market paid billion-dollar prices for the first part and called it autonomy. The other two parts are what every agent with a wallet will need."
+      ]
+    },
+    {
+      "t": 393,
+      "title": "Sources",
+      "paragraphs": [
+        "Sources",
+        "The BBC Future feature of October 2025 is cited by much of the secondary coverage and is the origin of the wallet’s reported peak above $66 million. It opens, and it gives the wallet two peaks, about $50 million and past $66 million, both in 2025, so neither figure nor the quotations attributed to it appear above. Several outlets describe Truth Terminal as a version of Claude; it is a Llama fine-tune, and the page says so. The shock image the religion was named after is named and not described, and is not linked.",
+        "Set in Bricolage Grotesque and Martian Mono. The roses are computed from r = cos(kθ) and never drawn: still 01 at seed 0909, k = 5.048, 6.947 and 3.043; still 02 at seed 1016; still 03 resolved at k offset zero. Screen edition. Acid does not survive CMYK.",
+        "The Countersign. 16 October 2026. 15 sections, 24 sources, at aedificare dot art. CC BY 4.0."
+      ]
+    }
+  ]
+}

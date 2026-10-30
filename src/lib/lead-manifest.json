@@ -1,0 +1,142 @@
+{
+  "the-floor": {
+    "figure": "figure[aria-label=\"Measured throughput by channel width, against the chip's peak\"]",
+    "why": "The bench bars are the edition: what the radio measured at each channel width, against the 32.5 Mbps peak the datasheet gives.",
+    "alt": "A figure from The Floor: Measured throughput by channel width, against the chip's peak, on dark green.",
+    "16x9": {
+      "src": "/lead/the-floor-16x9.9b16efdb.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/the-floor-4x3.d1981896.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/the-floor-1x1.f7c5292d.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "the-countersign": {
+    "figure": "figure[aria-label=\"GOAT market value at four reported points, log scale\"]",
+    "why": "The climb, launch to peak on a log scale: the one picture of the money the edition is about.",
+    "alt": "A figure from The Countersign: GOAT market value at four reported points, log scale, on black.",
+    "16x9": {
+      "src": "/lead/the-countersign-16x9.1117541d.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/the-countersign-4x3.ecacc719.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/the-countersign-1x1.33585460.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "the-supply-cabinet": {
+    "figure": "figure[aria-label=\"What 100 agents did after one of them found the hole\"]",
+    "why": "The split: what a hundred agents did once one found the hole, the four-way figure the print set as its cover number.",
+    "alt": "A figure from The Supply Cabinet: What 100 agents did after one of them found the hole, on black.",
+    "16x9": {
+      "src": "/lead/the-supply-cabinet-16x9.b34f9a22.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/the-supply-cabinet-4x3.cf8d4130.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/the-supply-cabinet-1x1.f6313218.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "the-fourth-axis": {
+    "figure": "figure[aria-label=\"Top-1 accuracy on the Cars dataset from one token\"]",
+    "why": "One token holding the whole image: a stolen background patch names the car nearly as well as the class token, as three bars. Qwen3-Next's 48 layers were tried first and render as a strip of cells under a block of type; the path diagrams are thin strips.",
+    "alt": "A figure from The Fourth Axis: Top-1 accuracy on the Cars dataset from one token, on black.",
+    "16x9": {
+      "src": "/lead/the-fourth-axis-16x9.eaf6a7fc.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/the-fourth-axis-4x3.b60980e8.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/the-fourth-axis-1x1.c847bacf.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "the-tilt-gap": {
+    "figure": "figure[aria-label=\"Hours of play behind each result, log scale\"]",
+    "why": "Hours of play behind each result on a log scale: the exhaust the thesis rests on, as bars.",
+    "alt": "A figure from The Tilt Gap: Hours of play behind each result, log scale, on black.",
+    "16x9": {
+      "src": "/lead/the-tilt-gap-16x9.f80efe4c.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/the-tilt-gap-4x3.68c45fc6.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/the-tilt-gap-1x1.61562c14.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "edition-03": {
+    "figure": "figure[aria-label=\"USD per node, log scale\"]",
+    "why": "The four node prices on a log scale: the markup itself.",
+    "alt": "A figure from The Markup: USD per node, log scale, on black.",
+    "16x9": {
+      "src": "/lead/edition-03-16x9.70d485ad.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/edition-03-4x3.ccedf429.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/edition-03-1x1.8d055273.png",
+      "width": 1200,
+      "height": 1200
+    }
+  },
+  "edition-01": {
+    "figure": "figure[aria-label=\"Exploit rate across 13 frontier models, range\"]",
+    "why": "The exploit-rate range across thirteen models: measured bars, where the cliff chart beside it is a schematic and the plasticity chart a qualitative placement.",
+    "alt": "A figure from The Snapshot Problem: Exploit rate across 13 frontier models, range, on black.",
+    "16x9": {
+      "src": "/lead/edition-01-16x9.ad498c4e.png",
+      "width": 1920,
+      "height": 1080
+    },
+    "4x3": {
+      "src": "/lead/edition-01-4x3.d37361a7.png",
+      "width": 1600,
+      "height": 1200
+    },
+    "1x1": {
+      "src": "/lead/edition-01-1x1.f93429f6.png",
+      "width": 1200,
+      "height": 1200
+    }
+  }
+}

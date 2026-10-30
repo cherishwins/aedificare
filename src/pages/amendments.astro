@@ -1,0 +1,35 @@
+---
+/**
+ * /amendments: every published amendment, generated from the editions list (`amends` and `amendSummary` in
+ * src/lib/editions.mjs), newest first, never typed here. The heading and the opening line are the owner's copy
+ * (source/about-standards-amendments.md); each entry's words are its amendment's `amendSummary`, and the build stops
+ * on a published amendment without one. Each edition is a link of its own after the summary, never inside it.
+ */
+import PlainPage from '../components/PlainPage.astro';
+import { PUBLISHED, edition, label } from '../lib/editions.mjs';
+import { pageGraph } from '../lib/schema.mjs';
+
+const title = 'Amendments and corrections · Aedificare';
+const description = 'Every correction to an Aedificare edition, dated, with what was wrong and the edition that fixed it. Originals stay published with a note to their amendment.';
+const graph = pageGraph({ path: '/amendments', name: title, description });
+const entries = PUBLISHED.filter((e) => e.amends).sort((a, b) => b.date.localeCompare(a.date)).map((e) => {
+  if (!e.amendSummary) throw new Error(`amendments: ${e.slug} amends ${e.amends} and carries no amendSummary`);
+  return { by: e, of: edition(e.amends), text: e.amendSummary };
+});
+---
+<PlainPage title={title} heading="Amendments" description={description} path="/amendments" schema={[graph]}>
+  <section class="surface plain" aria-label="Amendments">
+    <div class="grid">
+      <div class="c-a prose">
+        <p>When an edition is wrong, a later edition fixes it in public. The list is generated from the editions themselves.</p>
+        {entries.map(({ by, of, text }) => (
+          <div class="item">
+            <h2 class="mono-b">{label(by)} amends {label(of)}</h2>
+            <p>{text}</p>
+            <p class="links mono-b"><a class="block-link" href={by.path}>{label(by)}</a><a class="block-link" href={of.path}>{label(of)}</a></p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</PlainPage>

@@ -6,7 +6,8 @@
  * bytes Vercel will publish and needs no network. Every page across ten
  * viewports (320 to 2560) for horizontal overflow, text cut off the screen,
  * console errors, tap targets, broken references and any request that leaves
- * the origin; once at 1280 for WCAG AA contrast against
+ * the origin (on a watch page, /<slug>/film, all but its own player, which
+ * loads as the page opens; Decisions log, 30 Oct 2026); once at 1280 for WCAG AA contrast against
  * the nearest opaque ancestor, a full axe-core pass, og:image:alt, that the
  * brand faces actually loaded, that Acid appears at scale at most once per
  * surface and never in a film's thumbnail, and that every rose field runs
@@ -49,10 +50,18 @@ const ORIGIN = LIVE || 'https://local.test';
 // The pages are read from the editions list, drafts included, never typed: a typed list missed The Tilt
 // Gap from 3 Oct to 6 Oct 2026, so every sweep in that window passed without opening it.
 let PAGES = [];
+// The watch pages (/<slug>/film), read from the films the site links: the one place a player loads as the page opens
+// (CLAUDE.md, Decisions log, 30 Oct 2026). Each maps to its embed URL, the one request off the origin it may make.
+let WATCH = new Map();
 const loadPages = async () => {
-  const { EDITIONS } = await import(require('node:url').pathToFileURL(path.join(__dirname, '../src/lib/editions.mjs')).href);
-  PAGES = ['/', ...EDITIONS.map((e) => e.path), '/404.html'];
+  const mod = (f) => import(require('node:url').pathToFileURL(path.join(__dirname, f)).href);
+  const { EDITIONS } = await mod('../src/lib/editions.mjs');
+  const { films } = await mod('../src/lib/films.mjs');
+  WATCH = new Map(films().map((f) => [`${EDITIONS.find((e) => e.slug === f.slug).path}/film`, f.embed]));
+  PAGES = ['/', ...EDITIONS.map((e) => e.path), ...WATCH.keys(), '/about', '/standards', '/amendments', '/404.html'];
 };
+/** Whether a request off the origin is the player a watch page loads as it opens (with its start second, from ?t=). */
+const playerOf = (page, url) => WATCH.has(page) && (url === WATCH.get(page) || new RegExp(`^${WATCH.get(page).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}&start=\\d+$`).test(url));
 const VIEWPORTS = [320, 360, 390, 414, 600, 768, 1024, 1280, 1920, 2560];
 
 const MIME = { html: 'text/html', css: 'text/css', js: 'text/javascript', png: 'image/png', svg: 'image/svg+xml',
@@ -313,8 +322,18 @@ const RENDER_PROBE = () => ({
   if (!LIVE) {
     if (fs.existsSync(path.join(ROOT, 'sw.js'))) swProblems.push('sw.js is in the build; the site ships no service worker');
     for (const f of fs.readdirSync(ROOT)) if (f.endsWith('.html') && /serviceWorker/.test(fs.readFileSync(path.join(ROOT, f), 'utf8'))) swProblems.push(`${f} references serviceWorker`);
-    // A film's player is made by the reader's click, never shipped: no page carries an iframe.
-    for (const p of PAGES) { const f = path.join(ROOT, p === '/' ? 'index.html' : p.endsWith('.html') ? p : `${p}/index.html`); if (fs.existsSync(f) && /<iframe\b/i.test(fs.readFileSync(f, 'utf8'))) iframes.push(`${p} ships an iframe; a film's player is made by the click`); }
+    // A film's player is made by the reader's click on every page but a watch page, which ships exactly one: the
+    // player itself, the embed URL, never autoplaying (Decisions log, 30 Oct 2026).
+    for (const p of PAGES) {
+      const f = path.join(ROOT, p === '/' ? 'index.html' : p.endsWith('.html') ? p : `${p}/index.html`);
+      if (!fs.existsSync(f)) continue;
+      const frames = [...fs.readFileSync(f, 'utf8').matchAll(/<iframe\b([^>]*)>/gi)].map((m) => m[1]);
+      if (!WATCH.has(p)) { if (frames.length) iframes.push(`${p} ships an iframe; a film's player is made by the click`); continue; }
+      const src = (frames[0]?.match(/\ssrc="([^"]*)"/)?.[1] ?? '').replace(/&amp;/g, '&');
+      if (frames.length !== 1) iframes.push(`${p} ships ${frames.length} iframes, not the one player`);
+      else if (src !== WATCH.get(p)) iframes.push(`${p} ships a player that loads ${src}, not ${WATCH.get(p)}`);
+      else if (/autoplay/i.test(frames[0])) iframes.push(`${p}'s player may autoplay; the reader presses play`);
+    }
   }
   for (const m of swProblems) console.log(`  SW        ${m}`);
   for (const m of iframes) console.log(`  FILM      ${m}`);
@@ -328,7 +347,7 @@ const RENDER_PROBE = () => ({
     const page = await ctx.newPage();
     let current = '';
     await serve(page, (p) => { broken++; report.push(`  BROKEN    ${width}px  ${current}  -> ${p}`); },
-      (u) => { offOrigin++; report.push(`  OFF-ORIGIN ${width}px  ${current}  -> ${u}`); });
+      (u) => { if (playerOf(current, u)) return; offOrigin++; report.push(`  OFF-ORIGIN ${width}px  ${current}  -> ${u}`); });
     page.on('pageerror', (e) => { jsErrors++; report.push(`  JS ERROR  ${width}px  ${current}  ${e.message}`); });
     page.on('console', (m) => {
       if (m.type() !== 'error') return;
@@ -380,8 +399,10 @@ const RENDER_PROBE = () => ({
   // Reduced motion: every field must render its still and say so.
   const rm = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
   const rp = await rm.newPage();
-  await serve(rp, () => {}, (u) => { offOrigin++; report.push(`  OFF-ORIGIN reduced-motion  -> ${u}`); });
+  let rcurrent = '';
+  await serve(rp, () => {}, (u) => { if (playerOf(rcurrent, u)) return; offOrigin++; report.push(`  OFF-ORIGIN reduced-motion  ${rcurrent}  -> ${u}`); });
   for (const p of PAGES) {
+    rcurrent = p;
     await rp.goto(ORIGIN + p, { waitUntil: 'load' }).catch(() => null);
     await rp.waitForTimeout(80);
     const r = await rp.evaluate(RENDER_PROBE);
@@ -401,6 +422,7 @@ const RENDER_PROBE = () => ({
       off.length = 0;
       await fp.goto(ORIGIN + p, { waitUntil: 'load' }).catch(() => null);
       await fp.waitForTimeout(80);
+      if (WATCH.has(p)) continue; // the watch pages are proved below, where their player is meant to load
       if (off.length) { filmFails++; report.push(`  FILM      ${width}px  ${p}  asked ${off[0]} before any press`); }
       const problems = await filmProbe(fp, how, off);
       if (!problems) continue;
@@ -408,6 +430,32 @@ const RENDER_PROBE = () => ({
       for (const m of problems) { filmFails++; report.push(`  FILM      ${width}px  ${p}  ${m}`); }
     }
     await fc.close();
+  }
+  // The watch pages: the player is in the page as it opens, the one request off the origin is the embed URL, and
+  // ?t=<second> starts it there, before it has loaded anything else.
+  {
+    const wc = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const wp = await wc.newPage();
+    const off = [];
+    await serve(wp, () => {}, (u) => off.push(u));
+    for (const [p, embed] of WATCH) {
+      for (const t of [0, 61]) {
+        off.length = 0;
+        await wp.goto(ORIGIN + p + (t ? `?t=${t}` : ''), { waitUntil: 'load' }).catch(() => null);
+        await wp.waitForTimeout(150);
+        const want = t ? `${embed}&start=${t}` : embed;
+        const f = await wp.evaluate(() => { const fs = document.querySelectorAll('iframe'); return { n: fs.length, src: fs[0]?.src, title: fs[0]?.title, allow: fs[0]?.allow, ref: fs[0]?.referrerPolicy }; });
+        films++;
+        if (f.n !== 1) { filmFails++; report.push(`  WATCH     ${p}  ${f.n} players, not one`); continue; }
+        if (f.src !== want) { filmFails++; report.push(`  WATCH     ${p}${t ? `?t=${t}` : ''}  the player is ${f.src}, not ${want}`); }
+        if (/\bautoplay\b/.test(f.allow) || /autoplay/.test(f.src)) { filmFails++; report.push(`  WATCH     ${p}  the player may autoplay`); }
+        if (!/\bfullscreen\b/.test(f.allow) || f.ref !== 'strict-origin-when-cross-origin' || !f.title.includes(', film, ')) { filmFails++; report.push(`  WATCH     ${p}  the player lacks full screen, the referrer YouTube reads, or a title naming the film`); }
+        const others = off.filter((u) => !playerOf(p, u));
+        if (others.length) { filmFails++; report.push(`  WATCH     ${p}  asked ${others[0]}, which is not its player`); }
+        if (off[off.length - 1] !== want) { filmFails++; report.push(`  WATCH     ${p}${t ? `?t=${t}` : ''}  the last request off the origin was ${off[off.length - 1] ?? 'none'}, not ${want}`); }
+      }
+    }
+    await wc.close();
   }
   // Without the script, the poster is the link it was rendered as.
   const nj = await browser.newContext({ viewport: { width: 1280, height: 900 }, javaScriptEnabled: false });

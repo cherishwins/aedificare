@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import Masthead from '../components/Masthead.astro';
 import RoseField from '../components/RoseField.astro';
 import FilmLink from '../components/FilmLink.astro';
+import SiteLinks from '../components/SiteLinks.astro';
 import { HOUSE } from '../lib/rose.mjs';
 import { PUBLISHED, LICENCE, numberWord } from '../lib/editions.mjs';
 import fs from 'node:fs';
@@ -20,19 +21,15 @@ const count = numberWord(PUBLISHED.length);
 // The month is the newest published edition's, read from the list: it was typed once and said September into October.
 const month = new Date(PUBLISHED[0].date + 'T00:00:00Z').toLocaleString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 const line = `${count[0].toUpperCase()}${count.slice(1)} editions · ${month}`;
-// The meta description is the index itself, read from the list: LinkedIn's
-// Post Inspector warns under 100 characters and the line alone is 30.
-// It names the newest editions first and stops before 200 characters, the ceiling tools/check-contents.cjs
-// enforces: a sixth edition took the full list to 217 (2026-10-06), and every edition after would add more.
-let description = line;
-for (const e of PUBLISHED) {
-  const next = `${description} · ${e.code}, ${e.title}`;
-  if (next.length > 200) break;
-  description = next;
-}
+// The meta description names what the editions cover, written once here (30 Oct 2026, the owner's to confirm), in
+// place of the generated index of codes and titles, which a search snippet cut after two editions. It says what the
+// editions are about, never what Aedificare is or does. tools/check-discovery.cjs holds it to 140 to 160 characters,
+// and its subjects should be read again when an edition on a new subject is published.
+const description = 'Dated editions by Jesse James on AI agents and their models, chips, mesh radio, the Navier-Stokes result, patents and money, each with its sources numbered.';
+const fullTitle = 'Aedificare · Dated editions on technology, by Jesse James';
 
 ---
-<Base title="Aedificare" description={description} path="/" ogImage="/og/home.png">
+<Base title="Aedificare" fullTitle={fullTitle} description={description} path="/" ogImage="/og/home.png">
   <main id="main">
     <section class="surface hero" aria-label="Aedificare">
       <RoseField layers={house} seed={0.5} readout="k" class="rose hero-rose" />
@@ -70,6 +67,7 @@ for (const e of PUBLISHED) {
 
     <footer class="foot mono">
       <span>Aedificare · 2026 · <a href={LICENCE.url} rel="license">{LICENCE.name}</a></span>
+      <SiteLinks />
       <span>Mark seed AED-M-01 · k = 5</span>
     </footer>
   </main>

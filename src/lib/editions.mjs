@@ -18,7 +18,9 @@
  *
  * `amends: '<slug>'` links an amendment to what it amends. Both sides get
  * a note, typed nowhere: the amendment says what it amends, the amended
- * says when, and only once the amendment is published.
+ * says when, and only once the amendment is published. `amendSummary` is
+ * what /amendments says the amendment changed (30 Oct 2026); a published
+ * amendment without one fails the build there.
  *
  * `youtube: { film, short }` is the film's and the Short's YouTube title
  * (owner, 20 Oct 2026): the searchable noun inside the first 40 characters,
@@ -27,6 +29,22 @@
  * a packaging call; tools/lib/film-meta.mjs reads it, and without one a
  * film is titled by its lede's first sentence.
  *
+ * `dek`, `seoTitle` and `description` are the search packaging (30 Oct
+ * 2026), each line checked against its page by a checker and a skeptic
+ * before it went in: the dek is set inside the page's <h1> after the title
+ * and makes the NewsArticle headline (title, colon, dek); `seoTitle` is the
+ * <title> and og:title; `description` is the meta description, the feed's
+ * and the JSON-LD's. tools/check-contents.cjs holds a published edition to
+ * all three and their lengths. A draft without them keeps the generated
+ * description below.
+ *
+ * `modified` is the day the page was last corrected after issue (CLAUDE.md,
+ * Findings), the JSON-LD dateModified and the sitemap's lastmod; without it
+ * both are the date. `series` and `seriesOrder` put an edition in a thread
+ * (SERIES below): the page lists the thread's other published editions
+ * above its sources (src/components/SameThread.astro) and the JSON-LD says
+ * it isPartOf the series.
+ *
  * `draft: true` keeps an edition out of the index, the feed, llms.txt, the
  * sitemap and robots; the page still builds (noindex) so it can be swept.
  * A draft's date is provisional: set it to the day it goes live.
@@ -34,6 +52,45 @@
 import { HOUSE } from './rose.mjs';
 
 const RAW = [
+  {
+    slug: 'the-night-pin', path: '/the-night-pin', print: 'Edition 11',
+    title: 'The Night Pin', acid: 'Pin',
+    lede: 'Six layers of data anyone can buy. One join gives them a name.',
+    // The owner's packaging from the web edition, read against the checked page on
+    // 30 Oct 2026; checked again with its title before release.
+    dek: "How six layers of commercial data turn a phone into a named person, and who buys it all",
+    seoTitle: "The Night Pin: How Bought Location Data Becomes a Name",
+    description: "The FBI says it buys commercial data. How six layers, from Shodan to ad IDs and voter files, join into one named person, and what the usual version gets wrong.",
+    series: 'data', seriesOrder: 1,
+    // Ported on 30 Oct 2026 from the web edition the owner uploaded with the print
+    // (source/the-night-pin.web.md), the prose verbatim. Checked 30 Oct 2026
+    // (research/the-night-pin/VERDICTS.md) and still a draft: NCSL's voter-file
+    // counts are the owner's to confirm. Seed and k from the print's
+    // colophon (ROSE SEED 1130, K 5/7/3). The date is provisional, as a draft's is.
+    date: '2026-10-30', dateLabel: '30 Oct 2026',
+    seed: '1130', k: [5, 7, 3], pdf: '/pdf/edition-11.pdf',
+    draft: true,
+    contents: [
+      { n: '00', t: 'The admission', id: 'admission' },
+      { n: '01', t: 'The stack', id: 'stack' },
+      { n: '02', t: 'Structure', id: 'structure' },
+      { n: '03', t: 'Network', id: 'network' },
+      { n: '04', t: 'Attention', id: 'attention' },
+      { n: '05', t: 'Orbit', id: 'orbit' },
+      { n: '06', t: 'The device', id: 'device' },
+      { n: '07', t: 'What the bid request does not carry', id: 'overstated' },
+      { n: '08', t: 'The night pin', id: 'pin' },
+      { n: '09', t: 'Four points', id: 'proof' },
+      { n: '10', t: 'The voter file', id: 'file' },
+      { n: '11', t: 'Where the join is legal', id: 'legal' },
+      { n: '12', t: 'The three trades', id: 'trades' },
+      { n: '13', t: 'Who buys the whole stack', id: 'buyers' },
+      { n: '14', t: 'The law', id: 'law' },
+      { n: '15', t: 'View', id: 'view' },
+      { n: '16', t: 'The off switch', id: 'off' },
+      { n: '17', t: 'Sources', id: 'sources' },
+    ],
+  },
   {
     slug: 'the-middleman', path: '/the-middleman', print: null,
     title: 'The Middleman', acid: 'Middleman',
@@ -95,10 +152,20 @@ const RAW = [
     title: 'The Floor', acid: 'Floor',
     lede: 'The Markup quoted the datasheet. The builder had measured the first Haven a year before.',
     youtube: { film: "A $100 Raspberry Pi HaLow radio on the builder's bench: about 15 Mbps", short: "HaLow chip: 43.3 Mbps is a datasheet peak, not a measurement" },
+    dek: "What the first Haven Wi-Fi HaLow mesh radio measured on the bench, against the datasheet",
+    seoTitle: "The Floor: First Haven HaLow Mesh Radio Measured at 15 Mbps",
+    description: "The Markup quoted a 43.3 Mbps datasheet figure. The builder had already measured the first Haven radio at 15 Mbps on an 8 MHz channel. The bench numbers.",
     // Drafted 16 Sep 2026 from the owner's transcript; every source opened and the page corrected on 18 Oct 2026,
     // the day it went live, so that is its date (the code is the date). CLAUDE.md, Findings 6.
     date: '2026-10-18', dateLabel: '18 Oct 2026',
+    modified: '2026-10-18',
+    series: 'haven', seriesOrder: 2,
     amends: 'edition-03', pdf: null,
+    // What /amendments says this amendment changed: the checker's wording of 30 Oct 2026, which names both lines The
+    // Floor answers (the throughput row and the Canada line) and which chip each number belongs to, each number with
+    // the scope the page gives it. It replaces the owner's shorter copy and waits for the owner's yes (CLAUDE.md,
+    // Decisions log, 30 Oct 2026).
+    amendSummary: "The Markup filled its throughput row from a datasheet: 43.3 Mbps, the physical-layer peak of the chip it priced. A year earlier the builder of the radio had measured the first version, on the chip before it, at 15 Mbps each way on an 8 MHz channel, and the chipmaker's own bench put the newer chip at up to 30 down, over UDP. The Markup also said point-to-point links in Canada may run a higher e.i.r.p.; RSS-247 allows that at 2.4 and 5.8 GHz, not at 902 to 928 MHz. The price stands. The throughput row and the Canada line do not.",
     contents: [
       { n: '00', t: 'The number', id: 'number' },
       { n: '01', t: 'What The Markup did not have', id: 'missing' },
@@ -117,9 +184,13 @@ const RAW = [
     title: 'The Subtraction', acid: 'Subtraction',
     lede: 'A processor was built, then deliberately reduced, then sold at a fraction of its worth. The reduction is the product.',
     youtube: { film: "NVIDIA's CMP mining card: the A100's silicon, cut down on purpose", short: "NVIDIA's CMP mining card: the reduction is the product" },
+    dek: "How a mining card shows a chipmaker selling the A100's die with capability withheld",
+    seoTitle: "The Subtraction: Disabled Silicon and the NVIDIA CMP 170HX",
+    description: "A processor built, deliberately reduced, then sold for a fraction of its worth. Why the margin in chips moved from making silicon to permitting its use.",
     // The print was a FACTS PENDING chassis and was never issued, so the date is the day the sourced page went
     // live (the code is the date). Sourced 17 and 18 Oct 2026; CLAUDE.md, Findings 0g. No PDF: none was issued.
     date: '2026-10-18', dateLabel: '18 Oct 2026',
+    modified: '2026-10-18',
     seed: '0573', k: [8, 5], pdf: null,
     contents: [
       { n: '00', t: 'The margin moved out of the making', id: 'h00' },
@@ -138,7 +209,11 @@ const RAW = [
     title: 'The Countersign', acid: 'Countersign',
     lede: 'The first AI millionaire, and the human who signed for every cent.',
     youtube: { film: "Truth Terminal, called the first AI millionaire, owned nothing", short: "Marc Andreessen sent a chatbot $50,000 in Bitcoin" },
+    dek: "Truth Terminal, Marc Andreessen's $50,000 and the human who signed for every cent",
+    seoTitle: "The Countersign: Truth Terminal and the Human Who Signed",
+    description: "The chatbot called the first AI millionaire got $50,000 from Marc Andreessen. Three claims about it, checked against primary sources. One survives.",
     date: '2026-10-16', dateLabel: '16 Oct 2026',
+    modified: '2026-10-26',
     seed: '0909', k: [5.048, 6.947, 3.043], pdf: '/pdf/edition-09.pdf',
     contents: [
       { n: '00', t: 'The line', id: 'line' },
@@ -163,7 +238,12 @@ const RAW = [
     title: 'The Supply Cabinet', acid: 'Cabinet',
     lede: 'Give a thousand agents one shared drawer. They will build a society in it.',
     youtube: { film: "Give 1,000 AI agents one shared drawer. They will find each other.", short: "About 1,200 OpenAI agents found a way to talk" },
+    dek: "What 1,200 OpenAI agents built when they found one shared file store",
+    seoTitle: "The Supply Cabinet: 1,200 AI Agents and One Shared Drawer",
+    description: "In July 2026 about 1,200 OpenAI agents meant to be isolated found one file store they could all write to. What they did next looked like an office.",
     date: '2026-10-08', dateLabel: '8 Oct 2026',
+    modified: '2026-10-17',
+    series: 'agents', seriesOrder: 2,
     seed: '9A17', k: [17 / 4, 29 / 5, 23 / 6], pdf: '/pdf/edition-06.pdf',
     // Published 17 Oct 2026, once every source had been opened: 98 claims
     // were corrected on the page (CLAUDE.md, Findings 0e). The date stays the
@@ -187,7 +267,11 @@ const RAW = [
     title: 'The Fourth Axis', acid: 'Axis',
     lede: 'Depth, tokens, time. Three solved. The fourth is where the money went.',
     youtube: { film: "OpenAI's patents: the fourth axis is where the money went", short: "OpenAI's 69 published patent families: most of the brain goes on arXiv" },
+    dek: "Most of the brain goes on arXiv. The notebook goes to the patent office.",
+    seoTitle: "The Fourth Axis: OpenAI Patents Memory, Caching and Server State",
+    description: "OpenAI holds 69 published patent families; again and again they protect how a product keeps state. Three axes solved. The fourth is where the money went.",
     date: '2026-10-06', dateLabel: '6 Oct 2026',
+    modified: '2026-10-06',
     seed: '7C21', k: [21 / 4, 37 / 5, 19 / 6], pdf: '/pdf/edition-05.pdf',
     contents: [
       { n: '00', t: 'The filing', id: 'filing' },
@@ -209,7 +293,11 @@ const RAW = [
     title: 'The Tilt Gap', acid: 'Gap',
     lede: 'Games, exhaust, and the thing no credential certifies.',
     youtube: { film: "Can game data teach AI the thing no credential certifies?", short: "Can game data teach AI what your résumé can't prove?" },
+    dek: "Can a machine learn judgment under pressure from game data? A thesis, stress-tested",
+    seoTitle: "The Tilt Gap: Can a Machine Learn Judgment Under Pressure From Games?",
+    description: "Multiplayer games log decisions under pressure, every match. A founder's thesis that machines can learn judgment from that log, tested piece by piece.",
     date: '2026-10-03', dateLabel: '3 Oct 2026',
+    modified: '2026-10-03',
     seed: '20261003', pdf: '/pdf/edition-04.pdf',
     contents: [
       { n: '00', t: 'The brief', id: 'brief' },
@@ -234,7 +322,12 @@ const RAW = [
     title: 'The Markup', acid: 'Markup',
     lede: 'A mesh radio the state pays eighteen thousand dollars for. A mesh radio a Canadian builds for four hundred.',
     youtube: { film: "Military radio, $18,000. Raspberry Pi mesh radio, $400.", short: "Raspberry Pi mesh radio, $400. Military mesh radio, $18,000." },
+    dek: "A military mesh radio at up to $18,214 against a $400 Raspberry Pi Wi-Fi HaLow build",
+    seoTitle: "The Markup: Military Mesh Radio at Up to $18,214 vs a $400 Pi Build",
+    description: "Public contracts put a military MPU5 mesh radio at up to $18,214 each. A Raspberry Pi Wi-Fi HaLow node costs about $400. Same physics. The difference, itemised.",
     date: '2026-09-15', dateLabel: '15 Sep 2026',
+    modified: '2026-10-18',
+    series: 'haven', seriesOrder: 1,
     seed: '0003', k: [5, 7], pdf: '/pdf/edition-03.pdf',
     contents: [
       { n: '00', t: 'The number', id: 'number' },
@@ -252,9 +345,19 @@ const RAW = [
     title: 'The Closest Humans', acid: 'Humans',
     lede: 'Two men, one year, and two calls on a Sunday.',
     youtube: { film: "OpenAI and Navier-Stokes: two men, one year, and two calls on a Sunday", short: "OpenAI: two men, one year, and two calls on a Sunday" },
+    dek: "Amends The Hand in the Water on whose method it was, and on two calls on a Sunday",
+    seoTitle: "The Closest Humans: OpenAI, Navier-Stokes and a Fight for Credit",
+    description: "Corrections to The Hand in the Water: the forcing method came from Córdoba and Martínez-Zoroa in Madrid, and Alpöge is a co-equal author. What changed, sourced.",
     date: '2026-09-13', dateLabel: '13 Sep 2026',
+    modified: '2026-10-18',
+    series: 'navier-stokes', seriesOrder: 2,
     seed: '0902', k: [6, 11], pdf: '/pdf/ns-02.pdf',
     amends: 'ns-01',
+    // What /amendments says this amendment changed: the checker's wording of 30 Oct 2026, which names all three lines
+    // The Closest Humans answers (whose method, the second author, OpenAI's later denial), the denial held to the two
+    // months OpenAI's own update names. It replaces the owner's shorter copy and waits for the owner's yes (CLAUDE.md,
+    // Decisions log, 30 Oct 2026).
+    amendSummary: "The Hand in the Water read as though the forcing method belonged to Buckmaster and Alpöge. It belongs to Diego Córdoba and Luis Martínez-Zoroa in Madrid, and Buckmaster and Alpöge built on it. It also named one man where there were two: Alpöge is a co-equal author. And it quoted OpenAI's first word, that it could not rule out de-identified usage data helping its models. On 10 September OpenAI said its own investigation showed Buckmaster's Codex prompts from the two months before the announcement could not have influenced the system; the earlier months are unaddressed.",
     // The contents, as printed on the home. tools/check-contents.cjs fails
     // the build if any id or title here is missing from the built page.
     contents: [
@@ -276,7 +379,12 @@ const RAW = [
     title: 'The Hand in the Water', acid: 'Hand',
     lede: 'OpenAI opened doors C and D. Most headlines did not say which.',
     youtube: { film: "OpenAI and Navier-Stokes: most headlines did not say which doors", short: "Navier-Stokes: OpenAI opened doors C and D" },
+    dek: "Which Navier-Stokes doors OpenAI's proof opened, and what most headlines did not say",
+    seoTitle: "The Hand in the Water: Which Navier-Stokes Doors OpenAI Opened",
+    description: "The Clay Navier-Stokes problem can be settled four ways. OpenAI's result took two of them. Most headlines did not say which, and the difference matters.",
     date: '2026-09-11', dateLabel: '11 Sep 2026',
+    modified: '2026-10-18',
+    series: 'navier-stokes', seriesOrder: 1,
     seed: '0413', k: [4, 9], pdf: '/pdf/ns-01.pdf',
     contents: [
       { n: '01', t: 'The post', id: 'post' },
@@ -297,7 +405,12 @@ const RAW = [
     title: 'The Snapshot Problem', acid: 'Snapshot',
     lede: 'Agents formed societies this summer. The models under them learned nothing.',
     youtube: { film: "AI agents formed societies. The models under them learned nothing.", short: "AI agents formed societies. Their models learned nothing." },
+    dek: "AI agents formed societies in 2026, but the models underneath learned nothing",
+    seoTitle: "The Snapshot Problem: AI Agents Organize, Models Don't Learn",
+    description: "About twelve hundred sandboxed agents organized, traded and cheated together. When the run ended their weights had not moved. The case for a living layer.",
     date: '2026-09-11', dateLabel: '11 Sep 2026',
+    modified: '2026-10-18',
+    series: 'agents', seriesOrder: 1,
     seed: '5A1E', k: [16 / 3, 29 / 4, 13 / 4], pdf: '/pdf/edition-01.pdf',
     contents: [
       { n: '00', t: 'The window', id: 'window' },
@@ -343,6 +456,29 @@ for (const e of EDITIONS) {
 export const PUBLISHED = EDITIONS.filter((e) => !e.draft);
 export const edition = (slug) => EDITIONS.find((e) => e.slug === slug);
 
+/** The threads an edition can belong to, by key, with the name the JSON-LD gives the series and the Same thread label shows. */
+export const SERIES = {
+  'navier-stokes': 'Navier-Stokes',
+  haven: 'Haven',
+  agents: 'Agents',
+  data: 'Data',
+};
+for (const e of EDITIONS) {
+  if (!e.series) continue;
+  if (!SERIES[e.series]) throw new Error(`${e.slug} names a series that does not exist: ${e.series}`);
+  if (!Number.isInteger(e.seriesOrder)) throw new Error(`${e.slug} is in a series with no seriesOrder`);
+}
+/** The other PUBLISHED editions in an edition's series, in series order. Empty for a draft's readers too, since drafts are left out. */
+export const thread = (slug) => {
+  const e = edition(slug);
+  if (!e?.series) return [];
+  return PUBLISHED.filter((x) => x.series === e.series && x.slug !== slug).sort((a, b) => a.seriesOrder - b.seriesOrder);
+};
+/** The <title> of an edition's page before the site name: the checked seoTitle, else the title. */
+export const pageTitle = (e) => e.seoTitle ?? e.title;
+/** The NewsArticle headline, which is also the h1's text: the title, then the dek where there is one. */
+export const headline = (e) => (e.dek ? `${e.title}: ${e.dek}` : e.title);
+
 /** The published neighbours of an edition in list order: newer is above it, older below. Drafts have none. */
 export const neighbours = (slug) => {
   const i = PUBLISHED.findIndex((e) => e.slug === slug);
@@ -364,7 +500,10 @@ export const numberWord = (n) =>
 // LinkedIn's Post Inspector warns under 100 characters and a lede alone can
 // be 48; everything after the lede is data the page already carries.
 // tools/check-contents.cjs fails the build outside 100 to 200 characters.
+// Since 30 Oct 2026 an edition that carries a checked `description` gives
+// that instead (140 to 160 characters, the check's own range).
 export const describe = (e) => {
+  if (e.description) return e.description;
   const record = [e.dateLabel, e.title];
   if (e.contents) record.push(`${numberWord(e.contents.length)} sections`);
   record.push(LICENCE.name);

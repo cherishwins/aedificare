@@ -1,0 +1,37 @@
+# Lane 7: Four points, Twelve Million Phones, ODNI
+
+Edition: source/the-night-pin.web.md (The Night Pin, 30 Oct 2026), section 09 "Four points" (lines 133 to 135) and section 13 (line 185). Sources: section 17, items [11], [15], [16].
+
+## 1. de Montjoye et al., Scientific Reports 3, 1376 (2013): 15 months of mobility data for 1.5 million people; four points in space and time single out 95 percent; hourly resolution; cell-tower (antenna) locations. [11]
+Verdict: holds
+Primary: de Montjoye, Y.-A., Hidalgo, C. A., Verleysen, M., & Blondel, V. D., "Unique in the crowd: The privacy bounds of human mobility", Scientific Reports 3, 1376 (2013), published 25 March 2013 (per the PMC copy). https://pmc.ncbi.nlm.nih.gov/articles/PMC3607247 (open-access copy of the paper, DOI 10.1038/srep01376). The nature.com page https://www.nature.com/articles/srep01376 redirected to an identity-provider sign-in (idp.nature.com/authorize), so I did not follow it and used the PMC copy.
+Read: 2026-10-30
+Quote: "We study fifteen months of human mobility data for one and a half million individuals"; "four spatio-temporal points are enough to uniquely identify 95% of the individuals"; "The dataset's intrinsic temporal resolution is one hour"; "the location of the connecting antenna is recorded"; "The dataset's intrinsic spatial resolution is thus the maximal half-distance between antennas."
+True as: no change needed. (Optional precision: "four points in space and time were enough to uniquely identify 95 percent of the 1.5 million people.")
+Notes: The edition's "single out" is a fair paraphrase of "uniquely identify". The paper's "four points" are spatio-temporal points from the dataset, not the researchers' choice in the abstract wording; the point count and percentage match. The edition's added clause "which is coarser than the GPS in a modern bid request" is outside this lane and was not checked.
+
+## 2. December 2019: the New York Times obtained a file of more than 50 billion location pings from over 12 million phones, covering several months of 2016 and 2017; reporters followed military officials, police and lawyers by name. [15]
+Verdict: could not open (NYT primary); the secondary supports the numbers but not "by name"
+Primary: New York Times, "Twelve Million Phones, One Dataset, Zero Privacy", 19 December 2019 (NYT Privacy Project; byline per a search-result summary: Stuart A. Thompson and Charlie Warzel). Not opened: the fetch tool refused nytimes.com ("Claude Code is unable to fetch from www.nytimes.com"). The Wayback Machine copy was also refused. The edition gives no NYT URL.
+Secondary read: TidBITS, 19 Dec 2019, "The New York Times reveals how completely our every move is tracked". https://tidbits.com/2019/12/19/the-new-york-times-reveals-how-completely-our-every-move-is-tracked/ (a summary that says it is summarising the NYT piece, not quoting it).
+Read: 2026-10-30
+Quote (TidBITS, its own wording): the dataset "contained 50 billion pings from the phones of more than 12 million Americans"; the data covered "over several months in 2016 and 2017"; reporters tracked "numerous people in positions of power, including military officials," along with "law-enforcement officers, and high-powered lawyers."
+True as (on the secondary only, pending the NYT text): "In December 2019 the New York Times obtained a file of more than 50 billion location pings from more than 12 million phones, covering several months of 2016 and 2017. Its reporters tracked people in positions of power, including military officials, law-enforcement officers and lawyers." Drop "by name" unless the NYT text confirms it.
+Notes: The numbers and the time span match the TidBITS summary. "By name" does not appear in the TidBITS summary, and I could not check the NYT. TidBITS says "Americans"; the edition says "phones", which is consistent. Re-run against the NYT text before final.
+
+## 3. One phone belonged to a Microsoft employee who visited an Amazon office and took a job there a month later. [15]
+Verdict: could not open (NYT primary); the secondary matches the wording
+Primary: the same New York Times piece as claim 2 (19 Dec 2019). Not opened (see claim 2).
+Secondary read: TidBITS, 19 Dec 2019, https://tidbits.com/2019/12/19/the-new-york-times-reveals-how-completely-our-every-move-is-tracked/
+Read: 2026-10-30
+Quote (TidBITS, its own wording): "a Microsoft employee who made an unusual visit to an Amazon office and a month later, took a job there."
+True as: unchanged if the NYT says the same. TidBITS does not say in these words that the phone "belonged to" the employee; check the NYT wording for that.
+Notes: Single-source on the secondary only. The edition's "visited an Amazon office" is a neutral paraphrase of "made an unusual visit to an Amazon office".
+
+## 4. A January 2022 report by a senior advisory group to the DNI, declassified in June 2023, states commercially available information "includes information on nearly everyone," and that it could be used "to cause harm to an individual's reputation, emotional well-being, or physical safety." [16]
+Verdict: holds
+Primary: Office of the Director of National Intelligence, Senior Advisory Group Panel on Commercially Available Information, "(U) Report to the Director of National Intelligence", 27 January 2022 (declassified copy). https://www.dni.gov/files/ODNI/documents/assessments/ODNI-Declassified-Report-on-CAI-January2022.pdf (redirects to archive.dni.gov/files/ODNI/documents/assessments/ODNI-Declassified-Report-on-CAI-January2022.pdf; the redirect target was opened). The declassification date comes from the ODNI press release title "DNI Haines Statement on Declassified Report on Commercially Available Information" (https://www.dni.gov/index.php/newsroom/press-releases/press-releases-2023/3701-dni-haines-statement-on-declassified-report-on-commercially-available-information), whose body I could not read, and from search-result summaries dating it to June 2023 (June 14 per the ODNI statement; Lawfare gives June 12). The FAS copy at https://irp.fas.org/eprint/dni-cai.pdf was not opened.
+Read: 2026-10-30
+Quote: Executive Summary, p. 2, running onto p. 3: "Today, in a way that far fewer Americans seem to understand, and even fewer of them can avoid, CAI includes information on nearly everyone that is of a type and level of sensitivity that historically could have been obtained, if at all, only through targeted (and predicated) collection, and that could be used to cause harm to an individual's reputation, emotional well-being, or physical safety."
+True as: no change needed. Optional precision: "A January 2022 report by a senior advisory group to the Director of National Intelligence, declassified in June 2023, says commercially available information 'includes information on nearly everyone,' and that it 'could be used to cause harm to an individual's reputation, emotional well-being, or physical safety.'"
+Notes: Both phrases are verbatim in the report. The copy I read is redacted (SECRET banners and black boxes); the two sentences are not in redacted text. The report's own sentence says "CAI includes information on nearly everyone"; the edition's "states that commercially available information 'includes information on nearly everyone'" is a fair shortening. The edition cites Fortune [16]; I did not open Fortune because the primary was reached. Search attempts that gave no text: a search for the exact phrase returned no direct hit in the snippets, so the PDF was read directly.

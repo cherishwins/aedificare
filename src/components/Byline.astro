@@ -1,0 +1,16 @@
+---
+/**
+ * The byline on every edition's cover (30 Oct 2026): "By Jesse James · 18 Oct 2026 · Updated 26 Oct 2026", in the
+ * cover's mono foot where the date and the name already stood. The name is the author's (src/config.mjs) and links
+ * to /about, the page that is about him; the dates are <time datetime> values, the first the edition's date, which
+ * tools/check-discovery.cjs holds to the NewsArticle's datePublished. "Updated" shows only where the entry carries a
+ * `modified` day later than its date: the same day twice says nothing.
+ */
+import { SITE } from '../config.mjs';
+interface Props { e: { date: string; dateLabel: string; modified?: string } }
+const { e } = Astro.props;
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const label = (d: string) => { const [y, m, day] = d.split('-').map(Number); return `${day} ${MONTHS[m - 1]} ${y}`; };
+const updated = e.modified && e.modified > e.date ? e.modified : null;
+---
+<span class="byline">By <a href="/about" rel="author">{SITE.author}</a> · <time datetime={e.date}>{e.dateLabel}</time>{updated && <> · Updated <time datetime={updated}>{label(updated)}</time></>}</span>

@@ -3,6 +3,7 @@ import { SITE, BUILD, abs } from '../config.mjs';
 import '../styles/base.css';
 import OG from '../lib/og-manifest.json';
 import { LICENCE } from '../lib/editions.mjs';
+import { zoned } from '../lib/dates.mjs';
 
 interface Props {
   title: string;
@@ -12,14 +13,23 @@ interface Props {
   ogImage?: string;
   noindex?: boolean;
   schema?: unknown[];
-  /** ISO date: marks the page as an article for Open Graph. */
+  /** ISO date: marks the page as an article for Open Graph. Set at 00:00 in SITE.timeZone with its offset. */
   published?: string;
+  /** ISO date of the last correction after issue, where there was one. */
+  modified?: string;
+  /** og:title and twitter:title where they differ from the <title>: an edition's checked seoTitle. */
+  ogTitle?: string;
+  /** The whole <title>, where the page sets its own (the home). */
+  fullTitle?: string;
 }
 const { title, description, path = Astro.url.pathname, ogImage = '/og/home.png',
-        noindex = false, schema: extra = [], published } = Astro.props;
+        noindex = false, schema: extra = [], published, modified, ogTitle: ogTitleProp,
+        fullTitle: fullTitleProp } = Astro.props;
 
-const canonical = abs(path);
-const fullTitle = path === '/' ? SITE.name : `${title} · ${SITE.name}`;
+// One URL per page: no trailing slash anywhere but the root (CLAUDE.md, Discoverability).
+const canonical = abs(path === '/' ? '/' : path.replace(/\/+$/, ''));
+const fullTitle = fullTitleProp ?? (path === '/' ? SITE.name : `${title} · ${SITE.name}`);
+const ogTitle = ogTitleProp ?? fullTitle;
 
 // Content-hashed cards, resolved through the generated manifest: LinkedIn
 // and friends mirror OG bytes by URL, so only a new URL can replace a stale
@@ -51,18 +61,19 @@ const site = {
   <link rel="preload" href="/fonts/MartianMono.woff2" as="font" type="font/woff2" crossorigin />
 
   <meta property="og:type" content={published ? 'article' : 'website'} />
-  {published && <meta property="article:published_time" content={published} />}
+  {published && <meta property="article:published_time" content={zoned(published)} />}
+  {published && <meta property="article:modified_time" content={zoned(modified ?? published)} />}
   {published && <meta property="article:author" content={SITE.author} />}
   <meta property="og:site_name" content={SITE.name} />
   <meta property="og:url" content={canonical} />
-  <meta property="og:title" content={fullTitle} />
+  <meta property="og:title" content={ogTitle} />
   <meta property="og:description" content={description} />
   <meta property="og:image" content={og} />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content={entry.alt} />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content={fullTitle} />
+  <meta name="twitter:title" content={ogTitle} />
   <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={og} />
   <meta name="twitter:image:alt" content={entry.alt} />

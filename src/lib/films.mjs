@@ -1,9 +1,10 @@
 /**
  * The films on the site: each published edition's current film, once it is
  * public, as a link to its YouTube watch page with its own thumbnail served
- * from this origin (CLAUDE.md, Decisions log, 21 Oct 2026). Nothing is
- * embedded: no iframe, no script, no request to anyone else when a page
- * loads; the link is the only way out.
+ * from this origin (CLAUDE.md, Decisions log, 21 Oct 2026). An edition's
+ * page asks no one else for anything until its reader presses the poster
+ * (26 Oct 2026); only the film's own watch page, /<slug>/film, ships the
+ * player in its HTML (30 Oct 2026).
  *
  * Read from src/lib/films.json, which tools/films.mjs writes from the
  * releases (the id from a release's youtube.json, the length from its film's
