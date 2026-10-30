@@ -75,12 +75,21 @@ const MIME = { html: 'text/html', css: 'text/css', js: 'text/javascript', png: '
  * a broken reference. In both, a request to any other host is counted: a page
  * here asks nobody else for anything (no embed, no font service, no
  * analytics; CLAUDE.md, Decisions log, 21 Oct 2026), and until then a
- * third-party request was answered 204 and never seen.
+ * third-party request was answered 204 and never seen. Live, a request counts
+ * when the page makes it: its own frame's, or the opening of a frame it holds
+ * (a player's iframe). What a player then loads inside its own frame is the
+ * player's, and a beacon from a frame already gone is the page before's: the
+ * first live sweep of the watch pages (30 Oct 2026) counted 479 of them, where
+ * locally the embed answers 204 and loads nothing.
  */
 function serve(page, onBroken, onOffOrigin = () => {}) {
   if (LIVE) {
     const host = new URL(LIVE).host;
-    page.on('request', (r) => { const u = new URL(r.url()); if (/^https?:$/.test(u.protocol) && u.host !== host) onOffOrigin(u.href); });
+    const pages = (r) => {
+      let f; try { f = r.frame(); } catch { return false; }
+      return f === page.mainFrame() || (r.isNavigationRequest() && f.parentFrame() === page.mainFrame());
+    };
+    page.on('request', (r) => { const u = new URL(r.url()); if (/^https?:$/.test(u.protocol) && u.host !== host && pages(r)) onOffOrigin(u.href); });
     page.on('response', (r) => { const u = new URL(r.url()); if (u.host === host && (r.status() < 200 || r.status() >= 400) && u.pathname !== '/404.html') onBroken(`${u.pathname} (${r.status()})`); });
     page.on('requestfailed', (r) => { const u = new URL(r.url()); if (u.host === host) onBroken(`${u.pathname} (${r.failure()?.errorText})`); });
     return Promise.resolve();
@@ -352,6 +361,7 @@ const RENDER_PROBE = () => ({
     page.on('console', (m) => {
       if (m.type() !== 'error') return;
       if (/Failed to load resource/.test(m.text())) return; // counted precisely above, by path
+      if (LIVE && m.location().url && new URL(m.location().url).host !== new URL(LIVE).host) return; // a player's own console, inside its frame
       jsErrors++; report.push(`  CONSOLE   ${width}px  ${current}  ${m.text()}`);
     });
 

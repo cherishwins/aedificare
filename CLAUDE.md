@@ -296,7 +296,12 @@ it; Decisions log, 26 Oct 2026). **The one exception is a watch page**
 server's HTML, and the sweep asserts exactly one iframe there, the embed
 URL with no autoplay, that the only request off the origin it makes is
 that player, and that `?t=61` starts it at 61 seconds; every other page
-keeps the rule as it was.
+keeps the rule as it was. Against a live origin a request counts when the
+page makes it, from its own frame or by opening a frame it holds; what
+the player then loads inside its own frame, and what it logs there, is
+the player's (the first live sweep of the watch pages, 30 Oct 2026,
+counted 479 such requests, where the local sweep answers the embed 204
+and it loads nothing).
 
 **Human duties** (cannot fail a build; review by eye on every PR): one loud
 move per surface; never explain what the entity does; twelve words maximum
