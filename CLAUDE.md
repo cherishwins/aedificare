@@ -1993,6 +1993,12 @@ for a shortlist for bios and cards, which is a separate deliverable.
    primaries could not be reached from the sandbox at all (Bloomberg,
    CNBC, Quartz, Ofcom, callofduty.com) and were tested at second hand;
    the owner, on a normal connection, can open them.
+   **Its film reads the marks aloud** (found 30 Oct 2026): the film script
+   step read each F, I and Q mark as a word, so the film public since 22
+   Oct says "F" or "I" after about fifty sentences. `tools/generate-film.mjs`
+   now leaves `.mark` out of what it reads, as it leaves out the dek; the
+   published film is unchanged until it is rendered again, which costs
+   about 3,000 credits against the month's balance and is the owner's call.
 
 0d. **Edition 05 · The Fourth Axis arrived as a finished print (2026-10-06)**,
    fourteen pages, thirty-one sources, Chromium-rendered 00:12 UTC, with the
