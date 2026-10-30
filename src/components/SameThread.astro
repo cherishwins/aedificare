@@ -9,16 +9,28 @@
  * of one). A nav, so the film script and the facts reading leave it out
  * (tools/generate-film.mjs, tools/lib/facts.mjs): what another edition says
  * is not this page's fact. No Acid: the surface it sits on spends its own.
+ *
+ * Its label names the series ("Same thread · Haven"), because the page's
+ * JSON-LD names it in isPartOf and a property names only what the page
+ * shows (src/lib/schema.mjs). Bottle by default: it always sits directly on
+ * the Void sources list, which cannot go Bottle (its small Malachite numbers
+ * are 4.52:1 there), so on Void the two ran together as one block. Where the
+ * section above is Void too (The Floor, The Closest Humans, The Supply
+ * Cabinet) the grounds alternate; where it is Bottle (The Markup, The Hand
+ * in the Water, The Snapshot Problem) two Bottle surfaces meet, which no
+ * order of two grounds avoids between Bottle and Void, and is the owner's to
+ * judge by eye (CLAUDE.md, "Grounds alternate").
  */
-import { thread } from '../lib/editions.mjs';
+import { thread, edition, SERIES } from '../lib/editions.mjs';
 interface Props { slug: string; ground?: 'void' | 'bottle' }
-const { slug, ground = 'void' } = Astro.props;
+const { slug, ground = 'bottle' } = Astro.props;
 const items = thread(slug);
+const series = SERIES[edition(slug)?.series];
 ---
 {items.length > 0 && (
   <nav class:list={['surface', 'tight', 'thread', ground]} aria-label="Same thread">
     <div class="grid">
-      <p class="c-full mono-b key">Same thread</p>
+      <p class="c-full mono-b key">Same thread · {series}</p>
       <ol class="c-full list">
         {items.map((x) => (
           <li>

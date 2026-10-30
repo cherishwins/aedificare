@@ -101,9 +101,12 @@ function flex() {
   if (hovers.length && matchMedia('(hover: hover)').matches) {
     addEventListener('pointermove', (e) => {
       for (const el of hovers) {
-        const r = el.getBoundingClientRect();
+        // The display title's own box: a dek inside the h1 is lede type and does not move, so the distance stops
+        // where its margin starts, as it did before the dek was there.
+        const r = el.getBoundingClientRect(), k = el.querySelector('.dek');
+        const bottom = k ? k.getBoundingClientRect().top - parseFloat(getComputedStyle(k).marginTop) : r.bottom;
         const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right);
-        const dy = Math.max(r.top - e.clientY, 0, e.clientY - r.bottom);
+        const dy = Math.max(r.top - e.clientY, 0, e.clientY - bottom);
         const d = Math.hypot(dx, dy);
         set(el, 100 - 25 * Math.min(1, d / 320));
       }

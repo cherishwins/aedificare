@@ -332,8 +332,8 @@ const RAW = [
     title: 'The Closest Humans', acid: 'Humans',
     lede: 'Two men, one year, and two calls on a Sunday.',
     youtube: { film: "OpenAI and Navier-Stokes: two men, one year, and two calls on a Sunday", short: "OpenAI: two men, one year, and two calls on a Sunday" },
-    dek: "Corrections to our Navier-Stokes coverage: whose method it was, and two calls on a Sunday",
-    seoTitle: "The Closest Humans: OpenAI, Navier-Stokes and a fight for credit",
+    dek: "Amends The Hand in the Water on whose method it was, and on two calls on a Sunday",
+    seoTitle: "The Closest Humans: OpenAI, Navier-Stokes and a Fight for Credit",
     description: "Corrections to The Hand in the Water: the forcing method came from Córdoba and Martínez-Zoroa in Madrid, and Alpöge is a co-equal author. What changed, sourced.",
     date: '2026-09-13', dateLabel: '13 Sep 2026',
     modified: '2026-10-18',
@@ -438,7 +438,7 @@ for (const e of EDITIONS) {
 export const PUBLISHED = EDITIONS.filter((e) => !e.draft);
 export const edition = (slug) => EDITIONS.find((e) => e.slug === slug);
 
-/** The threads an edition can belong to, by key, with the name the JSON-LD gives the series. */
+/** The threads an edition can belong to, by key, with the name the JSON-LD gives the series and the Same thread label shows. */
 export const SERIES = {
   'navier-stokes': 'Navier-Stokes',
   haven: 'Haven',

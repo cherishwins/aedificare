@@ -9,8 +9,13 @@
  *
  * Every property describes something the page carries: the headline is the
  * <h1>'s own text (tools/check-discovery.cjs holds them equal), the citations
- * are the page's numbered sources that print a URL, and nothing is rated,
- * reviewed or asked. The WebSite node stays in src/layouts/Base.astro, on
+ * are the page's numbered sources that print their own document's address
+ * (pick, below), and nothing is rated, reviewed or asked. Two properties
+ * name what the page does not show, and both are the owner's to keep or
+ * drop: alternativeHeadline, the print's name (CLAUDE.md, "The code is the
+ * date", which keeps it off every surface and in the JSON-LD so a reader
+ * holding the print finds the page), and isPartOf's series name, which the
+ * page's Same thread label now shows. The WebSite node stays in src/layouts/Base.astro, on
  * every page.
  */
 import fs from 'node:fs';
@@ -42,17 +47,23 @@ const addresses = (text) => {
 };
 
 /**
- * The address a source points at: the first page address that opens a
- * sentence of its own (the house style sets the document's address after
- * its record, "... 10 Jul 2024. decrypt.co/...", while an address inside a
- * clause is one the document quotes or embeds); else its first page
- * address; else its first bare host. Null when it prints none.
+ * The address of the document a source names, or null. Only a page address
+ * counts (a scheme or a path): a bare host names the publisher, not the
+ * document ("openai.com" for a post, "buildwithparallel.com" for an article),
+ * so a source that prints only a host is not cited. Of its page addresses,
+ * the first that opens a sentence of its own (the house style sets the
+ * document's address after its record, "... 10 Jul 2024. decrypt.co/..."),
+ * else the first in its record, before the first colon outside quotes. One
+ * inside the clauses after that colon is one the document quotes or embeds
+ * ("manuscript at alpo.ge/s6.pdf" in an entry for posts on X), never its own,
+ * so a source whose only address sits there is not cited either.
  */
 const pick = (text) => {
-  const a = addresses(text);
+  const a = addresses(text).filter((x) => x[2]);
   if (!a.length) return null;
+  const colon = text.replace(/[“"][^”"]*[”"]/g, (q) => ' '.repeat(q.length)).search(/:\s/);
   const opens = (x) => x[0] === 0 || /\.\s$/.test(text.slice(Math.max(0, x[0] - 2), x[0]));
-  return a.find((x) => x[2] && opens(x)) ?? a.find((x) => x[2]) ?? a[0];
+  return a.find(opens) ?? a.find((x) => colon < 0 || x[0] < colon) ?? null;
 };
 export const urlOf = (text) => pick(text)?.[1] ?? null;
 
@@ -65,7 +76,9 @@ const cap = (s) => (s.length > 160 ? s.slice(0, s.lastIndexOf(' ', 157)) + '…'
  * there is a quotation, not the title). Otherwise, where its address sits in
  * a later sentence that names a document of its own ("... MTU. OpenMANET
  * documentation, openmanet.github.io."), that sentence's words. Otherwise its
- * opening, up to the first address it prints, cut at that colon only when
+ * opening, up to the first address it prints (where it names several
+ * documents, split by semicolons, the one that opens with the address's own
+ * publisher), cut at that colon only when
  * the opening runs past 160 characters, and at a word past that.
  */
 export const nameOf = (text) => {
@@ -81,14 +94,24 @@ export const nameOf = (text) => {
     if (own.split(/\s+/).length >= 2 && /^[A-Z0-9“"]/.test(own)) return cap(own);
   }
   const a = addresses(text);
-  const first = a[0]?.[0] ?? text.length;
+  const first = Math.min(a[0]?.[0] ?? text.length, at);
   let s = clean(text.slice(0, first));
+  // A source that names several documents before its address ("Reuters. ...; TechCrunch, ... 13 Jun 2025.
+  // techcrunch.com/...") is named by the one whose publisher the address is on, where a later one opens with the
+  // address's own name; otherwise (a semicolon that starts a note, or no publisher named) the opening stands.
+  const p = pick(text);
+  if (p) {
+    const label = new URL(p[1]).hostname.split('.').slice(-2)[0];
+    const docs = s.split(/;\s+/);
+    const own = docs.findIndex((d, i) => i > 0 && d.toLowerCase().replace(/[^a-z0-9]/g, '').startsWith(label));
+    if (own > 0) s = clean(docs[own]);
+  }
   if (!s && a.length) s = clean(text.slice(first + (text.slice(first).match(/^\S+/)?.[0].length ?? 0), at));
   if (s.length > 160 && colon > 0 && colon < first) s = clean(text.slice(0, colon));
   return cap(s);
 };
 
-/** A page's sources list as CreativeWorks: one per source that prints an address, in the list's order. */
+/** A page's sources list as CreativeWorks: one per source that prints its own document's address, in the list's order. */
 export const citations = (sources = []) =>
   sources
     .map((s) => (Array.isArray(s) ? s.slice(1).join('. ') : String(s)))

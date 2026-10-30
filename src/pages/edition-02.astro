@@ -96,7 +96,8 @@ const sources = [
   'Lambert, Electrek. Tesla starts selling rear-heated seats on Model 3 SR and SR Plus as $300 OTA upgrade. 15 Feb 2020. electrek.co/2020/02/15/tesla-rear-heated-seats-model-3-ota-upgrades/',
 ];
 const c = (...n: number[]) => n.map((x) => `[${String(x).padStart(2, '0')}]`).join(' ');
-const graph = articleGraph(ed, { alternativeHeadline: `Printed as ${ed.print}`, sources });
+// No alternativeHeadline: no print of this page was issued (CLAUDE.md, Open 2), so the lede stands in.
+const graph = articleGraph(ed, { sources });
 ---
 <Base title={pageTitle(ed)} ogTitle={ed.seoTitle} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} noindex={DRAFT} schema={[graph]} published={ed.date} modified={ed.modified}>
   <main id="main">

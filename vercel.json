@@ -48,7 +48,7 @@
     },
     {
       "source": "/pdf/edition-10.pdf",
-      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\", <https://aedificare.art/the-grade>; rel=\"canonical\"" }]
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\"" }]
     },
     {
       "source": "/pdf/edition-09.pdf",

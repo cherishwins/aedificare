@@ -39,7 +39,7 @@ const checkDescription = (label, file, problems) => {
 };
 
 (async () => {
-  const { EDITIONS, PUBLISHED } = await import('../src/lib/editions.mjs');
+  const { EDITIONS, PUBLISHED, LICENCE } = await import('../src/lib/editions.mjs');
   const problems = [];
   let checked = 0;
   for (const e of EDITIONS) {
@@ -75,25 +75,29 @@ const checkDescription = (label, file, problems) => {
     if (e.seoTitle.length > 70) problems.push(`${e.code}: seoTitle runs ${e.seoTitle.length} characters, over 70: "${e.seoTitle}"`);
     if (e.description.length < 140 || e.description.length > 160) problems.push(`${e.code}: description runs ${e.description.length} characters, not 140 to 160: "${e.description}"`);
     for (const k of ['dek', 'seoTitle', 'description']) if (/\u2014/.test(e[k])) problems.push(`${e.code}: ${k} carries an em dash`);
+    // headline() joins the title and the dek with ": ", so a colon in the dek would print a second one.
+    if (/:/.test(e.dek)) problems.push(`${e.code}: the dek carries a colon, and the headline would read two: "${head}"`);
   }
 
   // The PDFs' canonical headers. vercel.json is static, so the map from each print to its page is typed there; this
-  // holds it to the editions list: every edition with a PDF has exactly one header rule for it, naming its page.
+  // holds it to the editions list and to PRODUCTION_ORIGIN in src/config.mjs: every edition with a PDF has exactly one
+  // header rule for it, carrying the licence; a published edition's names its page as canonical, and a draft's names
+  // none, because a draft carries noindex and is kept out of the sitemap, and a canonical naming it would tell
+  // crawlers about it (CLAUDE.md, "draft: true hides an edition everywhere but the build").
   const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
-  const { SITE } = await import('../src/config.mjs');
-  const origin = 'https://aedificare.art'; // the production origin, never a preview's SITE_ORIGIN
-  if (SITE.origin !== origin && !process.env.SITE_ORIGIN) problems.push(`vercel.json canonicals name ${origin}, src/config.mjs ${SITE.origin}`);
-  const canonOf = (h) => [...(h.headers || [])].filter((x) => x.key.toLowerCase() === 'link')
-    .flatMap((x) => [...x.value.matchAll(/<([^>]+)>;\s*rel="canonical"/g)].map((m) => m[1]));
+  const { PRODUCTION_ORIGIN: origin } = await import('../src/config.mjs');
+  const linksOf = (h) => [...(h.headers || [])].filter((x) => x.key.toLowerCase() === 'link').map((x) => x.value);
+  const canonOf = (h) => linksOf(h).flatMap((v) => [...v.matchAll(/<([^>]+)>;\s*rel="canonical"/g)].map((m) => m[1]));
   const pdfRules = vercel.headers.filter((h) => /^\/pdf\//.test(h.source));
   let pdfs = 0;
   for (const e of EDITIONS.filter((x) => x.pdf)) {
     pdfs++;
     const rules = pdfRules.filter((h) => h.source === e.pdf);
-    const want = origin + e.path;
     if (rules.length !== 1) { problems.push(`vercel.json: ${rules.length} header rules for ${e.pdf}, not one`); continue; }
+    if (!linksOf(rules[0]).some((v) => v.includes(`<${LICENCE.url}>; rel="license"`))) problems.push(`vercel.json: ${e.pdf} carries no licence Link`);
     const got = canonOf(rules[0]);
-    if (got.length !== 1 || got[0] !== want) problems.push(`vercel.json: ${e.pdf} names canonical ${got.join(', ') || 'none'}, not ${want}`);
+    const want = e.draft ? [] : [origin + e.path];
+    if (got.join() !== want.join()) problems.push(`vercel.json: ${e.pdf} names canonical ${got.join(', ') || 'none'}, not ${want.join() || 'none (a draft)'}`);
   }
   for (const h of pdfRules) if (!EDITIONS.some((x) => x.pdf === h.source)) problems.push(`vercel.json: a header rule for ${h.source}, which no edition prints`);
   const catchAll = vercel.headers.filter((h) => !/^\/pdf\//.test(h.source) && canonOf(h).length);
@@ -103,5 +107,5 @@ const checkDescription = (label, file, problems) => {
     for (const p of problems) console.error('  ' + p);
     process.exit(1);
   }
-  console.log(`check-contents: ${checked} entries verified against the built pages; ${PUBLISHED.length + 1} descriptions within ${DESC.min} to ${DESC.max} characters; ${packaged} editions' dek, seoTitle and description in their lengths; ${pdfs} PDFs' canonical headers match the list`);
+  console.log(`check-contents: ${checked} entries verified against the built pages; ${PUBLISHED.length + 1} descriptions within ${DESC.min} to ${DESC.max} characters; ${packaged} editions' dek, seoTitle and description in their lengths; ${pdfs} PDFs' Link headers match the list (a canonical for each published edition's, none for a draft's)`);
 })();

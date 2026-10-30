@@ -23,6 +23,8 @@ async function main() {
       .replace(/<(script|style|svg|nav|header|footer)\b[\s\S]*?<\/\1>/g, '')
       .replace(/<div class="foot[^"]*">[\s\S]*?<\/div>/g, '')
       .replace(/<span class="num no"[^>]*>[\s\S]*?<\/span>/g, '')
+      // The dek sits inside the h1 behind a colon only a screen reader hears; here it is the title's next line.
+      .replace(/<span class="dek">(?:<span class="sr">[^<]*<\/span>)?/g, '\n')
       .replace(/<span class="sr">([\s\S]*?)<\/span>/g, '$1')
       .replace(/<br\s*\/?>/g, '\n')
       .replace(/<\/(p|h1|h2|h3|li|dd|tr|blockquote|section|caption)>/g, '\n\n')
@@ -30,7 +32,7 @@ async function main() {
       .replace(/<\/(div|span|a|b|strong|cite|q|dl)>/g, ' ')
       .replace(/<[^>]+>/g, '')
       .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-      .replace(/[ \t]+/g, ' ').replace(/ ·\s*\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+      .replace(/[ \t]+/g, ' ').replace(/ +\n/g, '\n').replace(/ ·\s*\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
     words += text.split(/\s+/).length;
     out.push('='.repeat(72), `${e.code} · ${e.title}`, `${e.dateLabel} · ${SITE.origin}${e.path}${e.pdf ? ` · PDF ${SITE.origin}${e.pdf}` : ''}${film(e.slug) ? ` · Film ${film(e.slug).url}` : ''}`, '='.repeat(72), '', text, '');
   }

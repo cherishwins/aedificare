@@ -244,14 +244,19 @@ contents list true to the built edition, drafts included and every published
 page's meta description within 100 to 200 characters, every published
 edition's dek, seoTitle and description present and in their lengths (title
 and dek 110 at most, seoTitle 70, description 140 to 160, no em dash), and
-`vercel.json`'s PDF canonical headers equal to the editions list.
-`tools/check-discovery.cjs`, the build's last step, holds what a search
-engine reads off `dist/`: one URL per page (canonical, `og:url` and every
+`vercel.json`'s PDF Link headers equal to the editions list (the licence on
+every print, a canonical naming its page on a published edition's, none on
+a draft's), and no dek with a colon (the headline joins title and dek with
+one). `tools/check-discovery.cjs`, the build's last step, holds what a search
+engine reads off `dist/`, for the home, every published edition and every
+draft, taken from the editions list and never from the sitemap: one URL per page (canonical, `og:url` and every
 JSON-LD url naming the page are the origin and its path, no trailing slash),
 one `<h1>`, every JSON-LD block parsing, a NewsArticle whose headline is the
 h1's own text and whose dates carry an offset, a published edition's
-`<title>` its seoTitle and its description 140 to 160, drafts noindex and
-out of the sitemap, every sitemap `<loc>` a built page with no slash, and no
+`<title>` its seoTitle and its description 140 to 160, the home and every
+published edition in the sitemap (a page the sitemap drops fails, and is
+still checked), drafts noindex and out of the sitemap, a pages sitemap in
+the index, every sitemap `<loc>` a built page with no slash, and no
 trailing slash on any address of this origin in the feed, `llms.txt`,
 `index.json` or a page's links. `tools/films.mjs --check`,
 the build's first step, holds `src/lib/films.json` to the published editions,
@@ -272,7 +277,13 @@ in display copy; the dove once per *sequence* (the sweep can count doves per
 page, "sequence" is editorial); no building pun; no tagline; no call to
 action; every source of a ported edition opened before `draft` is
 flipped; after `npm run og`, every card whose content did not change
-restored to its committed bytes (see Discoverability); and a linked film
+restored to its committed bytes (see Discoverability); the home's
+description (`src/pages/index.astro`) read again when an edition on a
+subject it does not name is published, because its subjects are typed and
+only its length is checked; an edition's dek, seoTitle and description
+changed only with the same check against the page that wrote them
+(Decisions log, 30 Oct 2026), because `tools/check-contents.cjs` holds their
+lengths and not their truth; and a linked film
 kept public and current: the day a film the site links is withdrawn, held,
 retired or replaced, `node tools/films.mjs --drop <slug>` (or the
 replacement's id, once it is public) and a commit. Only the channel can say
@@ -319,9 +330,18 @@ for a shortlist for bios and cards, which is a separate deliverable.
   "builds this repo's main, proved 2026-09-15 05:33" was true only because
   the fork had just been synced. The domain is pointed (Vercel anycast
   `216.198.79.1`, `64.29.17.1`); the apex is primary and `www` redirects
-  to it (Open 1, resolved). `src/config.mjs` is the only place the origin
-  is written;
-  `SITE_ORIGIN` overrides it for previews.
+  to it (Open 1, resolved; reopened 28 Oct). In code the origin is written
+  once, `PRODUCTION_ORIGIN` in `src/config.mjs`; `SITE.origin` is it unless
+  `SITE_ORIGIN` overrides it for previews, and `tools/indexnow.mjs`,
+  `tools/check-contents.cjs`, `tools/check-discovery.cjs` and the two
+  workflows that name production (`indexnow.yml`, `verify-live.yml`) read
+  `PRODUCTION_ORIGIN`. It is also typed where nothing can import it, each
+  held or named: `vercel.json`'s PDF canonicals (held to it by
+  `tools/check-contents.cjs`), and, unchecked, `verify-live.yml`'s default
+  `url` input, the static `public/humans.txt`, `public/ai.txt` and
+  `public/privacy.txt`, and the readme text in
+  `tools/generate-design-system.mjs`; a move of domain changes those by
+  hand.
 - Dependencies: `astro`, `@astrojs/sitemap`, `@astrojs/rss`; dev: `axe-core`.
   **Playwright is deliberately NOT in `package.json`**: Vercel installs
   devDependencies to build, and a browser-automation library has no place in
@@ -335,9 +355,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   question before any service is "is it free, and does it stay free at
   scale."
 - **Client JS budget: 5 kB gzipped for the whole site**, enforced by
-  `tools/check-budget.cjs` in the build. **Measured: 2,896 B** (the client
-  script `src/scripts/aed.js`, inlined on every page, 1,780 B, plus Astro's
-  prefetch module `page.*.js`, 1,116 B; 2,660 until the film's player on the
+  `tools/check-budget.cjs` in the build. **Measured: 2,942 B** (the client
+  script `src/scripts/aed.js`, inlined on every page, 1,828 B, plus Astro's
+  prefetch module `page.*.js`, 1,114 B; 2,896 until the cursor flex, 30 Oct
+  2026, measured the display title without the dek now inside its h1, 46 B;
+  2,660 until the film's player on the
   reader's press, 26 Oct 2026, whose 236 B are the whole of it, and before
   that the two parts were misnamed here as a bundled script and a hydration
   shim; 2,672 until vite 8.3.4's newer rolldown, 21
@@ -373,10 +395,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - `src/lib/schema.mjs`: `articleGraph()`, each edition page's one JSON-LD
   `@graph` (NewsArticle, Organization, Person, BreadcrumbList), and the
   reading of a page's own sources list into `citation` (Discoverability).
-- `src/components/SameThread.astro`: "Same thread", the other published
-  editions in an edition's `series`, above its sources, as block links in
-  the mono and lede styles; a `nav`, so the film script and the facts
-  reading leave it out.
+- `src/components/SameThread.astro`: "Same thread · <series>", the other
+  published editions in an edition's `series`, above its sources, as block
+  links in the mono and lede styles, on Bottle; a `nav`, so the film script
+  and the facts reading leave it out.
 - `src/lib/editions.mjs`: **the editions, once.** Home, feed, llms.txt,
   robots, sitemap filter, OG cards and each edition's own page read it, so a
   title or date cannot disagree with itself. The code, the seed, the k and
@@ -479,8 +501,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   to 200 characters, or the build fails; since 30 Oct 2026 also the
   packaging's lengths and the PDF canonical headers), `check-discovery.cjs`
   (the discovery gate over `dist/`, the build's last step; "Enforced by
-  machine" above), `indexnow.mjs` (the changed published URLs of a push,
-  and the POST, for `.github/workflows/indexnow.yml`), `films.mjs` (the films the site
+  machine" above), `indexnow.mjs` (the changed published URLs between two
+  commits, whether the key answers on the origin with no redirect, and the
+  POST, for `.github/workflows/indexnow.yml`), `films.mjs` (the films the site
   links, 21 Oct 2026: given the ids that are public, which nothing here can
   read without the channel's secrets, it matches each to the release whose
   `youtube.json` files it as the edition's film, so an earlier cut or a
@@ -1551,13 +1574,23 @@ for a shortlist for bios and cards, which is a separate deliverable.
   and a draft is matched in the sitemap without a trailing slash (the old
   match looked for one, and would have passed vacuously once none was left).
 - `.github/workflows/indexnow.yml`: on every push to `main`, waits (up to
-  twenty minutes, green with a warning if it never comes) until the live
-  `<meta name="build">` is the push's commit, then sends the published
-  pages the push changed (a page's own file, or its entry in
-  `src/lib/editions.mjs`; the home when its page or the published list
-  changed) to IndexNow through `tools/indexnow.mjs`. A 400, 403 or 422 is
-  red, because the key or the request is ours to fix; a 429 or a 5xx is a
-  warning, and the next push sends again.
+  twenty minutes by the clock, green with a warning if it never comes)
+  until the live `<meta name="build">` is the push's commit or a later
+  one, checks that the key file and the home answer 200 on the production
+  origin with no redirect, and sends the published pages changed between
+  the last commit whose pages were sent (recorded in the Actions cache as
+  `indexnow-sent-*`) and the live one: a page's own file, its entry in
+  `src/lib/editions.mjs` or its film in `src/lib/films.json`, and the home
+  when its page, any published entry or film, or the published list
+  changed. A run cancelled while pending, a deploy superseded before its
+  run saw it, and a 429, a 5xx or no connection leave the record where it
+  was, so the next run sends those pages too; with no record it sends
+  every published page. Only a 400, 403 or 422 is red, because the key or
+  the request is ours to fix. **It sends nothing while Open 1 stands**:
+  IndexNow reads the key on the host it is given, and while the apex 308s
+  to `www` every run ends green with a warning naming Open 1, the record
+  unmoved, so the first run after the owner's fix sends every page changed
+  since.
 
 ## Design decisions, with the reasoning
 
@@ -2479,8 +2512,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   alternate links to the feed, llms.txt and llms-full.txt, `humans.txt`.
   JSON-LD: WebSite on every page, and on every edition the graph below.
 - **One URL per page** (30 Oct 2026). The origin is the apex, written once
-  in `src/config.mjs` (the `www` redirect is the owner's Vercel setting,
-  Open 1). No path carries a trailing slash: `astro.config.mjs` sets
+  in code as `PRODUCTION_ORIGIN` in `src/config.mjs` and typed only where
+  nothing can import it (Stack, which names each place and what holds it;
+  the `www` redirect is the owner's Vercel setting, Open 1). No path carries a trailing slash: `astro.config.mjs` sets
   `trailingSlash: 'never'` and keeps `build.format: 'directory'`, because
   every tool here reads `dist/<slug>/index.html` and Vercel serves that file
   at `/<slug>`; `vercel.json` sets `trailingSlash: false`, so `/the-floor/`
@@ -2493,7 +2527,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   beside the licence, so a search engine credits the page and not the file;
   `vercel.json` is static, so the map is typed there, the catch-all licence
   header skips `/pdf/` so the two cannot collide, and
-  `tools/check-contents.cjs` holds the map to the editions list.
+  `tools/check-contents.cjs` holds the map to the editions list. A draft's
+  print (The Grade's) carries the licence and no canonical: its page is
+  noindex and out of the sitemap, and a canonical naming it would tell
+  crawlers about it; the canonical goes in with the flip of `draft`, and the
+  check fails until it does.
 - **The packaging** (30 Oct 2026). A published edition carries a `dek`, a
   `seoTitle` and a `description` in `src/lib/editions.mjs`, each written
   for search and checked against its page (Decisions log, 30 Oct 2026). The
@@ -2503,7 +2541,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   visually hidden colon before it so the heading reads "Title: dek", which
   is the NewsArticle headline exactly; the lede paragraph stays where it
   was. `tools/generate-film.mjs` leaves the dek out of the title a film
-  reads. The `<title>` is the seoTitle and " · Aedificare"; `og:title` and
+  reads, and `/llms-full.txt` sets it on the title's next line. The `<title>` is the seoTitle and " · Aedificare"; `og:title` and
   `twitter:title` the seoTitle; the meta, OG and Twitter descriptions, the
   feed's and the JSON-LD's are the description. The home's `<title>` is
   "Aedificare · Dated editions on technology, by Jesse James" and its
@@ -2519,7 +2557,20 @@ for a shortlist for bios and cards, which is a separate deliverable.
   Organization (logo `public/icon-512.png`, sameAs the channel), the Person
   (sameAs the channel and LinkedIn) and a BreadcrumbList. A page passes
   only its alternativeHeadline and its sources list. Every property
-  describes something on the page: no rating, no FAQ. `dateModified` is
+  describes something on the page, no rating and no FAQ, with one
+  exception kept on purpose: alternativeHeadline is the print's name
+  ("Printed as Edition 03"), which "The code is the date" keeps off every
+  surface and in the JSON-LD so a reader holding the print finds the page.
+  The brief for the graph asked for the lede there; keeping the print's
+  name over a visible value on the nine pages whose print was issued is the
+  owner's call, not settled (The Subtraction, whose print was never issued,
+  and The Middleman, which has none, carry the lede). A citation is a
+  source that prints its own document's address: a bare host names the
+  publisher, not the document, and an address inside the clauses after a
+  source's colon is one the document quotes ("manuscript at
+  alpo.ge/s6.pdf" in an entry for posts on X), so neither is cited, and a
+  source naming several documents is named by the one whose publisher the
+  address is on (`pick` and `nameOf` in `src/lib/schema.mjs`). `dateModified` is
   `modified`, the day the page was last corrected after issue (Findings),
   else the date, and it is also the sitemap's `<lastmod>`, never the build
   time.
@@ -2530,13 +2581,22 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `robots.txt` keeps its one Sitemap line. On every push to `main`,
   `.github/workflows/indexnow.yml` waits for the push to be live and sends
   the published pages it changed to IndexNow, which Bing and the others
-  read; the key is the public file named in the routes table.
+  read; the key is the public file named in the routes table. It needs the
+  apex to serve, not redirect (Open 1), and sends nothing until it does.
 - **Same thread.** An edition in a `series` (Navier-Stokes: The Hand in the
   Water and The Closest Humans; Haven: The Markup and The Floor; Agents:
   The Snapshot Problem and The Supply Cabinet) lists the series' other
   published editions above its sources (`src/components/SameThread.astro`),
   and its NewsArticle says it isPartOf the series. The series' names are
-  `SERIES` in `src/lib/editions.mjs` and appear only in the JSON-LD.
+  `SERIES` in `src/lib/editions.mjs`; the block's label shows the one it
+  is in ("Same thread · Haven"), so isPartOf names what the page shows, and
+  the names are the owner's to change. The block is Bottle: it sits on the
+  Void sources list, which cannot be Bottle (its small Malachite numbers),
+  so on Void the two ran together. Where the section above is Void the
+  grounds alternate; on The Markup, The Hand in the Water and The Snapshot
+  Problem the section above is Bottle and two Bottle surfaces meet, which
+  no order of two grounds avoids between a Bottle section and Void sources;
+  the owner's to judge by eye.
 - **Meta descriptions are generated, never typed** (2026-09-15; for a
   published edition and the home superseded on 30 Oct 2026 by the checked
   packaging above, which drafts without it still fall back to). LinkedIn's
@@ -3099,7 +3159,16 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   overstatements, and two had repeated errors the editions' own checks had
   already corrected. The lines are typed once, in `src/lib/editions.mjs`,
   and `tools/check-contents.cjs` holds their lengths; their wording is the
-  checked wording and is not to be sharpened without the same check. The
+  checked wording and is not to be sharpened without the same check (a
+  human duty, listed). One changed on review the same day: The Closest
+  Humans' dek had read "Corrections to our Navier-Stokes coverage: whose
+  method it was, and two calls on a Sunday", a "we" the page never speaks
+  in, an unnamed companion where Findings 0h names it, and a second colon
+  in the headline; it reads "Amends The Hand in the Water on whose method it
+  was, and on two calls on a Sunday", the same two claims, and its seoTitle
+  took title case like the rest. The cursor flex now measures only the
+  display title, not the dek under it in the h1; the title itself still sits
+  higher on every cover by the dek's height, the owner's to see by eye. The
   same day the site went to one URL per page with no trailing slash, the
   JSON-LD became one graph per edition, the sitemap took real lastmod dates
   and a news sitemap, IndexNow was wired to every push, and the editions

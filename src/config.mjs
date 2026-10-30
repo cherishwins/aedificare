@@ -1,8 +1,12 @@
-// The one place the public origin is written down. Canonicals, OG, sitemap,
-// feed, robots and llms.txt all read it, so moving domains is a one-line
-// change. SITE_ORIGIN overrides it for previews.
+// The one place the public origin is written down in code. Canonicals, OG,
+// sitemap, feed, robots and llms.txt read SITE.origin; tools that must name
+// production even under a preview (tools/indexnow.mjs, tools/check-contents.cjs,
+// tools/check-discovery.cjs) read PRODUCTION_ORIGIN. SITE_ORIGIN overrides
+// SITE.origin for previews. vercel.json cannot import it, so its PDF
+// canonicals are typed and tools/check-contents.cjs holds them to this.
+export const PRODUCTION_ORIGIN = 'https://aedificare.art';
 export const SITE = {
-  origin: process.env.SITE_ORIGIN || 'https://aedificare.art',
+  origin: process.env.SITE_ORIGIN || PRODUCTION_ORIGIN,
   name: 'Aedificare',
   author: 'Jesse James',
   locale: 'en',

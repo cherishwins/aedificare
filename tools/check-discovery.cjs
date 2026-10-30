@@ -4,8 +4,10 @@
  * pages, checked on dist/ after every other checker, so a page that ships
  * says one thing about itself everywhere.
  *
- * For every page in the sitemap, and every draft (which must carry noindex
- * and be absent from the sitemap):
+ * For the home, every published edition and every draft, read from the
+ * editions list and never from the sitemap (so a page the sitemap drops is
+ * still checked, and its absence fails), where every published page must be
+ * in the sitemap and every draft must carry noindex and be absent from it:
  *   - canonical, og:url and every JSON-LD url naming the page are the
  *     origin plus its path, with no trailing slash (the root is the origin
  *     and "/");
@@ -43,7 +45,7 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
 
 (async () => {
   const { EDITIONS, PUBLISHED, pageTitle, headline } = await import('../src/lib/editions.mjs');
-  const { SITE } = await import('../src/config.mjs');
+  const { SITE, PRODUCTION_ORIGIN } = await import('../src/config.mjs');
   const O = SITE.origin;
   const problems = [];
   const fail = (where, what) => problems.push(`${where}: ${what}`);
@@ -58,6 +60,8 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
   const index = fs.readFileSync(path.join(DIST, 'sitemap-index.xml'), 'utf8');
   const maps = [...index.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   if (!maps.includes(`${O}/sitemap-news.xml`)) fail('sitemap-index.xml', 'does not list /sitemap-news.xml');
+  const pagesMap = maps.filter((m) => /\/sitemap-\d+\.xml$/.test(m));
+  if (!pagesMap.length) fail('sitemap-index.xml', 'lists no pages sitemap (sitemap-0.xml)');
   const locs = [];
   for (const m of maps) {
     const p = pathOfUrl(m);
@@ -87,10 +91,12 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
     if (t !== pageTitle(e)) fail('sitemap-news.xml', `${loc} title "${t}" is not its seoTitle`);
   }
 
-  // ---- pages: the sitemap's, and the drafts
+  // ---- pages: the home, the published editions and the drafts, from the list, never from the sitemap
   const drafts = EDITIONS.filter((e) => e.draft);
+  const published = ['/', ...PUBLISHED.map((e) => e.path)];
   for (const d of drafts) if (sitemapPaths.has(d.path)) fail(d.path, 'is a draft and is in the sitemap');
-  const pages = [...new Set([...sitemapPaths, ...drafts.map((d) => d.path)])];
+  for (const p of published) if (!sitemapPaths.has(p)) fail(p, 'is published and is not in the sitemap');
+  const pages = [...new Set([...published, ...drafts.map((d) => d.path)])];
   let n = 0;
   for (const p of pages) {
     const f = fileOf(p);
@@ -105,7 +111,7 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
     if (ogUrl !== want) fail(p, `og:url is ${ogUrl}, not ${want}`);
     const robots = meta(html, 'name', 'robots') || '';
     if (e?.draft && !/noindex/.test(robots)) fail(p, 'is a draft without noindex');
-    if (!e?.draft && /noindex/.test(robots)) fail(p, 'is in the sitemap and carries noindex');
+    if (!e?.draft && /noindex/.test(robots)) fail(p, 'is published and carries noindex');
 
     const h1s = [...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/g)];
     if (h1s.length !== 1) fail(p, `${h1s.length} <h1> elements, not one`);
@@ -177,13 +183,13 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
       if (m[1] !== '/' && m[1].endsWith('/')) fail(f, `prints ${O}${m[1]}, which ends in a slash`);
     }
   }
-  if (!/^Sitemap: https:\/\/aedificare\.art\/sitemap-index\.xml$/m.test(fs.readFileSync(path.join(DIST, 'robots.txt'), 'utf8')) && O === 'https://aedificare.art')
-    fail('robots.txt', 'has no Sitemap line for the apex');
+  if (O === PRODUCTION_ORIGIN && !fs.readFileSync(path.join(DIST, 'robots.txt'), 'utf8').split('\n').includes(`Sitemap: ${O}/sitemap-index.xml`))
+    fail('robots.txt', `has no Sitemap line for ${O}/sitemap-index.xml`);
 
   if (problems.length) {
     console.error(`check-discovery: ${problems.length} problem(s)`);
     for (const x of problems) console.error('  ' + x);
     process.exit(1);
   }
-  console.log(`check-discovery: ${n} pages (${sitemapPaths.size} in the sitemap, ${drafts.length} drafts out of it) carry one URL, one h1 and a whole graph; the sitemaps and the files machines read print no trailing slash`);
+  console.log(`check-discovery: ${n} pages (the home and ${PUBLISHED.length} published editions, all in the sitemap; ${drafts.length} drafts out of it) carry one URL, one h1 and a whole graph; the sitemaps and the files machines read print no trailing slash`);
 })();
