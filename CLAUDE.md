@@ -2950,6 +2950,41 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   owner's: FERC's webcast and the White House roundtable (both on
   YouTube) and a control room.
 
+- **2026-10-30 · Two reversals for search, and the copy that explains
+  the method.** The owner brought a discovery audit and two prompt packs
+  from a claude.ai chat (kept out of the repo; the copy they carry is in
+  `source/about-standards-amendments.md`). Two of its asks reverse
+  decisions above, and the owner made both calls in chat:
+  **The watch pages load the player as the page opens.** Each film gets
+  `/<slug>/film`, a page whose main content is the film, with a real
+  YouTube iframe in the server's HTML, its transcript and chapters, and
+  `VideoObject` markup. The reason: Google gives video results only to a
+  page whose main content is the video and does not run a player that
+  waits for a click (its video SEO guidance and its December 2023 note),
+  so a click-to-play poster can never rank there. This reverses, for those
+  pages alone, the rule of 21 and 26 Oct that no page asks another host
+  for anything before the reader's press: **edition pages keep
+  click-to-play**, the sweep keeps proving it on them, and a watch page
+  says what it loads, as `/standards` does.
+  **Each edition gets a lead image that is a figure, not a card.** A
+  16:9 render of one of the edition's own figures goes FIRST in the
+  article's structured-data `image`, so Google has a picture that is not
+  text for Discover, which asks for large images and not text-heavy ones.
+  `og:image` stays the type card with the mark (override 2, 15 Sep): the
+  cards are right for LinkedIn and X and are not replaced.
+  **Settled the same day**: The Night Pin (Edition 11) is held, built
+  and live at its URL as a draft (noindex, disallowed, out of every
+  index), as The Grade is, and its View section, which goes out under the
+  owner's name, is shown to the owner as it renders and waits for their
+  yes; `/standards` states the practice the record shows, pages corrected
+  in place with a dated note under their sources and the print left as
+  issued, an amending edition where the correction is the story (owner,
+  choosing it over "never edited"), and names the AI tools' whole role
+  (owner: research, source checking, drafting, the films and the site);
+  the contact email stays a placeholder until the owner sends it; and the
+  old cuts the corrected films replace go unlisted, not private, so links
+  already shared keep working (The Countersign's `6j4BfaF8ZvM`, 30 Oct).
+
 ## Open
 
 1. **Reopened 28 Oct 2026: the new project redirects the apex to `www`.**
