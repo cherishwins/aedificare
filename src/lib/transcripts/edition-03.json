@@ -1,0 +1,112 @@
+{
+  "slug": "edition-03",
+  "id": "VRtpMEPMw9c",
+  "uploaded": "2026-10-26T22:10:05.664Z",
+  "source": {
+    "release": "film-edition-03",
+    "asset": "narration.json",
+    "sha256": "438ca7ef189ddf256744b130f0487a5eb8610de3acc5eaf7ab5ae1d4dc5fb388",
+    "updated": "2026-10-26T21:44:29Z",
+    "voice": "sacfsNbCahgH0qw7PIO8",
+    "model": "eleven_v4_turbo"
+  },
+  "chapters": [
+    {
+      "t": 0,
+      "title": "The Markup",
+      "paragraphs": [
+        "The Markup",
+        "A mesh radio the state pays eighteen thousand dollars for. A mesh radio a Canadian builds for four hundred. The same physics in both. This is about the difference."
+      ]
+    },
+    {
+      "t": 17,
+      "title": "The number",
+      "paragraphs": [
+        "The number",
+        "Two public awards fix the price of a military mesh radio. In 2017 Persistent Systems won an $8.9 million contract for more than 950 MPU5 radios for the Army National Guard's WMD Civil Support Teams. That is under $9,400 each. In January 2024 Persistent Systems announced a $5.1 million Air Force award for more than 280 MPU5 radios and ten integrated sector antennas. That is at most $18,214 each, and the antennas are inside the number.",
+        "The vendor of the Haven build guide says the class of capability costs twenty thousand a unit. The public record does not say twenty. It says between nine and eighteen, and the newer award is the higher one.",
+        "The newer Haven node, Haven 2, which the vendor still calls experimental, is a Raspberry Pi 5, a Morse Micro MM8108 HaLow radio on USB, a USB Wi-Fi adapter, an antenna, a battery hat and a printed enclosure; the recommended build is a Pi 4 on the older Morse chip. The guide prices a node at $208 to $450. A network needs two. The guide itself is $97, and the core parts, the firmware and the configuration are on GitHub without it.",
+        "Two nodes, four hundred and sixteen dollars at the floor. One government radio, eighteen thousand two hundred at the ceiling. The ratio is forty-four to one, one government radio against a two-node network, and the comparison is not fair. What follows is where the unfairness lives."
+      ]
+    },
+    {
+      "t": 139,
+      "title": "Five millimetres.",
+      "paragraphs": [
+        "Five millimetres.",
+        "The radio inside the newer four-hundred-dollar node is a Morse Micro MM8108. Sydney company. Second-generation Wi-Fi HaLow, the IEEE 802.11ah standard, launched at CES in January 2025. Five by five millimetres in a BGA package, down from six by six for the first generation.",
+        "It moves 43.3 megabits per second at the physical layer on an 8 MHz channel using 256-QAM, the first sub-gigahertz chip to do so. Its predecessor did 32.5. The power amplifier is on the die: 26 dBm, four hundred milliwatts, at 45 percent efficiency. It supports WPA3, with AES and SHA-2 in on-chip hardware. In June 2026 the company announced it as a module, sampling to its module partners: 18.5 by 14 millimetres, an external amplifier to 28.5 dBm and a filter tuned for 902 to 928 MHz.",
+        "The reason a sub-gigahertz radio reaches further is not the chip. It is the wave. Free-space path loss rises with the square of frequency. Move from 2,437 MHz down to 915 MHz and the loss falls 8.5 decibels. Move from 5,800 MHz and it falls 16. Every six decibels doubles range in open air. The arithmetic gives 915 MHz roughly 2.7 times the reach of 2.4 GHz and 6.3 times the reach of 5.8 GHz before a single wall is counted, and the longer wave goes through walls better than the short one.",
+        "Morse Micro claims ten times. The arithmetic says three to six. Either number is the same fact: the range that costs eighteen thousand dollars is mostly a property of the frequency, and the frequency is free."
+      ]
+    },
+    {
+      "t": 281,
+      "title": "The band",
+      "paragraphs": [
+        "The band",
+        "The chip is legal to run in Canada because of a document called RSS-247. Issue 4 was published by Innovation, Science and Economic Development Canada on 24 July 2025 and became mandatory on 24 January 2026. For digital transmission systems in the band 902 to 928 MHz it sets a peak conducted power of one watt, an e.i.r.p. of four watts, a minimum bandwidth of 500 kHz and a spectral density of 8 dBm in any 3 kHz. No licence. No fee. No application. Point-to-point links may run higher e.i.r.p. under the same document.",
+        "Twenty-six megahertz of sub-gigahertz spectrum, open to anyone, shared with the United States under an almost identical rule.",
+        "Europe's equivalent sits at 863 to 868 MHz. Five megahertz wide, a fifth of the North American band, and most of it capped at 25 milliwatts. A HaLow mesh that reaches kilometres in Langford reaches a few hundred metres in Lyon, not because the chip changed but because the law did.",
+        "The band is also the first honest entry in the ledger against the four-hundred-dollar node. A government radio need not live in a public band. It can run in licensed bands, C-band 4,400 to 5,000 MHz among them, at multiple watts, out of the public's way. One watt in a band full of baby monitors and LoRa is the price of admission to the public. The contractor's customer need not pay it.",
+        "The expensive part is free."
+      ]
+    },
+    {
+      "t": 399,
+      "title": "The stack",
+      "paragraphs": [
+        "The stack",
+        "Above the chip there is no hardware, and above the chip is where the money is.",
+        "The mesh is 802.11s, the mesh mode written into the Wi-Fi standard itself, carried by BATMAN-adv, a Layer 2 routing protocol that lives inside the Linux kernel and reroutes around a dead node without being told to. The operating system is OpenWrt. The remote management is WireGuard. Every one of these is free software with a decade or more of hostile use behind it.",
+        "On top of that, if you add it, sits Reticulum. Written by Mark Qvist, release 1.5.3 in September 2026. It is not an application. It is a second network stack that does not need IP. Every node is a 512-bit elliptic-curve identity. X25519 encryption and Ed25519 signatures are the basis of all its traffic, with AES-256 in CBC mode and HMAC-SHA256: a packet to a single destination gets a fresh ephemeral key, and links get forward secrecy from ephemeral Curve25519 keys. Packets carry no source address. It runs over anything faster than five bits per second with a 500-byte MTU: LoRa, packet radio, a serial line, HaLow. Bridge a LoRa board to the Pi and the same identity is reachable over both radios.",
+        "Here is the thing the $18,214 pays for, stated by the vendor. Up to two layers of FIPS-compliant, NIAP-approved, CSfC-approved encryption. Read the adjectives. Compliant. Approved. Approved. None of them is a cipher. AES-256 on a certified module is the same mathematics as AES-256 in OpenSSL. What FIPS 140 buys is a validated implementation and a document that says so, and the document is what a procurement officer is allowed to sign.",
+        "The waveform is different. Persistent's Wave Relay, on a 3-by-3 radio, and Silvus's MN-MIMO, on 2-by-2 and 4-by-4 radios, are proprietary MIMO schemes with low probability of intercept and detection and anti-jam features; Persistent adds RF signature management and a Department of Defense assessed library of electronic-attack fingerprints and countermeasures. That is real engineering and Haven has none of it. Against a peer adversary running a jammer, the Pi loses. Against everyone else on the planet, the jammer never arrives."
+      ]
+    },
+    {
+      "t": 582,
+      "title": "The ledger",
+      "paragraphs": [
+        "The ledger",
+        "Two rows are capability. Spectrum and waveform. Those are the reasons the expensive radio survives a battlefield and the cheap one does not, and no four-hundred-dollar build closes them. A third, throughput, is a gap of roughly two to one, and it narrowed by a quarter between the first Morse chip and the second.",
+        "The other six are paperwork, a box, a battery and a phone number. Each is worth something. None is worth seventeen thousand dollars, and together they are what the price is actually protecting."
+      ]
+    },
+    {
+      "t": 623,
+      "title": "The test",
+      "paragraphs": [
+        "The test",
+        "Is the price protecting a capability, or a customer?",
+        "The Subtraction asks of a graphics card whether the silicon underneath still works. The test for a radio is different because the silicon was never withheld. Morse Micro will sell the chip to anyone. The test is what the buyer is paying to be.",
+        "A capability price pays for something the cheaper product cannot do at any cost. The licensed band is one. The anti-jam waveform is another. If your adversary has an electronic-warfare unit, the eighteen thousand is not a markup. It is the product.",
+        "A customer price pays for the buyer's own constraints. FIPS validation exists because federal purchasers may not buy unvalidated cryptography, not because AES needs a certificate to work. MIL-STD-810G exists because a program office must prove it tested for salt fog. NDAA compliance exists because Congress said so. The radio did not need any of these to route a packet. The buyer needed them to write the cheque.",
+        "Most of the world is not a federal purchaser and is not being jammed by a state. A rural property in British Columbia. A film crew. A mine. A farm. A municipality that lost its fibre. A protest. A wildfire perimeter after the towers burn. For all of them the capability rows of the ledger read the same and the paperwork rows read zero.",
+        "That is the markup. Not fraud, not even a bad product. Persistent Systems and Silvus build serious radios for a customer who genuinely needs the top two rows. The markup is what everyone else pays if they buy the same product. There was no 256-QAM sub-gigahertz chip on the open market. There was no 43-megabit HaLow module with the filter already on it. Now the chip is on sale, the module is sampling, and the core parts are public.",
+        "The question is no longer whether the radio can be had for four hundred dollars. It can. The question is which customers still need the other seventeen thousand, and the answer is a shorter list every year."
+      ]
+    },
+    {
+      "t": 777,
+      "title": "The direction",
+      "paragraphs": [
+        "The direction",
+        "In 2025 Motorola Solutions paid $4.4 billion, nearly all of it in cash, for Silvus Technologies, with up to $600 million more if the business performs through 2028. Motorola said Silvus had proven itself in Ukraine, where the key factor was jamming and interference, above all for drones. The purchase is a bet that the proprietary waveform stays worth owning: that the top two rows of the ledger remain the only rows that matter, and that nobody else can build them.",
+        "In the same year a Sydney company put 256-QAM sub-gigahertz in a five-millimetre package and started selling it to anybody with a reel. That is a bet in the opposite direction: that for most of the buyers on earth, the bottom seven rows were the product all along, and the bottom seven rows are now a parts list.",
+        "Both bets can win. The defence market and the everyone-else market were never the same market. What changes is that the second one no longer has to shop in the first.",
+        "Haven is not the important object here. It is a $97 guide, a GitHub repository and seventeen five-star reviews. It matters as a specimen, the way a mining card matters in The Subtraction: a thing that exists in public, with a bill of materials, that makes a price visible which used to be hidden inside a contract.",
+        "Eighteen thousand dollars bought a radio, a certificate, a battery and permission. Four hundred and fifty buys the radio. The rest is now a line item, and a line item can be argued with."
+      ]
+    },
+    {
+      "t": 891,
+      "title": "Sources",
+      "paragraphs": [
+        "Sources",
+        "The Markup. 15 September 2026. Eight sections, twelve sources, at aedificare dot art. CC BY 4.0."
+      ]
+    }
+  ]
+}

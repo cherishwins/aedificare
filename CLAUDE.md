@@ -40,7 +40,7 @@ Shipped (2026-09-15):
 | `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01), eleven sections, fifty-four sources | live (2026-10-18, sourced from scratch, every source that could be opened opened; the three lines The Closest Humans answers stay as printed) |
 | `/ns-02` | 13 Sep 2026 · *The Closest Humans* (printed as NS-02), amends The Hand in the Water, eleven sections, forty-four sources | live (2026-10-18, sourced from scratch, each side of the disputed calls given with its own source) |
 | `/edition-02` | 18 Oct 2026 · *The Subtraction* (printed as Edition 02), nine sections, thirty-six sources | live (2026-10-18, sourced from scratch; no PDF, none was issued) |
-| `/<slug>/film` | each linked film's watch page (eight: `/the-floor/film`, `/the-countersign/film`, `/the-supply-cabinet/film`, `/the-fourth-axis/film`, `/the-tilt-gap/film`, `/ns-02/film`, `/ns-01/film`, `/edition-01/film`): the player as a real iframe in the server's HTML, length, upload day, the description, chapters as `?t=` links, the full transcript, `VideoObject` with a Clip per chapter (Decisions log, 30 Oct 2026) | generated |
+| `/<slug>/film` | each linked film's watch page (nine: `/the-floor/film`, `/the-countersign/film`, `/the-supply-cabinet/film`, `/the-fourth-axis/film`, `/the-tilt-gap/film`, `/ns-02/film`, `/ns-01/film`, `/edition-01/film`, `/edition-03/film`): the player as a real iframe in the server's HTML, length, upload day, the description, chapters as `?t=` links, the full transcript, `VideoObject` with a Clip per chapter (Decisions log, 30 Oct 2026) | generated |
 | `/about` `/standards` `/amendments` | the person, the method, and every amendment generated from the editions list; the owner's copy (`source/about-standards-amendments.md`) with the changes the Decisions log of 30 Oct 2026 records; linked from every page's footer | live |
 | `/404` | | live |
 | `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/sitemap-news.xml` `/sitemap-video.xml` `/ai.txt` `/humans.txt` | discoverability (`/sitemap.xml` 308s to the index; Discoverability) | generated or static |
@@ -387,7 +387,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `tools/check-budget.cjs` in the build. **Measured: 3,106 B** (the client
   script `src/scripts/aed.js`, inlined on every page, 1,828 B, plus Astro's
   prefetch module `page.*.js`, 1,114 B, plus the watch pages' one inline
-  script, 164 B, the same on all eight and counted once; 2,942 until the
+  script, 164 B, the same on all nine and counted once; 2,942 until the
   watch pages, 30 Oct 2026; 2,896 until the cursor flex, 30 Oct
   2026, measured the display title without the dek now inside its h1, 46 B;
   2,660 until the film's player on the
