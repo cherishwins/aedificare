@@ -162,8 +162,10 @@ const RAW = [
     series: 'haven', seriesOrder: 2,
     amends: 'edition-03', pdf: null,
     // What /amendments says this amendment changed: the checker's wording of 30 Oct 2026, which names both lines The
-    // Floor answers (the throughput row and the Canada line) and which chip each number belongs to.
-    amendSummary: "The Markup filled its throughput row from a datasheet: 43.3 Mbps, the physical-layer peak of the chip it priced. A year earlier the builder of the radio had measured the first version, on the chip before it, at 15 Mbps each way on an 8 MHz channel, and the chipmaker's own bench put the newer chip at up to 30. The Markup also said point-to-point links in Canada may run a higher e.i.r.p.; RSS-247 allows that at 2.4 and 5.8 GHz, not at 902 to 928 MHz. The price stands. The throughput row and the Canada line do not.",
+    // Floor answers (the throughput row and the Canada line) and which chip each number belongs to, each number with
+    // the scope the page gives it. It replaces the owner's shorter copy and waits for the owner's yes (CLAUDE.md,
+    // Decisions log, 30 Oct 2026).
+    amendSummary: "The Markup filled its throughput row from a datasheet: 43.3 Mbps, the physical-layer peak of the chip it priced. A year earlier the builder of the radio had measured the first version, on the chip before it, at 15 Mbps each way on an 8 MHz channel, and the chipmaker's own bench put the newer chip at up to 30 down, over UDP. The Markup also said point-to-point links in Canada may run a higher e.i.r.p.; RSS-247 allows that at 2.4 and 5.8 GHz, not at 902 to 928 MHz. The price stands. The throughput row and the Canada line do not.",
     contents: [
       { n: '00', t: 'The number', id: 'number' },
       { n: '01', t: 'What The Markup did not have', id: 'missing' },
@@ -352,8 +354,10 @@ const RAW = [
     seed: '0902', k: [6, 11], pdf: '/pdf/ns-02.pdf',
     amends: 'ns-01',
     // What /amendments says this amendment changed: the checker's wording of 30 Oct 2026, which names all three lines
-    // The Closest Humans answers (whose method, the second author, OpenAI's later denial).
-    amendSummary: "The Hand in the Water read as though the forcing method belonged to Buckmaster and Alpöge. It belongs to Diego Córdoba and Luis Martínez-Zoroa in Madrid, and Buckmaster and Alpöge built on it. It also named one man where there were two: Alpöge is a co-equal author. And it quoted OpenAI's first word, that it could not rule out de-identified usage data helping its models. On 10 September OpenAI said its own investigation showed Buckmaster's Codex prompts could not have influenced the system.",
+    // The Closest Humans answers (whose method, the second author, OpenAI's later denial), the denial held to the two
+    // months OpenAI's own update names. It replaces the owner's shorter copy and waits for the owner's yes (CLAUDE.md,
+    // Decisions log, 30 Oct 2026).
+    amendSummary: "The Hand in the Water read as though the forcing method belonged to Buckmaster and Alpöge. It belongs to Diego Córdoba and Luis Martínez-Zoroa in Madrid, and Buckmaster and Alpöge built on it. It also named one man where there were two: Alpöge is a co-equal author. And it quoted OpenAI's first word, that it could not rule out de-identified usage data helping its models. On 10 September OpenAI said its own investigation showed Buckmaster's Codex prompts from the two months before the announcement could not have influenced the system; the earlier months are unaddressed.",
     // The contents, as printed on the home. tools/check-contents.cjs fails
     // the build if any id or title here is missing from the built page.
     contents: [

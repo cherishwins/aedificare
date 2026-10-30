@@ -6,7 +6,7 @@
  * This module checks, with no network, that what the tool wrote still holds, and the build stops if it does not
  * (tools/transcripts.mjs --check, a step of npm run build, and on first use here): every linked film in
  * src/lib/films.json has a transcript, the transcript is for that film's video id and release, its chapters start at
- * 0:00, rise, and fall inside the film, every chapter carries words, and no transcript is left for a film the site
+ * 0:00, rise, and fall inside the film, every chapter carries words and no citation or register mark, and no transcript is left for a film the site
  * no longer links or for an id it no longer links. A film relinked to a corrected render (node tools/films.mjs
  * <new id>) fails the build until node tools/transcripts.mjs writes the new one.
  */
@@ -43,6 +43,7 @@ export function problems() {
       if (!c.title || !String(c.title).trim()) out.push(`${f.slug}: chapter ${i + 1} has no title`);
       if (!Array.isArray(c.paragraphs) || !c.paragraphs.length || c.paragraphs.some((p) => typeof p !== 'string' || !p.trim())) out.push(`${f.slug}: chapter ${i + 1}, "${c.title}", has no words`);
       if (c.paragraphs?.some((p) => /\[\d+\]/.test(p))) out.push(`${f.slug}: chapter ${i + 1} prints a citation mark, which the film does not say`);
+      if (c.paragraphs?.some((p) => /(?:^|[.?!:"\u201d\u2019)] )[FIQ](?= [A-Z0-9"\u201c]|$)/.test(p))) out.push(`${f.slug}: chapter ${i + 1} prints a register mark (F, I or Q after a sentence), a label and not a word; node tools/transcripts.mjs leaves them out`);
     });
   }
   if (fs.existsSync(TRANSCRIPTS_DIR)) for (const f of fs.readdirSync(TRANSCRIPTS_DIR)) if (!want.has(f)) out.push(`${path.join(TRANSCRIPTS_DIR, f)} is the transcript of no linked film; node tools/transcripts.mjs removes it`);

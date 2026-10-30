@@ -5,9 +5,10 @@
  * the type card; og:image stays the card (override 2).
  *
  * Renders depend on the machine, so the build never makes them; this checks, with no network and on first use (the
- * article graph reads it, so a build stops), that the manifest holds: an entry for every published edition and none
- * for anything else, each frame at its size, the file on disk, a PNG of that size, named for its edition and frame
- * and the bytes its hash says, alt text, and no file under public/lead that nothing names.
+ * article graph reads it, so a build stops), that the manifest holds: an entry for every published edition but those
+ * NO_FIGURE names and none for anything else, each frame at its size, the file on disk, a PNG of that size, named for its edition and frame
+ * and the bytes its hash says, alt text that names the edition and the figure, no entry for an edition NO_FIGURE
+ * excuses, and no file under public/lead that nothing names.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,18 +20,40 @@ export const LEAD_DIR = 'public/lead';
 /** The three frames Google's article image guidance names, largest first: 16:9, 4:3 and 1:1, each at least 1,200 px wide. */
 export const FRAMES = { '16x9': { width: 1920, height: 1080 }, '4x3': { width: 1600, height: 1200 }, '1x1': { width: 1200, height: 1200 } };
 
+/**
+ * The published editions with no lead image, and why: a lead image is a figure that is not text (Discover asks for
+ * pictures, not type), and these pages carry none. The first cut rendered a table, a timeline and a field of lettered
+ * doors for them, each a block of type (review of 30 Oct 2026). Their articles list the card alone until the page
+ * has a chart; then the edition leaves this list and joins the table in tools/generate-lead.mjs.
+ */
+export const NO_FIGURE = {
+  'edition-02': 'its one figure is the specification table, twenty-two rows of text',
+  'ns-02': 'its one figure is the timeline, eight dates each beside lines of prose',
+  'ns-01': 'its one figure is the four doors, set as letters and captions',
+};
+
+/** The alt text, from the figure's own name on the page and the ground it sits on. */
+export const ALT = (title, label, ground) => `A figure from ${title}: ${label}, on ${ground}.`;
+const ALT_RE = /^A figure from (.+?): (.*), on (black|dark green|white)\.$/;
+
 const pngSize = (b) => (b.length >= 24 && b.subarray(0, 8).toString('hex') === '89504e470d0a1a0a' && b.toString('latin1', 12, 16) === 'IHDR' ? { width: b.readUInt32BE(16), height: b.readUInt32BE(20) } : null);
 
 export function problems(raw = fs.existsSync(LEAD_FILE) ? JSON.parse(fs.readFileSync(LEAD_FILE, 'utf8')) : null) {
   const out = [];
   if (!raw || typeof raw !== 'object') return [`${LEAD_FILE} is missing; node tools/generate-lead.mjs writes it`];
   const named = new Set();
-  for (const e of PUBLISHED) if (!raw[e.slug]) out.push(`${e.slug} is published and has no lead image; node tools/generate-lead.mjs ${e.slug}`);
+  for (const e of PUBLISHED) if (!raw[e.slug] && !NO_FIGURE[e.slug]) out.push(`${e.slug} is published and has no lead image; node tools/generate-lead.mjs ${e.slug}`);
+  for (const s of Object.keys(NO_FIGURE)) if (raw[s]) out.push(`${s}: NO_FIGURE says it has no figure that is not text (${NO_FIGURE[s]}), and the manifest gives it a lead image`);
   for (const [slug, x] of Object.entries(raw)) {
     const e = EDITIONS.find((y) => y.slug === slug);
     if (!e) { out.push(`${slug}: no edition has this slug`); continue; }
     if (e.draft) out.push(`${slug}: a draft has no lead image; it is made the day the edition is published`);
-    if (!x.alt || !String(x.alt).trim()) out.push(`${slug}: the lead image has no alt text`);
+    const alt = String(x.alt ?? '').match(ALT_RE);
+    if (!alt) out.push(`${slug}: the lead image's alt text ${JSON.stringify(x.alt)} is not "A figure from <title>: <its name>, on <ground>."`);
+    else {
+      if (alt[1] !== e.title) out.push(`${slug}: the alt text names "${alt[1]}", not the edition's title "${e.title}"`);
+      if (!alt[2].trim()) out.push(`${slug}: the alt text names no figure ("${x.alt}"); the figure needs an aria-label or a figcaption`);
+    }
     if (!x.figure) out.push(`${slug}: the manifest does not say which figure the image is`);
     for (const [key, { width, height }] of Object.entries(FRAMES)) {
       const f = x[key];

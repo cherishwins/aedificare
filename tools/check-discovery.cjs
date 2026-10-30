@@ -27,7 +27,8 @@
  * /standards and /amendments are pages like the rest, in the sitemap. Every
  * edition carries its byline, whose date is its datePublished; a published
  * one's NewsArticle opens its image list with its lead figure's three frames
- * (src/lib/lead.mjs), ends with the type card, and refers to its film's
+ * (src/lib/lead.mjs; none where NO_FIGURE says the page has no figure that is
+ * not text), ends with the type card, and refers to its film's
  * VideoObject by @id alone. A watch page carries one VideoObject with every
  * field Google reads, a Clip per chapter whose url is the page at its second,
  * and exactly one iframe in the server's HTML, the embed URL, no autoplay;
@@ -60,7 +61,7 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
   const { SITE, PRODUCTION_ORIGIN } = await import('../src/config.mjs');
   const { films } = await import('../src/lib/films.mjs');
   const { transcript } = await import('../src/lib/transcripts.mjs');
-  const { lead } = await import('../src/lib/lead.mjs');
+  const { lead, NO_FIGURE } = await import('../src/lib/lead.mjs');
   const { PERSON_ID, watchPath } = await import('../src/lib/schema.mjs');
   const FILMS = films();
   // The watch pages (/<slug>/film) and the three pages about the method, read from the lists, never from the sitemap.
@@ -132,6 +133,13 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
   }
   for (const p of WATCH.keys()) if (!listed.has(p)) fail('sitemap-video.xml', `does not list the watch page ${p}`);
 
+  // ---- /404 is in no sitemap and carries no canonical, but its footer links the method pages as every page's does.
+  {
+    const f = path.join(DIST, '404.html');
+    if (!fs.existsSync(f)) fail('/404', `${f} is missing`);
+    else for (const m of METHOD) if (!fs.readFileSync(f, 'utf8').includes(`href="${m}"`)) fail('/404', `does not link ${m}`);
+  }
+
   // ---- pages: the home, the published editions and the drafts, from the list, never from the sitemap
   const drafts = EDITIONS.filter((e) => e.draft);
   const published = ['/', ...PUBLISHED.map((e) => e.path), ...WATCH.keys(), ...METHOD];
@@ -190,12 +198,15 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
       if (a.url !== want || a.mainEntityOfPage !== want) fail(p, `NewsArticle url ${a.url} or mainEntityOfPage ${a.mainEntityOfPage} is not ${want}`);
       if (a.headline && norm(a.headline) !== h1) fail(p, `NewsArticle headline "${a.headline}" is not the h1's text "${h1}"`);
       if (e && a.headline !== headline(e)) fail(p, `NewsArticle headline is not the edition's title and dek`);
-      // The lead image first (a figure, src/lib/lead.mjs), the type card last; a draft has the card alone.
+      // The lead image first (a figure, src/lib/lead.mjs), the type card last; a draft, and an edition whose page has
+      // no figure that is not text (NO_FIGURE), has the card alone.
       if (e && !e.draft) {
         const l = lead(e.slug);
-        const frames = l.frames.map((x) => O + x.src);
-        if (JSON.stringify((a.image || []).slice(0, 3)) !== JSON.stringify(frames)) fail(p, `NewsArticle image does not open with the lead image's three frames ${frames.join(', ')}`);
-        if (!/\/og\/[^/]+\.[0-9a-f]{8}\.png$/.test(a.image?.[3] ?? '')) fail(p, 'NewsArticle image does not end with the type card');
+        const frames = l ? l.frames.map((x) => O + x.src) : [];
+        if (!l && !NO_FIGURE[e.slug]) fail(p, 'has no lead image and NO_FIGURE gives no reason');
+        if (JSON.stringify((a.image || []).slice(0, frames.length)) !== JSON.stringify(frames)) fail(p, `NewsArticle image does not open with the lead image's three frames ${frames.join(', ')}`);
+        if ((a.image || []).length !== frames.length + 1) fail(p, `NewsArticle image lists ${(a.image || []).length} pictures, not ${frames.length ? 'the lead image\'s three frames and' : ''} the card`);
+        if (!/\/og\/[^/]+\.[0-9a-f]{8}\.png$/.test(a.image?.[frames.length] ?? '')) fail(p, 'NewsArticle image does not end with the type card');
         const f = FILMS.find((x) => x.slug === e.slug);
         const ref = f ? `${O}${watchPath(e)}#video` : undefined;
         if (a.video?.['@id'] !== ref || (a.video && Object.keys(a.video).length !== 1)) fail(p, `NewsArticle video is ${JSON.stringify(a.video)}, not ${ref ? `a reference to ${ref}` : 'absent'}`);
@@ -306,5 +317,5 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
     for (const x of problems) console.error('  ' + x);
     process.exit(1);
   }
-  console.log(`check-discovery: ${n} pages (the home, ${PUBLISHED.length} published editions, ${WATCH.size} watch pages and ${METHOD.length} pages on the method, all in the sitemap; ${drafts.length} drafts out of it) carry one URL, one h1 and a whole graph; every edition its byline, every published one its lead figure first; every watch page its VideoObject, its Clips and its one player; the sitemaps, the video sitemap and the files machines read print no trailing slash`);
+  console.log(`check-discovery: ${n} pages (the home, ${PUBLISHED.length} published editions, ${WATCH.size} watch pages and ${METHOD.length} pages on the method, all in the sitemap; ${drafts.length} drafts out of it) carry one URL, one h1 and a whole graph; every edition its byline, every published one with a figure that is not text its lead figure first; every watch page its VideoObject, its Clips and its one player; the sitemaps, the video sitemap and the files machines read print no trailing slash`);
 })();

@@ -47,7 +47,7 @@ Shipped (2026-09-15):
 | `/68ce724887380cc177ba53cc75658d16.txt` | the IndexNow key, public by design (`public/68ce724887380cc177ba53cc75658d16.txt`; Discoverability) | static |
 | `/privacy.txt` | the privacy statement: first the films' player on the editions (what the press loads, what applies from then on; YouTube's API terms require it of a site that embeds the player, 2026-10-26) and on the watch pages (loaded as the page opens, 2026-10-30), then the YouTube uploader's, which Google's consent screen needs before the app can leave Testing (2026-10-17); plain text like `humans.txt`, not a page, linked from the rail beside every player | static |
 | `/index.json` `/og/desk.png` | the index as JSON and the desk's card, for apt.grok.me to fetch and hotlink | generated |
-| `/lead/*.png` | each published edition's lead image, one of its own figures rendered alone at 16:9, 4:3 and 1:1, content-hashed (`src/lib/lead-manifest.json`), first in its NewsArticle's `image` (Decisions log, 30 Oct 2026) | rendered by hand, checked by the build |
+| `/lead/*.png` | each published edition's lead image, one of its own figures that is not text rendered alone (seven; The Subtraction, The Closest Humans and The Hand in the Water have none, `NO_FIGURE`) at 16:9, 4:3 and 1:1, content-hashed (`src/lib/lead-manifest.json`), first in its NewsArticle's `image` (Decisions log, 30 Oct 2026) | rendered by hand, checked by the build |
 | `/film/*.png` | each linked film's own thumbnail, reduced and content-hashed, beside a link to its YouTube watch page at the edition's end and on the home (Decisions log, 21 Oct 2026) | generated |
 | `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-09.pdf` `/pdf/edition-10.pdf` `/pdf/edition-11.pdf` | the print editions as uploaded | as uploaded |
 
@@ -272,9 +272,10 @@ transcript, a Clip per chapter whose url is the page at its second), exactly
 one iframe in its HTML (the embed URL, no autoplay) and no iframe on any
 other page, every chapter link one of its chapters, every published
 edition's NewsArticle opening its `image` with its lead figure's three
-frames and ending with the card and naming its film by `@id` alone, every
+frames (where it has one) and ending with the card and naming its film by `@id` alone, every
 edition's byline dated as its `datePublished`, every Person node the one on
-`/about`, and every page's footer linking the three pages on the method.
+`/about`, and every page's footer linking the three pages on the method,
+`/404` included.
 `node tools/transcripts.mjs --check`, the build's second step, holds
 `src/lib/transcripts` to the linked films (one per film, for its current
 id, none left over), and `src/lib/lead.mjs` holds the lead manifest to the
@@ -383,9 +384,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   question before any service is "is it free, and does it stay free at
   scale."
 - **Client JS budget: 5 kB gzipped for the whole site**, enforced by
-  `tools/check-budget.cjs` in the build. **Measured: 2,942 B** (the client
+  `tools/check-budget.cjs` in the build. **Measured: 3,106 B** (the client
   script `src/scripts/aed.js`, inlined on every page, 1,828 B, plus Astro's
-  prefetch module `page.*.js`, 1,114 B; 2,896 until the cursor flex, 30 Oct
+  prefetch module `page.*.js`, 1,114 B, plus the watch pages' one inline
+  script, 164 B, the same on all eight and counted once; 2,942 until the
+  watch pages, 30 Oct 2026; 2,896 until the cursor flex, 30 Oct
   2026, measured the display title without the dek now inside its h1, 46 B;
   2,660 until the film's player on the
   reader's press, 26 Oct 2026, whose 236 B are the whole of it, and before
@@ -464,14 +467,18 @@ for a shortlist for bios and cards, which is a separate deliverable.
   ledger names (the ledger must still name the linked id, the narration
   must have been filed before that upload, the chapters must equal the ones
   `meta.json`'s description files, and citation marks, which the voice never
-  says, are left out). Committed, never fetched at build time; the module
+  says, are left out, as are The Tilt Gap's F, I and Q register marks,
+  labels and not prose, which `--check` fails if one is printed). Committed, never fetched at build time; the module
   checks them against `src/lib/films.json` with no network. Relinking a film
   (`node tools/films.mjs <id>`) fails the build until
   `node tools/transcripts.mjs` writes the new one.
 - `src/lib/lead.mjs` and `src/lib/lead-manifest.json`: the lead images
-  (Decisions log, 30 Oct 2026), the three frames (`FRAMES`), and the check
-  that the manifest names every published edition and nothing else, each
-  file on disk at its size and its hash. `tools/generate-lead.mjs` renders
+  (Decisions log, 30 Oct 2026), the three frames (`FRAMES`), the editions
+  with no figure that is not text and why (`NO_FIGURE`), and the check
+  that the manifest names every other published edition and nothing else,
+  each file on disk at its size and its hash, and alt text that names the
+  edition and the figure (an empty name, as The Closest Humans' first cut
+  had, fails). `tools/generate-lead.mjs` renders
   them from `dist/` and carries the table of which figure each edition uses
   and why. `src/lib/schema.mjs` lists them first in the NewsArticle's
   `image`, before the card; `og:image` stays the card (override 2).
@@ -2736,8 +2743,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   Decisions log). Each linked film has `/<slug>/film`, in the pages sitemap
   and in `/sitemap-video.xml`, whose `VideoObject` is the film's and whose
   Clips are its chapters; the edition's NewsArticle names it by `@id` alone,
-  and its rail links it ("Film page · m:ss"). Each published edition's
-  NewsArticle opens its `image` with its lead figure (16:9, then 4:3, then
+  and its rail links it ("Film page · m:ss"). Each published edition with
+  a figure that is not text (seven of ten; `NO_FIGURE` in `src/lib/lead.mjs`
+  names the three without one and why) opens its NewsArticle's `image`
+  with its lead figure (16:9, then 4:3, then
   1:1), then the card. The lead image is a render of a figure the page
   already shows, so the page carries no second copy of it: the figure on
   the page IS the lead image, seen where it belongs. Every edition carries
@@ -3257,7 +3266,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   for anything before the reader's press: **edition pages keep
   click-to-play**, the sweep keeps proving it on them, and a watch page
   says what it loads, as `/standards` does.
-  **Each edition gets a lead image that is a figure, not a card.** A
+  **Each edition gets a lead image that is a figure, not a card**
+  (where its page has a figure that is not text; part B, below). A
   16:9 render of one of the edition's own figures goes FIRST in the
   article's structured-data `image`, so Google has a picture that is not
   text for Discover, which asks for large images and not text-heavy ones.
@@ -3284,7 +3294,11 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   linking chapters to the embed itself and keeps the reader on the page.
   The transcript is the narration as spoken (`tools/transcripts.mjs`), in
   the film's own chapters as its description lists them; its first line in
-  a chapter that repeats the chapter's title is shown as that heading, and
+  a chapter that repeats the chapter's title, case aside ("The Hand In the
+  Water"), is shown as that heading; the register marks a page carries
+  (The Tilt Gap's F, I and Q) are left out, because they are labels and not
+  prose, though that film's narration was given them to read and so may
+  say them (whether to render it again is the owner's, by credits); and
   every word is in the `VideoObject`'s `transcript`. `uploadDate` is the
   ledger's upload time, the one time the repository records: YouTube's
   publish time is not readable here, and a ledger's `publishAt` is what the
@@ -3294,19 +3308,26 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   (the review of part A struck a second colon from a headline). The lead
   figures, proposed by the builder and the owner's to change (the table at
   the top of `tools/generate-lead.mjs` says why each): The Floor, the bench
-  bars by channel width; The Subtraction, the delta table (the page has no
-  chart, and a table is text-heavy, so a chart for it is worth making);
-  The Countersign, GOAT's market value on a log scale; The Supply Cabinet,
-  what a hundred agents did after the hole was found; The Fourth Axis,
-  Qwen3-Next's 48 layers (the residual-path diagram was tried first and is
-  a thin strip in any frame); The Tilt Gap, hours of play behind each
-  result; The Markup, the four node prices; The Closest Humans, the
-  twenty-four days as eight dates (no chart either; a timeline of text);
-  The Hand in the Water, the four doors; The Snapshot Problem, the
+  bars by channel width; The Countersign, GOAT's market value on a log
+  scale; The Supply Cabinet, what a hundred agents did after the hole was
+  found; The Fourth Axis, top-1 on the Cars dataset from one token, three
+  bars (Qwen3-Next's 48 layers were the first cut, and the review found
+  them a strip of cells under a block of type; the residual-path diagram
+  is a thin strip in any frame); The Tilt Gap, hours of play behind each
+  result; The Markup, the four node prices; The Snapshot Problem, the
   exploit-rate range across thirteen models (measured, where the cliff is a
   schematic and plasticity a qualitative placement). Each is laid out at
   whichever width fills its frame best, never narrower than its own
-  content. The byline replaces the cover foot's "date · name": "By Jesse
+  content. **Three editions have no lead image**, because their pages
+  carry no figure that is not text, and a picture of type is what the
+  brief excludes: The Subtraction (its one figure is the specification
+  table), The Closest Humans (the timeline, eight dates beside prose) and
+  The Hand in the Water (the four doors, letters and captions). The first
+  cut rendered all three, admitted two of them as text-heavy and called
+  the doors a diagram; the review found all three type (`NO_FIGURE` in
+  `src/lib/lead.mjs`). Their articles list the card alone, as before part
+  B, until each page has a chart, which is worth making and is the
+  owner's to ask for. The byline replaces the cover foot's "date · name": "By Jesse
   James · date", plus "Updated date" only where `modified` is later than
   the date, since four editions carry a `modified` equal to their date and
   "Updated" on the same day says nothing. `/about`, `/standards` and
@@ -3322,10 +3343,28 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   amended wording, not the copy's, because the checker found both of the
   copy's incomplete (The Floor's left out the Canada line it amends; The
   Closest Humans' left out OpenAI's later denial, the third line it
-  answers). Still the owner's: the amendments page's opening line, "When
-  an edition is wrong, a later edition fixes it in public", which is the
-  older rule `/standards` now corrects (pages are corrected in place, an
-  amending edition only where the correction is the story); and the films
+  answers). **That is a builder's choice, not settled**: the copy says its
+  two summaries are the text, so the longer wording waits for the owner's
+  yes, and the owner's two lines go back in if it does not come. The
+  review of part B held the checker's wording to its pages: OpenAI's
+  denial covers Buckmaster's prompts "from the two months before the
+  announcement", and the earlier months are unaddressed, where the first
+  cut stated it without the limit, wider than OpenAI did; and the
+  chipmaker's 30 is down, over UDP. Still the owner's, each a line of
+  the owner's copy that the decided `/standards` text now contradicts or
+  that the record outruns: the amendments page's opening line, "When an
+  edition is wrong, a later edition fixes it in public", its description
+  ("Every correction to an Aedificare edition, dated ...") and its title
+  ("Amendments and corrections"), and `/about`'s "Corrections are listed
+  under amendments", all four the older rule `/standards` now corrects
+  (pages are corrected in place with a dated note, an amending edition
+  only where the correction is the story, so `/amendments` lists two
+  entries while 98 claims of The Supply Cabinet, 56 of The Snapshot
+  Problem and 29 of The Markup were corrected in place); `/standards`'s
+  "No ads, sponsors, paywall or sign-up", beside the watch pages, whose
+  player loads as the page opens and, `public/privacy.txt` says, may show
+  YouTube's ads once played (as the edition pages' players may after the
+  press; the Vercel question of 26 Oct is the same one); and the films
   line in `/standards`, "the frames ... are computed", which holds for
   every film linked today and would not for a re-cut with page shots.
 

@@ -19,26 +19,6 @@
       "height": 1200
     }
   },
-  "edition-02": {
-    "figure": "div.scroll[aria-label^=\"One die, five permissions\"]",
-    "why": "No chart on the page; the delta table is its one figure, the same die in five configurations, and it is the argument.",
-    "alt": "A figure from The Subtraction: One die, five permissions: the specification delta, on black.",
-    "16x9": {
-      "src": "/lead/edition-02-16x9.5804cfe5.png",
-      "width": 1920,
-      "height": 1080
-    },
-    "4x3": {
-      "src": "/lead/edition-02-4x3.10009681.png",
-      "width": 1600,
-      "height": 1200
-    },
-    "1x1": {
-      "src": "/lead/edition-02-1x1.d1c709b1.png",
-      "width": 1200,
-      "height": 1200
-    }
-  },
   "the-countersign": {
     "figure": "figure[aria-label=\"GOAT market value at four reported points, log scale\"]",
     "why": "The climb, launch to peak on a log scale: the one picture of the money the edition is about.",
@@ -80,21 +60,21 @@
     }
   },
   "the-fourth-axis": {
-    "figure": "figure[aria-label=\"Qwen3-Next 80B-A3B, 48 layers: 36 linear, 12 full attention\"]",
-    "why": "Qwen3-Next's 48 layers in their 3:1 order: the token axis as a shipped model lays it out, a grid of cells that fills the frame, where the path diagrams are thin strips.",
-    "alt": "A figure from The Fourth Axis: Qwen3-Next 80B-A3B, 48 layers: 36 linear, 12 full attention, on dark green.",
+    "figure": "figure[aria-label=\"Top-1 accuracy on the Cars dataset from one token\"]",
+    "why": "One token holding the whole image: a stolen background patch names the car nearly as well as the class token, as three bars. Qwen3-Next's 48 layers were tried first and render as a strip of cells under a block of type; the path diagrams are thin strips.",
+    "alt": "A figure from The Fourth Axis: Top-1 accuracy on the Cars dataset from one token, on black.",
     "16x9": {
-      "src": "/lead/the-fourth-axis-16x9.3c2a5c8d.png",
+      "src": "/lead/the-fourth-axis-16x9.eaf6a7fc.png",
       "width": 1920,
       "height": 1080
     },
     "4x3": {
-      "src": "/lead/the-fourth-axis-4x3.ea1607c9.png",
+      "src": "/lead/the-fourth-axis-4x3.b60980e8.png",
       "width": 1600,
       "height": 1200
     },
     "1x1": {
-      "src": "/lead/the-fourth-axis-1x1.160e0c29.png",
+      "src": "/lead/the-fourth-axis-1x1.c847bacf.png",
       "width": 1200,
       "height": 1200
     }
@@ -135,46 +115,6 @@
     },
     "1x1": {
       "src": "/lead/edition-03-1x1.8d055273.png",
-      "width": 1200,
-      "height": 1200
-    }
-  },
-  "ns-02": {
-    "figure": "section[aria-labelledby=\"days-h\"] > .grid",
-    "why": "No chart on the page; the twenty-four days as eight dates in two columns is its one figure, the timeline the edition is built on.",
-    "alt": "A figure from The Closest Humans: , on dark green.",
-    "16x9": {
-      "src": "/lead/ns-02-16x9.99436c15.png",
-      "width": 1920,
-      "height": 1080
-    },
-    "4x3": {
-      "src": "/lead/ns-02-4x3.3554b45c.png",
-      "width": 1600,
-      "height": 1200
-    },
-    "1x1": {
-      "src": "/lead/ns-02-1x1.d5aaecec.png",
-      "width": 1200,
-      "height": 1200
-    }
-  },
-  "ns-01": {
-    "figure": "div.field.doors",
-    "why": "The four doors, with the two OpenAI went through marked: the diagram the edition turns on.",
-    "alt": "A figure from The Hand in the Water: The four admissible answers, on dark green.",
-    "16x9": {
-      "src": "/lead/ns-01-16x9.873996ba.png",
-      "width": 1920,
-      "height": 1080
-    },
-    "4x3": {
-      "src": "/lead/ns-01-4x3.7f6b4851.png",
-      "width": 1600,
-      "height": 1200
-    },
-    "1x1": {
-      "src": "/lead/ns-01-1x1.87e5121e.png",
       "width": 1200,
       "height": 1200
     }

@@ -11,16 +11,16 @@
  * narration.json must have been filed before that upload, or it is a later render's voice. The transcript is the
  * narration as spoken: every block the film read aloud, in order, each one's words as the narration's own word
  * timings carry them (the page's text, mapped back onto the voice), with the citation marks left out, because the
- * voice never says them (they are timed at zero length). Blocks the film shows and does not read (a figure, the
- * sources list) are not in it.
+ * voice never says them (they are timed at zero length), and the register marks too (isMark, below). Blocks the film
+ * shows and does not read (a figure, the sources list) are not in it.
  *
  * The chapters are the film's own, built as tools/lib/film-meta.mjs builds them for the description (the title at
  * 0:00, then each section heading 0.4 s before it is read, fitted to YouTube's rule by tools/lib/chapters.mjs), and
  * held to the chapter lines of the description the release files in meta.json: a list that differs is refused, so
  * the watch page's chapters are the ones YouTube shows. Each block goes to the chapter it starts in.
  *
- * A transcript is rewritten only when its id or its narration's bytes change; one for a film no longer linked is
- * removed.
+ * A transcript is rewritten only when what it would hold changes (its id, its narration's bytes, or the rules here);
+ * one for a film no longer linked is removed.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -65,9 +65,15 @@ const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
 
 // The voice never says a citation mark: the narration keeps "[01]" on the word list, timed at zero length.
 const CITE = /^\[\d+\][.,;:)]?$/;
+// A register mark (The Tilt Gap's F, I and Q: verified fact, sourced inference, open question; a <span class="mark">
+// on the page) is a letter after a sentence's end, before the next sentence or the block's end. It is a label, not a
+// word of the edition's prose, so the transcript leaves it out. The pronoun is not one: "a thesis. I was asked" runs
+// on in lower case. On The Tilt Gap's narration this takes exactly the page's 51 marks and keeps its 4 pronouns.
+// (That narration's spoken text carries the marks, so the film was given them to read; CLAUDE.md, Decisions log.)
+const isMark = (words, i) => /^[FIQ]$/.test(words[i]) && (i === 0 || /[.?!:"\u201d\u2019)]$/.test(words[i - 1])) && (i + 1 >= words.length || /^[A-Z0-9"\u201c]/.test(words[i + 1]));
 const spoken = (b) => {
-  const words = Array.isArray(b.words) && b.words.length ? b.words.map((w) => w.w) : String(b.text ?? '').split(/\s+/);
-  return words.filter((w) => w && !CITE.test(w)).join(' ').replace(/\s+([.,;:])/g, '$1').trim();
+  const words = (Array.isArray(b.words) && b.words.length ? b.words.map((w) => w.w) : String(b.text ?? '').split(/\s+/)).filter(Boolean);
+  return words.filter((w, i) => !CITE.test(w) && !isMark(words, i)).join(' ').replace(/\s+([.,;:])/g, '$1').trim();
 };
 
 fs.mkdirSync(DIR, { recursive: true });
@@ -85,8 +91,7 @@ for (const f of films()) {
   if (!(Date.parse(na.updated_at) <= Date.parse(ledger.at))) fail(`film-${f.slug}/narration.json was filed ${na.updated_at}, after ${f.id} went up (${ledger.at}), so it is a later render's voice, not that video's`);
   const bytes = download(na);
   const digest = sha256(bytes);
-  const old = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
-  if (old?.id === f.id && old.source?.sha256 === digest && old.uploaded === ledger.at) { console.log(`  ${f.slug}: ${f.id}, unchanged`); continue; }
+  const old = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
   const N = JSON.parse(bytes.toString('utf8'));
   if (!Array.isArray(N.blocks) || !N.duration) fail(`film-${f.slug}/narration.json has no blocks or no duration`);
 
@@ -115,7 +120,10 @@ for (const f of films()) {
     source: { release: rel.tag_name, asset: 'narration.json', sha256: digest, updated: na.updated_at, voice: N.voice, model: N.model },
     chapters,
   };
-  fs.writeFileSync(file, JSON.stringify(out, null, 2) + '\n');
+  // Written whenever what it would write differs, so a change to the rules above reaches a narration that did not change.
+  const text = JSON.stringify(out, null, 2) + '\n';
+  if (text === old) { console.log(`  ${f.slug}: ${f.id}, unchanged`); continue; }
+  fs.writeFileSync(file, text);
   const words = chapters.reduce((n, c) => n + c.paragraphs.join(' ').split(/\s+/).length, 0);
   console.log(`  ${file}: ${f.id}, ${chapters.length} chapters, ${words} words`);
 }

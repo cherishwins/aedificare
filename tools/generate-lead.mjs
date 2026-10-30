@@ -12,7 +12,9 @@
  *
  * The figure is a picture (bars, a diagram, a grid), never a block of text; which one, and why, is the table below,
  * one line per edition, the builder's proposal of 30 Oct 2026 and the owner's to change. The figure is already on
- * the page, so the page shows no second copy of it.
+ * the page, so the page shows no second copy of it. An edition whose page has no figure that is not text gets no lead
+ * image rather than a picture of type, and src/lib/lead.mjs says why in NO_FIGURE; its article lists the card alone,
+ * as before, until the page has a chart.
  *
  * Content-hashed into public/lead/ like the cards (src/lib/lead-manifest.json maps each edition to its three files
  * and the alt text). Renders depend on the machine's Chromium (CLAUDE.md, Discoverability: npm run og is not
@@ -27,7 +29,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { PUBLISHED } from '../src/lib/editions.mjs';
-import { LEAD_DIR as OUT, LEAD_FILE, FRAMES } from '../src/lib/lead.mjs';
+import { LEAD_DIR as OUT, LEAD_FILE, FRAMES, NO_FIGURE, ALT } from '../src/lib/lead.mjs';
 
 /**
  * slug: [selector, why]. The selector names exactly one element on the built page; `keep`, where given, is the only
@@ -35,14 +37,11 @@ import { LEAD_DIR as OUT, LEAD_FILE, FRAMES } from '../src/lib/lead.mjs';
  */
 export const FIGURES = {
   'the-floor': { sel: 'figure[aria-label="Measured throughput by channel width, against the chip\'s peak"]', why: 'The bench bars are the edition: what the radio measured at each channel width, against the 32.5 Mbps peak the datasheet gives.' },
-  'edition-02': { sel: 'div.scroll[aria-label^="One die, five permissions"]', why: 'No chart on the page; the delta table is its one figure, the same die in five configurations, and it is the argument.' },
   'the-countersign': { sel: 'figure[aria-label="GOAT market value at four reported points, log scale"]', why: 'The climb, launch to peak on a log scale: the one picture of the money the edition is about.' },
   'the-supply-cabinet': { sel: 'figure[aria-label="What 100 agents did after one of them found the hole"]', why: 'The split: what a hundred agents did once one found the hole, the four-way figure the print set as its cover number.' },
-  'the-fourth-axis': { sel: 'figure[aria-label="Qwen3-Next 80B-A3B, 48 layers: 36 linear, 12 full attention"]', why: 'Qwen3-Next\'s 48 layers in their 3:1 order: the token axis as a shipped model lays it out, a grid of cells that fills the frame, where the path diagrams are thin strips.' },
+  'the-fourth-axis': { sel: 'figure[aria-label="Top-1 accuracy on the Cars dataset from one token"]', why: 'One token holding the whole image: a stolen background patch names the car nearly as well as the class token, as three bars. Qwen3-Next\'s 48 layers were tried first and render as a strip of cells under a block of type; the path diagrams are thin strips.' },
   'the-tilt-gap': { sel: 'figure[aria-label="Hours of play behind each result, log scale"]', why: 'Hours of play behind each result on a log scale: the exhaust the thesis rests on, as bars.' },
   'edition-03': { sel: 'figure[aria-label="USD per node, log scale"]', why: 'The four node prices on a log scale: the markup itself.' },
-  'ns-02': { sel: 'section[aria-labelledby="days-h"] > .grid', keep: '.stats', why: 'No chart on the page; the twenty-four days as eight dates in two columns is its one figure, the timeline the edition is built on.' },
-  'ns-01': { sel: 'div.field.doors', why: 'The four doors, with the two OpenAI went through marked: the diagram the edition turns on.' },
   'edition-01': { sel: 'figure[aria-label="Exploit rate across 13 frontier models, range"]', why: 'The exploit-rate range across thirteen models: measured bars, where the cliff chart beside it is a schematic and the plasticity chart a qualitative placement.' },
 };
 
@@ -52,7 +51,8 @@ const MIME = { html: 'text/html', css: 'text/css', js: 'text/javascript', png: '
 const only = process.argv.slice(2);
 const fail = (m) => { console.error(`generate-lead: ${m}`); process.exit(1); };
 if (!fs.existsSync(path.join(ROOT, 'index.html'))) fail('no build in dist/; run npm run build first');
-for (const e of PUBLISHED) if (!FIGURES[e.slug]) fail(`${e.slug} is published and the table names no figure for it`);
+for (const e of PUBLISHED) if (!FIGURES[e.slug] && !NO_FIGURE[e.slug]) fail(`${e.slug} is published and the table names no figure for it, nor says in NO_FIGURE (src/lib/lead.mjs) why it has none`);
+for (const s of Object.keys(FIGURES)) if (NO_FIGURE[s]) fail(`${s} is in the table and in NO_FIGURE; it is one or the other`);
 for (const s of only) if (!FIGURES[s] || !PUBLISHED.some((e) => e.slug === s)) fail(`${s} is not a published edition in the table`);
 
 const manifest = fs.existsSync(LEAD_FILE) ? JSON.parse(fs.readFileSync(LEAD_FILE, 'utf8')) : {};
@@ -72,6 +72,7 @@ await page.route('**/*', (route) => {
 
 for (const e of PUBLISHED) {
   if (only.length && !only.includes(e.slug)) continue;
+  if (!FIGURES[e.slug]) continue;
   const { sel, keep, why } = FIGURES[e.slug];
   const entry = { figure: sel, why, alt: '' };
   for (const [key, { width: W, height: H }] of Object.entries(FRAMES)) {
@@ -89,6 +90,7 @@ for (const e of PUBLISHED) {
       return { n: 1, w: Math.ceil(Math.max(r.width, el.scrollWidth)), label: el.getAttribute('aria-label') || el.querySelector('figcaption')?.textContent || '', ground };
     }, { sel });
     if (m.n !== 1) fail(`${e.slug}: "${sel}" names ${m.n} elements on ${e.path}, not one`);
+    if (!m.label.trim()) fail(`${e.slug}: "${sel}" has no aria-label and no figcaption, so the alt text would name nothing; choose a figure the page names`);
     await page.setViewportSize({ width: W, height: H });
     const z = await page.evaluate(({ sel, keep, w, W, H }) => {
       const el = document.querySelector(sel);
@@ -122,7 +124,7 @@ for (const e of PUBLISHED) {
     const name = `${e.slug}-${key}.${hash}.png`;
     fs.writeFileSync(path.join(OUT, name), bytes);
     entry[key] = { src: `/lead/${name}`, width: W, height: H };
-    entry.alt = `A figure from ${e.title}: ${m.label.trim().replace(/\.$/, '')}, on ${m.ground}.`;
+    entry.alt = ALT(e.title, m.label.trim().replace(/\.$/, ''), m.ground);
     console.log(`  ${path.join(OUT, name)}`.padEnd(52) + `${W}x${H}  zoom ${z.toFixed(2)}  ${Math.round(bytes.length / 1024)} KB`);
   }
   manifest[e.slug] = entry;
@@ -130,7 +132,7 @@ for (const e of PUBLISHED) {
 await browser.close();
 
 const ordered = {};
-for (const e of PUBLISHED) if (manifest[e.slug]) ordered[e.slug] = manifest[e.slug];
+for (const e of PUBLISHED) if (manifest[e.slug] && FIGURES[e.slug]) ordered[e.slug] = manifest[e.slug];
 const keepFiles = new Set(Object.values(ordered).flatMap((x) => Object.keys(FRAMES).map((k) => path.basename(x[k].src))));
 for (const f of fs.readdirSync(OUT)) if (!keepFiles.has(f)) { fs.unlinkSync(path.join(OUT, f)); console.log(`  removed ${path.join(OUT, f)}`); }
 fs.writeFileSync(LEAD_FILE, JSON.stringify(ordered, null, 2) + '\n');

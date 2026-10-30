@@ -85,7 +85,7 @@ const dayLabel = `${+day.slice(8)} ${MONTHS[+day.slice(5, 7) - 1]} ${day.slice(0
         {t.chapters.map((c) => (
           <div class="c-a prose part">
             <h3 class="mono-b" id={`at-${c.t}`}>{clock(c.t)} · {c.title}</h3>
-            {c.paragraphs.filter((p, i) => !(i === 0 && p === c.title)).map((p) => <p>{p}</p>)}
+            {c.paragraphs.filter((p, i) => !(i === 0 && p.toLowerCase() === c.title.toLowerCase())).map((p) => <p>{p}</p>)}
           </div>
         ))}
       </div>
