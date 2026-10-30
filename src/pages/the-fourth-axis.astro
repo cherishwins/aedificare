@@ -9,7 +9,8 @@ import EditionEnd from '../components/EditionEnd.astro';
 import Formats from '../components/Formats.astro';
 import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
-import { edition, LICENCE, describe, seedDrift } from '../lib/editions.mjs';
+import { edition, LICENCE, describe, seedDrift, pageTitle } from '../lib/editions.mjs';
+import { articleGraph } from '../lib/schema.mjs';
 import { SITE, abs } from '../config.mjs';
 
 // Edition 05, ported from the print of 6 Oct 2026 with the prose verbatim.
@@ -23,21 +24,6 @@ const ed = edition('the-fourth-axis');
 // colophon gives (21/4, 37/5, 19/6). Malachite only: Acid on this surface is
 // spent on one word of the title.
 const cover = HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
-
-const article = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: 'The Fourth Axis',
-  alternativeHeadline: `Printed as ${ed.print}`,
-  datePublished: ed.date,
-  author: { '@type': 'Person', name: 'Jesse James' },
-  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
-  url: abs(ed.path),
-  mainEntityOfPage: abs(ed.path),
-  license: LICENCE.url,
-  isAccessibleForFree: true,
-  description: ed.lede,
-};
 
 // The four axes, the spine of the edition.
 const axes = [['Depth', 'Identity path, 2015'], ['Tokens', 'Registers and sinks, 2023'], ['Time', 'State-space hybrids, 2025'], ['Runs', 'Open']];
@@ -150,14 +136,15 @@ const sources = [
   'Sun et al. Test-time training with self-supervision for generalization under distribution shifts. arXiv:1909.13231, 2019.',
   'Sun et al. Learning to (learn at test time): RNNs with expressive hidden states (TTT layers). arXiv:2407.04620, Jul 2024.',
 ];
+const graph = articleGraph(ed, { alternativeHeadline: `Printed as ${ed.print}`, sources });
 ---
-<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+<Base title={pageTitle(ed)} ogTitle={ed.seoTitle} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[graph]} published={ed.date} modified={ed.modified}>
   <main id="main">
     <section class="surface cover" aria-label="Cover">
       <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
       <Masthead />
       <div class="grid cover-grid">
-        <h1 class="c-full display" data-flex="cursor">The Fourth<br><span class="acid">Axis</span></h1>
+        <h1 class="c-full display" data-flex="cursor">The Fourth<br><span class="acid">Axis</span>{ed.dek && <span class="dek"><span class="sr">: </span>{ed.dek}</span>}</h1>
         <p class="c-a lede">{ed.lede}</p>
         <Formats slug={ed.slug} />
       </div>

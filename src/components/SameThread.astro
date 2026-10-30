@@ -1,0 +1,46 @@
+---
+/**
+ * Same thread: the other published editions in an edition's series
+ * (`series` in src/lib/editions.mjs), above its sources. Each is a block
+ * link, never a link inside prose: its date and title in mono, as the home
+ * names an edition, and its dek in the lede's type. Rendered on the server
+ * from the list, so nothing here is typed per page, and nothing renders when
+ * the thread has no other published edition (a draft's partner, or a thread
+ * of one). A nav, so the film script and the facts reading leave it out
+ * (tools/generate-film.mjs, tools/lib/facts.mjs): what another edition says
+ * is not this page's fact. No Acid: the surface it sits on spends its own.
+ */
+import { thread } from '../lib/editions.mjs';
+interface Props { slug: string; ground?: 'void' | 'bottle' }
+const { slug, ground = 'void' } = Astro.props;
+const items = thread(slug);
+---
+{items.length > 0 && (
+  <nav class:list={['surface', 'tight', 'thread', ground]} aria-label="Same thread">
+    <div class="grid">
+      <p class="c-full mono-b key">Same thread</p>
+      <ol class="c-full list">
+        {items.map((x) => (
+          <li>
+            <a class="block-link" href={x.path}>
+              <span class="mono code">{x.dateLabel} · {x.title}</span>
+              <span class="lede">{x.dek ?? x.lede}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </nav>
+)}
+<style>
+  .thread .grid { row-gap: 16px; }
+  .key { color: var(--malachite); }
+  .list { list-style: none; display: grid; gap: 20px; }
+  .list a { padding-block: 6px; }
+  .code { display: block; margin-bottom: 8px; color: var(--malachite); }
+  .lede { display: block; max-width: 46ch; }
+  /* As the home's contents do: the small mono line turns Acid under the pointer, never the lede at scale. */
+  .list a:hover .code, .list a:focus-visible .code { color: var(--acid); }
+  /* Small Malachite never on Bottle (CLAUDE.md, contrast): Flash there. */
+  .bottle .key, .bottle .code { color: var(--flash); }
+</style>

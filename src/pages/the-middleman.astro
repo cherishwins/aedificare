@@ -23,7 +23,8 @@ import EditionEnd from '../components/EditionEnd.astro';
 import Formats from '../components/Formats.astro';
 import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
-import { edition, LICENCE, describe, seedDrift } from '../lib/editions.mjs';
+import { edition, LICENCE, describe, seedDrift, pageTitle } from '../lib/editions.mjs';
+import { articleGraph } from '../lib/schema.mjs';
 import { SITE, abs } from '../config.mjs';
 
 const ed = edition('the-middleman');
@@ -34,20 +35,6 @@ const div = (k1: number, k2: number, ph: number) => [
   { k: k1, s: 1.0, ph, w: 0.7, c: '#00B24F', o: 0.42 },
   { k: k2, s: 0.71, ph: ph + 0.38, w: 0.7, c: '#00B24F', o: 0.28 },
 ];
-
-const article = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: ed.title,
-  datePublished: ed.date,
-  author: { '@type': 'Person', name: SITE.author },
-  publisher: { '@type': 'Organization', name: SITE.name, url: SITE.origin },
-  url: abs(ed.path),
-  mainEntityOfPage: abs(ed.path),
-  license: LICENCE.url,
-  isAccessibleForFree: true,
-  description: ed.lede,
-};
 
 // Second quarter of 2026, scaled to every $4.00 billed. Rebuilt from the 10-Q's
 // own lines; the depreciation is its "approximately $1.3 billion" for servers
@@ -214,14 +201,15 @@ const c = (...k: string[]) => k.map((x) => {
   return `[${String(i + 1).padStart(2, '0')}]`;
 }).join(' ');
 const sources = KEYS.map((k) => SRC[k]);
+const graph = articleGraph(ed, { sources });
 ---
-<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date} noindex={DRAFT}>
+<Base title={pageTitle(ed)} ogTitle={ed.seoTitle} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[graph]} published={ed.date} noindex={DRAFT} modified={ed.modified}>
   <main id="main">
     <section class="surface cover" aria-label="Cover">
       <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
       <Masthead right={DRAFT ? 'Draft' : undefined} />
       <div class="grid cover-grid">
-        <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Middleman</span></h1>
+        <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Middleman</span>{ed.dek && <span class="dek"><span class="sr">: </span>{ed.dek}</span>}</h1>
         <p class="c-a lede">{ed.lede}</p>
         <Formats slug={ed.slug} />
       </div>

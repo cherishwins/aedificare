@@ -9,7 +9,9 @@ import EditionEnd from '../components/EditionEnd.astro';
 import Formats from '../components/Formats.astro';
 import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
-import { edition, LICENCE, describe } from '../lib/editions.mjs';
+import { edition, LICENCE, describe, pageTitle } from '../lib/editions.mjs';
+import { articleGraph } from '../lib/schema.mjs';
+import SameThread from '../components/SameThread.astro';
 import { SITE, abs } from '../config.mjs';
 
 const ed = edition('edition-03');
@@ -17,21 +19,6 @@ const ed = edition('edition-03');
 // Cover field runs Malachite only: Acid on this surface is spent on one word
 // of the title.
 const cover = HOUSE.map((L, i) => ({ ...L, c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
-
-const article = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: 'The Markup',
-  alternativeHeadline: `Printed as ${ed.print}`,
-  datePublished: ed.date,
-  author: { '@type': 'Person', name: 'Jesse James' },
-  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
-  url: abs(ed.path),
-  mainEntityOfPage: abs(ed.path),
-  license: LICENCE.url,
-  isAccessibleForFree: true,
-  description: ed.lede,
-};
 
 // Figures. Bars are computed from the numbers, never drawn.
 const nodes = [['Haven · floor', 208], ['Haven · ceiling', 450], ['MPU5 · 2017', 9368], ['MPU5 · 2024', 18214]];
@@ -71,14 +58,15 @@ const sources = [
   'Motorola Solutions acquisition of Silvus, $4.38B cash plus $20M stock, up to $600M earnout through 2028, reported May 2025.',
   'Haven 2 node bill of materials as stated by the vendor: Raspberry Pi 5, Morse Micro MM8108, Waveshare 4-cell UPS hat, printed enclosure. Component origins are the manufacturers\' stated locations.',
 ];
+const graph = articleGraph(ed, { alternativeHeadline: `Printed as ${ed.print}`, sources });
 ---
-<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+<Base title={pageTitle(ed)} ogTitle={ed.seoTitle} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[graph]} published={ed.date} modified={ed.modified}>
   <main id="main">
     <section class="surface cover" aria-label="Cover">
       <RoseField layers={cover} seed={0.003} class="rose cover-rose" />
       <Masthead right={ed.note} />
       <div class="grid cover-grid">
-        <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Markup</span></h1>
+        <h1 class="c-full display" data-flex="cursor">The<br><span class="acid">Markup</span>{ed.dek && <span class="dek"><span class="sr">: </span>{ed.dek}</span>}</h1>
         <p class="c-a lede">{ed.lede}<br>The same physics in both. This is about the difference.</p>
         <Formats slug={ed.slug} />
       </div>
@@ -234,6 +222,8 @@ const sources = [
         ['5 × 5 mm', 'Morse Micro · MM8108. The physics goes on a reel.'],
       ]} />
     </Section>
+
+    <SameThread slug={ed.slug} />
 
     <Section n="07" title="Sources" id="sources">
       <div class="c-full">

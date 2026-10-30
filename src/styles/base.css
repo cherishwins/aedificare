@@ -83,6 +83,15 @@ a { color: inherit; text-decoration: none; }
 .display.thin { font-variation-settings: 'opsz' 96, 'wdth' var(--wdth, 75), 'wght' 300; }
 
 .lede { font-variation-settings: 'opsz' 36, 'wdth' 84, 'wght' 500; font-size: var(--fs-lede); line-height: 1.24; max-width: 32ch; }
+/* The dek: an edition's second line, inside its <h1> after the title, so the heading a search engine reads is the
+   headline the JSON-LD gives (30 Oct 2026). It is set as the lede is, never as the display it sits in: its own axes,
+   fixed, so the h1's data-flex width does not reach it, and none of the display's case, tracking or leading. The
+   left margin undoes the cover h1's -.04em, so the dek lines up with the lede under it. */
+h1 .dek {
+  display: block; font-variation-settings: 'opsz' 36, 'wdth' 84, 'wght' 500; font-size: var(--fs-lede);
+  line-height: 1.24; letter-spacing: normal; text-transform: none; max-width: 32ch; transition: none;
+  margin: 28px 0 0 calc(var(--fs-cover) * .04);
+}
 .beat { font-variation-settings: 'opsz' 36, 'wdth' 82, 'wght' 600; font-size: var(--fs-beat); line-height: 1.18; letter-spacing: -.006em; max-width: 34ch; margin-block: 8px 28px; }
 .beat.acid { color: var(--acid); }
 .beat.mal { color: var(--malachite); }

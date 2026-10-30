@@ -10,27 +10,14 @@ import EditionEnd from '../components/EditionEnd.astro';
 import Formats from '../components/Formats.astro';
 import FilmPlayer from '../components/FilmPlayer.astro';
 import { HOUSE } from '../lib/rose.mjs';
-import { edition, LICENCE, describe } from '../lib/editions.mjs';
+import { edition, LICENCE, describe, pageTitle } from '../lib/editions.mjs';
+import { articleGraph } from '../lib/schema.mjs';
+import SameThread from '../components/SameThread.astro';
 import { SITE, abs } from '../config.mjs';
 
 const ed = edition('ns-01');
 
 const cover = HOUSE.map((L, i) => ({ ...L, c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
-
-const article = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: 'The Hand in the Water',
-  alternativeHeadline: `Printed as ${ed.print}`,
-  datePublished: ed.date,
-  author: { '@type': 'Person', name: 'Jesse James' },
-  publisher: { '@type': 'Organization', name: 'Aedificare', url: SITE.origin },
-  url: abs(ed.path),
-  mainEntityOfPage: abs(ed.path),
-  license: LICENCE.url,
-  isAccessibleForFree: true,
-  description: ed.lede,
-};
 
 // Citation marks, [01] style, pointing into the sources list in section 11.
 const c = (...n) => n.map((x) => `[${String(x).padStart(2, '0')}]`).join(' ');
@@ -101,14 +88,15 @@ const sources = [
   'Stan Palasek, Mathstodon, reply to Terence Tao, 8 Sep 2026, 11:51 UTC, before OpenAI\'s announcement, and Princeton Mathematics\' people page: "a serious obstruction to removing the force from a Navier-Stokes blow-up (at least whenever it takes the form of a sequence of instabilities along a lacunary sequence of frequencies)".',
   'Zhen Lei and Xiao Ren, Fudan University, arXiv 2609.35406, 28 Sep 2026: "a readable and accessible version of the profile-construction part of OpenAI\'s manuscript"; they "regard OpenAI\'s work as a major advance".',
 ];
+const graph = articleGraph(ed, { alternativeHeadline: `Printed as ${ed.print}`, sources });
 ---
-<Base title={ed.title} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[article]} published={ed.date}>
+<Base title={pageTitle(ed)} ogTitle={ed.seoTitle} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[graph]} published={ed.date} modified={ed.modified}>
   <main id="main">
     <section class="surface cover" aria-label="Cover">
       <RoseField layers={cover} seed={0.413} class="rose cover-rose" />
       <Masthead right={ed.note} />
       <div class="grid cover-grid">
-        <h1 class="c-full display" data-flex="cursor">The <span class="acid">Hand</span><br><span class="wide">In the</span><br>Water</h1>
+        <h1 class="c-full display" data-flex="cursor">The <span class="acid">Hand</span><br><span class="wide">in the</span><br>Water{ed.dek && <span class="dek"><span class="sr">: </span>{ed.dek}</span>}</h1>
         <p class="c-a lede">OpenAI opened doors C and D.<br>Most headlines did not say which.</p>
         <Formats slug={ed.slug} />
       </div>
@@ -361,6 +349,8 @@ const sources = [
       </div>
       <p class="c-full display closing">Water that tears itself.<br><span class="acid">Water that can be torn.</span></p>
     </Section>
+
+    <SameThread slug={ed.slug} />
 
     <Section n="11" title="Sources" id="sources">
       <div class="c-full">

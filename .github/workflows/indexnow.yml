@@ -1,0 +1,58 @@
+# IndexNow (30 Oct 2026): once a push to main is live, tell the search engines
+# that read IndexNow (Bing, Yandex, Seznam, Naver and the rest) which published
+# pages it changed. Vercel builds main on every push (CLAUDE.md, Stack), so the
+# job waits until the live <meta name="build"> is this push's commit; a deploy
+# slower than twenty minutes is not a failure, and the job ends green with a
+# warning and sends nothing, because the next push sends its own pages. The
+# key file is public by design: public/<key>.txt, read by tools/indexnow.mjs.
+name: indexnow
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: indexnow
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Wait until this commit is live
+        id: live
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          want="${SHA:0:8}"
+          for _ in $(seq 1 40); do
+            live=$(curl -sSL --max-time 20 https://aedificare.art/ | grep -oE 'name="build" content="[^"]*"' | sed -E 's/.*content="([^"]*)".*/\1/' || true)
+            echo "live build: ${live:-none}   want: $want"
+            if [ "$live" = "$want" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            sleep 30
+          done
+          echo "::warning::$want was not live after 20 minutes; IndexNow not sent"
+          echo "ok=false" >> "$GITHUB_OUTPUT"
+
+      - name: Which published pages changed
+        if: steps.live.outputs.ok == 'true'
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: node tools/indexnow.mjs urls "$BEFORE" "$AFTER" | tee urls.txt
+
+      - name: Send them
+        if: steps.live.outputs.ok == 'true'
+        run: node tools/indexnow.mjs post urls.txt

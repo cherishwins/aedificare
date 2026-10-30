@@ -77,8 +77,9 @@ async function script() {
   const blocks = await page.evaluate(() => {
     const out = [];
     // Text node by text node with a space between, so a word after a <br> or a
-    // display span does not fuse with the one before it; then whitespace collapsed.
-    const T = (el) => { const parts = []; const walk = (n) => { for (const c of n.childNodes) { if (c.nodeType === 3) parts.push(c.nodeValue); else if (c.nodeType === 1) walk(c); } }; walk(el); return parts.join(' ').replace(/\s+/g, ' ').replace(/\s+([.,;:!?)])/g, '$1').trim(); };
+    // display span does not fuse with the one before it; then whitespace collapsed. The dek inside the h1 (30 Oct
+    // 2026) is search packaging, not the title a film reads and sets, so it is left out.
+    const T = (el) => { const parts = []; const walk = (n) => { for (const c of n.childNodes) { if (c.nodeType === 3) parts.push(c.nodeValue); else if (c.nodeType === 1 && !c.classList.contains('dek')) walk(c); } }; walk(el); return parts.join(' ').replace(/\s+/g, ' ').replace(/\s+([.,;:!?)])/g, '$1').trim(); };
     const push = (b) => out.push({ i: out.length, ...b });
     for (const sec of document.querySelectorAll('main section')) {
       if (sec.classList.contains('end') || sec.classList.contains('tight')) continue;
