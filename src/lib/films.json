@@ -27,6 +27,34 @@
       "height": 720
     }
   },
+  "edition-02": {
+    "id": "VIrS3eKfwEM",
+    "duration": 1096,
+    "source": {
+      "release": "film-edition-02",
+      "asset": "edition-02-film-1920x1080.mp4",
+      "bytes": 996291105,
+      "updated": "2026-10-26T22:12:06Z",
+      "seconds": 1095.4
+    },
+    "thumb": {
+      "src": "/film/edition-02.389ff6fe.png",
+      "src2x": "/film/edition-02-2x.c6752415.png",
+      "width": 112,
+      "height": 63,
+      "alt": "Thumbnail: SUBTRACTION in acid green on black",
+      "source": {
+        "release": "film-edition-02",
+        "asset": "edition-02-thumb-1280x720.png",
+        "sha256": "5a478521e04bfa3ffabf0bc0129a30c229d333194d8f2f1194eac9368d29682a"
+      }
+    },
+    "poster": {
+      "src": "/film/edition-02-poster.5a478521.png",
+      "width": 1280,
+      "height": 720
+    }
+  },
   "the-countersign": {
     "id": "xuMIlnvWbe8",
     "duration": 487,
