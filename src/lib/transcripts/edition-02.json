@@ -1,0 +1,139 @@
+{
+  "slug": "edition-02",
+  "id": "VIrS3eKfwEM",
+  "uploaded": "2026-10-27T03:13:54.432Z",
+  "source": {
+    "release": "film-edition-02",
+    "asset": "narration.json",
+    "sha256": "d82d45f17d8b9c228f387b1e3ae29c229690ba6ca45b5149e5cc43fcc40820ec",
+    "updated": "2026-10-26T22:12:53Z",
+    "voice": "sacfsNbCahgH0qw7PIO8",
+    "model": "eleven_v4_turbo"
+  },
+  "chapters": [
+    {
+      "t": 0,
+      "title": "The Subtraction",
+      "paragraphs": [
+        "The Subtraction",
+        "A processor was built, then deliberately reduced, then sold at a fraction of its worth to people solving a puzzle that no longer exists. The reduction is the product.",
+        "The most expensive engineering is the engineering that takes things away."
+      ]
+    },
+    {
+      "t": 24,
+      "title": "The margin moved out of the making.",
+      "paragraphs": [
+        "The margin moved out of the making.",
+        "Fabrication is the part everyone photographs. Cleanrooms, lithography, a wafer held up to a light. It is also the part that differentiates fewer and fewer companies, because only a handful can make the smallest transistors, and the machines that print the finest layers come from a single Dutch supplier.",
+        "The margin no longer sits in the making. It sits in the permissions. A modern accelerator ships with capability physically present and administratively withheld, and the price of the product is set by how much of itself the buyer is allowed to use.",
+        "This is not a claim that requires trust. The evidence is purchasable. When the cryptocurrency market collapsed it stranded a very large number of processors whose only purpose had been to be deliberately worse than their own silicon, and until the summer of 2026 those processors sold used for a few hundred dollars, cheap enough to buy and examine.",
+        "What follows is a reading of one such processor. It was chosen because it is the least subtle example available, and because anyone who doubts the reading can buy the evidence and check."
+      ]
+    },
+    {
+      "t": 108,
+      "title": "September fifteenth, 2022",
+      "paragraphs": [
+        "September fifteenth, 2022",
+        "Ethereum stopped using proof of work. The network no longer needed anyone to solve anything, and the entire global apparatus assembled to solve it became, within a single day, an inventory problem.",
+        "Gaming cards had somewhere to go. Their prices had been falling since January, they fell again in the week after the Merge, and the used ones went to eBay. The world moved on. The purpose-built mining hardware had nowhere. It had no display outputs, no market outside the one that had just closed, and a manufacturer with no incentive to help it find another.",
+        "It had gone on sale at roughly $4,300, a retailer’s price; NVIDIA never published one. Until the summer of 2026 it sold used for a few hundred dollars. Then a tool unlocked the memory it had carried all along, and by September it sold on eBay for $1,300 to $1,700. A different industry had worked out what was underneath it. NVIDIA has never published a production figure. It reported $550 million of CMP revenue for fiscal 2022, every model together, so the size of the stranded inventory is estimated rather than known.",
+        "The card had been sold at a premium on the explicit promise that it could do one thing well and nothing else at all. When the one thing ended, the promise held, in the main, for nearly four years."
+      ]
+    },
+    {
+      "t": 213,
+      "title": "It is the same piece of silicon.",
+      "paragraphs": [
+        "It is the same piece of silicon.",
+        "The processor inside the mining card is GA100. It is the processor inside the A100, the accelerator that trained Stable Diffusion and Meta’s first LLaMA models.",
+        "GA100 is 826 square millimetres of seven nanometre silicon carrying 54.2 billion transistors. Eight GPU processing clusters. Up to 128 streaming multiprocessors, 8,192 single precision cores and 512 third generation tensor cores. On the A100 they feed a 40 megabyte level two cache.",
+        "It cannot show anything. There are no ray tracing cores, no video encoder and no display connectors, because nothing it was designed for involves a screen. It multiplies matrices, the operation at the core of deep learning, and it does so against stacked high bandwidth memory sitting on the same package rather than scattered across a board.",
+        "NVIDIA sold the mining card in two versions, 8 gigabytes on four stacks and 10 on five; this edition reads the 8 gigabyte card, which carries the GA100-105F-A1 bin. Seventy of the 128 streaming multiprocessors are active, giving 4,480 single precision cores and 280 tensor cores, clocked at 1140 base and 1410 boost against a 4,096-bit memory interface. That is a harvested die. Nothing about it is remarkable yet.",
+        "Two products. One design. The distance between them is not manufacturing. It is configuration, and configuration is written after the wafer is finished."
+      ]
+    },
+    {
+      "t": 337,
+      "title": "Three cuts, none of them accidents.",
+      "paragraphs": [
+        "Three cuts, none of them accidents.",
+        "The restrictions fall into three categories, and the categories matter more than the numbers, because they are not equally permanent: two are held by firmware alone, and the third is partly cut into the circuit board.",
+        "Memory geometry. The firmware reports a smaller pool than the package physically carries. The system believes the card, because the system has no independent way to count.",
+        "Compute throughput. Floating point multiply-add is throttled below a graphics card from 2008. The units are present. Multiply-add runs at a thirty-second of its rate.",
+        "Host bandwidth. The connection to the motherboard is held at an early generation and a quarter of the standard lane width. This one is elegant, because a training workload that cannot be fed is useless regardless of what the cores are allowed to do.",
+        "The figures. Memory reports 8 gigabytes across a 4,096-bit bus rated at 1.49 terabytes per second; measured, it sustains 1.36. Four active stacks of HBM2e, which would make two gigabytes a stack, and the HBM2e SK hynix has mass-produced since 2020 holds sixteen to a stack. The arithmetic is available to anyone who wants to do it. In 2026 someone did it in software, and the card reported sixty four.",
+        "Compute is the clearer cut. On paper the enabled cores give 12.63 teraflops of single precision. Measured with fused multiply-add, the instruction nearly all software uses, the card delivers 0.39. Without it, 6.25. The cores are present, clocked and counted. They are simply not permitted to multiply and add in one step.",
+        "Host bandwidth sits at PCIe 1.0 by four lanes, against the 4.0 by sixteen the same die runs on an A100.",
+        "Several mechanisms hold the cuts in place. The VBIOS is signed. One time programmable fuses carry the limits, and firmware reads them at boot. The lane width is cut on the circuit board itself, where the capacitors for twelve of the sixteen lanes were never fitted. The driver is not one of them: NVIDIA’s own driver runs the card, though it leaves it off its list of supported products. The difference that matters is between a fuse that firmware reads and a fuse that cuts a circuit. In June 2026 a paper showed these were the first kind: compute, memory and one step of the PCIe generation were lifted in software. Only the lanes needed a soldering iron.",
+        "A fuse that firmware reads and a fuse that cuts a circuit are the same lock to a customer and entirely different locks to an engineer."
+      ]
+    },
+    {
+      "t": 532,
+      "title": "Salvage asks what still works. Segmentation asks what they will pay.",
+      "paragraphs": [
+        "Salvage asks what still works. Segmentation asks what they will pay.",
+        "An 826 square millimetre die is enormous, and at that size perfect yield is not a target anyone holds. A speck of dust lands on a wafer, a few cores die, and the industry response is sensible: disable the broken region and sell the chip as a lesser part. This is binning. It is honest, it is efficient, and it is the reason large processors are economically possible at all.",
+        "Binning can explain seventy active multiprocessors out of one hundred and twenty eight. It does not explain a card that reports an eighth of the memory on its package. It does not explain an interconnect held three generations back, with the capacitors for twelve of its sixteen lanes left off the board. Nothing about a lithography defect removes a capacitor from a circuit board.",
+        "The distinction is the whole argument. One set of limits describes damage. The other describes a decision, implemented in fuses, firmware and the board, which means someone calculated that it would earn more than it cost.",
+        "Ask whether the silicon under the limit still works. If it does, the limit was never damage. It was a price, and burning it into a fuse made it look permanent rather than honest. On this card it was not permanent either."
+      ]
+    },
+    {
+      "t": 627,
+      "title": "Nothing here is new.",
+      "paragraphs": [
+        "Nothing here is new.",
+        "IBM shipped mainframes with processors already installed and dormant, switched on by an encrypted configuration record when the customer’s workload grew. The metal arrived on day one. The permission arrived with the order. IBM called it Capacity on Demand and the customers accepted it, because the upgrade needed no new hardware and no outage.",
+        "Intel sold a consumer processor in 2010 with cache and threading disabled, and a card on the shop shelf that unlocked them for fifty dollars. The press turned on it within days. It was extended once, in 2011, and then dropped.",
+        "Tesla shipped battery packs that were physically larger than the capacity the car would use, unlockable later for a fee. Some manufacturers have tried the same arrangement with seat heaters, which is the version that made newspapers, because a heating element is easy to picture and a memory controller is not.",
+        "The mining card belongs to this lineage. What distinguishes it is the absence of the upgrade path. IBM would sell you the key. Intel would sell you the key. Here NVIDIA never sold one, because the entire point was that this customer must never become that customer. In 2026 someone else wrote it.",
+        "Every precedent above offered a way to pay for the rest of the machine. This one offered nothing, which is what makes it the purest specimen of the practice rather than the worst."
+      ]
+    },
+    {
+      "t": 731,
+      "title": "People went looking for the rest of it.",
+      "paragraphs": [
+        "People went looking for the rest of it.",
+        "Cards that cheap, a few hundred dollars until the summer of 2026, attract a particular kind of attention. Once the price fell below the cost of caring whether it survived, a community formed around the question of how much of the original processor was still reachable. It is on record from the end of 2023.",
+        "What that community recovered is now partly on record. The method is public, in a paper and an open tool. One named test reached 64 gigabytes on an 8 gigabyte card, and sixteen lanes of PCIe 2.0 once the missing capacitors were soldered on. The 10 gigabyte card carries 80 but runs stable only to 40 as the tool sets it; the paper made all 80 stable by refreshing the memory more often, at about a third less throughput. The faster PCIe generations have not been reached. Anyone who tells you the rest is settled is selling something.",
+        "The attempt was the finding. People do not spend years attacking firmware to reach hardware that is not there. The effort was evidence before any attempt succeeded. Then one did.",
+        "This edition does not publish a procedure. The interesting finding is not how to perform the modification. It is what the modification proves about where the value in the original product was located.",
+        "In the United States the governing provision is section 1201 of the Digital Millennium Copyright Act. In Canada it is the technological protection measure provisions added to the Copyright Act by the Copyright Modernization Act. Both carry repair related exceptions, both have widened, and neither settles whether an accelerator you already own sits inside them. The American rule defines repair as a return to the original specification. An unlock goes past it.",
+        "This edition describes the locks. It does not open them."
+      ]
+    },
+    {
+      "t": 864,
+      "title": "One die, five permissions.",
+      "paragraphs": [
+        "One die, five permissions.",
+        "FP32 theoretical is cores × 2 × boost clock. FP32 delivered is what the card actually returns: on the locked card with fused multiply-add (6.25 TF without it), on the unlocked card a matrix multiply. The distance between those two rows is the subject of this edition. n/a means no source gives the figure.",
+        "GA100 and A100: the full die’s 48 MB L2 is NVIDIA’s slice count, twelve memory controllers of eight 512 KB slices, and ComputerBase prints it NVIDIA itself names no full-die clock, so no full-die FP32. A100 delivered: NVIDIA says each card runs unconstrained up to its power limit CMP locked: its L2 is the driver’s reading its launch price a Dubai retailer’s, October 2021 its board power the card’s rating as Tom’s Hardware reported it, not NVIDIA’s which the unlock does not change. CMP unlocked: the die bin and memory bus are the locked card’s, which a software unlock does not touch its L2 and base clock are driver readings no source took after the unlock, so they read n/a; 12.2 TF was measured on the 10 GB card x16 needs the missing capacitors soldered on A100 40GB launch price: a UK retail listing, July 2020 NVIDIA published none. The used prices are LTT Labs’ eBay sold observations of September 2026 the A100 80GB has no dated used price."
+      ]
+    },
+    {
+      "t": 987,
+      "title": "A specimen, not a scandal.",
+      "paragraphs": [
+        "A specimen, not a scandal.",
+        "The mining card is not a scandal. It is a specimen, and it is valuable precisely because the company that made it had no reason to be subtle. There was no consumer to reassure and no reviewer to satisfy. The segmentation could be implemented openly, which means it can now be read openly.",
+        "What it records is a transition that has already happened everywhere else and is simply easier to see here. The physical object arrives complete. The commercial object is assembled afterwards, in firmware, out of decisions about what the buyer has paid to be allowed to do.",
+        "The practice is spreading: the difference between a flagship and a cut-down part of the same die is increasingly enforced not by physically different silicon but by fuses and by the firmware that reads them. That moves the lock out of the silicon and into code, which is cheaper to fit and easier to pick. A fuse that only firmware reads differentiates price, not security, and on this card it did not hold.",
+        "That capability and permission are now separately priced, and only one of them ships in the box."
+      ]
+    },
+    {
+      "t": 1070,
+      "title": "Sources",
+      "paragraphs": [
+        "Sources",
+        "You do not buy a processor. You buy a list of permissions.",
+        "The Subtraction. 18 October 2026. Nine sections, 36 sources, at aedificare dot art. CC BY 4.0."
+      ]
+    }
+  ]
+}

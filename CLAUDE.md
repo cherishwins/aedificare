@@ -40,7 +40,7 @@ Shipped (2026-09-15):
 | `/ns-01` | 11 Sep 2026 · *The Hand in the Water* (printed as NS-01), eleven sections, fifty-four sources | live (2026-10-18, sourced from scratch, every source that could be opened opened; the three lines The Closest Humans answers stay as printed) |
 | `/ns-02` | 13 Sep 2026 · *The Closest Humans* (printed as NS-02), amends The Hand in the Water, eleven sections, forty-four sources | live (2026-10-18, sourced from scratch, each side of the disputed calls given with its own source) |
 | `/edition-02` | 18 Oct 2026 · *The Subtraction* (printed as Edition 02), nine sections, thirty-six sources | live (2026-10-18, sourced from scratch; no PDF, none was issued) |
-| `/<slug>/film` | each linked film's watch page (nine: `/the-floor/film`, `/the-countersign/film`, `/the-supply-cabinet/film`, `/the-fourth-axis/film`, `/the-tilt-gap/film`, `/ns-02/film`, `/ns-01/film`, `/edition-01/film`, `/edition-03/film`): the player as a real iframe in the server's HTML, length, upload day, the description, chapters as `?t=` links, the full transcript, `VideoObject` with a Clip per chapter (Decisions log, 30 Oct 2026) | generated |
+| `/<slug>/film` | each linked film's watch page (ten: `/the-floor/film`, `/edition-02/film`, `/the-countersign/film`, `/the-supply-cabinet/film`, `/the-fourth-axis/film`, `/the-tilt-gap/film`, `/ns-02/film`, `/ns-01/film`, `/edition-01/film`, `/edition-03/film`): the player as a real iframe in the server's HTML, length, upload day, the description, chapters as `?t=` links, the full transcript, `VideoObject` with a Clip per chapter (Decisions log, 30 Oct 2026) | generated |
 | `/about` `/standards` `/amendments` | the person, the method, and every amendment generated from the editions list; the owner's copy (`source/about-standards-amendments.md`) with the changes the Decisions log of 30 Oct 2026 records; linked from every page's footer | live |
 | `/404` | | live |
 | `/feed.xml` `/llms.txt` `/llms-full.txt` `/robots.txt` `/sitemap-index.xml` `/sitemap-news.xml` `/sitemap-video.xml` `/ai.txt` `/humans.txt` | discoverability (`/sitemap.xml` 308s to the index; Discoverability) | generated or static |
@@ -392,7 +392,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `tools/check-budget.cjs` in the build. **Measured: 3,106 B** (the client
   script `src/scripts/aed.js`, inlined on every page, 1,828 B, plus Astro's
   prefetch module `page.*.js`, 1,114 B, plus the watch pages' one inline
-  script, 164 B, the same on all nine and counted once; 2,942 until the
+  script, 164 B, the same on all ten and counted once; 2,942 until the
   watch pages, 30 Oct 2026; 2,896 until the cursor flex, 30 Oct
   2026, measured the display title without the dek now inside its h1, 46 B;
   2,660 until the film's player on the
@@ -3068,7 +3068,11 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   The Countersign's (`xuMIlnvWbe8`, 8:07) was read public by `list` at
   15:43 UTC on 29 Oct and linked the same hour; The Markup's
   (`VRtpMEPMw9c`, 15:09) at 15:31 UTC on 30 Oct, linked the same hour,
-  its old cut `DFPTdSYPNkE` set unlisted by id. **`retire` cannot see
+  its old cut `DFPTdSYPNkE` set unlisted by id. The Markup's corrected
+  Short (`LLBUYiWHFx8`) and The Subtraction's film (`VIrS3eKfwEM`,
+  18:16) read public at 15:24 UTC on 31 Oct; the film was linked with
+  its watch page the same hour, and the old Short `5szqnoz4oME` and the
+  old film `00hUzMPhGsY` were set unlisted by id, which ends the three. **`retire` cannot see
   the old cuts**: a release's ledger names only its current video,
   never the one it replaced, so an earlier cut is found by its title, and
   the releases had been retitled since those cuts went up (the four old
