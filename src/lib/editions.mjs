@@ -234,6 +234,78 @@ const RAW = [
     ],
   },
   {
+    slug: 'waiting-for-the-tie-in', path: '/waiting-for-the-tie-in', print: 'Edition 08',
+    title: 'Waiting for the Tie-In', acid: 'Tie-In',
+    lede: 'The chips are bought. Everything they wait for is not.',
+    // Ported on 1 Nov 2026 from the finished web edition the owner wrote in
+    // another chat and never ported (source/waiting-for-the-tie-in.html), the
+    // prose verbatim; its print is the 16-page carousel at /pdf/edition-08.pdf.
+    // Seed from the print's colophon (SEED 20261015); no k is given, so the
+    // house configuration. Checked 1 Nov 2026 (research/waiting-for-the-tie-in/
+    // VERDICTS.md): 143 claims, 90 sources became 160. Still a draft: the
+    // owner's list in VERDICTS.md decides the lines that could not be opened.
+    // The date stays the print's, as every ported edition's does.
+    date: '2026-10-15', dateLabel: '15 Oct 2026',
+    seed: '20261015', k: [5, 7, 3], pdf: '/pdf/edition-08.pdf',
+    draft: true,
+    contents: [
+      { n: '00', t: 'The brief', id: 'brief' },
+      { n: '01', t: 'The queue', id: 'queue' },
+      { n: '02', t: 'The machines', id: 'machines' },
+      { n: '03', t: 'The chain', id: 'nothing' },
+      { n: '04', t: 'The hands', id: 'hands' },
+      { n: '05', t: 'The model', id: 'model' },
+      { n: '06', t: 'The bypass', id: 'bypass' },
+      { n: '07', t: 'The money', id: 'money' },
+      { n: '08', t: 'Side by side', id: 'china' },
+      { n: '09', t: 'What did not hold', id: 'checked' },
+      { n: '10', t: 'The other queue', id: 'minerals' },
+      { n: '11', t: 'What it would take', id: 'order' },
+      { n: '12', t: 'Sources', id: 'sources' },
+    ],
+  },
+  {
+    slug: 'loadout', path: '/loadout', print: 'Edition 07',
+    title: 'LOADOUT', acid: 'LOADOUT',
+    lede: 'Claude Code and the MCP universe, measured. What goes in a new project, what stays out, and the numbers behind each call.',
+    // Ported on 2026-11-01 from the three versions the owner made in another
+    // chat and never ported (source/loadout/: print.txt, the 26-page print at
+    // /pdf/edition-07.pdf; carousel.txt; map.html). The print's prose, with
+    // every token, tool and server count taken from the same-day correction
+    // the carousel and the map carry (19 servers, 209 tools, 52,409 tokens
+    // upfront, 2,165 names only), because the print's first count read output
+    // schemas the model never sees. Seed and k from the print's colophon
+    // (SEED 20261010 · k 5 7 3). A sample audit on 1 Nov 2026
+    // (research/loadout/VERDICTS.md) changed or overturned 9 of 15 claims, so
+    // the edition earns the full pass; still a draft until it has run.
+    // The date stays the print's, as every ported edition's does.
+    date: '2026-10-10', dateLabel: '10 Oct 2026',
+    seed: '20261010', k: [5, 7, 3], pdf: '/pdf/edition-07.pdf',
+    draft: true,
+    contents: [
+      { n: '00', t: 'The count', id: 'count' },
+      { n: '01', t: 'The tiers', id: 'tiers' },
+      { n: '02', t: 'Six jobs', id: 'jobs' },
+      { n: '03', t: 'Instruction files', id: 'instructions' },
+      { n: '04', t: 'The ladder', id: 'ladder' },
+      { n: '05', t: 'Per server', id: 'measured' },
+      { n: '06', t: 'Tool count', id: 'tools' },
+      { n: '07', t: 'Profiles', id: 'profiles' },
+      { n: '08', t: 'Three costs', id: 'costs' },
+      { n: '09', t: 'The shortlist', id: 'shortlist' },
+      { n: '10', t: 'Palantir Foundry', id: 'foundry' },
+      { n: '11', t: 'Three paths', id: 'paths' },
+      { n: '12', t: 'The free tier', id: 'tier' },
+      { n: '13', t: 'Long context', id: 'context' },
+      { n: '14', t: 'Prompt cache', id: 'cache' },
+      { n: '15', t: 'More agents', id: 'agents' },
+      { n: '16', t: 'Permissions', id: 'permissions' },
+      { n: '17', t: 'Monday', id: 'monday' },
+      { n: '18', t: 'Half-life', id: 'half-life' },
+      { n: '19', t: 'Sources', id: 'sources' },
+    ],
+  },
+  {
     slug: 'the-supply-cabinet', path: '/the-supply-cabinet', print: 'Edition 06',
     title: 'The Supply Cabinet', acid: 'Cabinet',
     lede: 'Give a thousand agents one shared drawer. They will build a society in it.',

@@ -1,0 +1,751 @@
+AEDIFICARE · EDITION 07
+
+
+
+
+LOAD
+OUT
+What your AI coding setup costs
+before you type a word. Measured,
+not guessed.
+
+
+CLAUDE CODE · MCP · PALANTIR FOUNDRY · 2026-10-10
+
+01 / 38
+FIVE STOPS
+
+
+
+
+Five stops.
+Swipe at your speed.
+          The wall
+          Two AIs. One door that isn't there.
+          The iceberg
+          What loads before you type.
+          One tool
+          2,007 tokens of search.
+          The map
+          Six jobs. One tool each.
+          Monday
+          The setup, in order.
+
+
+02 / 38
+01 · THE WALL
+
+
+
+
+01
+The wall
+03 / 38
+01 · THE WALL
+
+
+
+
+The plan.
+
+     CLAUDE CODE
+     my terminal · my repo
+
+
+     they talk
+
+
+
+     AI FDE
+     inside Palantir Foundry
+
+One AI writes my app in the terminal. The other
+builds the data platform inside Palantir
+Foundry. They talk. I stop clicking through a
+slow console.
+04 / 38
+01 · THE WALL
+
+
+WHY IT LOOKED POSSIBLE
+
+
+
+
+12.03
+2026
+Palantir's AI FDE goes generally available.
+An agent that builds ontology, pipelines,
+functions and React apps from a chat
+window. B
+
+
+
+The builder already exists. All I needed was a line
+to it.
+05 / 38
+ 01 · THE WALL
+
+
+
+ Then I read the docs.
+
+
+
+
+No
+API.
+ AI FDE is a chat window. Nothing outside the
+ browser can talk to it. B
+ 06 / 38
+01 · THE WALL
+
+
+
+
+The line
+is cut.
+
+     CLAUDE CODE
+
+      no API
+      no MCP tool
+      no CLI
+
+
+     AI FDE
+The one hook is a browser link that pre-fills a
+prompt. A human still clicks approve. That is a
+relay, not a conversation.
+07 / 38
+01 · THE WALL
+
+
+
+
+What exists
+instead.
+     CLAUDE CODE
+     your IDE
+
+     PALANTIR MCP
+     ~90 tools · GA June 2026
+
+     FOUNDRY
+     ontology types · pipelines · repos · OSDK
+
+     you merge the proposal
+
+Claude Code does the Foundry work itself,
+through Palantir MCP. About 90 tools. It cannot
+write data and cannot merge. You approve the
+proposal. B
+08 / 38
+   01 · THE WALL
+
+
+
+   The real agent-to-agent path.
+
+                          CLAUDE CODE
+
+
+
+
+RESULT OBJECTS                                ONTOLOGY MCP
+                      Claude Agent SDK
+                       inside Foundry
+
+
+
+         YOUR AGENT                      AN ACTION
+   Build your own agent inside Foundry from the
+   Claude Agent SDK template. Wrap it in an action.
+   Claude Code fires the action and reads the result
+   back. B
+   09 / 38
+01 · THE WALL
+
+
+
+Free tier walls you will hit.
+
+60                       action types, hard cap
+
+
+
+~5                       users
+
+
+
+0                        client-credentials grants.
+                         No headless service user.
+
+
+
+
+Beta apps, including the Foundry CLI, need a
+support ticket. B
+10 / 38
+02 · THE ICEBERG
+
+
+
+
+02
+The iceberg
+11 / 38
+02 · THE ICEBERG
+
+
+
+
+19 servers.
+Booted.
+Counted.
+                                              firecrawl
+                                           brave-search
+                                           basic-memory
+                                        chrome-devtools
+                                             playwright
+                                        codebase-memory
+                                             filesystem
+                                                 tavily
+                                             perplexity
+                                       postgres-mcp-pro
+                                                    git
+                                               context7
+                                             everything
+                                                 memory
+                                    sequential-thinking
+                                                    exa
+                                             motherduck
+                                                  dbhub
+                                                  fetch
+Every tool definition an AI model would read,
+tokenized, in a sandbox, on 10 October 2026. A
+12 / 38
+02 · THE ICEBERG
+
+
+
+
+2,165
+tokens · names only
+
+
+                       codebase-memory
+                      chrome-devtools
+                       brave-search
+                          firecrawl
+                       basic-memory
+                          playwright
+
+
+
+
+52,409
+tokens · every definition
+
+
+Above the line: what Claude Code loads at
+startup. Below: what loads if every tool definition
+comes in at once. A
+13 / 38
+02 · THE ICEBERG
+
+
+ONE DOT = 100 TOKENS
+
+names only · 22 dots
+
+
+
+every definition · 524 dots
+
+
+
+
+24×
+14 / 38
+02 · THE ICEBERG
+
+
+
+
+Names only.
+By default.
+Claude Code now holds back each tool's
+full definition until it is needed. It is called
+tool search, and it is on unless you turn it
+off. B
+
+
+
+
+Most advice about MCP context cost was written
+before this switch.
+15 / 38
+02 · THE ICEBERG
+
+
+
+Three things that still sink you.
+                   characters of server
+                   instructions from one
+
+3,254              server. They load whether
+                   you use it or not. A
+
+                   tokens per screenshot
+
+5–8K               through a browser server.
+                   A file path is about 50. B
+
+                   tool domains before
+
+~7                 models stop choosing well.
+                    B
+
+
+
+
+16 / 38
+03 · ONE TOOL
+
+
+
+
+03
+One tool
+17 / 38
+ 03 · ONE TOOL
+
+Search web, news, or image sources and return ranked results
+with query-relevant highlights. Each web result is a title,
+URL, and description; use `firecrawl_scrape` on a result URL
+when the excerpt is not enough. Authenticated search also
+returns matching Alexandria data providers in data.tools
+(companies, people, jobs, finance and filings, public
+records and government spending, real estate, places and
+restaurants, retail and prices, package registries and
+developer data, news, research, and more). Prefer a provider
+over scraping pages when the task needs the same fields
+across several entities, exact figures or timestamps,
+provenance, or many records; use web results when they
+already answer the question. A search with sources: ["web"]
+omits semantic provider discovery; domainTools: true can
+still return website-matched tools. Web-only results use
+domainTools: false. On an authenticated session, tool
+matches describe available capabilities;
+`firecrawl_find_tools` returns their contracts and
+`firecrawl_scrape` with an `alexandria` body executes a
+selected capability. Keyless sessions get no Alexandria
+matches in data.tools. For a programming question, add
+`categories: ["developer"]`; its hits return in `data.web`
+with `category: "developer"`. For a legal or regulatory
+question, `categories: ["gov"]` returns hits in `data.web`
+with `category: "gov"` and cannot be combined with other
+
+ This is one tool.
+ The description an AI reads before it can use
+ Firecrawl's search. All of it.
+ 18 / 38
+03 · ONE TOOL
+
+
+
+
+2,007
+tokens. As much as the 35 cheapest tools
+in the set, combined. A
+
+
+
+
+firecrawl_search
+
+
+
+
+                        35 cheapest tools
+
+
+19 / 38
+03 · ONE TOOL
+
+
+
+
+Count tokens,
+not tools.
+
+brave-search · 8 tools
+
+
+
+playwright, all caps · 71 tools
+
+
+
+
+Brave Search: 8 tools, 8,230 tokens. Playwright
+with everything on: 71 tools, 7,988. A
+20 / 38
+   03 · ONE TOOL
+
+
+   TOKENS A MODEL READS, PER SERVER                  A
+
+
+          firecrawl                                            12,585 · 28
+       brave-search                                8,230 · 8
+       basic-memory                            6,994 · 23
+    chrome-devtools                     5,414 · 30
+         playwright               3,688 · 25
+    codebase-memory               3,510 · 17
+         filesystem       1,638 · 14
+             tavily       1,612 · 5
+         perplexity      1,329 · 4
+   postgres-mcp-pro      1,156 · 9
+                git     1,085 · 12
+           context7     1,078 · 2
+         everything     1,061 · 13
+             memory     871 · 9
+sequential-thinking     861 · 1
+                exa   414 · 2
+         motherduck   384 · 4
+              dbhub   265 · 2
+              fetch   234 · 1
+
+
+   tokens · tools
+   21 / 38
+03 · ONE TOOL
+
+
+
+What a server ships is not what the
+model reads.
+
+
+brave_place_search · what the server ships
+
+ 16,968
+what the model reads
+
+      1,518
+
+
+Our first count included output schemas. The
+model never sees them. We corrected every
+figure here. A
+22 / 38
+03 · ONE TOOL
+
+
+
+
+Start slim.
+
+
+ 5,414
+ full · 30 tools
+
+
+
+
+                            174
+                            slim · 3 tools
+
+
+
+
+Chrome DevTools ships a slim mode. Same
+server, three tools. Escalate when you need the
+performance trace, then drop back. A
+23 / 38
+04 · THE MAP
+
+
+
+
+04
+The map
+24 / 38
+04 · THE MAP
+
+
+
+
+Six jobs.
+Always on      CLAUDE.md. Loads every turn. Under 200
+               lines.
+
+On demand      Skills. Body loads when called. Use trigger
+               words.
+
+Guarantee      Hooks. The only layer that enforces.
+Isolation      Subagents, worktrees. Fresh window,
+               summary back.
+
+Outside        CLI, then MCP. See the ladder.
+Proof          A test the model can't talk past.
+
+
+
+
+Pick the job first. Then the tool.
+25 / 38
+04 · THE MAP
+
+
+
+
+Three tools.
+One job.
+    playwright
+    25 tools · 3,688
+
+
+
+    chrome-devtools                    BROWSER
+    30 tools · 5,414
+
+
+
+    claude-in-chrome
+    22 tools · your logins
+
+
+
+
+Most bloated setups are two or three tools
+fighting over one slot. Keep the one that does
+what the others can't.
+26 / 38
+04 · THE MAP
+
+
+
+
+CLI first.
+
+ 1 CLI in Bash
+ no tool listing at all
+
+ 2 Code-mode MCP
+ three tools front a whole API
+
+ 3 Remote MCP + OAuth
+ where the CLI is weak
+
+ 4 Local stdio MCP
+ only if nothing else exists
+
+
+
+
+"CLI tools are the most context-efficient way to
+interact with external services." Anthropic, Claude
+Code best practices.
+27 / 38
+04 · THE MAP
+
+
+
+The shortlist, part one.
+Repo           Built-ins. Never a filesystem MCP.
+GitHub         gh CLI. The MCP is 86 tools.
+Browser        Chrome DevTools, slim. One browser server
+               only.
+
+Docs           llms.txt first. Then Context7, two tools.
+Search         Built-in search. Exa if you want a vendor: 414
+               tokens.
+
+
+
+
+28 / 38
+04 · THE MAP
+
+
+
+The shortlist, part two.
+Database       psql or vendor CLI. dbhub if MCP: 265
+               tokens.
+
+Deploy         vercel and wrangler. Cloudflare's 3-tool code
+               mode.
+
+Memory         CLAUDE.md and auto memory. No thinking
+               helpers.
+
+Foundry        Palantir MCP with tool search. Ontology
+               MCP per app.
+
+
+
+
+FULL TABLE AND COSTS IN THE INTERACTIVE MAP
+
+29 / 38
+ 04 · THE MAP
+
+
+
+
+FOCUSED
+BEATS
+FULL.
+                          models did better on a
+
+ 18/18                    short, focused input than a
+                          long one. Chroma. B
+
+
+
+ /clear between tasks. A million tokens is
+ headroom, not a lifestyle.
+ 30 / 38
+04 · THE MAP
+
+
+THE CACHE ARITHMETIC
+
+
+
+One model switch mid-
+session
+
+≈ 15–20
+normal turns of cost, on a 150K-token
+session. B
+
+
+
+
+Pick model and effort before the first message.
+Connect servers before the first message.
+31 / 38
+04 · THE MAP
+
+
+
+The permission numbers.
+
+93%
+                        of permission prompts get
+                        approved. Fatigue, not
+                        judgement.
+
+
+
+84%
+                        fewer prompts with the
+                        sandbox on. It is off by
+                        default.
+
+
+
+17%
+                        of risky actions get past
+                        auto mode. Anthropic's
+                        own number.
+
+
+
+
+Anthropic engineering, 2026. B
+32 / 38
+05 · MONDAY
+
+
+
+
+05
+Monday
+33 / 38
+05 · MONDAY
+
+
+
+The setup, in order.
+1         CLAUDE.md, under 200 lines. Build
+          commands, hosts, rules the model can't
+          guess.
+
+2         Install the CLIs. gh, vercel, wrangler, your
+          database client. Test each one.
+
+3         Add only the servers the ladder allows.
+          Slim profiles on. Then run /context and
+          read the bill.
+
+
+
+
+34 / 38
+05 · MONDAY
+
+
+
+Then.
+4         Three skills with trigger words. Deploy,
+          review, the thing you keep re-explaining.
+
+5         Hooks for the guarantees. Format on
+          edit, block pushes to main, run the tests
+          when it stops.
+
+6         Sandbox on. Model and effort chosen.
+          Then, and only then, the first message.
+
+
+
+
+35 / 38
+05 · MONDAY
+
+
+
+
+Every setup has a half-life.
+Anthropic built context resets for one
+model and threw them out on the next.
+Every piece of your setup is a bet on what
+the model can't do yet.
+
+
+
+
+Each model release: remove one piece, re-test,
+keep what still earns its place.
+36 / 38
+METHOD
+
+
+HOW WE KNOW
+
+
+A             Ran it. 19 MCP servers measured in a
+              sandbox; Claude Code 2.1.296 checked
+              against the installed binary.
+B             Verified in primary docs: Anthropic,
+              Palantir, the MCP spec, peer-reviewed
+              and preprint studies.
+≈             Tokens counted with an open tokenizer
+              as a proxy. Claude's runs a little higher.
+              Read them as relative.
+
+
+
+
+Full sources, raw data and what we could not
+verify: in the interactive map.
+37 / 38
+AEDIFICARE · EDITION 07 · SEED 20261010
+
+38 / 38
+

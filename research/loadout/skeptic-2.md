@@ -1,0 +1,105 @@
+# Skeptic, lane 2: Palantir Foundry claims (LOADOUT, edition 07, 10 Oct 2026)
+
+Checked 2026-11-01 against /home/user/aedificare/research/loadout/lane-2.md. Verdicts judge each claim as of 10 Oct 2026; later changes are noted separately. Quotes are as returned by WebFetch from the pages named (the fetch tool caps verbatim quotes at about 125 characters, so long passages are quoted in parts). Print locations re-checked in /home/user/aedificare/source/loadout/print.txt (page 07 lines 109-118, page 12 lines 237-263, page 14 lines 269-281, page 15 lines 283-302) and map.html (lines 209-219, 325-329); carousel "12.03" at carousel.txt lines 75-77.
+
+The researcher's main miss across the lane: Palantir's Foundry docs carry a dated monthly announcements archive (palantir.com/docs/foundry/announcements/YYYY-MM). It settles 2.1, dates the tool-search behaviour in 2.3, and confirms the "GA 2026-06-25" tags the researcher left unconfirmed in 2.3 and 2.4. A second miss: the Ontology MCP "Sample architecture" page, which states the three tool claims in 2.4 that the researcher marked unverified.
+
+Blocked and not routed round: web.archive.org (the fetch tool refuses it), so I could not see the tool-search page as it stood on 10 Oct 2026.
+
+No characterisation of Anthropic appears in any source used for this lane.
+
+Tally: upheld 0, overturned 1 (2.1), amended 4 (2.2, 2.3, 2.4, 2.5).
+
+---
+
+## 2.1. AI FDE GA on 12 March 2026 (print 14; carousel 05)
+Skeptic verdict: **overturned** (the researcher said "could not settle"; a Palantir primary settles it, and the claim holds)
+Evidence: Palantir, "March 2026 • Announcements" (Foundry docs), read 2026-11-01. https://www.palantir.com/docs/foundry/announcements/2026-03/
+Quote (heading): "AI FDE (Forward Deployed Engineer) is now generally available"
+Quote (date line): "Date published: 2026-03-12"
+Quote (body): "AI FDE, the AI Forward Deployed Engineer, is now generally available for enrollments with AIP enabled."
+How found: a targeted search (Palantir "AI FDE" "generally available" announcement) returned Palantir's own docs announcements archive as its first hit. The researcher's two searches went to press releases and the newsroom and missed the Foundry docs changelog. The researcher's own "Suggested test" (release notes) would have found it.
+Scope: the date is the "Date published" on Palantir's own GA announcement, so as Palantir states it the publication date and the event date are the same. GA is scoped to "enrollments with AIP enabled". A search summary (the November 2025 announcements page, not opened) indicates a beta from November 2025, so "went GA" is right and the date is not a first release.
+The page should say: Verdict holds. Primary: Palantir, "AI FDE (Forward Deployed Engineer) is now generally available", Foundry announcements, date published 2026-03-12, https://www.palantir.com/docs/foundry/announcements/2026-03/. True as: Palantir announced on 12 March 2026 that AI FDE is generally available for enrollments with AIP enabled. (The print's "went GA on 12 March 2026" and the carousel's "12.03 2026 ... goes generally available" stand. Adding "for enrollments with AIP enabled" is optional precision, not a correction.)
+Delete from "Could not settle": the 2.1 entry.
+
+---
+
+## 2.2. AI FDE has no API; chat window; no MCP tool, CLI or endpoint; one programmatic hook is the pre-fill URL; tool approvals still happen in the browser (print 14; map line 209 and row ai-fde)
+Skeptic verdict: **amended**. The researcher's quotes hold. The negative is better supported than the researcher's file says. The approval clause needs narrowing, and the map's version ("a human still approves") is broader than the docs.
+Reopened: overview https://www.palantir.com/docs/foundry/ai-fde/overview (confirmed verbatim: "You can customize the tools available to AI FDE in the Tools menu under the request input field." and "keeps a record of all prompts and tools used during the active session in the chat outline."); pre-fill https://palantir.com/docs/foundry/ai-fde/prefill-sessions/ (confirmed verbatim: "Pre-fill links use the /workspace/ai-fde/prefill path followed by any combination of the URL parameters below." and "Sessions started with autoStart=true follow the same tool approval settings as any other session" / "so users are still asked to approve tools before they make changes.").
+Negative hunt (all read 2026-11-01). None of these turned up an API, MCP tool, CLI or endpoint for driving AI FDE:
+- AI FDE "Modes and capabilities" https://www.palantir.com/docs/foundry/ai-fde/modes-and-capabilities/ : MCP, CLI, endpoint, programmatic access and external agents are not in the body. "API" appears only in site navigation.
+- AI FDE "Security and governance" https://www.palantir.com/docs/foundry/ai-fde/security-and-governance/ : its one "API" sentence is about AI FDE's own calls into Foundry, not calls into AI FDE: "Because every API call carries your identity," / "Foundry's platform-level audit logging captures all operations attributed to you". It also says "AI FDE is not a separate service account or bot; it acts on your behalf using your existing Foundry session."
+- Palantir MCP "Available tools" https://www.palantir.com/docs/foundry/palantir-mcp/available-tools/ : 89 tools are listed and none relates to AI FDE or to starting an agent session.
+- Announcements for July, August, September and October 2026 (https://www.palantir.com/docs/foundry/announcements/2026-07 , /2026-08 , /2026-09 , /index.html [October]) : AI FDE items cover Workflow Lineage, Automate tools ("AI FDE now has tools for Automate, allowing you to configure business automation", 2026-08-27), AIP Evolve and markings ("agents such as AI FDE, which run under the user's own session", 2026-10-12). None adds API, MCP or CLI access.
+- Second launch route, not programmatic: AIP Evolve "launches AI FDE to explore and validate possible changes" (https://palantir.com/docs/foundry/aip-evolve/overview/). The page describes starting an evolution in the UI ("select **Evolve**") and mentions no API, MCP, CLI, endpoint or schedule. So "the one programmatic hook" survives, but AI FDE sessions can also be started in-platform by AIP Evolve. The edition may want to know this; it is not a contradiction.
+Approvals (security and governance page), each a separate quote:
+- "implements a tool approval system that requires explicit user confirmation before executing mutating operations."
+- "Read-only operations such as searching and reading definitions." (listed as auto-approved)
+- "File edits and dataset builds auto-approve on feature branches, but require approval on protected branches."
+- "You can also approve specific tools for the duration of a session, scoped to a branch or project where relevant."
+- "Executing ontology actions, creating applications or widgets, publishing, or creating tags." (listed as "Require approval every time")
+So not every tool call waits for a person. Read-only tools, and file edits and dataset builds on feature branches, go ahead without approval, and session-level pre-approval exists. The page does not say where approval happens. "In the browser" is inference from AI FDE being a Foundry web workspace (/workspace/ai-fde/...), not a statement on the page.
+The page should say (True as): AI FDE is an interactive, conversational agent inside Foundry. The Palantir docs and announcements checked (AI FDE overview, modes and capabilities, pre-fill, security and governance; Palantir MCP's 89-tool list; announcements July to October 2026) describe no API, MCP tool, CLI or endpoint for driving it. The documented way to start it from outside is a browser pre-fill link (/workspace/ai-fde/prefill, with prompt, skillRid and autoStart parameters); in-platform, AIP Evolve can also launch it. Pre-filled sessions keep the normal approval settings: the user must confirm mutating operations, though read-only tools, and file edits and dataset builds on feature branches, auto-approve, and tools can be pre-approved for a session.
+Smallest change to print 14: "tool approvals still happen in the browser" -> "changes still need the user's approval in the session". Map line 209: "a human still approves" -> "a human still approves changes". Everything else on print 14 stands.
+
+---
+
+## 2.3. Palantir MCP starts with one tool, search_tools (print 07) / About 90 tools, starts with one when --tool-search is on (map row palantir-mcp; print 15 "about 90 tools")
+Skeptic verdict: **amended**. The researcher judged the map's condition by today's docs, not by 10 Oct; missed a dated primary that supports the map; mis-sourced a quote; and left "about 90" unconfirmed when the tool list can be counted.
+Evidence 1 (dated primary, missed): Palantir, "Palantir MCP now supports tool search to cut startup token usage", announcements, "Date published: 2026-06-30", https://www.palantir.com/docs/foundry/announcements/2026-06
+Quote: "Tool search is opt-in. By default, all tools load at startup exactly as they do today."
+Quote: with tool search enabled, Palantir MCP "starts up exposing only one tool" (`search_tools`) "instead of the full tool catalog."
+Evidence 2 (today's docs; the researcher's quotes reconfirmed): https://palantir.com/docs/foundry/palantir-mcp/tool-search/ : "Palantir MCP enables tool search by default." ; "The server initially shows only the `search_tools` tool in your agent's tool list." ; "Existing configurations that pass `--tool-search` or set `PALANTIR_MCP_TOOL_SEARCH=true` remain supported." The page gives no date or version for the change and no count beyond "dozens".
+Change-date hunt: no announcement in July, August, September or October 2026 mentions Palantir MCP tool search (pages above). web.archive.org is refused by the fetch tool and was not routed round. So the switch from opt-in to default-on happened after 30 June 2026 and before 1 Nov 2026, and no page found dates it. The latest dated primary before 10 Oct (30 June) says opt-in.
+Evidence 3 (count): https://www.palantir.com/docs/foundry/palantir-mcp/available-tools/ lists 89 distinct tool names, search_tools included. I had the fetch produce a numbered list (1 list_resources_in_foundry_folder ... 89 search_tools) in 16 categories, and it gave the same 89 on two fetches. The page states no total. The count is of today's page; I could not see the page as at 10 Oct. "About 90" is consistent with it. A second Palantir page gives a looser figure: the Ontology MCP overview says "Palantir MCP provides 70+ tools for building and modifying ontology types (object types, link types, action types)," (https://palantir.com/docs/foundry/ontology-mcp/overview/). That is compatible with 89, but it is the only total Palantir states in prose. Caveats on the available-tools page: "Tools with **Yes** for local development and **No** for Code Workspaces are local-only." The installation page says the catalog loaded is the "full permitted catalog", so the number a given user sees can be lower.
+Evidence 4 (GA tag, print 15 and map): "Palantir MCP is now generally available", "Date published: 2026-06-25"; "Beginning the week of June 22, Palantir MCP will be available across all Foundry enrollments." (https://www.palantir.com/docs/foundry/announcements/2026-06). The researcher's search-snippet "[Beta]" point is superseded: GA 2026-06-25 is confirmed.
+Mis-sourced quote: the researcher's file quotes the available-tools page as saying "No sentence on the page gives a number of tools, and no total count is stated anywhere." That is the fetch tool's description, not page text. It should be marked as a summary or removed.
+The page should say: Verdict holds for the map's wording as of the latest dated primary. True as: Palantir MCP's tool list documents 89 tools (about 90; Palantir's Ontology MCP overview says "70+"; the number a user sees depends on permissions and environment). Palantir announced tool search on 30 June 2026 as opt-in, switched on with --tool-search or PALANTIR_MCP_TOOL_SEARCH=true, and with it on the server starts with one visible tool, search_tools. GA was announced 2026-06-25. Print 07's unconditional "starts with one tool, search_tools" was true at 10 Oct only with the flag, unless the default had already changed by then, which no page found dates. The edition's own config (print 15, line 302; map line 219) passes --tool-search, so it is true for the setup the edition recommends. Smallest change to print 07, if wanted: "Palantir MCP, with tool search on, starts with one tool, search_tools."
+Later change (after 30 June, date unknown, possibly after 10 Oct): docs now say tool search is on by default, --tool-search remains supported, and --no-tool-search turns it off. The map's "when --tool-search is on" is now redundant but not false.
+
+---
+
+## 2.4. Ontology MCP: object types as a SQL tool, every action type as its own tool, query functions as tools; the only MCP route that mutates data and the only one that can trigger in-platform logic (print 15; map line 213 "writes data or triggers logic inside Foundry")
+Skeptic verdict: **amended**. The three tool claims the researcher left unverified are stated verbatim on a Palantir page. "Only ... mutates data" holds only for ontology data. "Only one that can trigger in-platform logic" is contradicted, more widely than the researcher showed, and the edition contradicts it itself.
+Evidence 1 (missed primary): Palantir, "Ontology MCP • Sample architecture", section "Tools exposed through Ontology MCP", undated, read 2026-11-01. https://www.palantir.com/docs/foundry/ontology-mcp/sample-architecture
+Quote: "Every object type included in the Developer Console application is reachable through a SQL tool," / "which lets agents read ontology data by issuing SQL queries against the exposed object types."
+Quote: "Each action type included in the application becomes its own MCP tool," / "so agents can invoke a specific, predefined action to write data into the ontology."
+Quote: "Individual query functions can be exposed as their own MCP tools," / "giving agents access to bespoke read or compute logic that you have authored."
+Quote (subsection "Agents as tools"): "When you build agentic logic with AIP Logic or an AIP chatbot," / "you can save that logic as a function and then expose it through MCP."
+So "object types as a SQL tool", "every action type as its own tool" and "query functions as tools" hold. One nuance: query functions "can be exposed", which makes them optional, while every included action type becomes a tool.
+Evidence 2 (overview, reconfirmed): https://palantir.com/docs/foundry/ontology-mcp/overview/ : "Ontology MCP (OMCP) is designed for ontology consumers: external AI agents that need to safely write data to your ontology." ; "Palantir MCP provides 70+ tools for building and modifying ontology types (object types, link types, action types)," / "but cannot write actual ontology data." ; "In summary: Ontology MCP enables controlled writes to ontology data," / "while Palantir MCP enables modifications to ontology structure." This supports "consumer side" and "only route that writes ontology data" within Palantir's pair.
+Evidence 3 (Palantir MCP mutates other data and triggers logic): https://www.palantir.com/docs/foundry/palantir-mcp/available-tools/
+- create_and_write_to_foundry_dataset: "Creates a dataset in Foundry with data provided from a CSV file, useful for uploading local data or creating mock data." (writes data, though not ontology data)
+- build_datasets: "Builds datasets in Python transforms repositories. Commit and push changes before submitting a build."
+- execute_compute_modules_function: "Executes a compute module function synchronously. Only works with compute modules running in `FUNCTION` mode." (local-only)
+- run_sql_query_on_foundry_dataset: "Returns the result of running a SQL query on a Palantir dataset on an optional branch." (This is the Palantir MCP SQL tool the researcher's search summary pointed to. It is a different tool from Ontology MCP's SQL tool over object types; the researcher's file runs the two together.)
+Caveat: this tool list is today's page; I could not date when each tool was added. The edition itself, on the same page (print 15, lines 291-293), credits Palantir MCP with "Python transform repos, dataset builds", so its "only one that can trigger in-platform logic" conflicts with its own Palantir MCP column whatever the tool list said at 10 Oct.
+Evidence 4 (GA tag): "Ontology MCP is now generally available", "Date published: 2026-06-25"; "Beginning the week of June 16, Ontology MCP will be available across all Foundry enrollments." https://www.palantir.com/docs/foundry/announcements/2026-06 . The map and print "GA 2026-06-25" is confirmed. The researcher's "not confirmed" is overturned.
+The page should say (True as): Ontology MCP, the consumer side, exposes a Developer Console application's object types through a SQL tool, makes each included action type its own MCP tool, and can expose query functions as their own tools. Of Palantir's two MCP servers it is the one that writes ontology data, through actions. Palantir MCP cannot write ontology data, but it can create datasets from CSV, build datasets and run compute module functions, so Ontology MCP is not the only MCP route that runs logic in Foundry.
+Smallest change to print 15: "The only MCP route that mutates data and the only one that can trigger in-platform logic." -> "The only MCP route that writes ontology data." Map line 213: "The only MCP route that writes data or triggers logic inside Foundry." -> "The only MCP route that writes ontology data."
+Delete from "Could not settle": the 2.4 SQL entry.
+
+---
+
+## 2.5. @osdk/cli deploys your front end to a Foundry-hosted site from the terminal (map row osdk-cli; print 12 "@osdk/cli for site deploys")
+Skeptic verdict: **amended** (the verdict "holds" stands; the researcher's note that "front end" and "Foundry-hosted" are the edition's gloss is wrong, because a Palantir primary says both, and it adds scope limits)
+Reopened: https://github.com/palantir/osdk-ts/tree/main/packages/cli . Confirmed verbatim: "A CLI for generating OSDKs and managing Foundry site deployments"; "The site subcommand allows users to manage their Foundry site"; "The deploy subcommand allows users to upload new versions of their site and set it as deployed". It also has the option `--uploadOnly`: "Upload new site version only without setting as live".
+Better primary: Palantir, "Hosting an application on Foundry" (Foundry docs), undated, read 2026-11-01. https://www.palantir.com/docs/foundry/ontology-sdk/deploy-osdk-application-on-foundry/
+Quote: "The web hosting feature in Developer Console adds the option for developers building frontend-only applications"
+Quote: assets can be uploaded "by using the `@osdk/cli` command line tool" (the alternative is the Developer Console interface)
+Quote: "Website hosting is only available for applications configured as a Client-facing application."
+Quote: "In IL5 and FedRAMP environments, website hosting may appear to be disabled in Developer Console."
+The page gives no beta or GA status. The npm page was not opened, as the researcher also found (HTTP 403, not routed round). Not needed.
+The page should say (True as): @osdk/cli's `site deploy` subcommand uploads a new version of a Foundry site and sets it as deployed, from the terminal. Palantir's docs describe this as Developer Console web hosting for "frontend-only applications" on Foundry, available only for applications configured as client-facing (and possibly disabled in IL5 and FedRAMP environments). Map and print wording stand. Replace the researcher's first note ("the repository text does not say a site is a front end or that it is hosted by Foundry") with the Palantir hosting page quotes above.
+
+---
+
+## Changes since 10 Oct 2026 (separate from the verdicts)
+- Palantir MCP tool search: opt-in per the 2026-06-30 announcement; default-on per today's tool-search, installation and available-tools pages. No dated announcement of the switch was found in the July to October 2026 archives, so it may predate or postdate 10 Oct.
+- October 2026 announcements (https://www.palantir.com/docs/foundry/announcements/index.html): "Control LLM data access with markings in AIP" (2026-10-12) applies to "agents such as AI FDE, which run under the user's own session". It adds no external access route to AI FDE and does not change 2.2.
+
+## Could not settle (skeptic)
+- 2.3: the date Palantir MCP tool search became default-on. Tried: tool-search page, available-tools page, palantir/palantir-mcp GitHub README, announcements for June to October 2026. web.archive.org was refused by the fetch tool. Not tried: Palantir support or community posts.
+- 2.3 / 2.4: whether the 89-tool list (including the dataset-write, build and compute-module tools) matched the page as at 10 Oct. The edition's own print 15 text already credits Palantir MCP with dataset builds, so the 2.4 amendment does not depend on this.
