@@ -2,6 +2,7 @@
   "the-floor": {
     "id": "5VFA1JW5HJk",
     "duration": 824,
+    "linked": "2026-10-30T18:01:29Z",
     "source": {
       "release": "film-the-floor",
       "asset": "the-floor-film-1920x1080.mp4",
@@ -30,6 +31,7 @@
   "edition-02": {
     "id": "VIrS3eKfwEM",
     "duration": 1096,
+    "linked": "2026-10-31T15:34:17Z",
     "source": {
       "release": "film-edition-02",
       "asset": "edition-02-film-1920x1080.mp4",
@@ -58,6 +60,7 @@
   "the-countersign": {
     "id": "xuMIlnvWbe8",
     "duration": 487,
+    "linked": "2026-10-30T18:01:29Z",
     "source": {
       "release": "film-the-countersign",
       "asset": "the-countersign-film-1920x1080.mp4",
@@ -86,6 +89,7 @@
   "the-supply-cabinet": {
     "id": "yGdOAIj1Wa8",
     "duration": 819,
+    "linked": "2026-10-30T18:01:29Z",
     "source": {
       "release": "film-the-supply-cabinet",
       "asset": "the-supply-cabinet-film-1920x1080.mp4",
@@ -114,6 +118,7 @@
   "the-fourth-axis": {
     "id": "9joaycmFqsU",
     "duration": 865,
+    "linked": "2026-10-30T18:01:29Z",
     "source": {
       "release": "film-the-fourth-axis",
       "asset": "the-fourth-axis-film-1920x1080.mp4",
@@ -142,6 +147,7 @@
   "the-tilt-gap": {
     "id": "mCq1v6d3GVs",
     "duration": 1250,
+    "linked": "2026-10-30T18:01:29Z",
     "source": {
       "release": "film-the-tilt-gap",
       "asset": "the-tilt-gap-film-1920x1080.mp4",
@@ -170,6 +176,7 @@
   "edition-03": {
     "id": "VRtpMEPMw9c",
     "duration": 909,
+    "linked": "2026-10-30T18:01:29Z",
     "source": {
       "release": "film-edition-03",
       "asset": "edition-03-film-1920x1080.mp4",
@@ -198,6 +205,7 @@
   "ns-02": {
     "id": "4WlOACMJVJU",
     "duration": 1039,
+    "linked": "2026-10-30T18:01:29Z",
     "source": {
       "release": "film-ns-02",
       "asset": "ns-02-film-1920x1080.mp4",
@@ -226,6 +234,7 @@
   "ns-01": {
     "id": "NhE65kjbbj0",
     "duration": 978,
+    "linked": "2026-10-30T18:01:29Z",
     "source": {
       "release": "film-ns-01",
       "asset": "ns-01-film-1920x1080.mp4",
@@ -254,6 +263,7 @@
   "edition-01": {
     "id": "pJkE2cNBWvs",
     "duration": 974,
+    "linked": "2026-10-30T18:01:29Z",
     "source": {
       "release": "film-edition-01",
       "asset": "edition-01-film-1920x1080.mp4",

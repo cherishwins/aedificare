@@ -198,15 +198,14 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
       if (a.url !== want || a.mainEntityOfPage !== want) fail(p, `NewsArticle url ${a.url} or mainEntityOfPage ${a.mainEntityOfPage} is not ${want}`);
       if (a.headline && norm(a.headline) !== h1) fail(p, `NewsArticle headline "${a.headline}" is not the h1's text "${h1}"`);
       if (e && a.headline !== headline(e)) fail(p, `NewsArticle headline is not the edition's title and dek`);
-      // The lead image first (a figure, src/lib/lead.mjs), the type card last; a draft, and an edition whose page has
-      // no figure that is not text (NO_FIGURE), has the card alone.
+      // The lead image's three frames alone (a figure, src/lib/lead.mjs; Google asks for no image with text in the
+      // markup, and the card is type), or, where the page has no figure that is not text (NO_FIGURE), the card alone.
       if (e && !e.draft) {
         const l = lead(e.slug);
         const frames = l ? l.frames.map((x) => O + x.src) : [];
         if (!l && !NO_FIGURE[e.slug]) fail(p, 'has no lead image and NO_FIGURE gives no reason');
-        if (JSON.stringify((a.image || []).slice(0, frames.length)) !== JSON.stringify(frames)) fail(p, `NewsArticle image does not open with the lead image's three frames ${frames.join(', ')}`);
-        if ((a.image || []).length !== frames.length + 1) fail(p, `NewsArticle image lists ${(a.image || []).length} pictures, not ${frames.length ? 'the lead image\'s three frames and' : ''} the card`);
-        if (!/\/og\/[^/]+\.[0-9a-f]{8}\.png$/.test(a.image?.[frames.length] ?? '')) fail(p, 'NewsArticle image does not end with the type card');
+        if (l && JSON.stringify(a.image || []) !== JSON.stringify(frames)) fail(p, `NewsArticle image is not the lead image's three frames alone, ${frames.join(', ')}`);
+        if (!l && ((a.image || []).length !== 1 || !/\/og\/[^/]+\.[0-9a-f]{8}\.png$/.test(a.image[0]))) fail(p, 'NewsArticle image is not the type card alone (NO_FIGURE)');
         const f = FILMS.find((x) => x.slug === e.slug);
         const ref = f ? `${O}${watchPath(e)}#video` : undefined;
         if (a.video?.['@id'] !== ref || (a.video && Object.keys(a.video).length !== 1)) fail(p, `NewsArticle video is ${JSON.stringify(a.video)}, not ${ref ? `a reference to ${ref}` : 'absent'}`);
@@ -270,8 +269,18 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
       const desc = meta(html, 'name', 'description') || '';
       if (desc.length < 140 || desc.length > 160) fail(p, `description runs ${desc.length} characters, not 140 to 160 (the owner's copy: report it rather than rewrite it)`);
     }
-    // The Person every page names is the one on /about.
-    for (const x of nodes.filter((n) => n['@type'] === 'Person' && n['@id'])) if (x['@id'] !== PERSON_ID || x.url !== `${O}/about`) fail(p, `a Person node is ${x['@id']} at ${x.url}, not ${PERSON_ID} at ${O}/about`);
+    // The Person every page names is the one on /about, wherever it sits: a node, an article's author, a film's
+    // creator, the WebSite's author. Each carries its @id and its url inline (Google's Article and video docs ask for
+    // author.url and creator.url and never say they resolve an @id); a bare {"@id"} reference is the one exception.
+    const persons = [];
+    const walk = (v) => { if (Array.isArray(v)) return v.forEach(walk); if (v && typeof v === 'object') { if (v['@type'] === 'Person') persons.push(v); Object.values(v).forEach(walk); } };
+    nodes.forEach(walk);
+    for (const x of persons) if (x['@id'] !== PERSON_ID || x.url !== `${O}/about`) fail(p, `a Person is ${x['@id']} at ${x.url}, not ${PERSON_ID} at ${O}/about`);
+    // One WebSite, the site's (src/layouts/Base.astro); every other mention of it is a reference to its @id.
+    const sites = []; const walkSite = (v) => { if (Array.isArray(v)) return v.forEach(walkSite); if (v && typeof v === 'object') { if (v['@type'] === 'WebSite') sites.push(v); Object.values(v).forEach(walkSite); } };
+    nodes.forEach(walkSite);
+    if (sites.length !== 1 || sites[0]['@id'] !== `${O}/#website` || sites[0].name !== 'Aedificare' || JSON.stringify(sites[0].alternateName) !== JSON.stringify([new URL(O).host])) fail(p, `carries ${sites.length} WebSite node(s), not the one ${O}/#website named Aedificare with the domain as its alternate`);
+    if (p === '/' && !nodes.some((n) => n['@type'] === 'Organization' && n['@id'] === `${O}/#org`)) fail(p, 'the home carries no Organization node');
     // Every page's footer links the three pages about the method.
     for (const m of METHOD) if (!html.includes(`href="${m}"`)) fail(p, `does not link ${m}`);
 
@@ -317,5 +326,5 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
     for (const x of problems) console.error('  ' + x);
     process.exit(1);
   }
-  console.log(`check-discovery: ${n} pages (the home, ${PUBLISHED.length} published editions, ${WATCH.size} watch pages and ${METHOD.length} pages on the method, all in the sitemap; ${drafts.length} drafts out of it) carry one URL, one h1 and a whole graph; every edition its byline, every published one with a figure that is not text its lead figure first; every watch page its VideoObject, its Clips and its one player; the sitemaps, the video sitemap and the files machines read print no trailing slash`);
+  console.log(`check-discovery: ${n} pages (the home, ${PUBLISHED.length} published editions, ${WATCH.size} watch pages and ${METHOD.length} pages on the method, all in the sitemap; ${drafts.length} drafts out of it) carry one URL, one h1 and a whole graph; every edition its byline, every published one with a figure that is not text its lead figure alone as its image; every watch page its VideoObject, its Clips and its one player; the sitemaps, the video sitemap and the files machines read print no trailing slash`);
 })();

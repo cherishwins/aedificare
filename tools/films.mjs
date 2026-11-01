@@ -258,7 +258,9 @@ if (argv[0] === '--drop') {
     fs.writeFileSync(path.join(DIR, posterName), src);
     console.log(`  ${path.join(DIR, posterName)}`.padEnd(48) + `${img.width}x${img.height}  ${src.length} B`);
     films[e.slug] = {
-      id, duration, source,
+      // linked: the moment this entry was written, which is when the page's film or its picture changed; the
+      // sitemap's lastmod for the watch page and the edition reads it (src/lib/films.mjs, astro.config.mjs).
+      id, duration, linked: new Date().toISOString().replace(/\.\d+Z$/, 'Z'), source,
       thumb: { src: write(1), src2x: write(2), width: THUMB.width, height: THUMB.height, alt,
         source: { release: rel.tag_name, asset: meta.thumbnail, sha256: digest } },
       poster: { src: `/film/${posterName}`, width: POSTER.width, height: POSTER.height },

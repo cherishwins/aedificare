@@ -52,11 +52,11 @@
     },
     {
       "source": "/pdf/edition-11.pdf",
-      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\"" }]
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\"" }, { "key": "X-Robots-Tag", "value": "noindex" }]
     },
     {
       "source": "/pdf/edition-10.pdf",
-      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\"" }]
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\"" }, { "key": "X-Robots-Tag", "value": "noindex" }]
     },
     {
       "source": "/pdf/edition-09.pdf",

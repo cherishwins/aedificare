@@ -98,6 +98,12 @@ const checkDescription = (label, file, problems) => {
     const got = canonOf(rules[0]);
     const want = e.draft ? [] : [origin + e.path];
     if (got.join() !== want.join()) problems.push(`vercel.json: ${e.pdf} names canonical ${got.join(', ') || 'none'}, not ${want.join() || 'none (a draft)'}`);
+    // A draft's print carries noindex, as its page does, because robots.txt keeps no crawler from a PDF and Google
+    // reads noindex on a file only from its header; a published edition's print carries none, so the header comes
+    // off in the commit that flips draft, beside the canonical that goes in (Decisions log, 1 Nov 2026).
+    const robots = (rules[0].headers || []).filter((x) => /^x-robots-tag$/i.test(x.key)).map((x) => x.value);
+    if (e.draft && !robots.some((v) => /\bnoindex\b/.test(v))) problems.push(`vercel.json: ${e.pdf} is a draft's print and carries no X-Robots-Tag: noindex`);
+    if (!e.draft && robots.length) problems.push(`vercel.json: ${e.pdf} is published and carries X-Robots-Tag ${robots.join(', ')}`);
   }
   for (const h of pdfRules) if (!EDITIONS.some((x) => x.pdf === h.source)) problems.push(`vercel.json: a header rule for ${h.source}, which no edition prints`);
   const catchAll = vercel.headers.filter((h) => !/^\/pdf\//.test(h.source) && canonOf(h).length);
@@ -107,5 +113,5 @@ const checkDescription = (label, file, problems) => {
     for (const p of problems) console.error('  ' + p);
     process.exit(1);
   }
-  console.log(`check-contents: ${checked} entries verified against the built pages; ${PUBLISHED.length + 1} descriptions within ${DESC.min} to ${DESC.max} characters; ${packaged} editions' dek, seoTitle and description in their lengths; ${pdfs} PDFs' Link headers match the list (a canonical for each published edition's, none for a draft's)`);
+  console.log(`check-contents: ${checked} entries verified against the built pages; ${PUBLISHED.length + 1} descriptions within ${DESC.min} to ${DESC.max} characters; ${packaged} editions' dek, seoTitle and description in their lengths; ${pdfs} PDFs' Link headers match the list (a canonical for each published edition's; none, and noindex, for a draft's)`);
 })();

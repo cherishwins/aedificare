@@ -98,6 +98,11 @@ export function problems(raw) {
     if (!/^[A-Za-z0-9_-]{11}$/.test(f?.id ?? '')) out.push(`${slug}: id ${JSON.stringify(f?.id)} is not an eleven-character YouTube id`);
     else if (ids.has(f.id)) out.push(`${slug}: id ${f.id} is already ${ids.get(f.id)}'s film; one video is one edition's`);
     else ids.set(f.id, slug);
+    // When the site's link to this film last changed (tools/films.mjs writes it whenever it writes the entry), and so
+    // when the watch page, and the edition's player, last changed: the sitemap's lastmod (CLAUDE.md, Decisions log,
+    // 1 Nov 2026). Never in the future, and never before the watch pages shipped, which the backfill took as its floor.
+    if (!ISO.test(f?.linked ?? '')) out.push(`${slug}: linked ${JSON.stringify(f?.linked)} is not an ISO instant in UTC`);
+    else if (Date.parse(f.linked) > Date.now() + 864e5) out.push(`${slug}: linked ${f.linked} is in the future`);
     // The length is the film file's, measured, and the link shows it rounded up: both are in the entry, so they must agree.
     const s = f?.source ?? {};
     if (s.release !== `film-${slug}`) out.push(`${slug}: the film's source release ${JSON.stringify(s.release)} is not film-${slug}`);
@@ -159,7 +164,7 @@ export const films = () => {
   if (bad.length) throw new Error(`films: ${bad.length} problem(s) in ${FILMS_FILE}; tools/films.mjs writes it\n  ${bad.join('\n  ')}`);
   cache = EDITIONS.filter((e) => raw[e.slug]).map((e) => {
     const f = raw[e.slug];
-    return { slug: e.slug, id: f.id, url: watchUrl(f.id), embed: embedUrl(f.id), duration: f.duration, length: clock(f.duration), iso: isoDuration(f.duration), thumb: f.thumb, poster: f.poster };
+    return { slug: e.slug, id: f.id, url: watchUrl(f.id), embed: embedUrl(f.id), duration: f.duration, length: clock(f.duration), iso: isoDuration(f.duration), linked: f.linked, thumb: f.thumb, poster: f.poster };
   });
   return cache;
 };

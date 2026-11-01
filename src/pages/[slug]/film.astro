@@ -30,13 +30,20 @@ const f = film(slug);
 const t = transcript(slug);
 const path = watchPath(e);
 const name = `${e.title}: the film`;
+// The <title> is the page's own h1, the dek with it, so the title link says what the film is about and is not its
+// edition's (Google's title-link guide); the description is the page's own too, read from what the page shows (the
+// dek, the length, the chapters, the transcript), not the edition's, which an identical pair would repeat (Google's
+// snippet guide; Decisions log, 1 Nov 2026). Nothing in either is typed here.
+const pageTitle = e.dek ? `${name}. ${e.dek}` : name;
+const stop = (s) => (/[.?!]$/.test(s) ? s : `${s}.`);
+const pageDescription = `${stop(e.dek ?? e.lede)} The film, ${f.length}, in ${t.chapters.length} chapters, with the full transcript.`;
 // The acid word of the title, as on the edition's cover: this surface's one Acid.
 const [before, after] = e.title.split(e.acid);
 const day = zonedInstant(t.uploaded).slice(0, 10);
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const dayLabel = `${+day.slice(8)} ${MONTHS[+day.slice(5, 7) - 1]} ${day.slice(0, 4)}`;
 ---
-<Base title={name} description={describe(e)} path={path} ogImage={`/og/${e.slug}.png`} schema={[videoGraph(e)]}>
+<Base title={pageTitle} description={pageDescription} path={path} ogImage={`/og/${e.slug}.png`} schema={[videoGraph(e)]}>
   <main id="main">
     <section class="surface watch-cover" aria-label="Cover">
       <Masthead />

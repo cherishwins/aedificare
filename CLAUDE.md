@@ -47,7 +47,7 @@ Shipped (2026-09-15):
 | `/68ce724887380cc177ba53cc75658d16.txt` | the IndexNow key, public by design (`public/68ce724887380cc177ba53cc75658d16.txt`; Discoverability) | static |
 | `/privacy.txt` | the privacy statement: first the films' player on the editions (what the press loads, what applies from then on; YouTube's API terms require it of a site that embeds the player, 2026-10-26) and on the watch pages (loaded as the page opens, 2026-10-30), then the YouTube uploader's, which Google's consent screen needs before the app can leave Testing (2026-10-17); plain text like `humans.txt`, not a page, linked from the rail beside every player | static |
 | `/index.json` `/og/desk.png` | the index as JSON and the desk's card, for apt.grok.me to fetch and hotlink | generated |
-| `/lead/*.png` | each published edition's lead image, one of its own figures that is not text rendered alone (seven; The Subtraction, The Closest Humans and The Hand in the Water have none, `NO_FIGURE`) at 16:9, 4:3 and 1:1, content-hashed (`src/lib/lead-manifest.json`), first in its NewsArticle's `image` (Decisions log, 30 Oct 2026) | rendered by hand, checked by the build |
+| `/lead/*.png` | each published edition's lead image, one of its own figures that is not text rendered alone (seven; The Subtraction, The Closest Humans and The Hand in the Water have none, `NO_FIGURE`) at 16:9, 4:3 and 1:1, content-hashed (`src/lib/lead-manifest.json`), its NewsArticle's `image`, the card left out of it since 1 Nov (Decisions log, 30 Oct and 1 Nov 2026) | rendered by hand, checked by the build |
 | `/film/*.png` | each linked film's own thumbnail, reduced and content-hashed, beside a link to its YouTube watch page at the edition's end and on the home (Decisions log, 21 Oct 2026) | generated |
 | `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-09.pdf` `/pdf/edition-10.pdf` `/pdf/edition-11.pdf` | the print editions as uploaded | as uploaded |
 
@@ -250,7 +250,8 @@ edition's dek, seoTitle and description present and in their lengths (title
 and dek 110 at most, seoTitle 70, description 140 to 160, no em dash), and
 `vercel.json`'s PDF Link headers equal to the editions list (the licence on
 every print, a canonical naming its page on a published edition's, none on
-a draft's), and no dek with a colon (the headline joins title and dek with
+a draft's, whose print answers `X-Robots-Tag: noindex` instead, as a
+published one's never does), and no dek with a colon (the headline joins title and dek with
 one). `tools/check-discovery.cjs`, the build's last step, holds what a search
 engine reads off `dist/`, for the home, every published edition and every
 draft, taken from the editions list and never from the sitemap: one URL per page (canonical, `og:url` and every
@@ -271,10 +272,12 @@ whole (name, description, thumbnails that are built files, an offset
 transcript, a Clip per chapter whose url is the page at its second), exactly
 one iframe in its HTML (the embed URL, no autoplay) and no iframe on any
 other page, every chapter link one of its chapters, every published
-edition's NewsArticle opening its `image` with its lead figure's three
-frames (where it has one) and ending with the card and naming its film by `@id` alone, every
-edition's byline dated as its `datePublished`, every Person node the one on
-`/about`, and every page's footer linking the three pages on the method,
+edition's NewsArticle carrying as its `image` its lead figure's three
+frames alone (the card alone where `NO_FIGURE` says it has none) and naming its film by `@id` alone, every
+edition's byline dated as its `datePublished`, every Person, a node or
+nested as an author or creator, the one on `/about` with that url inline,
+one WebSite node (`/#website`, the domain as its alternate name), an
+Organization on the home, and every page's footer linking the three pages on the method,
 `/404` included.
 `node tools/transcripts.mjs --check`, the build's second step, holds
 `src/lib/transcripts` to the linked films (one per film, for its current
@@ -456,7 +459,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   the link shows, the film file it was measured from (its release, name,
   size, filing time and length in seconds), the thumbnail's two files, size
   and alt text, and the release asset it was reduced from with that asset's
-  sha256, and the poster (the release's 1280 by 720 thumbnail byte for
+  sha256, `linked` (when the entry was last written, the sitemap's lastmod
+  for the watch page and the edition; backfilled on 1 Nov 2026 as the later
+  of the commit that last changed the entry and 18:01 UTC on 30 Oct, when the
+  watch pages reached `main`), and the poster (the release's 1280 by 720 thumbnail byte for
   byte, `POSTER`; Decisions log, 28 Oct 2026). The JSON is written only by `tools/films.mjs`. The module holds
   the thumbnail's size (`THUMB`, 112 by 63, and why) and the length rule
   (`lengthOf`: the file's own length rounded UP, as YouTube shows it; the
@@ -2629,7 +2635,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
 - `src/pages/robots.txt.ts` **explicitly allows every named AI crawler**
   (GPTBot, ClaudeBot, PerplexityBot, CCBot, Google-Extended, Applebot,
   Bytespider and the rest). Most sites block these; this one does the
-  opposite on purpose. Do not "tighten" it. Drafts are the only exclusion.
+  opposite on purpose. Do not "tighten" it. Drafts are the only exclusion,
+  and Googlebot and Bingbot have a group of their own that leaves them out
+  of it, so they can read a draft's `noindex` (Decisions log, 1 Nov 2026).
 - `src/pages/llms.txt.ts` is generated from the editions list, llmstxt.org
   shape, and states what an edition is, which does not change once it is
   issued; an edition's film follows its PDF there once it is out, as it
@@ -2691,11 +2699,16 @@ for a shortlist for bios and cards, which is a separate deliverable.
   from `articleGraph()` in `src/lib/schema.mjs`: a NewsArticle (headline,
   the print's name as alternativeHeadline, the description, datePublished
   and dateModified at 00:00 America/Vancouver with that day's offset,
-  url, isAccessibleForFree, the licence, the author and publisher by id,
-  the OG card as image, the page's own sources that print an address as
+  url, isAccessibleForFree, the licence, the author (by id, with its name
+  and url inline) and the publisher by id, the lead figure's three frames
+  as image (the OG card where `NO_FIGURE` holds), the page's own sources that print an address as
   `citation`, `isBasedOn` for an amendment, `isPartOf` its series), the
   Organization (logo `public/icon-512.png`, sameAs the channel), the Person
-  (sameAs the channel and LinkedIn) and a BreadcrumbList. A page passes
+  (sameAs the channel and LinkedIn) and a BreadcrumbList. Every page also
+  carries the WebSite node from `src/layouts/Base.astro` (`/#website`, the
+  name and the domain as its alternate, the author and publisher by
+  reference), and the home the Organization and the Person, as Google's
+  organization doc asks. A page passes
   only its alternativeHeadline and its sources list. Every property
   describes something on the page, no rating and no FAQ, with one
   exception kept on purpose: alternativeHeadline is the print's name
@@ -2712,8 +2725,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
   source naming several documents is named by the one whose publisher the
   address is on (`pick` and `nameOf` in `src/lib/schema.mjs`). `dateModified` is
   `modified`, the day the page was last corrected after issue (Findings),
-  else the date, and it is also the sitemap's `<lastmod>`, never the build
-  time.
+  else the date. The sitemap's `<lastmod>` is the later of that and the
+  time the edition's film was last linked (`linked` in `src/lib/films.json`),
+  and a watch page's is that `linked` time, never the build time and never
+  YouTube's upload time (Decisions log, 1 Nov 2026).
 - **The news sitemap and IndexNow** (30 Oct 2026). `/sitemap-news.xml`
   lists the published editions dated within two days of the build (empty
   most days), with the seoTitle and the date with its offset; it is in
@@ -2761,11 +2776,13 @@ for a shortlist for bios and cards, which is a separate deliverable.
   Decisions log). Each linked film has `/<slug>/film`, in the pages sitemap
   and in `/sitemap-video.xml`, whose `VideoObject` is the film's and whose
   Clips are its chapters; the edition's NewsArticle names it by `@id` alone,
-  and its rail links it ("Film page · m:ss"). Each published edition with
+  and its rail links it ("<Title>: the film · m:ss"). A watch page's
+  `<title>` is its h1, the dek with it, and its description its own, read
+  from the dek, the length and the chapters. Each published edition with
   a figure that is not text (seven of ten; `NO_FIGURE` in `src/lib/lead.mjs`
-  names the three without one and why) opens its NewsArticle's `image`
-  with its lead figure (16:9, then 4:3, then
-  1:1), then the card. The lead image is a render of a figure the page
+  names the three without one and why) carries as its NewsArticle's `image`
+  its lead figure alone (16:9, then 4:3, then 1:1); the card is og:image
+  only, since Google asks for no image with text in the markup. The lead image is a render of a figure the page
   already shows, so the page carries no second copy of it: the figure on
   the page IS the lead image, seen where it belongs. Every edition carries
   a byline linked to `/about`, whose ProfilePage holds the Person every
@@ -3454,6 +3471,53 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   **The contact address** is the owner's, given the same day, written
   once as `SITE.contact` in `src/config.mjs`, and `/about` prints it as a
   mailto block link under Contact.
+
+- **2026-11-01 · The structured data, held to Google's own pages.** The
+  owner pasted a TechWyse article on Google's VideoObject update of 24 Sep
+  2026 (creator, interactionStatistic) and asked how structure brings more
+  traffic. Four lanes read Google's own documentation (video, article and
+  Discover, site names, organization, profile page and breadcrumbs, and the
+  crawl guides) against the built pages, and a skeptic per lane reopened
+  every source and file. The update is real (Search Central's changelog,
+  24 Sep 2026) and the watch pages already met it: the creator was there
+  with its name. What changed, each upheld or amended by its skeptic:
+  the author and the creator carry their url inline, because Google's
+  Article and video docs ask for it and never say they resolve an @id;
+  the WebSite node has an @id, the domain as `alternateName` (Google's
+  site-names doc), the Person and the Organization by reference and no
+  sameAs, which belongs to the Organization (a website is not a channel),
+  and the home carries the Organization and the Person, which Google's
+  organization doc asks for there; an edition's NewsArticle `image` is its
+  lead figure's three frames alone, the card left out, because Google asks
+  for no image with text in the markup or og:image, and the card stays
+  og:image by override 2, a cost the owner may weigh (the three
+  `NO_FIGURE` editions keep the card, as before); the drafts' prints
+  answer `X-Robots-Tag: noindex`, since robots.txt never covered `/pdf/`
+  and Google reads noindex on a file only from its header; Googlebot and
+  Bingbot get a robots.txt group with no draft disallowed, because Google
+  reads noindex only on a page it may fetch, and a blocked page can still
+  be listed bare when linked, while every other crawler keeps off the
+  drafts; a watch page's `<title>` is its own h1 and its description its
+  own, where both repeated the edition's, and its one inbound link reads
+  "<Title>: the film" where it read "Film page"; and the sitemap's lastmod
+  for a watch page is when its film was linked, not YouTube's upload,
+  which came before the film was public and, for eight of the ten, before
+  the page existed. **Left out on purpose**: interactionStatistic (view
+  and like counts), because counts cannot be read at build time, marked-up
+  content must be visible and accurate, and a stale count shown is worse
+  than none; contentUrl, because the file is YouTube's. **The owner's**:
+  whether the lead frames should drop their caption and source marks (text
+  in a thumbnail, which Discover asks to avoid, though one carries a
+  caveat); a `description` for the Person on `/about`, taken verbatim from
+  its copy; whether the channel belongs on the Person's sameAs as well as
+  the Organization's; and the news sitemap's two-day window, keyed on the
+  edition's date where the release day would be truer (the code is the
+  date). **Still open, not built**: uploadDate is the API upload time, and
+  Google defines it as first publication; the fix reads YouTube's
+  `publishedAt` in Actions, files it on the release and carries it into
+  `src/lib/films.json`, and the visible line says "Published". Google
+  Search Console, which ships nothing and is the only way to see any of
+  this work, is the owner's ten minutes.
 
 ## Open
 
