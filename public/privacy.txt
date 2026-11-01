@@ -1,9 +1,24 @@
 Privacy: Aedificare
 
-Two things here touch YouTube, and this page says what each does.
+This page says what the site counts about its readers, and what the two
+things here that touch YouTube do.
 
 
-1. The films on this site
+1. Page views
+
+The site counts page views with Vercel Web Analytics, the analytics of
+the host that serves it. Each page loads one script from this site's own
+address, and that script reports the page's address, the page it came
+from, the country, and the browser, operating system and kind of device.
+It sets no cookies. Vercel tells one visit from another with a hash of
+the request that it discards after 24 hours; what it records is not tied
+to a person or an IP address, and it follows no one to another site.
+The counts are kept by Vercel under its privacy notice
+(https://vercel.com/legal/privacy-notice) and are seen only by the
+site's owner, in aggregate.
+
+
+2. The films on this site
 
 Each edition's page carries its film, played through YouTube's embedded
 player in its privacy-enhanced mode (youtube-nocookie.com). The player is
@@ -23,7 +38,7 @@ There the same player loads as the page opens, without a press, and from
 that moment the same terms and policy apply to it.
 
 
-2. The Aedificare uploader
+3. The Aedificare uploader
 
 The Aedificare uploader is a private tool that puts Aedificare's own films
 on Aedificare's own YouTube channel (@aedificare_art). It is used by the

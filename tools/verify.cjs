@@ -97,6 +97,8 @@ function serve(page, onBroken, onOffOrigin = () => {}) {
   return page.route('**/*', (route) => {
     const u = new URL(route.request().url());
     if (u.host !== 'local.test') { onOffOrigin(u.href); return route.fulfill({ status: 204, body: '' }); }
+    // Vercel serves /_vercel/ (Web Analytics) at the edge, not from dist/; the live sweep proves it answers.
+    if (u.pathname.startsWith('/_vercel/')) return route.fulfill({ status: 204, body: '' });
     let f = path.join(ROOT, decodeURIComponent(u.pathname));
     if (f.endsWith('/')) f += 'index.html';
     if (fs.existsSync(f) && fs.statSync(f).isDirectory()) f = path.join(f, 'index.html');
