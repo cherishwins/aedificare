@@ -3354,7 +3354,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   the standards", "listed under amendments") set after it as block links,
   the sentence kept without them; no contact line, because `SITE.contact`
   is null until the owner sends the address (the "placeholder" settled
-  above lives in `src/config.mjs`, never on the page); YouTube and
+  above lives in `src/config.mjs`, never on the page; sent 1 Nov 2026,
+  below); YouTube and
   LinkedIn read from `src/config.mjs`. `/amendments` is generated from
   `amends` and `amendSummary`; the two summaries are the checker's
   amended wording, not the copy's, because the checker found both of the
@@ -3408,6 +3409,34 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   JSON-LD became one graph per edition, the sitemap took real lastmod dates
   and a news sitemap, IndexNow was wired to every push, and the editions
   in a thread link each other; `tools/check-discovery.cjs` holds all of it.
+
+- **2026-11-01 · No analytics on the page, again, and the contact
+  address.** The owner opened Vercel's "Install Web Analytics" PR (#93,
+  `@vercel/analytics` injected from `src/scripts/aed.js`) because they
+  could not see how the site performs, and its sweep failed: 280 broken
+  references, every page asking for `/_vercel/insights/script.js`, which
+  is not in `dist/` (Vercel serves it), and 795 B more script. Read before
+  deciding: Web Analytics is free on Hobby to 50,000 events a month and
+  pauses past that rather than billing, sets no cookies and drops its
+  visitor hash after 24 hours (Vercel's own pricing and privacy pages,
+  read the same day), and sends to this origin, so it breaks no rule but
+  the budget; but its script measured 2,043 B gzipped from Vercel's CDN,
+  which takes the site to about 5,150 of 5,120 B even as one bare script
+  tag, and on the live site `/_vercel/insights/script.js` answered 404
+  (Web Analytics not yet enabled; `/_vercel/speed-insights/script.js`
+  answered 200, Speed Insights is, at 4.5 kB gzipped and loaded by no
+  page). Asked to choose between the script with the budget raised to 6
+  kB, the script squeezed under 5 kB, and no on-page analytics, **the
+  owner chose no on-page analytics**: Google Search Console instead,
+  which ships no script and reports search impressions, clicks, queries
+  and pages, and whose domain verification is also what the YouTube
+  client needs to leave Testing (Open 9). So "no analytics" in Hard
+  constraints and `/standards`' "The site runs no analytics" stay true,
+  #93 was closed unmerged, and the budget is unchanged. The YouTube
+  channel's numbers come from `tools/youtube-analytics.mjs` as before.
+  **The contact address** is the owner's, given the same day, written
+  once as `SITE.contact` in `src/config.mjs`, and `/about` prints it as a
+  mailto block link under Contact.
 
 ## Open
 
