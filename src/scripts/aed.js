@@ -1,4 +1,7 @@
+import { inject } from '@vercel/analytics';
 import { rhodonea, drift, DOVE_PATH } from '../lib/rose.mjs';
+
+inject();
 
 const NS = 'http://www.w3.org/2000/svg';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
