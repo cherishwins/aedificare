@@ -4,6 +4,7 @@ import '../styles/base.css';
 import OG from '../lib/og-manifest.json';
 import { LICENCE } from '../lib/editions.mjs';
 import { zoned } from '../lib/dates.mjs';
+import { WEBSITE_ID, ORG_ID, author } from '../lib/schema.mjs';
 
 interface Props {
   title: string;
@@ -38,14 +39,19 @@ const ogTitle = ogTitleProp ?? fullTitle;
 const entry = (OG as Record<string, { src: string; alt: string }>)[ogImage] ?? OG['/og/home.png'];
 const og = abs(entry.src);
 
+// The site, once, with Google's site-name properties (name, and the domain as its alternate). The author is the Person
+// on /about and the publisher the Organization, by reference; the Organization carries the channel (sameAs), which a
+// website is not (CLAUDE.md, Decisions log, 1 Nov 2026).
 const site = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
+  '@id': WEBSITE_ID,
   name: SITE.name,
+  alternateName: [new URL(SITE.origin).host],
   url: SITE.origin,
-  author: { '@type': 'Person', name: SITE.author },
+  author: author(),
+  publisher: { '@id': ORG_ID },
   license: LICENCE.url,
-  sameAs: [SITE.channel],
 };
 ---
 <!doctype html>

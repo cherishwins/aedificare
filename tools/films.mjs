@@ -54,7 +54,7 @@ import crypto from 'node:crypto';
 import zlib from 'node:zlib';
 import { execFileSync } from 'node:child_process';
 import { PUBLISHED } from '../src/lib/editions.mjs';
-import { films as linked, problems, readFilms, clock, lengthOf, watchUrl, THUMB, POSTER, FILMS_FILE as FILE, FILMS_DIR as DIR } from '../src/lib/films.mjs';
+import { films as linked, problems, readFilms, clock, lengthOf, watchUrl, THUMB, POSTER, FILMS_FILE as FILE, FILMS_DIR as DIR, DROPS_FILE } from '../src/lib/films.mjs';
 
 const REPO = 'cherishwins/aedificare';
 
@@ -180,11 +180,15 @@ if (argv[0] === '--check') {
 const films = readFilms();
 
 /* ---- --drop ----------------------------------------------------------------- */
+// The moment a film comes off an edition is that page's last change, so it is kept (src/lib/film-drops.json) for the
+// sitemap's lastmod, and cleared when the edition's film is linked again (CLAUDE.md, Decisions log, 1 Nov 2026).
+const drops = fs.existsSync(DROPS_FILE) ? JSON.parse(fs.readFileSync(DROPS_FILE, 'utf8')) : {};
 let dropped = 0;
 if (argv[0] === '--drop') {
   for (const slug of argv.slice(1)) {
     if (!films[slug]) fail(`${slug} has no film linked`);
     delete films[slug];
+    drops[slug] = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
     dropped++;
     console.log(`  ${slug}: film taken off the site`);
   }
@@ -258,7 +262,9 @@ if (argv[0] === '--drop') {
     fs.writeFileSync(path.join(DIR, posterName), src);
     console.log(`  ${path.join(DIR, posterName)}`.padEnd(48) + `${img.width}x${img.height}  ${src.length} B`);
     films[e.slug] = {
-      id, duration, source,
+      // linked: the moment this entry was written, which is when the page's film or its picture changed; the
+      // sitemap's lastmod for the watch page and the edition reads it (src/lib/films.mjs, astro.config.mjs).
+      id, duration, linked: new Date().toISOString().replace(/\.\d+Z$/, 'Z'), source,
       thumb: { src: write(1), src2x: write(2), width: THUMB.width, height: THUMB.height, alt,
         source: { release: rel.tag_name, asset: meta.thumbnail, sha256: digest } },
       poster: { src: `/film/${posterName}`, width: POSTER.width, height: POSTER.height },
@@ -272,6 +278,8 @@ const ordered = {};
 for (const e of PUBLISHED) if (films[e.slug]) ordered[e.slug] = films[e.slug];
 for (const slug of Object.keys(films)) if (!ordered[slug]) ordered[slug] = films[slug]; // a draft's entry stays, for the check to name
 fs.writeFileSync(FILE, JSON.stringify(ordered, null, 2) + '\n');
+for (const slug of Object.keys(drops)) if (ordered[slug]) delete drops[slug];
+fs.writeFileSync(DROPS_FILE, JSON.stringify(drops, null, 2) + '\n');
 const keep = new Set(Object.values(ordered).flatMap((f) => [f.thumb?.src, f.thumb?.src2x, f.poster?.src]).filter(Boolean).map((s) => path.basename(s)));
 if (fs.existsSync(DIR)) for (const f of fs.readdirSync(DIR)) if (!keep.has(f)) { fs.unlinkSync(path.join(DIR, f)); console.log(`  removed ${path.join(DIR, f)}`); }
 const bad = problems(ordered);

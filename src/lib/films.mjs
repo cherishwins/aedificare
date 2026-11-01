@@ -84,6 +84,24 @@ const pngSize = (bytes) => {
   return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
 };
 const ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z$/;
+// The watch pages reached main at fdf3f1b (PR #89): the floor of every `linked` time, which the backfill took.
+const WATCH_PAGES_SHIPPED = Date.parse('2026-10-30T18:01:29Z');
+/**
+ * When a film was taken off an edition (`tools/films.mjs --drop`), keyed by edition: the edition's page lost its
+ * player and its film's @id then, so its sitemap lastmod must not fall back behind that moment (astro.config.mjs).
+ * Written only by tools/films.mjs, which clears an edition's entry when it links a film again.
+ */
+export const DROPS_FILE = 'src/lib/film-drops.json';
+export const filmDrops = () => {
+  const raw = fs.existsSync(DROPS_FILE) ? JSON.parse(fs.readFileSync(DROPS_FILE, 'utf8')) : {};
+  const linkedNow = readFilms();
+  for (const [slug, at] of Object.entries(raw)) {
+    if (!EDITIONS.some((e) => e.slug === slug)) throw new Error(`films: ${DROPS_FILE} names ${slug}, which no edition has`);
+    if (!ISO.test(at) || Date.parse(at) < WATCH_PAGES_SHIPPED) throw new Error(`films: ${DROPS_FILE}: ${slug}'s ${JSON.stringify(at)} is not an ISO instant after the watch pages shipped`);
+    if (linkedNow[slug]) throw new Error(`films: ${DROPS_FILE} names ${slug}, whose film is linked; tools/films.mjs clears a drop when it links`);
+  }
+  return new Map(Object.entries(raw).map(([slug, at]) => [slug, new Date(at)]));
+};
 
 /** Everything wrong with a films.json object, as sentences; empty when it holds. */
 export function problems(raw) {
@@ -98,6 +116,13 @@ export function problems(raw) {
     if (!/^[A-Za-z0-9_-]{11}$/.test(f?.id ?? '')) out.push(`${slug}: id ${JSON.stringify(f?.id)} is not an eleven-character YouTube id`);
     else if (ids.has(f.id)) out.push(`${slug}: id ${f.id} is already ${ids.get(f.id)}'s film; one video is one edition's`);
     else ids.set(f.id, slug);
+    // When the site's link to this film last changed (tools/films.mjs writes it whenever it writes the entry), and so
+    // when the watch page, and the edition's player, last changed: the sitemap's lastmod (CLAUDE.md, Decisions log,
+    // 1 Nov 2026). Not more than a day ahead of this machine's clock, and never before the watch pages shipped, which
+    // the backfill took as its floor.
+    if (!ISO.test(f?.linked ?? '')) out.push(`${slug}: linked ${JSON.stringify(f?.linked)} is not an ISO instant in UTC`);
+    else if (Date.parse(f.linked) > Date.now() + 864e5) out.push(`${slug}: linked ${f.linked} is in the future`);
+    else if (Date.parse(f.linked) < WATCH_PAGES_SHIPPED) out.push(`${slug}: linked ${f.linked} is before the watch pages reached main (2026-10-30T18:01:29Z)`);
     // The length is the film file's, measured, and the link shows it rounded up: both are in the entry, so they must agree.
     const s = f?.source ?? {};
     if (s.release !== `film-${slug}`) out.push(`${slug}: the film's source release ${JSON.stringify(s.release)} is not film-${slug}`);
@@ -159,7 +184,7 @@ export const films = () => {
   if (bad.length) throw new Error(`films: ${bad.length} problem(s) in ${FILMS_FILE}; tools/films.mjs writes it\n  ${bad.join('\n  ')}`);
   cache = EDITIONS.filter((e) => raw[e.slug]).map((e) => {
     const f = raw[e.slug];
-    return { slug: e.slug, id: f.id, url: watchUrl(f.id), embed: embedUrl(f.id), duration: f.duration, length: clock(f.duration), iso: isoDuration(f.duration), thumb: f.thumb, poster: f.poster };
+    return { slug: e.slug, id: f.id, url: watchUrl(f.id), embed: embedUrl(f.id), duration: f.duration, length: clock(f.duration), iso: isoDuration(f.duration), linked: f.linked, thumb: f.thumb, poster: f.poster };
   });
   return cache;
 };

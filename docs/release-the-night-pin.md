@@ -2,11 +2,17 @@
 
 The Night Pin (Edition 11, 30 Oct 2026) is held: built and live at
 `/the-night-pin`, but `draft: true` in `src/lib/editions.mjs` keeps it out of
-search and out of every list. That one flag does all five things the hold
-needs, the same way The Grade is held:
+search and out of every list. That flag does the hold's work, the same way
+The Grade is held, with one typed line beside it (the print's header, which
+`vercel.json` cannot read from the flag and `tools/check-contents.cjs` holds
+to it):
 
 - the page carries `noindex, nofollow`;
-- `robots.txt` disallows `/the-night-pin` in both user-agent groups;
+- `robots.txt` disallows `/the-night-pin` for every crawler but Googlebot and
+  Bingbot, which may fetch it so that they read its `noindex` (a page robots.txt
+  blocks can still be listed bare when someone links it);
+- its print, `/pdf/edition-11.pdf`, answers with `X-Robots-Tag: noindex` in
+  `vercel.json`, which `tools/check-contents.cjs` requires of a draft's print;
 - it is left out of the home index and the masthead;
 - it is left out of the sitemap and the news sitemap;
 - it is left out of the feed, `llms.txt` and `index.json`.
@@ -28,12 +34,16 @@ needs, the same way The Grade is held:
    code is the date.
 2. Re-check its dek, seoTitle and description against the page, as
    CLAUDE.md requires for any packaging change.
-3. Run `npm run og`, then keep only the cards whose content changed: The
+3. In `vercel.json`, take `X-Robots-Tag: noindex` off `/pdf/edition-11.pdf`
+   and add `<https://aedificare.art/the-night-pin>; rel="canonical"` to its
+   `Link`, as every published print carries; `tools/check-contents.cjs` fails
+   until both are done.
+4. Run `npm run og`, then keep only the cards whose content changed: The
    Night Pin's (its date) and the home's (it counts published editions).
    Restore every other card to its committed bytes (CLAUDE.md,
    Discoverability).
-4. `npm run build` and `node tools/verify.cjs`, both clean. The discovery
+5. `npm run build` and `node tools/verify.cjs`, both clean. The discovery
    gate then requires the page in the sitemap.
-5. Merge. IndexNow sends `/the-night-pin` and `/` once the deploy is live,
-   provided the apex no longer redirects to `www` (Open 1).
-6. Update CLAUDE.md's Shipped table from **held** to **live**.
+6. Merge. IndexNow sends `/the-night-pin` and `/` once the deploy is live,
+   now that the apex serves without a redirect (Open 1, resolved 1 Nov 2026).
+7. Update CLAUDE.md's Shipped table from **held** to **live**.

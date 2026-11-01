@@ -31,6 +31,14 @@ const OG = JSON.parse(fs.readFileSync('src/lib/og-manifest.json', 'utf8'));
 export const ORG_ID = `${SITE.origin}/#org`;
 // The author's node lives on /about since 30 Oct 2026, the page that is about him (it was the home's #jesse).
 export const PERSON_ID = `${SITE.origin}/about#jesse`;
+/** The site, once: the WebSite node every page carries (src/layouts/Base.astro) and every WebPage is part of. */
+export const WEBSITE_ID = `${SITE.origin}/#website`;
+/**
+ * The author, as an article's author or a film's creator. Google's Article and video docs ask for the author's url
+ * inline (author.url, creator.url) and never say they resolve an @id, so the url rides with the reference to the
+ * Person node on /about (CLAUDE.md, Decisions log, 1 Nov 2026).
+ */
+export const author = () => ({ '@type': 'Person', '@id': PERSON_ID, name: SITE.author, url: `${SITE.origin}/about` });
 /** An edition's watch page: its film's own page (CLAUDE.md, Decisions log, 30 Oct 2026). */
 export const watchPath = (e) => `${e.path}/film`;
 
@@ -164,11 +172,13 @@ export const articleGraph = (e, { alternativeHeadline, sources } = {}) => {
     isAccessibleForFree: true,
     license: LICENCE.url,
     inLanguage: SITE.locale,
-    author: { '@type': 'Person', '@id': PERSON_ID, name: SITE.author },
+    author: author(),
     publisher: { '@id': ORG_ID },
-    // The lead image's three frames first (a figure of the edition's own, not text; src/lib/lead.mjs), then the
-    // type card, which stays og:image (override 2). A draft has no lead image yet.
-    image: [...(e.draft ? [] : lead(e.slug)?.frames ?? []).map((f) => abs(f.src)), ...(card ? [abs(card.src)] : [])],
+    // The lead image's three frames (a figure of the edition's own, not text; src/lib/lead.mjs) where it has one, and
+    // only those: Google asks for no image with text in the markup, and the type card is type (Decisions log, 1 Nov
+    // 2026). The card stays og:image (override 2), and is the image alone where the page has no figure that is not
+    // text (NO_FIGURE) and on a draft, which has no lead image yet.
+    image: (() => { const l = e.draft ? null : lead(e.slug); return l ? l.frames.map((f) => abs(f.src)) : card ? [abs(card.src)] : []; })(),
   };
   // The film, by reference only: its VideoObject lives on the watch page, whose main content it is.
   if (!e.draft && film(e.slug)) article.video = { '@id': `${abs(watchPath(e))}#video` };
@@ -213,7 +223,7 @@ export const videoGraph = (e) => {
     inLanguage: SITE.locale,
     isAccessibleForFree: true,
     publisher: { '@id': ORG_ID },
-    creator: { '@type': 'Person', '@id': PERSON_ID, name: SITE.author },
+    creator: author(),
     isBasedOn: abs(e.path),
     transcript: t.chapters.map((c) => c.paragraphs.join('\n\n')).join('\n\n'),
     hasPart: t.chapters.map((c) => ({ '@type': 'Clip', name: c.title, startOffset: c.t, endOffset: c.end, url: `${url}?t=${c.t}` })),
@@ -239,7 +249,7 @@ export const pageGraph = ({ path, name, description, profile = false }) => {
     description,
     url,
     inLanguage: SITE.locale,
-    isPartOf: { '@type': 'WebSite', name: SITE.name, url: SITE.origin },
+    isPartOf: { '@id': WEBSITE_ID },
     publisher: { '@id': ORG_ID },
     ...(profile ? { mainEntity: { '@id': PERSON_ID } } : { author: { '@id': PERSON_ID } }),
   };
