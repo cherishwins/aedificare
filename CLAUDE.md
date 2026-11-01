@@ -343,7 +343,8 @@ for a shortlist for bios and cards, which is a separate deliverable.
   settings (domains above all) are the owner's to change. The new project
   carries no Web Analytics script (none in the live HTML), so the fork's
   one divergence (Open 6) is gone with it. The apex/`www` direction was
-  set wrong by the new project (Open 1). What follows is the history.
+  set wrong by the new project and set right by the owner on 1 Nov 2026
+  (Open 1). What follows is the history.
 - **Until 27 Oct 2026 Vercel built a FORK of this repo, not this repo** (found 2026-09-16).
   The production project is on the owner's Hobby team "solidarity" (slug
   koreawins), which the Vercel MCP cannot see, and it is connected to
@@ -364,7 +365,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   "builds this repo's main, proved 2026-09-15 05:33" was true only because
   the fork had just been synced. The domain is pointed (Vercel anycast
   `216.198.79.1`, `64.29.17.1`); the apex is primary and `www` redirects
-  to it (Open 1, resolved; reopened 28 Oct). In code the origin is written
+  to it (Open 1, resolved; reopened 28 Oct; resolved again 1 Nov). In code the origin is written
   once, `PRODUCTION_ORIGIN` in `src/config.mjs`; `SITE.origin` is it unless
   `SITE_ORIGIN` overrides it for previews, and `tools/indexnow.mjs`,
   `tools/check-contents.cjs`, `tools/check-discovery.cjs` and the two
@@ -1666,11 +1667,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   run saw it, and a 429, a 5xx or no connection leave the record where it
   was, so the next run sends those pages too; with no record it sends
   every published page. Only a 400, 403 or 422 is red, because the key or
-  the request is ours to fix. **It sends nothing while Open 1 stands**:
-  IndexNow reads the key on the host it is given, and while the apex 308s
-  to `www` every run ends green with a warning naming Open 1, the record
-  unmoved, so the first run after the owner's fix sends every page changed
-  since.
+  the request is ours to fix. **It sends nothing while the apex
+  redirects** (Open 1): IndexNow reads the key on the host it is given, so
+  such a run ends green with a warning, the record unmoved. The first run
+  after the owner's fix of 1 Nov 2026 (run 41273382404, for `f782bbaa`)
+  sent all eleven published URLs and IndexNow answered 202.
 
 ## Design decisions, with the reasoning
 
@@ -2721,7 +2722,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   `.github/workflows/indexnow.yml` waits for the push to be live and sends
   the published pages it changed to IndexNow, which Bing and the others
   read; the key is the public file named in the routes table. It needs the
-  apex to serve, not redirect (Open 1), and sends nothing until it does.
+  apex to serve, not redirect (Open 1, resolved 1 Nov 2026).
 - **Same thread.** An edition in a `series` (Navier-Stokes: The Hand in the
   Water and The Closest Humans; Haven: The Markup and The Floor; Agents:
   The Snapshot Problem and The Supply Cabinet) lists the series' other
@@ -3456,7 +3457,15 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
 
 ## Open
 
-1. **Reopened 28 Oct 2026: the new project redirects the apex to `www`.**
+1. **Resolved again 1 Nov 2026: the apex serves, `www` 308s to it.** The
+   owner set the two rows in the new project (Settings → Domains:
+   `aedificare.art` connected to Production, `www.aedificare.art`
+   redirecting to it with 308; `aedificare.vercel.app` left as it was).
+   Read by curl: the apex answers 200, `www` 308s to the apex on `/` and on
+   deep paths, the IndexNow key answers 200 on the apex; `verify-live` run
+   41274046421, url the apex, `sha` `f782bbaa`: green; IndexNow sent the
+   eleven published pages the same hour.
+   **Reopened 28 Oct 2026: the new project redirects the apex to `www`.**
    Read by curl on the 28th: `https://aedificare.art/` answers 308 to
    `https://www.aedificare.art/`, while every canonical, `og:url`, the
    sitemap, `robots.txt`, the feed, `llms.txt`, every card and every
