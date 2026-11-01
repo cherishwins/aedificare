@@ -67,6 +67,10 @@
       "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\"" }, { "key": "X-Robots-Tag", "value": "noindex" }]
     },
     {
+      "source": "/pdf/edition-07.pdf",
+      "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\"" }, { "key": "X-Robots-Tag", "value": "noindex" }]
+    },
+    {
       "source": "/pdf/edition-06.pdf",
       "headers": [{ "key": "Link", "value": "<https://creativecommons.org/licenses/by/4.0/>; rel=\"license\", <https://aedificare.art/the-supply-cabinet>; rel=\"canonical\"" }]
     },

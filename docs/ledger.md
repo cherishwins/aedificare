@@ -46,7 +46,7 @@ edition's sources are opened first (Decisions log, 11 Oct 2026).
 
 | Date | Title | Print | State |
 |---|---|---|---|
-| 10 Oct 2026 | LOADOUT | Edition 07 | files in `source/loadout/` and `public/pdf/edition-07.pdf` (1 Nov 2026). Three versions: the print (08:28 UTC) carries the first token count (21 servers, 283 tools, 102,616), which counted output schemas the model never reads; the carousel (23:00 UTC) and the interactive map carry the same-day correction (19 servers, 209 tools, 52,409). The page follows the correction; the print stays as issued. Next: the port and a sample audit |
+| 10 Oct 2026 | LOADOUT | Edition 07 | built as a draft on the same-day correction's counts (the print, of 08:28 UTC, keeps the first count and stays as issued); a sample audit changed or overturned 9 of 15 claims, so the full pass is running (`research/loadout/VERDICTS.md`) |
 
 ## Stranded: made elsewhere, files not in this repo
 

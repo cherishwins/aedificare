@@ -28,6 +28,7 @@ Shipped (2026-09-15):
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
 | `/the-night-pin` | 30 Oct 2026 · *The Night Pin* (printed as Edition 11), eighteen sections, forty-seven sources, three registers | **held** (2026-10-30): every source opened by nine lanes, a researcher and a skeptic each, and a second skeptic over every change (Findings 0k); out of search until the owner's yes on the View, the title and NCSL's counts (`docs/release-the-night-pin.md`) |
+| `/loadout` | 10 Oct 2026 · *LOADOUT* (printed as Edition 07), twenty sections, A/B/C tier marks, the print's prose on the same-day correction's counts, its interactive map rendered static | **draft** (2026-11-01): a sample audit changed or overturned 9 of 15 claims, so the full pass is owed (Findings 0l) |
 | `/waiting-for-the-tie-in` | 15 Oct 2026 · *Waiting for the Tie-In* (printed as Edition 08), thirteen sections, one hundred and sixty sources, F/I/Q marks, its two interactive pieces rendered static | **held** (2026-11-01): written in another chat and never ported until the owner found it; every source opened by twenty-five lanes, a researcher and a skeptic each, and a second skeptic over every change (Findings 0l); out of search until the owner's list in `research/waiting-for-the-tie-in/VERDICTS.md` is answered |
 | `/the-middleman` | 27 Oct 2026 · *The Middleman*, no print, written from an unsourced research deck, twelve sections, seventy-five sources, three registers | **draft**: sourced from scratch, six researchers and a skeptic each (Findings 0j); title and lede the owner's to confirm |
 | `/the-grade` | 22 Oct 2026 · *The Grade* (printed as Edition 10), twelve sections, fourteen sources | **draft**: ported and swept, every source still to be opened |
@@ -538,7 +539,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   "By Jesse James · date · Updated date", the name linked to `/about`),
   `SiteLinks` (the footer's links to `/about`, `/standards` and
   `/amendments`, on every page) and `PlainPage` (the frame of those three).
-- `src/pages/`: `index`, `waiting-for-the-tie-in`, `the-middleman`, `the-grade`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
+- `src/pages/`: `index`, `waiting-for-the-tie-in`, `loadout`, `the-middleman`, `the-grade`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
   `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `about`, `standards`, `amendments`, `404`,
   `[slug]/film.astro` (the watch pages, one per linked film), and the generated `feed.xml.ts`,
   `llms.txt.ts`, `robots.txt.ts`, `sitemap-news.xml.ts` (the Google News
@@ -2485,8 +2486,21 @@ for a shortlist for bios and cards, which is a separate deliverable.
    servers, 283 tools, 102,616 tokens), which counted output schemas the
    model never reads; the carousel of 23:00 UTC and the interactive map
    carry the same-day correction (19 servers, 209 tools, 52,409). The page
-   will follow the correction; the print stays as issued. Its files are in
-   `source/loadout/` and `public/pdf/edition-07.pdf`. Still to find: The
+   (`src/pages/loadout.astro`) follows the correction, with the edition's
+   own correction note and one mono line giving the first count's totals;
+   the print stays as issued. Where the corrected figures reversed a line
+   (Postgres MCP Pro "three times" Chrome DevTools: the first count's own
+   rows give 1.46 times, the corrected 1,156 against 5,414), the line is
+   now the rows. The map's builder, six jobs and ladder are static tables,
+   no script. A sample audit (the first under the rule of 1 Nov, below):
+   fifteen claims of 122, ten by weight and five by position, a researcher
+   and a skeptic each; 6 held, 8 changed, 1 wrong (the git server's CVEs:
+   four, December 2025 to February 2026), which is 60 percent and earns
+   the full pass. Unsettled for the owner: whether the map's 21,462 or the
+   carousel's 16,968 is brave_place_search's shipped size, whether 22
+   servers or 19 were booted, and whether "the model never sees them" was
+   tested (the page now says Claude's tool format has no field for them).
+   Its files are in `source/loadout/` and `public/pdf/edition-07.pdf`. Still to find: The
    Denominator (NS-03) and The Missing Version (Edition 12), both named in
    the owner's inventory (`docs/ledger.md`).
 
