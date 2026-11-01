@@ -234,6 +234,37 @@ const RAW = [
     ],
   },
   {
+    slug: 'waiting-for-the-tie-in', path: '/waiting-for-the-tie-in', print: 'Edition 08',
+    title: 'Waiting for the Tie-In', acid: 'Tie-In',
+    lede: 'The chips are bought. Everything they wait for is not.',
+    // Ported on 1 Nov 2026 from the finished web edition the owner wrote in
+    // another chat and never ported (source/waiting-for-the-tie-in.html), the
+    // prose verbatim; its print is the 16-page carousel at /pdf/edition-08.pdf.
+    // Seed from the print's colophon (SEED 20261015); no k is given, so the
+    // house configuration. Checked 1 Nov 2026 (research/waiting-for-the-tie-in/
+    // VERDICTS.md): 143 claims, 90 sources became 160. Still a draft: the
+    // owner's list in VERDICTS.md decides the lines that could not be opened.
+    // The date stays the print's, as every ported edition's does.
+    date: '2026-10-15', dateLabel: '15 Oct 2026',
+    seed: '20261015', k: [5, 7, 3], pdf: '/pdf/edition-08.pdf',
+    draft: true,
+    contents: [
+      { n: '00', t: 'The brief', id: 'brief' },
+      { n: '01', t: 'The queue', id: 'queue' },
+      { n: '02', t: 'The machines', id: 'machines' },
+      { n: '03', t: 'The chain', id: 'nothing' },
+      { n: '04', t: 'The hands', id: 'hands' },
+      { n: '05', t: 'The model', id: 'model' },
+      { n: '06', t: 'The bypass', id: 'bypass' },
+      { n: '07', t: 'The money', id: 'money' },
+      { n: '08', t: 'Side by side', id: 'china' },
+      { n: '09', t: 'What did not hold', id: 'checked' },
+      { n: '10', t: 'The other queue', id: 'minerals' },
+      { n: '11', t: 'What it would take', id: 'order' },
+      { n: '12', t: 'Sources', id: 'sources' },
+    ],
+  },
+  {
     slug: 'the-supply-cabinet', path: '/the-supply-cabinet', print: 'Edition 06',
     title: 'The Supply Cabinet', acid: 'Cabinet',
     lede: 'Give a thousand agents one shared drawer. They will build a society in it.',

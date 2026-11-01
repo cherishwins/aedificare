@@ -28,6 +28,7 @@ Shipped (2026-09-15):
 |---|---|---|
 | `/` | The index: live house-configuration rose, cropped wordmark, the editions with their contents | live |
 | `/the-night-pin` | 30 Oct 2026 · *The Night Pin* (printed as Edition 11), eighteen sections, forty-seven sources, three registers | **held** (2026-10-30): every source opened by nine lanes, a researcher and a skeptic each, and a second skeptic over every change (Findings 0k); out of search until the owner's yes on the View, the title and NCSL's counts (`docs/release-the-night-pin.md`) |
+| `/waiting-for-the-tie-in` | 15 Oct 2026 · *Waiting for the Tie-In* (printed as Edition 08), thirteen sections, one hundred and sixty sources, F/I/Q marks, its two interactive pieces rendered static | **held** (2026-11-01): written in another chat and never ported until the owner found it; every source opened by twenty-five lanes, a researcher and a skeptic each, and a second skeptic over every change (Findings 0l); out of search until the owner's list in `research/waiting-for-the-tie-in/VERDICTS.md` is answered |
 | `/the-middleman` | 27 Oct 2026 · *The Middleman*, no print, written from an unsourced research deck, twelve sections, seventy-five sources, three registers | **draft**: sourced from scratch, six researchers and a skeptic each (Findings 0j); title and lede the owner's to confirm |
 | `/the-grade` | 22 Oct 2026 · *The Grade* (printed as Edition 10), twelve sections, fourteen sources | **draft**: ported and swept, every source still to be opened |
 | `/the-countersign` | 16 Oct 2026 · *The Countersign* (printed as Edition 09), fifteen sections, twenty-two sources, three registers | live |
@@ -49,7 +50,7 @@ Shipped (2026-09-15):
 | `/index.json` `/og/desk.png` | the index as JSON and the desk's card, for apt.grok.me to fetch and hotlink | generated |
 | `/lead/*.png` | each published edition's lead image, one of its own figures that is not text rendered alone (seven; The Subtraction, The Closest Humans and The Hand in the Water have none, `NO_FIGURE`) at 16:9, 4:3 and 1:1, content-hashed (`src/lib/lead-manifest.json`), its NewsArticle's `image`, the card left out of it since 1 Nov (Decisions log, 30 Oct and 1 Nov 2026) | rendered by hand, checked by the build |
 | `/film/*.png` | each linked film's own thumbnail, reduced and content-hashed, beside a link to its YouTube watch page at the edition's end and on the home (Decisions log, 21 Oct 2026) | generated |
-| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-09.pdf` `/pdf/edition-10.pdf` `/pdf/edition-11.pdf` | the print editions as uploaded | as uploaded |
+| `/pdf/ns-01.pdf` `/pdf/ns-02.pdf` `/pdf/edition-01.pdf` `/pdf/edition-03.pdf` `/pdf/edition-04.pdf` `/pdf/edition-05.pdf` `/pdf/edition-06.pdf` `/pdf/edition-07.pdf` `/pdf/edition-08.pdf` `/pdf/edition-09.pdf` `/pdf/edition-10.pdf` `/pdf/edition-11.pdf` | the print editions as uploaded | as uploaded |
 
 ## Brand — source of truth, and the overrides
 
@@ -537,7 +538,7 @@ for a shortlist for bios and cards, which is a separate deliverable.
   "By Jesse James · date · Updated date", the name linked to `/about`),
   `SiteLinks` (the footer's links to `/about`, `/standards` and
   `/amendments`, on every page) and `PlainPage` (the frame of those three).
-- `src/pages/`: `index`, `the-middleman`, `the-grade`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
+- `src/pages/`: `index`, `waiting-for-the-tie-in`, `the-middleman`, `the-grade`, `the-countersign`, `the-supply-cabinet`, `the-fourth-axis`, `the-tilt-gap`, `edition-03`,
   `ns-01`, `ns-02`, `edition-01`, `edition-02`, `the-floor`, `about`, `standards`, `amendments`, `404`,
   `[slug]/film.astro` (the watch pages, one per linked film), and the generated `feed.xml.ts`,
   `llms.txt.ts`, `robots.txt.ts`, `sitemap-news.xml.ts` (the Google News
@@ -1481,6 +1482,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   routes, what must be true before a render goes up, analytics, quota,
   failures). A project skill, so every session on this repo loads it; it
   restates no decision, it points here.
+- `docs/ledger.md`: the publishing ledger, every edition the owner has
+  made wherever it was made (live, held, porting, stranded, intake);
+  updated in the same commit as any change to the editions list (1 Nov
+  2026, after an inventory kept in a claude.ai chat was lost to its
+  compaction and two finished prints turned out never to have arrived).
 - `docs/release-the-night-pin.md`: the steps that release a held edition,
   written for The Night Pin (owner, 30 Oct 2026).
 - `.claude/skills/research/SKILL.md` and `.claude/agents/`: the house
@@ -2175,9 +2181,10 @@ for a shortlist for bios and cards, which is a separate deliverable.
    checked against [23]. The print is left as issued; the dated note under
    the sources is two sentences, as The Markup's is. Its film still reads
    the old wording until it is rendered again.
-   **Editions 07 and 08 never arrived in this repo.** Nothing is missing
-   from the site: the code is the date, so the sequence the prints carry
-   is not a sequence the site keeps. Recorded so nobody hunts for them.
+   **Editions 07 and 08 arrived on 1 Nov 2026** (Findings 0l). Until then
+   this line read that they never arrived and that nobody should hunt for
+   them; both had been made in other chats and never brought here, which
+   is why `docs/ledger.md` now exists.
 
 0g. **Edition 02 · The Subtraction, sourced from scratch (2026-10-17 to
    18).** It had no sources at all: the print was a chassis marked FACTS
@@ -2426,6 +2433,62 @@ for a shortlist for bios and cards, which is a separate deliverable.
    as it renders and waits for their yes. Its film is held for the
    ElevenLabs reset on 17 Nov and will be cut B, without the sceptic
    voice (owner); its watch page comes with the film.
+
+0l. **Edition 08 · Waiting for the Tie-In, found on 1 Nov 2026.** The
+   owner wrote it in another chat on 14 and 15 Oct (a model page in another
+   brand first, then the Aedificare web edition, and a 16-page carousel as
+   its print) and served it once on macroview.live; it never reached this
+   repo, and this file said Editions 07 and 08 never arrived. Its masthead
+   stopped at The Fourth Axis: it was built from an old copy of the site,
+   which is how it fell out. Ported with the prose verbatim
+   (`source/waiting-for-the-tie-in.html`), F/I/Q marks as The Tilt Gap
+   has them. Its two interactive pieces were 13 kB of script against a
+   site budget with under 1 kB left, so both are static and computed at
+   build: the chain's 21 pieces as cards (what each needs, enables, the
+   years to replace it, and what becomes impossible without it), the model
+   as its 19 inputs with their notes and one run at the defaults, which
+   matches the prose (about 34 GW stranded at the peak, the queue never
+   clearing). Four instructions that said "select" or "slider" were
+   reworded, and "leading" became "most advanced" three times because the
+   brand checker bans it. The heading of 05, "Move the numbers.", was kept
+   verbatim and is the owner's to keep or retitle now nothing moves.
+   **Checked the same day**, by the research skill (twenty-five lanes, a
+   researcher on Haiku and a skeptic on Opus each, the main model settling
+   every disagreement, three editors, three second skeptics and a fixer;
+   `research/waiting-for-the-tie-in/VERDICTS.md` has every row). Of 143
+   claims 27 held, 97 were amended, 9 were wrong and 10 could not be
+   opened; the skeptics changed 104 of the 133 researcher verdicts they
+   reviewed, so the first pass alone was not a check. The largest: Nadella
+   spoke at the end of October 2025, not in November, and Microsoft was
+   not "the most valuable company" that week (Nvidia led by about a
+   trillion dollars), so the opening line now says one of the three; ERCOT's
+   474 GW went to a Texas Senate committee in July, not "state regulators"
+   in August (the filing to the PUCT is behind a paywall); PJM has cleared
+   short twice running, not three times; the turbine chart set GE Vernova's
+   backlog plus reservations (116 GW) against the others' firm backlog, so
+   it now draws firm orders alone (53, 69, 35) with the reservations in a
+   note, and "Sold out to 2031." has no source ("Booked into 2031." is
+   proposed); AEP's 69 GW is signed contracts, not requests, and 63 of it
+   sits in ERCOT and PJM, which have sliders of their own; SB6 is a 2025
+   statute and September 2026 is the PUCT's rule under it; Abilene's 29
+   turbines are cut until a source is read (the cited article's title names
+   another company); a battery row is off until the IEA's page opens; and
+   the edition's own verdict "Confirmed" on a gallium investment became
+   "Partly", since the money is planned. Ninety sources became 160, the
+   new ones primaries in place of reports of them. The print and the
+   carousel are left as issued and now differ from the page. Held until the
+   owner answers the list at the top of VERDICTS.md (each line that could
+   not be opened is either read by the owner on a normal connection or
+   cut), and the date stays the print's.
+   **LOADOUT (Edition 07, 10 Oct 2026)** came the same day as three
+   versions: the print of 08:28 UTC carries the first token count (21
+   servers, 283 tools, 102,616 tokens), which counted output schemas the
+   model never reads; the carousel of 23:00 UTC and the interactive map
+   carry the same-day correction (19 servers, 209 tools, 52,409). The page
+   will follow the correction; the print stays as issued. Its files are in
+   `source/loadout/` and `public/pdf/edition-07.pdf`. Still to find: The
+   Denominator (NS-03) and The Missing Version (Edition 12), both named in
+   the owner's inventory (`docs/ledger.md`).
 
 0. **Edition 03 · The Markup arrived as a finished, sourced PDF** (ten
    pages, twelve sources, Chromium-rendered 08:32 UTC) with the same text
@@ -3539,6 +3602,25 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   Search Console, the only way to see any of this work, was already set up
   (the Vercel Web Analytics entry above), and the sitemap index was
   resubmitted the same day.
+
+- **2026-11-01 · Evidence first, then a sample, then the full check
+  (the builder's proposal, in use unless the owner says otherwise).** The
+  owner asked whether checking editions already checked in the chats that
+  wrote them is repeated work. Partly it is. But every finished print
+  brought here and opened source by source came back with real errors
+  (Findings 0c to 0l: 36 problems on The Fourth Axis, 98 of 227 claims on
+  The Supply Cabinet, 106 of 143 changed or wrong on Waiting for the
+  Tie-In), because the chat that writes a piece checks its own draft and
+  leaves no evidence a reader can confirm. So the duty of 11 Oct stands
+  and how it is met changes: (1) a check that left its evidence (each
+  claim with its quote, URL and date, as The Countersign's did) counts,
+  and only figures that move are read again; (2) without evidence, a
+  sample audit (the largest numbers and a random handful, ten to fifteen
+  claims) runs first, and only a sample that finds errors at the rate the
+  record shows earns the full pass; (3) the owner asks the writing chat to
+  file its evidence beside the edition, so nothing is checked twice.
+  Waiting for the Tie-In had the full pass already under way; LOADOUT and
+  The Grade get the sample.
 
 ## Open
 

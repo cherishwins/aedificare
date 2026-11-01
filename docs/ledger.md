@@ -37,7 +37,8 @@ edition's sources are opened first (Decisions log, 11 Oct 2026).
 
 | Date | Title | Print | Waits on |
 |---|---|---|---|
-| 22 Oct 2026 | The Grade | Edition 10 | every source opened (Findings 0i: Chinese-language press, a 63 or 66 conflict) |
+| 15 Oct 2026 | Waiting for the Tie-In | Edition 08 | the owner's list at the top of `research/waiting-for-the-tie-in/VERDICTS.md`: each line that could not be opened is read by the owner or cut, and the heading "Move the numbers." kept or retitled (checked 1 Nov 2026, Findings 0l) |
+| 22 Oct 2026 | The Grade | Edition 10 | a sample audit of its sources (Decisions log, 1 Nov 2026; Findings 0i: Chinese-language press, a 63 or 66 conflict) |
 | 27 Oct 2026 | The Middleman | none (from a deck) | the owner's yes on its title and lede (Findings 0j) |
 | 30 Oct 2026 | The Night Pin | Edition 11 | the owner's yes on the View, the title and NCSL's counts (`docs/release-the-night-pin.md`) |
 
@@ -45,8 +46,7 @@ edition's sources are opened first (Decisions log, 11 Oct 2026).
 
 | Date | Title | Print | State |
 |---|---|---|---|
-| 10 Oct 2026 | LOADOUT | Edition 07 | files in `source/loadout/` and `public/pdf/edition-07.pdf` (1 Nov 2026). Three versions: the print (08:28 UTC) carries the first token count (21 servers, 283 tools, 102,616), which counted output schemas the model never reads; the carousel (23:00 UTC) and the interactive map carry the same-day correction (19 servers, 209 tools, 52,409). The page follows the correction; the print stays as issued. Queued behind Edition 08 |
-| 15 Oct 2026 | Waiting for the Tie-In | Edition 08 | files in `source/waiting-for-the-tie-in.html` and `public/pdf/edition-08.pdf` (1 Nov 2026); page being built as a draft and its ninety sources checked. It was once served on macroview.live, never on aedificare.art |
+| 10 Oct 2026 | LOADOUT | Edition 07 | files in `source/loadout/` and `public/pdf/edition-07.pdf` (1 Nov 2026). Three versions: the print (08:28 UTC) carries the first token count (21 servers, 283 tools, 102,616), which counted output schemas the model never reads; the carousel (23:00 UTC) and the interactive map carry the same-day correction (19 servers, 209 tools, 52,409). The page follows the correction; the print stays as issued. Next: the port and a sample audit |
 
 ## Stranded: made elsewhere, files not in this repo
 
