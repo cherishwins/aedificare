@@ -95,6 +95,8 @@ const site = {
   <meta name="build" content={BUILD} />
   <script type="application/ld+json" set:html={JSON.stringify(site)} />
   {extra.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
+  <!-- Vercel Web Analytics: page views only, no cookies, served from this origin (CLAUDE.md, Decisions log, 1 Nov 2026). -->
+  <script is:inline defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>

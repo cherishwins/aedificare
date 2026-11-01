@@ -385,11 +385,17 @@ for a shortlist for bios and cards, which is a separate deliverable.
 ## Hard constraints
 
 - **Zero budget.** Vercel Hobby, self-hosted OFL fonts, GitHub Actions (free
-  because the repo is public), no analytics, no paid tier of anything. The
+  because the repo is public), no analytics but Vercel Web Analytics'
+  free page-view count (Decisions log, 1 Nov 2026), no paid tier of anything. The
   question before any service is "is it free, and does it stay free at
   scale."
-- **Client JS budget: 5 kB gzipped for the whole site**, enforced by
-  `tools/check-budget.cjs` in the build. **Measured: 3,106 B** (the client
+- **Client JS budget: 6 kB gzipped for the whole site** (5 kB until 1 Nov
+  2026), enforced by `tools/check-budget.cjs` in the build. **Measured:
+  5,149 B**: Vercel Web Analytics' script, which Vercel serves at
+  `/_vercel/insights/script.js` and the build cannot see, counted at the
+  2,043 B gzipped it measured on 1 Nov 2026 (`SERVED` in the checker; a
+  change on Vercel's side moves it unseen, so re-measure it now and then),
+  plus 3,106 B the build ships (the client
   script `src/scripts/aed.js`, inlined on every page, 1,828 B, plus Astro's
   prefetch module `page.*.js`, 1,114 B, plus the watch pages' one inline
   script, 164 B, the same on all ten and counted once; 2,942 until the
@@ -3410,8 +3416,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   and a news sitemap, IndexNow was wired to every push, and the editions
   in a thread link each other; `tools/check-discovery.cjs` holds all of it.
 
-- **2026-11-01 · No analytics on the page, again, and the contact
-  address.** The owner opened Vercel's "Install Web Analytics" PR (#93,
+- **2026-11-01 · Vercel Web Analytics, after a mis-press, and the
+  contact address.** The owner opened Vercel's "Install Web Analytics" PR (#93,
   `@vercel/analytics` injected from `src/scripts/aed.js`) because they
   could not see how the site performs, and its sweep failed: 280 broken
   references, every page asking for `/_vercel/insights/script.js`, which
@@ -3426,14 +3432,24 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   (Web Analytics not yet enabled; `/_vercel/speed-insights/script.js`
   answered 200, Speed Insights is, at 4.5 kB gzipped and loaded by no
   page). Asked to choose between the script with the budget raised to 6
-  kB, the script squeezed under 5 kB, and no on-page analytics, **the
-  owner chose no on-page analytics**: Google Search Console instead,
-  which ships no script and reports search impressions, clicks, queries
-  and pages, and whose domain verification is also what the YouTube
-  client needs to leave Testing (Open 9). So "no analytics" in Hard
-  constraints and `/standards`' "The site runs no analytics" stay true,
-  #93 was closed unmerged, and the budget is unchanged. The YouTube
-  channel's numbers come from `tools/youtube-analytics.mjs` as before.
+  kB, the script squeezed under 5 kB, and no on-page analytics, the
+  owner first answered no on-page analytics, then said the same day it
+  was a mis-press and asked what was best, and **chose Vercel Web
+  Analytics with the budget raised to 6 kB**. Built lean, not as #93
+  (which stays closed): one `<script defer src="/_vercel/insights/script.js">`
+  in `src/layouts/Base.astro`, no npm package and nothing added to
+  `src/scripts/aed.js`; `tools/check-budget.cjs` counts Vercel's script at
+  its measured 2,043 B gzipped, so the budget stays the reader's real
+  cost (5,149 of 6,144); `tools/verify.cjs` answers `/_vercel/` 204 in the
+  local sweep, because Vercel serves it at the edge, and the live sweep
+  proves it answers; `public/privacy.txt` opens with what is counted and
+  `/standards` says it. Speed Insights stays unloaded. Web Analytics is
+  switched on by the owner in the Vercel project (Analytics → Enable);
+  until then the script answers 404 live. Google Search Console is still
+  recommended beside it: it ships no script, reports search impressions,
+  clicks and queries, and its domain verification is what the YouTube
+  client needs to leave Testing (Open 9). The YouTube channel's numbers
+  come from `tools/youtube-analytics.mjs` as before.
   **The contact address** is the owner's, given the same day, written
   once as `SITE.contact` in `src/config.mjs`, and `/about` prints it as a
   mailto block link under Contact.
