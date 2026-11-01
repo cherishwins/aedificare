@@ -3473,10 +3473,15 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   proves it answers; `public/privacy.txt` opens with what is counted and
   `/standards` says it. Speed Insights stays unloaded. Web Analytics is
   switched on by the owner in the Vercel project (Analytics → Enable);
-  until then the script answers 404 live. Google Search Console is still
-  recommended beside it: it ships no script, reports search impressions,
-  clicks and queries, and its domain verification is what the YouTube
-  client needs to leave Testing (Open 9). The YouTube channel's numbers
+  until then the script answers 404 live. Google Search Console sits beside
+  it: it ships no script and reports search impressions, clicks and
+  queries. It turned out to be set up already (the owner's screenshot, 1
+  Nov 2026: the property `https://aedificare.art/`, the sitemap index read
+  on 29 Oct with only `sitemap-0.xml` under it, before the video sitemap
+  existed); the owner resubmitted `sitemap-index.xml` on 1 Nov so the
+  video and news sitemaps are read too. Whether its verification also
+  serves the YouTube client's consent screen (Open 9) depends on which
+  Google account verified it, the owner's to check. The YouTube channel's numbers
   come from `tools/youtube-analytics.mjs` as before.
   **The contact address** is the owner's, given the same day, written
   once as `SITE.contact` in `src/config.mjs`, and `/about` prints it as a
@@ -3531,8 +3536,9 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   Google defines it as first publication; the fix reads YouTube's
   `publishedAt` in Actions, files it on the release and carries it into
   `src/lib/films.json`, and the visible line says "Published". Google
-  Search Console, which ships nothing and is the only way to see any of
-  this work, is the owner's ten minutes.
+  Search Console, the only way to see any of this work, was already set up
+  (the Vercel Web Analytics entry above), and the sitemap index was
+  resubmitted the same day.
 
 ## Open
 
