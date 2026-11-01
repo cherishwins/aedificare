@@ -320,7 +320,10 @@ subject it does not name is published, because its subjects are typed and
 only its length is checked; an edition's dek, seoTitle and description
 changed only with the same check against the page that wrote them
 (Decisions log, 30 Oct 2026), because `tools/check-contents.cjs` holds their
-lengths and not their truth; and a linked film
+lengths and not their truth; `MARKUP` in `astro.config.mjs` set to the
+moment of a commit that changes the markup every page shares (the layout,
+the graph builders in `src/lib/schema.mjs`), because the sitemap's lastmod
+reads it and no build can tell a shared change from a page's own; and a linked film
 kept public and current: the day a film the site links is withdrawn, held,
 retired or replaced, `node tools/films.mjs --drop <slug>` (or the
 replacement's id, once it is public) and a commit. Only the channel can say
@@ -461,8 +464,11 @@ for a shortlist for bios and cards, which is a separate deliverable.
   and alt text, and the release asset it was reduced from with that asset's
   sha256, `linked` (when the entry was last written, the sitemap's lastmod
   for the watch page and the edition; backfilled on 1 Nov 2026 as the later
-  of the commit that last changed the entry and 18:01 UTC on 30 Oct, when the
-  watch pages reached `main`), and the poster (the release's 1280 by 720 thumbnail byte for
+  of the moment the change that last wrote the entry reached `main` (its
+  merge) and 18:01 UTC on 30 Oct, when the watch pages reached `main`, which
+  `src/lib/films.mjs` holds as its floor; from then on, the moment
+  `tools/films.mjs` writes the entry; a film taken off with `--drop` leaves
+  its moment in `src/lib/film-drops.json`, which a link clears), and the poster (the release's 1280 by 720 thumbnail byte for
   byte, `POSTER`; Decisions log, 28 Oct 2026). The JSON is written only by `tools/films.mjs`. The module holds
   the thumbnail's size (`THUMB`, 112 by 63, and why) and the length rule
   (`lengthOf`: the file's own length rounded UP, as YouTube shows it; the
@@ -498,8 +504,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   edition and the figure (an empty name, as The Closest Humans' first cut
   had, fails). `tools/generate-lead.mjs` renders
   them from `dist/` and carries the table of which figure each edition uses
-  and why. `src/lib/schema.mjs` lists them first in the NewsArticle's
-  `image`, before the card; `og:image` stays the card (override 2).
+  and why. `src/lib/schema.mjs` lists them as the NewsArticle's `image`,
+  alone (the card is the image only where `NO_FIGURE` holds, and on a
+  draft; Decisions log, 1 Nov 2026); `og:image` stays the card (override 2).
 - `src/lib/dates.mjs`: an edition's day at 00:00 in the author's zone with
   its offset (`zoned`), RSS dates, and since 30 Oct 2026 `zonedInstant`, an
   instant from a ledger in that zone with its offset (a watch page's
@@ -2707,8 +2714,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   (sameAs the channel and LinkedIn) and a BreadcrumbList. Every page also
   carries the WebSite node from `src/layouts/Base.astro` (`/#website`, the
   name and the domain as its alternate, the author and publisher by
-  reference), and the home the Organization and the Person, as Google's
-  organization doc asks. A page passes
+  reference), and the home the Organization, which Google's organization
+  doc recommends there, and the Person beside it, so the nodes the WebSite
+  names are on that page (the builder's choice, not Google's). A page passes
   only its alternativeHeadline and its sources list. Every property
   describes something on the page, no rating and no FAQ, with one
   exception kept on purpose: alternativeHeadline is the print's name
@@ -2777,8 +2785,9 @@ for a shortlist for bios and cards, which is a separate deliverable.
   and in `/sitemap-video.xml`, whose `VideoObject` is the film's and whose
   Clips are its chapters; the edition's NewsArticle names it by `@id` alone,
   and its rail links it ("<Title>: the film · m:ss"). A watch page's
-  `<title>` is its h1, the dek with it, and its description its own, read
-  from the dek, the length and the chapters. Each published edition with
+  `<title>` is "<Title>: the film" and its description its own, read from
+  the dek, the length and the chapters; `tools/check-discovery.cjs` holds
+  both. Each published edition with
   a figure that is not text (seven of ten; `NO_FIGURE` in `src/lib/lead.mjs`
   names the three without one and why) carries as its NewsArticle's `image`
   its lead figure alone (16:9, then 4:3, then 1:1); the card is og:image
@@ -3310,7 +3319,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   **Each edition gets a lead image that is a figure, not a card**
   (where its page has a figure that is not text; part B, below). A
   16:9 render of one of the edition's own figures goes FIRST in the
-  article's structured-data `image`, so Google has a picture that is not
+  article's structured-data `image` (since 1 Nov 2026 it is the whole
+  `image`, the card left out; below), so Google has a picture that is not
   text for Discover, which asks for large images and not text-heavy ones.
   `og:image` stays the type card with the mark (override 2, 15 Sep): the
   cards are right for LinkedIn and X and are not replaced.
@@ -3486,8 +3496,8 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   the WebSite node has an @id, the domain as `alternateName` (Google's
   site-names doc), the Person and the Organization by reference and no
   sameAs, which belongs to the Organization (a website is not a channel),
-  and the home carries the Organization and the Person, which Google's
-  organization doc asks for there; an edition's NewsArticle `image` is its
+  and the home carries the Organization, which Google's organization doc
+  recommends there, and the Person beside it (the builder's choice); an edition's NewsArticle `image` is its
   lead figure's three frames alone, the card left out, because Google asks
   for no image with text in the markup or og:image, and the card stays
   og:image by override 2, a cost the owner may weigh (the three
@@ -3497,12 +3507,17 @@ the four new probes (Acid, fonts, roses, reduced-motion stills).
   Bingbot get a robots.txt group with no draft disallowed, because Google
   reads noindex only on a page it may fetch, and a blocked page can still
   be listed bare when linked, while every other crawler keeps off the
-  drafts; a watch page's `<title>` is its own h1 and its description its
-  own, where both repeated the edition's, and its one inbound link reads
+  drafts; a watch page's description is its own, where it repeated the
+  edition's (its `<title>` stays "<Title>: the film", short, after the
+  review found the dek in it ran to 134 characters), and its one inbound
+  link reads
   "<Title>: the film" where it read "Film page"; and the sitemap's lastmod
   for a watch page is when its film was linked, not YouTube's upload,
-  which came before the film was public and, for eight of the ten, before
-  the page existed. **Left out on purpose**: interactionStatistic (view
+  which came before the film was public and, for all ten, before the page
+  existed; an edition's lastmod also moves when its film is taken off
+  (`src/lib/film-drops.json`), and every page's with `MARKUP` in
+  `astro.config.mjs`, the last change to the markup every page shares,
+  bumped by hand (a human duty, listed). **Left out on purpose**: interactionStatistic (view
   and like counts), because counts cannot be read at build time, marked-up
   content must be visible and accurate, and a stale count shown is worse
   than none; contentUrl, because the file is YouTube's. **The owner's**:

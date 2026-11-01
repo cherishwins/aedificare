@@ -226,6 +226,14 @@ const OFFSET = /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?([+-]\d{2}:\d{2}|Z)$/;
       const e = EDITIONS.find((x) => x.slug === wf.slug);
       const t = transcript(wf.slug);
       if (!h1.startsWith(`${e.title}: the film`)) fail(p, `the h1 "${h1}" does not open "${e.title}: the film"`);
+      // Its own title link and snippet: the title "<Title>: the film", short as an edition's seoTitle is held to, and a
+      // description that is not its edition's (Google's title-link and snippet guides; Decisions log, 1 Nov 2026).
+      const wTitle = decode(html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '').replace(/ · Aedificare$/, '');
+      if (wTitle !== `${e.title}: the film` || wTitle.length > 70) fail(p, `<title> "${wTitle}" is not "${e.title}: the film" within 70 characters`);
+      const wDesc = meta(html, 'name', 'description') || '';
+      const eDesc = meta(fs.readFileSync(fileOf(e.path), 'utf8'), 'name', 'description') || '';
+      if (wDesc === eDesc) fail(p, 'its description is its edition\'s');
+      if (wDesc.length < 100 || wDesc.length > 200) fail(p, `its description runs ${wDesc.length} characters, not 100 to 200`);
       const videos = nodes.filter((x) => x['@type'] === 'VideoObject');
       if (videos.length !== 1) fail(p, `${videos.length} VideoObject nodes, not one`);
       for (const v of videos) {

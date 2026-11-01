@@ -28,9 +28,9 @@ const line = `${count[0].toUpperCase()}${count.slice(1)} editions · ${month}`;
 // and its subjects should be read again when an edition on a new subject is published.
 const description = 'Dated editions by Jesse James on AI agents and their models, chips, mesh radio, the Navier-Stokes result, patents and money, each with its sources numbered.';
 const fullTitle = 'Aedificare · Dated editions on technology, by Jesse James';
-// The Organization and the Person on the home, which Google's organization doc asks for ("on your home page"), and
-// which the WebSite node names by reference (CLAUDE.md, Decisions log, 1 Nov 2026). No description: the brand never
-// says what the entity does.
+// The Organization on the home, which Google's organization doc recommends there (or on one page about it), and the
+// Person beside it, the builder's choice, so the nodes the WebSite node names are on this page (CLAUDE.md, Decisions
+// log, 1 Nov 2026). No description: the brand never says what the entity does.
 const graph = [{ '@context': 'https://schema.org', '@graph': [organization(), person()] }];
 
 ---
