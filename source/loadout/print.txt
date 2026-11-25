@@ -1,0 +1,497 @@
+ AEDIFICARE   ·   EDITION 07   ·   2026-10-10
+
+
+
+
+LOADOUT
+ Claude Code and the MCP universe, measured. What
+ goes in a new project, what stays out, and the
+ numbers behind each call.
+
+
+
+
+ 01                                                 SEED 20261010 · k 5 7 3
+102,616 1,415
+TWENTY-ONE SERVERS, BOOTED IN A SANDBOX, EVERY TOOL SCHEMA COUNTED
+
+
+
+
+tokens if every schema loads at startup.                             tokens when Claude Code loads names only.
+283 tools.                                                           Same 283 tools.
+
+
+
+
+That 72× gap is the whole argument for deferred tool loading, and Claude Code turned it on
+by default. Most advice about MCP context cost was written before that happened. This
+deck is what is true after.
+
+02
+THE PROBLEM WITH EVERY REVIEW YOU HAVE READ
+
+
+
+
+41,384 servers in the official registry.
+Nobody has run them.
+A    RUN                                            B   VERIFIED                                       C   LISTED
+
+We booted it, counted it, or watched it happen in   Primary documentation plus an independent          Catalog entry only. Named so you know it exists.
+a live Claude Code 2.1.296 session. Twenty-two      signal: release page, repo activity, a published   Never recommended on that basis.
+servers, one CLI, one Cowork session with 570       measurement. Anthropic, Palantir, MCP spec,
+deferred tools.                                     arXiv.
+
+
+
+
+Every claim in this deck carries its tier. Where we could not verify, we say so instead of
+rounding up. Fifteen UNVERIFIED items are listed in the source files and kept out of the
+rules.
+
+03
+04   SEED 4
+A SETUP IS SIX JOBS. TOOLS ARE JUST WHAT FILLS A SLOT.
+
+
+
+Always-on instruction                      CLAUDE.md, rules without paths, auto memory. Loads every         cost: every turn
+                                           request.
+
+On-demand procedure                        Skills. Name and description always, body only when invoked. cost: 30–50 tokens each at idle
+
+Guarantee                                  Hooks. 33 events. Deterministic. The only layer that enforces.   cost: zero unless output returns
+
+Isolation                                  Subagents, worktrees, forks. Fresh window, summary back.         cost: own window, 1–2K back
+
+External systems                           CLI first. Code-mode MCP second. Remote OAuth MCP third.         cost: see the ladder
+                                           Local stdio last.
+
+Verification                               A test the model cannot talk its way past. Stop hook,            cost: the cheapest token you buy
+                                           evaluator subagent, /goal.
+
+
+
+
+Decide the slot before you pick the tool. Most redundant installs are two tools fighting for
+one slot.
+
+05
+WHAT INSTRUCTION FILES ACTUALLY DO   B
+
+
+
+
+−29%
+median runtime with an AGENTS.md present. 124
+PRs, 10 repos. Output tokens −17%.
+                                                0pp
+                                                change in pass rate on SWE-bench and fresh
+                                                                                                    44%
+                                                                                                 of the time a model-triggered skill fired at all in
+                                                issues. A 288-run Claude Code ablation agreed, p Vercel's eval. Explicit trigger words took it to
+                                                = 1.00.                                          95%.
+
+
+
+
+Instruction files buy efficiency and behaviour, not correctness. Repository overviews, the thing
+/init writes, did not help. Non-standard rules did. Anthropic's own April postmortem: a terse-output
+instruction in the system prompt cost 3% on coding evals.
+Keep CLAUDE.md under 200 lines. Put only what the model cannot infer. Edits mid-session do nothing
+until /clear .
+
+06
+CLI FIRST.
+ "CLI tools are the most context-efficient way to interact with
+ external services." Anthropic, Claude Code best practices.
+ 07
+THE LADDER FOR EXTERNAL SYSTEMS
+
+
+
+
+1             CLI in Bash. gh, vercel, wrangler, psql, git, npx @osdk/cli. No per-tool listing at all. Output lands wherever you pipe it.
+
+2             Code-mode or meta-tool MCP. Cloudflare's three-tool server runs JavaScript against its API spec: 244,000 tokens of naive tools
+              becomes 1,100. Atlassian ships discover plus execute. Palantir MCP starts with one tool, search_tools.
+
+3             Remote HTTP MCP with OAuth. Where the CLI is weak or scoped auth matters: Figma, Notion, Linear, Supabase read-only, Neon,
+              Vercel. Stateless HTTP only; the 2026-07-28 spec removed sessions.
+
+4             Local stdio MCP. Only when nothing above exists. Reference servers are not hardened: the filesystem and git servers each
+              shipped CVEs. Never install a filesystem MCP inside Claude Code; it already has Read, Edit, Grep and Bash.
+
+
+
+
+08
+SCHEMA TOKENS PER SERVER, MEASURED IN THE SANDBOX, CL100K PROXY   A
+
+
+                  brave-search                                                                                    25,084 · 8 tools
+                     firecrawl                                                                    20,946 · 28 tools
+         playwright, all caps                                                  9,818 · 71 tools
+                  basic-memory                                            8,948 · 23 tools
+             postgres-mcp-pro                                           8,291 · 9 tools
+              chrome-devtools                               5,684 · 30 tools
+          playwright, default                          4,335 · 25 tools
+              codebase-memory                        3,984 · 17 tools
+             filesystem (ref)                  2,772 · 14 tools
+                  memory (ref)               2,296 · 9 tools
+                    perplexity            1,711 · 4 tools
+             everything (ref)             1,691 · 13 tools
+                         tavily           1,612 · 5 tools
+                     git (ref)           1,409 · 12 tools
+                      context7          1,146 · 2 tools
+          sequential-thinking          994 · 1 tools
+                    motherduck       641 · 4 tools
+                            exa      484 · 2 tools
+                          dbhub     335 · 2 tools
+                   fetch (ref)     234 · 1 tools
+      chrome-devtools --slim       201 · 3 tools
+
+
+
+
+09
+                                                   21,462
+TOOL COUNT PREDICTS NOTHING
+
+
+
+
+8
+tools. Brave Search.
+
+
+
+25,084
+tokens of schema.
+                                                   of them belong to one tool, brave_place_search , whose input schema carries a
+                                                   giant enum.
+
+
+
+
+Playwright with every capability switched on is 71 tools and 9,818 tokens. Postgres MCP Pro's nine
+tools cost three times Chrome DevTools' thirty. Schema shape, enums, nesting, description length,
+decides the bill. Count tokens, not tools. /context all shows you both.
+
+10
+PROFILES ARE THE BIGGEST LEVER A SERVER AUTHOR CAN HAND YOU   A
+
+
+
+
+5,684                                                             201
+chrome-devtools-mcp, full                                         chrome-devtools-mcp --slim
+
+
+
+
+30 tools                                                          3 tools. 28× cheaper.
+
+
+
+
+9,818                                                             4,335
+@playwright/mcp --caps all                                        @playwright/mcp default
+
+
+
+
+71 tools                                                          25 tools
+
+
+
+
+Start slim. Escalate when a task needs the performance trace or the network panel, then drop back.
+One browser server, not three.
+
+11
+THREE COSTS DEFERRED LOADING DOES NOT TOUCH
+
+
+
+Server instructions                           Load at connect regardless. Firecrawl ships 3,254 characters of them. Context7 632. Perplexity 674. Measured.
+                                               A
+
+
+
+Tool results                                  A screenshot through MCP is 5,000 to 8,000 tokens. A file path is about 50. Claude Code truncates results at
+                                              25,000 tokens, which is a backstop, not a plan. Write big outputs to disk and return the path. B
+
+Selection accuracy                            Past roughly seven tool domains, models stop choosing well. GPT-4o fell to 2% on one task; retrieving tool
+                                              descriptions instead of listing them lifted selection from 13.6% to 43.1%. Older models, but the mechanism is tool
+                                              search. B
+
+
+
+
+And one cost that is new: Postgres MCP Pro would not start on a fresh machine. It never pinned the
+MCP SDK below 2.x and the SDK renamed FastMCP. Any unpinned Python server written in 2025 is
+now a coin flip. A
+
+12
+THE SHORTLIST FOR A NEXT.JS, VERCEL, CLOUDFLARE, FOUNDRY STACK
+
+
+
+Repo                        Built-ins. Read, Edit, Grep, Bash.                                     Never a filesystem MCP.
+
+GitHub                      gh CLI.                                                                GitHub MCP, 86 tools, only for scoped read-only
+                                                                                                   subagents.
+
+Browser                     Chrome DevTools MCP --slim, escalate to full.                          Playwright default 25 tools. Claude in Chrome for
+                                                                                                   logged-in sessions. Pick one.
+
+Docs                        WebFetch on llms.txt. Then Context7, two tools.                        DeepWiki for other people's repos.
+
+Search                      Built-in WebSearch. Exa if you want a vendor, two tools, 484 tokens.   Firecrawl for crawl only. Brave only deferred.
+
+Database                    psql or vendor CLI. dbhub if you want MCP, two tools.                  Supabase or Neon remote, read_only=true.
+
+Deploy                      vercel and wrangler CLIs. Cloudflare Code Mode.                        Vercel MCP exposes about 330 tools. Deferred or not at
+                                                                                                   all.
+
+Memory                      CLAUDE.md plus auto memory.                                            Basic Memory if you want inspectable notes. No
+                                                                                                   reasoning helpers.
+
+Foundry                     Palantir MCP, project scope, --tool-search. Ontology MCP per app.      @osdk/cli for site deploys. SuperRepo when your
+                                                                                                   enrollment has it.
+
+
+
+
+13
+14   SEED 14
+PALANTIR FOUNDRY, AS OF OCTOBER 2026   B
+
+
+
+
+AI FDE has no API.
+
+Palantir's in-platform builder agent went GA on 12 March 2026. It is a chat window. No MCP tool, no
+CLI, no endpoint. The one programmatic hook is a browser pre-fill URL, and tool approvals still happen
+in the browser.
+So "my local Claude Code drives AI FDE agent to agent" is not a thing you can build this quarter. What
+Palantir built instead is better for a solo developer, because it has fewer moving parts.
+
+15
+THE THREE PATHS THAT EXIST
+
+
+Palantir MCP                                       Ontology MCP                                     Pro-code agent
+GA 2026-06-25 · about 90 tools · stdio             GA 2026-06-25 · per Developer Console app        Claude Agent SDK template · git tag to
+                                                   · HTTP, OAuth                                    publish
+Claude Code does the build work itself from your
+IDE: object, link and action types on a branch,    The consumer side. Object types as a SQL tool,   The real agent-to-agent substrate. A Foundry-
+global proposals, Python transform repos,          every action type as its own tool, query         hosted agent pre-wired to OSDK, Ontology MCP
+dataset builds, OSDK versions, Developer           functions as tools. The only MCP route that      and Palantir MCP with scoped permissions and
+Console wiring. It cannot write ontology data      mutates data and the only one that can trigger   no secrets. Expose it through an action. Claude
+and there is no merge tool. A human merges in      in-platform logic.                               Code fires the action through Ontology MCP and
+the UI, by design.                                                                                  reads results back from objects.
+
+
+
+
+claude mcp add palantir-mcp --scope project -e FOUNDRY_TOKEN='${FOUNDRY_TOKEN}' -- npx -y palantir-mcp --foundry-api-url
+https://$FOUNDRY_HOST --tool-search
+
+
+16
+FREE DEVELOPER TIER, THE WALLS YOU WILL HIT     B
+
+
+
+
+60
+action types, hard cap
+                                              ~5
+                                              users
+                                                                0
+                                                                client-credentials OAuth grants.
+                                                                Auth-code only, so no headless
+                                                                                                   GA
+                                                                                                   apps only. SuperRepo, the Foundry
+                                                                                                   CLI and Pilot are beta and need a
+                                                                service user for Ontology MCP.     support ticket.
+
+
+
+
+The model inside AIP is not the weak link: Opus 5.5, Opus 5 and Sonnet 5 are all served. The limit is
+tokens per minute. Delete the pre-installed example package to recover ontology quota. Numeric
+compute and storage caps are not published; they live in Control Panel under Your Plan.
+
+17
+FOCUSED
+BEATS FULL.
+ 18
+LONG CONTEXT, WHAT IS MEASURED   B
+
+
+
+
+76%
+Opus 4.6 on 8-needle retrieval at one million
+tokens. Sonnet 4.5: 18.5%. The best public curve
+                                                   18/18
+                                                   models did better on a 300-token focused input
+                                                   than on the 113,000-token full input, thinking on.
+                                                                                                        −39%
+                                                                                                        multi-turn versus single-turn across 200,000
+                                                                                                        simulated conversations. Mostly unreliability, not
+there is.                                          Chroma, 194,480 calls.                               lost ability.
+
+
+
+
+No cliff. Monotonic decay that starts early for anything that is not a keyword match. One million
+tokens is headroom for a large read, not permission for a day-long session. /clear between
+unrelated tasks. /rewind is cheaper than /compact . Front-load the whole spec in one prompt.
+
+19
+PROMPT CACHE, THE ARITHMETIC   B
+
+
+
+
+One /model switch on a                                                 Warm turn: new tokens at the write rate, plus the
+                                                                       prefix at a tenth of the input price. Cold turn: the
+
+150K session costs about fifteen                                       whole prefix at 1.25× or 2×.
+                                                                       Breakers: model switch, effort change on older
+to twenty normal turns.                                                models, connecting an MCP server with tool
+                                                                       search off, enabling a plugin that ships MCP,
+                                                                       upgrading the CLI, a skill with a model: line.
+                                                                       Harmless: editing files, editing CLAUDE.md,
+                                                                       permission modes, invoking skills, spawning
+                                                                       subagents.
+
+
+
+
+Pick model and effort before the first message. Connect servers before the first message.
+Subscriptions get a one-hour cache inside plan usage; API keys and subagents get five minutes.
+Anthropic's own team pages on cache-hit rate.
+
+20
+WHEN MORE AGENTS PAY, AND HOW THEY FAIL   B
+
+
+
+
+15×
+tokens for Anthropic's multi-agent research
+system against a chat. It bought +90% on
+                                               44%
+                                               of multi-agent failures trace to specification and
+                                               role design. 1,642 traces, seven frameworks.
+                                                                                                    117
+                                                                                                    jobs accepted out of 2.4 million requests when
+                                                                                                    80 agents shared a queue with no locks. Same
+research. Anthropic's own verdict on coding:   Changing topology was not significant. Changing      study: the models that merged work owned their
+fewer parallelizable parts.                    the prompt was.                                      files.
+
+
+
+
+Parallelism pays for read-heavy, independent work with a cheap merge: research, review, hunting.
+Sequential coding wants one agent. When you do fan out: disjoint file ownership, file-based task
+locks, an objective verifier, results written to disk and referenced, never pasted.
+
+21
+THE PERMISSION NUMBERS NOBODY PUTS ON A SLIDE   B
+
+
+
+
+93%
+of permission prompts get
+approved. That is fatigue, not
+                                           84%                                 17%
+                                           fewer prompts with the OS sandbox of overeager actions get past auto
+                                           on. It is off by default.         mode. Anthropic calls it the honest
+                                                                                                                   23
+                                                                                                                   pull requests in 74 minutes added a
+                                                                                                                   server that swapped its tool list
+judgement.                                                                   number.                               after the third call to hunt
+                                                                                                                   credentials. August 2026.
+
+
+
+
+Mods run in-process with your permissions and can override your own hooks. CLAUDE.md and memory
+directories reload every session, which makes them a persistence vector. Install from the vendor's URL or
+package, never through a directory's proxy. Two Anthropic reference servers shipped CVEs; reference is not
+hardened.
+
+22
+THE MONDAY SETUP, IN ORDER
+
+
+
+
+1             CLAUDE.md under 200 lines: build and test commands, the host names, the rules the model cannot infer. One
+              .claude/rules file per sub-system with paths: .
+
+2             Install the CLIs. gh, vercel, wrangler, the vendor database client. Confirm each works in Bash before any server is added.
+
+3             Commit a .mcp.json with only what the ladder justifies, slim profiles on, tool search on. Then run /context all and read
+              the bill.
+
+4             Three skills with explicit trigger words: the deploy path, the review path with context: fork , the thing you do weekly and
+              keep re-explaining.
+
+5             Hooks for the guarantees: format on edit, block pushes to main, a Stop hook that runs the suite and greps the output down to
+              the failures.
+
+6             Turn the sandbox on. Pick model and effort. Then, and only then, send the first message.
+
+
+
+
+23
+EVERYTHING ABOVE HAS A HALF-LIFE
+
+
+
+
+Every harness component is an assumption about what
+the model cannot do.
+
+
+
+Anthropic's context resets, built for Sonnet 4.5, were dead weight on Opus 4.5 and removed. Their
+sprint contracts lasted one generation. The default effort level changed twice this year and one of the
+changes was a mistake they reversed.
+So the setup needs a ritual, not a config: on each model release, remove one component at a time and
+re-run the three skills and the Stop hook. Keep what still earns its tokens. The source files behind this
+deck list fifteen things we could not verify, so you know where the edges are.
+
+24
+METHOD AND SOURCES
+
+
+Twenty-two MCP servers booted over stdio with the official Python client, 2026-10-10,         Primary sources: code.claude.com docs and changelog through 2.1.296; anthropic.com
+protocol 2025-11-25 on every one. Tool schemas dumped and counted with tiktoken cl100k as     engineering and research, 2025 to 2026; palantir.com/docs Foundry, AI FDE, Palantir MCP,
+a proxy; Claude's tokenizer runs roughly 10 to 20% higher on JSON, so read the figures as     Ontology MCP, SuperRepo, announcements March to October 2026; modelcontextprotocol.io
+relative. Claude Code 2.1.296 flags verified against the installed binary. Connector counts   specification 2026-07-28; arXiv 2602.11988, 2601.20404, 2607.27250, 2503.13657, 2505.06120,
+observed in a live Cowork session.                                                            2605.12922; Chroma Context Rot; METR incident investigation; Cloud Security Alliance
+                                                                                              research notes.
+
+
+
+
+UNVERIFIED AND EXCLUDED FROM RULES: changelog 2.1.279 TO 2.1.286 · PLUGIN MEASURE COMMAND · OMCP TRANSPORT · DEV-TIER COMPUTE QUOTAS · TOOL-COUNT ACCURACY ON 4.5+
+MODELS · SEQUENTIAL-THINKING BENEFIT · PALANTIR MCP SCHEMA SIZE · 8 MORE IN THE LEDGER
+
+
+
+25
+26   AEDIFICARE · EDITION 07 · SEED 20261010
+

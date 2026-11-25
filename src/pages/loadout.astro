@@ -1,0 +1,598 @@
+---
+/**
+ * LOADOUT, printed as Edition 07 (a 26-page print, made 08:28 UTC on 10 Oct
+ * 2026). Ported on 1 Nov 2026 from the three versions the owner made in
+ * another chat (source/loadout/: print.txt, carousel.txt, map.html). The
+ * prose is the print's, section by section, with its A, B and C tier marks
+ * as inline mono labels, as The Tilt Gap keeps its F, I and Q. A DRAFT: a
+ * sample audit of fifteen claims ran on 1 Nov 2026 (research/loadout/, its
+ * table in VERDICTS.md) and its settled rows are applied here; the full check
+ * has not run.
+ *
+ * THE COUNTS ARE THE CORRECTED ONES. The print carries the first token count
+ * (21 servers, 283 tools, 102,616 tokens upfront, 1,415 names only), which
+ * counted each tool's output schema, title and annotations, for which
+ * Claude's tool format has no field. The carousel and the map, made later the same day, carry the
+ * correction, and so does this page: every token, tool and server count is
+ * the map's (`M` below, copied as the map has it), and every total is summed
+ * here at build from those rows, so a total cannot disagree with its rows.
+ * The print's 21 rows were the 19 servers plus two profiles of them
+ * (Playwright with every capability, Chrome DevTools --slim); the profiles
+ * are shown and kept out of the totals, as the map keeps them.
+ *
+ * The map's interactive builder, its copy button and its two canvases ship
+ * no script here: the site's client budget has under 1 kB left. The builder
+ * becomes two static tables computed from its own data (the measured servers,
+ * and every entry it offered, by job, with its verdict, tier and note), and
+ * its default selection, the shortlist, is summed once at build.
+ */
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import Section from '../components/Section.astro';
+import Rail from '../components/Rail.astro';
+import Stats from '../components/Stats.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import Formats from '../components/Formats.astro';
+import Byline from '../components/Byline.astro';
+import FilmPlayer from '../components/FilmPlayer.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, describe, seedDrift, pageTitle } from '../lib/editions.mjs';
+import { articleGraph } from '../lib/schema.mjs';
+
+const ed = edition('loadout');
+const DRAFT = !!ed.draft;
+
+// The cover field: the house layers at the print's k, Malachite only. Acid on this surface is the title.
+const cover = HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
+
+// The print's tiers, as inline labels. Expanded for assistive tech; one letter on screen.
+const TIER = {
+  A: 'tier A: we ran it, counted it, or watched it happen',
+  B: 'tier B: primary documentation plus an independent signal',
+  C: 'tier C: catalog entry only',
+} as const;
+
+const fmt = (n: number) => n.toLocaleString('en-US');
+
+// Measured 2026-10-10, as the map carries it after the same-day correction: [model-visible tokens, tools,
+// names-only tokens]. Model-visible is each tool's name, description and input schema.
+const M: Record<string, [number, number, number]> = {
+  'filesystem': [1638, 14, 121], 'git': [1085, 12, 103], 'memory': [871, 9, 75], 'sequential-thinking': [861, 1, 10], 'fetch': [234, 1, 8],
+  'chrome-devtools-slim': [174, 3, 35], 'chrome-devtools': [5414, 30, 311], 'playwright': [3688, 25, 271], 'playwright-allcaps': [7988, 71, 870],
+  'context7': [1078, 2, 21], 'exa': [414, 2, 23], 'tavily': [1612, 5, 63], 'firecrawl': [12585, 28, 320], 'brave': [8230, 8, 91], 'perplexity': [1329, 4, 50],
+  'basic-memory': [6994, 23, 209], 'codebase-memory': [3510, 17, 181], 'postgres-mcp-pro': [1156, 9, 125], 'motherduck': [384, 4, 38], 'dbhub': [265, 2, 19], 'everything': [1061, 13, 126],
+};
+// The nineteen servers, in the map's order (largest first), named as the map's table names them. Then the two profiles.
+const SERVERS: [string, string][] = [
+  ['firecrawl', 'firecrawl'], ['brave-search', 'brave'], ['basic-memory', 'basic-memory'], ['chrome-devtools', 'chrome-devtools'],
+  ['playwright', 'playwright'], ['codebase-memory', 'codebase-memory'], ['filesystem', 'filesystem'], ['tavily', 'tavily'],
+  ['perplexity', 'perplexity'], ['postgres-mcp-pro', 'postgres-mcp-pro'], ['git', 'git'], ['context7', 'context7'],
+  ['everything', 'everything'], ['memory', 'memory'], ['sequential-thinking', 'sequential-thinking'], ['exa', 'exa'],
+  ['motherduck', 'motherduck'], ['dbhub', 'dbhub'], ['fetch', 'fetch'],
+];
+const PROFILES: [string, string][] = [['playwright, every capability', 'playwright-allcaps'], ['chrome-devtools --slim', 'chrome-devtools-slim']];
+const total = SERVERS.reduce((a, [, k]) => [a[0] + M[k][0], a[1] + M[k][1], a[2] + M[k][2]], [0, 0, 0]);
+// The correction's own totals. The page prints the sums; the build stops if they ever disagree.
+if (SERVERS.length !== 19 || total[0] !== 52409 || total[1] !== 209 || total[2] !== 2165) throw new Error(`loadout: the measured rows sum to ${SERVERS.length} servers, ${total} where the correction says 19, 52,409, 209, 2,165`);
+const MAXV = Math.max(...Object.values(M).map((r) => r[0]));
+const gap = Math.round(total[0] / total[2]);
+const slimGap = Math.round(M['chrome-devtools'][0] / M['chrome-devtools-slim'][0]);
+const pct = (v: number) => `${Math.max(0.6, (100 * v) / MAXV).toFixed(1)}%`;
+
+// The map's builder: every entry it offered, by job, with its verdict and note, as the map has them.
+type Item = { name: string; m?: string; native?: boolean; v: 'use' | 'alt' | 'situ' | 'avoid'; note: string; tier: 'A' | 'B' };
+const CATS: { name: string; intro: string; items: Item[] }[] = [
+  { name: 'Repo and files', intro: 'Default: Claude Code built-ins. Read, Edit, Grep and Bash are already there, permissioned and sandboxable.', items: [
+    { name: 'Claude Code built-ins', native: true, v: 'use', note: 'Already installed. Nothing to add.', tier: 'A' },
+    { name: 'filesystem (reference MCP)', m: 'filesystem', v: 'avoid', note: 'Duplicates the built-ins. Shipped two path-bypass CVEs in 2025.', tier: 'A' }] },
+  { name: 'GitHub and git', intro: 'Default: the gh CLI. Anthropic recommends it by name for context efficiency.', items: [
+    { name: 'gh CLI', native: true, v: 'use', note: 'Zero tool listing. Install and authenticate once.', tier: 'B' },
+    { name: 'GitHub MCP (official)', v: 'situ', note: '86 tools, about 14K tokens by a third-party count. Worth it only for scoped read-only access or remote-only toolsets.', tier: 'B' },
+    { name: 'git (reference MCP)', m: 'git', v: 'avoid', note: 'Duplicates git in Bash. Shipped four CVEs, published December 2025 to February 2026.', tier: 'A' }] },
+  { name: 'Browser', intro: 'Pick one browser server. Three of them in one setup is the most common redundancy we see.', items: [
+    { name: 'Chrome DevTools MCP, --slim', m: 'chrome-devtools-slim', v: 'use', note: 'Three tools. Start here.', tier: 'A' },
+    { name: 'Chrome DevTools MCP, full', m: 'chrome-devtools', v: 'alt', note: 'Escalate when you need performance traces, network or memory panels. 31 times the slim cost.', tier: 'A' },
+    { name: 'Playwright MCP', m: 'playwright', v: 'alt', note: 'Accessibility-tree automation. Install alongside playwright-core; bare npx failed in our run.', tier: 'A' },
+    { name: 'Playwright MCP, every capability', m: 'playwright-allcaps', v: 'avoid', note: '71 tools. Turn on only the capability you need.', tier: 'A' },
+    { name: 'Claude in Chrome', v: 'situ', note: '22 tools that drive your real, logged-in browser. Use when the task needs your sessions.', tier: 'A' }] },
+  { name: 'Docs', intro: "Default: WebFetch on a site's llms.txt. Zero schema cost. Add a docs server only if that falls short.", items: [
+    { name: 'WebFetch + llms.txt', native: true, v: 'use', note: 'Built in. Claude Code, MCP and Vercel docs all publish llms.txt.', tier: 'B' },
+    { name: 'Context7', m: 'context7', v: 'use', note: 'Two tools for current library docs. Free key recommended for rate limits.', tier: 'A' },
+    { name: 'DeepWiki', v: 'alt', note: "Three tools, no auth, for reading other people's public repos.", tier: 'B' }] },
+  { name: 'Web search', intro: 'Default: the built-in WebSearch and WebFetch. Add a vendor for crawling, filters or non-US results.', items: [
+    { name: 'Built-in WebSearch / WebFetch', native: true, v: 'use', note: 'Already there.', tier: 'A' },
+    { name: 'Exa', m: 'exa', v: 'alt', note: 'The cheapest vendor add in our set. Two tools.', tier: 'A' },
+    { name: 'Tavily', m: 'tavily', v: 'alt', note: 'Search, extract, map, crawl. Pick one search vendor, not two.', tier: 'A' },
+    { name: 'Perplexity', m: 'perplexity', v: 'situ', note: 'Its reasoning tool duplicates the model you already run.', tier: 'A' },
+    { name: 'Firecrawl', m: 'firecrawl', v: 'situ', note: 'Largest server we measured. Its search tool alone equals the 35 cheapest tools combined. Use for crawl and monitor only.', tier: 'A' },
+    { name: 'Brave Search', m: 'brave', v: 'situ', note: "Eight tools that cost more than Playwright's seventy-one. Keep tool search on.", tier: 'A' }] },
+  { name: 'Database', intro: "Default: psql or your vendor's CLI. If you want MCP, start with the smallest that does the job.", items: [
+    { name: 'psql / vendor CLI', native: true, v: 'use', note: 'No listing cost.', tier: 'B' },
+    { name: 'DBHub', m: 'dbhub', v: 'use', note: "Two tools. The server Claude Code's own docs use as the Postgres example.", tier: 'A' },
+    { name: 'Postgres MCP Pro', m: 'postgres-mcp-pro', v: 'avoid', note: 'Would not start on a fresh machine: it never pinned the MCP Python SDK below 2.x. Works with uvx --with "mcp<2".', tier: 'A' },
+    { name: 'MotherDuck / DuckDB', m: 'motherduck', v: 'alt', note: 'Four tools for ad-hoc analytics on CSV and Parquet. In-memory needs --read-write.', tier: 'A' },
+    { name: 'Supabase (remote)', v: 'situ', note: 'Use read_only=true and project scoping. A 2025 exfiltration via a support ticket is the canonical warning.', tier: 'B' }] },
+  { name: 'Deploy', intro: 'Default: vercel and wrangler CLIs. Vendor MCP servers here are the largest in any setup.', items: [
+    { name: 'vercel + wrangler CLIs', native: true, v: 'use', note: 'No listing cost.', tier: 'B' },
+    { name: 'Cloudflare code-mode MCP', v: 'alt', note: 'Code mode runs JavaScript against the API spec. Vendor figure: about 1,100 tokens versus about 244,000 for minimal native tools.', tier: 'B' },
+    { name: 'Vercel MCP', v: 'situ', note: 'About 330 tools observed in our session (213 on the docs page). Can deploy and buy domains. Deferred or not at all.', tier: 'A' }] },
+  { name: 'Memory', intro: 'Default: CLAUDE.md plus auto memory. Both are built in and re-injected after compaction.', items: [
+    { name: 'CLAUDE.md + auto memory', native: true, v: 'use', note: 'Already there.', tier: 'B' },
+    { name: 'Basic Memory', m: 'basic-memory', v: 'alt', note: 'Local Markdown you can read yourself. 23 tools.', tier: 'A' },
+    { name: 'codebase-memory', m: 'codebase-memory', v: 'situ', note: 'Call-graph questions on big repos. Known blind spots in Next.js and TypeScript.', tier: 'A' },
+    { name: 'memory (reference MCP)', m: 'memory', v: 'avoid', note: 'A toy knowledge graph in a JSON file. Duplicates what is built in.', tier: 'A' },
+    { name: 'sequential-thinking', m: 'sequential-thinking', v: 'avoid', note: 'No measured benefit on current models. Its description runs past the old 2,048-character limit.', tier: 'A' }] },
+  { name: 'Palantir Foundry', intro: 'Default: Palantir MCP with tool search, plus Ontology MCP per app. AI FDE is not reachable from outside the browser.', items: [
+    { name: 'Palantir MCP', v: 'use', note: 'About 90 tools, starts with one when --tool-search is on. Build work only; humans merge.', tier: 'B' },
+    { name: 'Ontology MCP', v: 'use', note: 'Per Developer Console app. Reads data, runs actions and query functions. Auth-code OAuth only on the free tier.', tier: 'B' },
+    { name: '@osdk/cli', native: true, v: 'use', note: 'Deploys your front end to a Foundry-hosted site from the terminal.', tier: 'B' },
+    { name: 'AI FDE', v: 'avoid', note: 'Chat window only. No API, MCP tool or CLI. Use it in the browser, not from Claude Code.', tier: 'B' }] },
+];
+const VL = { use: 'Use', alt: 'Alternative', situ: 'Situational', avoid: 'Avoid' } as const;
+const costOf = (i: Item) => (i.m ? `${fmt(M[i.m][0])} tokens · ${M[i.m][1]} tools · ${fmt(M[i.m][2])} names only` : i.native ? 'built in or CLI · no tool listing' : 'not measured by us');
+// The builder's default selection, the shortlist, summed once: what it showed before anyone ticked a box.
+const SHORT = ['Claude Code built-ins', 'gh CLI', 'Chrome DevTools MCP, --slim', 'WebFetch + llms.txt', 'Context7', 'Built-in WebSearch / WebFetch', 'psql / vendor CLI', 'vercel + wrangler CLIs', 'CLAUDE.md + auto memory', 'Palantir MCP', 'Ontology MCP', '@osdk/cli'];
+const shortItems = CATS.flatMap((c) => c.items).filter((i) => SHORT.includes(i.name));
+if (shortItems.length !== SHORT.length) throw new Error('loadout: a shortlist entry is not in the builder');
+const shortServers = shortItems.filter((i) => !i.native);
+const shortMeasured = shortServers.filter((i) => i.m);
+const shortNames = shortMeasured.reduce((a, i) => a + M[i.m!][2], 0);
+const shortFull = shortMeasured.reduce((a, i) => a + M[i.m!][0], 0);
+const shortUnmeasured = shortServers.length - shortMeasured.length;
+
+// The sources, as the map lists them: publisher, title, then the address as text (block links only; a sources
+// list is not a link). Numbered in this order.
+const sources = [
+  'Claude Code docs. MCP, tool search, output limits. code.claude.com/docs/en/mcp',
+  'Claude Code docs. Best practices. code.claude.com/docs/en/best-practices',
+  'Claude Code docs. CLAUDE.md and memory. code.claude.com/docs/en/memory',
+  'Claude Code docs. Hooks. code.claude.com/docs/en/hooks',
+  'Claude Code docs. Prompt caching. code.claude.com/docs/en/prompt-caching',
+  'Anthropic. Introducing advanced tool use. anthropic.com/engineering/advanced-tool-use',
+  'Anthropic. Effective context engineering. anthropic.com/engineering/effective-context-engineering-for-ai-agents',
+  'Anthropic. How we contain Claude. anthropic.com/engineering/how-we-contain-claude',
+  'Anthropic. How we built auto mode. anthropic.com/engineering/claude-code-auto-mode',
+  'Anthropic. Harness design for long-running apps. anthropic.com/engineering/harness-design-long-running-apps',
+  'Palantir. AI FDE overview. palantir.com/docs/foundry/ai-fde/overview',
+  'Palantir. AI FDE pre-fill sessions. palantir.com/docs/foundry/ai-fde/prefill-sessions/',
+  'Palantir. Palantir MCP available tools. palantir.com/docs/foundry/palantir-mcp/available-tools/',
+  'Palantir. Palantir MCP installation. palantir.com/docs/foundry/palantir-mcp/installation/',
+  'Palantir. Ontology MCP overview. palantir.com/docs/foundry/ontology-mcp/overview/',
+  'Palantir. Agent templates. palantir.com/docs/foundry/agents/agent-templates',
+  'Model Context Protocol. Specification 2026-07-28 changelog. modelcontextprotocol.io/specification/2026-07-28/changelog',
+  'Cloudflare. Code-mode MCP server. github.com/cloudflare/mcp',
+  'Chroma. Context Rot. trychroma.com/research/context-rot',
+  'Evaluating AGENTS.md (arXiv 2602.11988). arxiv.org/abs/2602.11988',
+  'Why do multi-agent LLM systems fail? (MAST, arXiv 2503.13657). arxiv.org/abs/2503.13657',
+  'Vercel. AGENTS.md outperforms skills in our agent evals. vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals',
+  // Added by the sample audit, 1 Nov 2026 (research/loadout/settled-*.md).
+  'Claude API docs. Define tools. platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools',
+  'Palantir. AI FDE security and governance. palantir.com/docs/foundry/ai-fde/security-and-governance/',
+  'Palantir. Foundry announcements, June 2026. palantir.com/docs/foundry/announcements/2026-06',
+  'Palantir. Palantir MCP tool search. palantir.com/docs/foundry/palantir-mcp/tool-search/',
+  'Palantir. Ontology MCP sample architecture. palantir.com/docs/foundry/ontology-mcp/sample-architecture',
+  'Model Context Protocol. Specification 2026-07-28, transports. modelcontextprotocol.io/specification/2026-07-28/basic/transports',
+  'Model Context Protocol blog. The 2026-07-28 specification, 28 Jul 2026. blog.modelcontextprotocol.io/posts/2026-07-28/',
+  'GitHub Advisory Database, via OSV. mcp-server-git, CVE-2025-68143. api.osv.dev/v1/vulns/GHSA-5cgr-j3jf-jw3v',
+  'GitHub Advisory Database, via OSV. mcp-server-git, CVE-2025-68144. api.osv.dev/v1/vulns/GHSA-9xwc-hfwc-8w59',
+  'GitHub Advisory Database, via OSV. mcp-server-git, CVE-2025-68145. api.osv.dev/v1/vulns/GHSA-j22h-9j4x-23w5',
+  'GitHub Advisory Database, via OSV. mcp-server-git, CVE-2026-27735. api.osv.dev/v1/vulns/GHSA-vjqx-cfc4-9h6v',
+  'Cloudflare. Code-mode MCP server, README at commit d5d326e, in force on 10 Oct 2026. raw.githubusercontent.com/cloudflare/mcp/d5d326e/README.md',
+  'LLMs Get Lost In Multi-Turn Conversation (arXiv 2505.06120). arxiv.org/abs/2505.06120',
+];
+
+const graph = articleGraph(ed, { alternativeHeadline: `Printed as ${ed.print}`, sources });
+---
+<Base title={pageTitle(ed)} ogTitle={ed.seoTitle} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[graph]} published={ed.date} noindex={DRAFT} modified={ed.modified}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
+      <Masthead right={DRAFT ? 'Draft' : undefined} />
+      <div class="grid cover-grid">
+        <h1 class="c-full display" data-flex="cursor"><span class="acid">LOADOUT</span>{ed.dek && <span class="dek"><span class="sr">: </span>{ed.dek}</span>}</h1>
+        <p class="c-a lede">{ed.lede}</p>
+        <Formats slug={ed.slug} />
+      </div>
+      <div class="foot mono cover-foot">
+        <Byline e={ed} />
+        <span>r = cos(kθ) · seed {ed.seed} · k 5 7 3</span>
+      </div>
+    </section>
+    <FilmPlayer slug={ed.slug} ground="bottle" />
+
+    <Section n="00" title="Nineteen servers, booted<br>in a sandbox, every<br>tool schema counted." ground="bottle" acid id="count">
+      <div class="c-a prose">
+        <p class="mono-b">00 · The count</p>
+        <p>That {gap}× gap is the whole argument for deferred tool loading, and Claude Code turned it on by default. <span class="mark" aria-label={TIER.B}>B</span> Most advice about MCP context cost was written before that happened. This deck is what is true after.</p>
+      </div>
+      <Stats class="c-b" items={[
+        [fmt(total[0]), `tokens if every schema loads at startup. ${total[1]} tools.`],
+        [fmt(total[2]), `tokens when Claude Code loads names only. Same ${total[1]} tools.`],
+      ]} />
+    </Section>
+
+    <Section n="01" title="The problem with every<br>review you have read." id="tiers">
+      <div class="c-a prose">
+        <p class="mono-b">01 · The tiers</p>
+        <p class="beat">41,384 servers in the official registry. Nobody has run them.</p>
+        <p>Every claim in this deck carries its tier. Where we could not verify, we say so instead of rounding up. Fifteen UNVERIFIED items are listed in the source files and kept out of the rules.</p>
+      </div>
+      <Rail items={[
+        ['A · Run', 'We booted it, counted it, or watched it happen in a live Claude Code 2.1.296 session. Nineteen servers, one CLI, one Cowork session with 570 deferred tools.'],
+        ['B · Verified', 'Primary documentation plus an independent signal: release page, repo activity, a published measurement. Anthropic, Palantir, MCP spec, arXiv.'],
+        ['C · Listed', 'Catalog entry only. Named so you know it exists. Never recommended on that basis.'],
+      ]} />
+    </Section>
+
+    <Section n="02" title="A setup is six jobs.<br>Tools are just what fills a slot." ground="bottle" id="jobs">
+      <div class="c-a prose">
+        <p class="mono-b">02 · Six jobs</p>
+        <p>Decide the slot before you pick the tool. Most redundant installs are two tools fighting for one slot.</p>
+      </div>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="The six jobs of a setup">
+        <table class="jobs">
+          <caption class="sr">The six jobs a Claude Code setup has to do, what fills each, and what each costs.</caption>
+          <thead><tr><th scope="col">Job</th><th scope="col">What fills it</th><th scope="col">Cost</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Always-on instruction</th><td>CLAUDE.md, rules without paths, auto memory. Loads every request.</td><td class="cost">every turn</td></tr>
+            <tr><th scope="row">On-demand procedure</th><td>Skills. Name and description always, body only when invoked.</td><td class="cost">30–50 tokens each at idle</td></tr>
+            <tr><th scope="row">Guarantee</th><td>Hooks. 33 events. Deterministic. The only layer that enforces.</td><td class="cost">zero unless output returns</td></tr>
+            <tr><th scope="row">Isolation</th><td>Subagents, worktrees, forks. Fresh window, summary back.</td><td class="cost">own window, 1–2K back</td></tr>
+            <tr><th scope="row">External systems</th><td>CLI first. Code-mode MCP second. Remote OAuth MCP third. Local stdio last.</td><td class="cost">see the ladder</td></tr>
+            <tr><th scope="row">Verification</th><td>A test the model cannot talk its way past. Stop hook, evaluator subagent, /goal.</td><td class="cost">the cheapest token you buy</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </Section>
+
+    <Section n="03" title="What instruction files<br>actually do." id="instructions">
+      <div class="c-a prose">
+        <p class="mono-b">03 · Instruction files <span class="mark" aria-label={TIER.B}>B</span></p>
+        <p>Instruction files buy efficiency and behaviour, not correctness. Repository overviews, the thing /init writes, did not help. Non-standard rules did. Anthropic's own April postmortem: a terse-output instruction in the system prompt cost 3% on coding evals.</p>
+        <p>Keep CLAUDE.md under 200 lines. Put only what the model cannot infer. Edits mid-session do nothing until /clear.</p>
+      </div>
+      <Stats class="c-b" items={[
+        ['−29%', 'median runtime with an AGENTS.md present. 124 PRs, 10 repos. Output tokens −17%.'],
+        ['0pp', 'change in pass rate on SWE-bench and fresh issues. A 288-run Claude Code ablation agreed, p = 1.00.'],
+        ['44%', "of the time a model-triggered skill fired at all in Vercel's eval. Explicit trigger words took it to 95%."],
+      ]} />
+    </Section>
+
+    <section class="surface flash" aria-label="CLI first">
+      <div class="grid">
+        <p class="c-full display slap" data-flex="cursor">CLI first.</p>
+        <p class="c-a quote">"CLI tools are the most context-efficient way to interact with external services." Anthropic, Claude Code best practices.</p>
+      </div>
+    </section>
+
+    <Section n="04" title="The ladder for<br>external systems." ground="bottle" id="ladder">
+      <div class="c-a prose">
+        <p class="mono-b">04 · The ladder</p>
+      </div>
+      <ol class="c-full field rungs" aria-label="The ladder, four rungs">
+        <li><span class="num k">1</span><div><h3>CLI in Bash</h3><p>gh, vercel, wrangler, psql, git, npx @osdk/cli. No per-tool listing at all. Output lands wherever you pipe it.</p></div></li>
+        <li><span class="num k">2</span><div><h3>Code-mode or meta-tool MCP</h3><p>Cloudflare's code-mode server runs JavaScript against its API spec: by Cloudflare's count, 244,000 tokens of minimal native tools becomes 1,100. Atlassian ships discover plus execute. Palantir MCP, with tool search on, starts with one tool, search_tools.</p></div></li>
+        <li><span class="num k">3</span><div><h3>Remote HTTP MCP with OAuth</h3><p>Where the CLI is weak or scoped auth matters: Figma, Notion, Linear, Supabase read-only, Neon, Vercel. Stateless HTTP; the 2026-07-28 spec removed sessions.</p></div></li>
+        <li><span class="num k">4</span><div><h3>Local stdio MCP</h3><p>Only when nothing above exists. Reference servers are not hardened: the filesystem and git servers each shipped CVEs. Never install a filesystem MCP inside Claude Code; it already has Read, Edit, Grep and Bash.</p></div></li>
+      </ol>
+    </Section>
+
+    <Section n="05" title="Schema tokens per server,<br>measured in the sandbox,<br>cl100k proxy." id="measured">
+      <div class="c-a prose">
+        <p class="mono-b">05 · Per server <span class="mark" aria-label={TIER.A}>A</span></p>
+        <p>Name, description and input schema for every tool, which is what Claude's tool format carries. Booted over stdio with the official MCP Python client; every server negotiated protocol 2025-11-25.</p>
+      </div>
+      <div class="c-full scroll measured" tabindex="0" role="region" aria-label="Tokens a model reads, per server">
+        <table>
+          <caption class="sr">Tokens a model reads, per server: tools, model-visible tokens and names-only tokens, measured 10 October 2026, corrected the same day.</caption>
+          <thead><tr><th scope="col">Server</th><th scope="col" class="r">Tools</th><th scope="col" class="r">Model-visible</th><th scope="col" class="r">Names only</th><th scope="col" class="barcol"><span class="sr">Model-visible tokens, as a bar</span></th></tr></thead>
+          <tbody>
+            {SERVERS.map(([name, k]) => (<tr><th scope="row" class="mono">{name}</th><td class="n r">{M[k][1]}</td><td class="n r">{fmt(M[k][0])}</td><td class="n r">{fmt(M[k][2])}</td><td class="barcol"><span class="track"><span class="fill" style={`width:${pct(M[k][0])}`}></span></span></td></tr>))}
+            <tr class="tot"><th scope="row" class="mono-b">{SERVERS.length} servers</th><td class="n r">{total[1]}</td><td class="n r">{fmt(total[0])}</td><td class="n r">{fmt(total[2])}</td><td></td></tr>
+          </tbody>
+          <tbody>
+            <tr class="grp"><th scope="rowgroup" colspan="5" class="mono-b">Two profiles of the same servers, not in the total</th></tr>
+            {PROFILES.map(([name, k]) => (<tr><th scope="row" class="mono">{name}</th><td class="n r">{M[k][1]}</td><td class="n r">{fmt(M[k][0])}</td><td class="n r">{fmt(M[k][2])}</td><td class="barcol"><span class="track"><span class="fill" style={`width:${pct(M[k][0])}`}></span></span></td></tr>))}
+          </tbody>
+        </table>
+      </div>
+      <div class="c-a correction">
+        <p class="mono-b">Correction, same day</p>
+        <p>Our first count included output schemas. Claude's tool format has no field for them. We corrected every figure here.</p>
+        <p class="mono">The print, made that morning, carries the first count: 21 rows, 283 tools, 102,616 tokens upfront, 1,415 names only. The first-count figures still on this page, in 06 and 08, say so.</p>
+      </div>
+    </Section>
+
+    <Section n="06" title="Tool count<br>predicts nothing." ground="bottle" id="tools">
+      <div class="c-a prose">
+        <p class="mono-b">06 · Tool count <span class="mark" aria-label={TIER.A}>A</span></p>
+        <p>Playwright with every capability switched on is 71 tools and {fmt(M['playwright-allcaps'][0])} tokens. Schema shape, enums, nesting, description length, decides the bill. Count tokens, not tools. /context all shows you both.</p>
+        <p class="mono">What a server ships is not what Claude's tool format carries.</p>
+        <p class="mono">First count: Postgres MCP Pro's nine tools at 8,291 tokens, Chrome DevTools' thirty at 5,684. Corrected: {fmt(M['postgres-mcp-pro'][0])} against {fmt(M['chrome-devtools'][0])}.</p>
+        <p class="mono">What brave_place_search ships, below, is 16,968 tokens on the carousel; the map's correction gives 21,462. Which is right is to be settled.</p>
+      </div>
+      <Stats class="c-b" items={[
+        [String(M.brave[1]), 'tools. Brave Search.'],
+        [fmt(M.brave[0]), 'tokens of schema.'],
+        ['16,968', 'brave_place_search · what the server ships'],
+        ['1,518', 'name, description and input schema'],
+      ]} />
+    </Section>
+
+    <Section n="07" title="Profiles are the biggest lever<br>a server author can hand you." id="profiles">
+      <div class="c-a prose">
+        <p class="mono-b">07 · Profiles <span class="mark" aria-label={TIER.A}>A</span></p>
+        <p>Start slim. Escalate when a task needs the performance trace or the network panel, then drop back. One browser server, not three.</p>
+      </div>
+      <div class="c-full profiles">
+        <Stats class="" items={[
+          [fmt(M['chrome-devtools'][0]), `chrome-devtools-mcp, full. ${M['chrome-devtools'][1]} tools.`],
+          [fmt(M['chrome-devtools-slim'][0]), `chrome-devtools-mcp --slim. ${M['chrome-devtools-slim'][1]} tools. ${slimGap}× cheaper.`],
+        ]} />
+        <Stats class="" items={[
+          [fmt(M['playwright-allcaps'][0]), `@playwright/mcp --caps all. ${M['playwright-allcaps'][1]} tools.`],
+          [fmt(M.playwright[0]), `@playwright/mcp default. ${M.playwright[1]} tools.`],
+        ]} />
+      </div>
+    </Section>
+
+    <Section n="08" title="Three costs deferred<br>loading does not touch." ground="bottle" id="costs">
+      <div class="c-a prose">
+        <p class="mono-b">08 · Three costs</p>
+      </div>
+      <div class="c-full field scroll" tabindex="0" role="region" aria-label="Three costs deferred loading does not touch">
+        <table class="costs">
+          <caption class="sr">Three costs deferred tool loading does not touch, each with its tier.</caption>
+          <tbody>
+            <tr><th scope="row">Server instructions</th><td>Load at connect regardless. Firecrawl ships 3,254 characters of them. Context7 632. Perplexity 674. Measured. <span class="mono first">Context7's and Perplexity's figures are from the first count.</span> <span class="mark" aria-label={TIER.A}>A</span></td></tr>
+            <tr><th scope="row">Tool results</th><td>A screenshot through MCP is 5,000 to 8,000 tokens. A file path is about 50. Claude Code truncates results at 25,000 tokens, which is a backstop, not a plan. Write big outputs to disk and return the path. <span class="mark" aria-label={TIER.B}>B</span></td></tr>
+            <tr><th scope="row">Selection accuracy</th><td>Past roughly seven tool domains, models stop choosing well. GPT-4o fell to 2% on one task; retrieving tool descriptions instead of listing them lifted selection from 13.6% to 43.1%. Older models, but the mechanism is tool search. <span class="mark" aria-label={TIER.B}>B</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="c-a prose">
+        <p>And one cost that is new: Postgres MCP Pro would not start on a fresh machine. It never pinned the MCP SDK below 2.x and the SDK renamed FastMCP. Any unpinned Python server written in 2025 is now a coin flip. <span class="mark" aria-label={TIER.A}>A</span></p>
+      </div>
+    </Section>
+
+    <Section n="09" title="The shortlist for a Next.js,<br>Vercel, Cloudflare,<br>Foundry stack." id="shortlist">
+      <div class="c-a prose">
+        <p class="mono-b">09 · The shortlist</p>
+      </div>
+      <div class="c-full scroll" tabindex="0" role="region" aria-label="The shortlist">
+        <table class="short">
+          <caption class="sr">The shortlist: each slot, the default, and the alternative.</caption>
+          <thead><tr><th scope="col">Slot</th><th scope="col">Default</th><th scope="col">Otherwise</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Repo</th><td>Built-ins. Read, Edit, Grep, Bash.</td><td>Never a filesystem MCP.</td></tr>
+            <tr><th scope="row">GitHub</th><td>gh CLI.</td><td>GitHub MCP, 86 tools, only for scoped read-only subagents.</td></tr>
+            <tr><th scope="row">Browser</th><td>Chrome DevTools MCP --slim, escalate to full.</td><td>Playwright default {M.playwright[1]} tools. Claude in Chrome for logged-in sessions. Pick one.</td></tr>
+            <tr><th scope="row">Docs</th><td>WebFetch on llms.txt. Then Context7, two tools.</td><td>DeepWiki for other people's repos.</td></tr>
+            <tr><th scope="row">Search</th><td>Built-in WebSearch. Exa if you want a vendor, two tools, {fmt(M.exa[0])} tokens.</td><td>Firecrawl for crawl only. Brave only deferred.</td></tr>
+            <tr><th scope="row">Database</th><td>psql or vendor CLI. dbhub if you want MCP, two tools.</td><td>Supabase or Neon remote, read_only=true.</td></tr>
+            <tr><th scope="row">Deploy</th><td>vercel and wrangler CLIs. Cloudflare Code Mode.</td><td>Vercel MCP exposes about 330 tools. Deferred or not at all.</td></tr>
+            <tr><th scope="row">Memory</th><td>CLAUDE.md plus auto memory.</td><td>Basic Memory if you want inspectable notes. No reasoning helpers.</td></tr>
+            <tr><th scope="row">Foundry</th><td>Palantir MCP, project scope, --tool-search. Ontology MCP per app.</td><td>@osdk/cli for site deploys. SuperRepo when your enrollment has it.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="c-a prose">
+        <p class="mono-b">09 · Every entry on the map</p>
+        <p>The map's builder, as a table: every entry it offered, by job, with its verdict, its tier and its cost as measured. Servers we did not measure are marked so in the table and count as zero in the two sums below.</p>
+      </div>
+      <Stats class="c-b" items={[
+        [fmt(shortNames), `tokens at startup, names only, for the ${shortMeasured.length} of the shortlist's ${shortServers.length} servers we measured.`],
+        [fmt(shortFull), `tokens if every definition loads upfront. ${shortUnmeasured} of the ${shortServers.length} not measured by us.`],
+      ]} />
+      <div class="c-full scroll catalog" tabindex="0" role="region" aria-label="Every entry on the map">
+        <table>
+          <caption class="sr">Every entry on the map, by job: verdict, tier, cost as measured and the note.</caption>
+          <thead><tr><th scope="col">Entry</th><th scope="col">Verdict</th><th scope="col">Cost as measured</th><th scope="col">Note</th></tr></thead>
+          {CATS.map((c) => (
+            <tbody>
+              <tr class="grp"><th scope="rowgroup" colspan="4"><span class="mono-b">{c.name}</span><span class="intro">{c.intro}</span></th></tr>
+              {c.items.map((i) => (<tr><th scope="row">{i.name} <span class="mark" aria-label={TIER[i.tier]}>{i.tier}</span></th><td class="mono v">{VL[i.v]}</td><td class="mono cst">{costOf(i)}</td><td>{i.note}</td></tr>))}
+            </tbody>
+          ))}
+        </table>
+      </div>
+    </Section>
+
+    <Section n="10" title="Palantir Foundry,<br>as of October 2026." ground="bottle" id="foundry">
+      <div class="c-a prose">
+        <p class="mono-b">10 · Palantir Foundry <span class="mark" aria-label={TIER.B}>B</span></p>
+        <p class="beat">AI FDE has no API.</p>
+        <p>Palantir's in-platform builder agent went GA on 12 March 2026. It is a chat window. No MCP tool, no CLI, no endpoint. The one programmatic hook is a browser pre-fill URL, and a pre-filled session still asks the user to approve tools before they make changes.</p>
+        <p>So "my local Claude Code drives AI FDE agent to agent" is not a thing you can build this quarter. What Palantir built instead is better for a solo developer, because it has fewer moving parts.</p>
+      </div>
+    </Section>
+
+    <Section n="11" title="The three paths<br>that exist." id="paths">
+      <div class="c-a prose">
+        <p class="mono-b">11 · Three paths</p>
+      </div>
+      <div class="c-full paths">
+        <div class="field path"><h3>Palantir MCP</h3><p class="mono meta">GA 2026-06-25 · about 90 tools · stdio</p><p>Claude Code does the build work itself from your IDE: object, link and action types on a branch, global proposals, Python transform repos, dataset builds, OSDK versions, Developer Console wiring. It cannot write ontology data and there is no merge tool. A human merges in the UI, by design.</p></div>
+        <div class="field path"><h3>Ontology MCP</h3><p class="mono meta">GA 2026-06-25 · per Developer Console app · HTTP, OAuth</p><p>The consumer side. Object types as a SQL tool, every action type as its own tool, query functions as tools. The only MCP route that writes ontology data.</p></div>
+        <div class="field path"><h3>Pro-code agent</h3><p class="mono meta">Claude Agent SDK template · git tag to publish</p><p>The real agent-to-agent substrate. A Foundry-hosted agent pre-wired to OSDK, Ontology MCP and Palantir MCP with scoped permissions and no secrets. Expose it through an action. Claude Code fires the action through Ontology MCP and reads results back from objects.</p></div>
+      </div>
+      <pre class="c-full field mono cmd" tabindex="0" aria-label="The command that adds Palantir MCP to a project">claude mcp add palantir-mcp --scope project \
+  -e FOUNDRY_TOKEN='$&#123;FOUNDRY_TOKEN&#125;' \
+  -- npx -y palantir-mcp --foundry-api-url https://$FOUNDRY_HOST --tool-search</pre>
+    </Section>
+
+    <Section n="12" title="Free developer tier,<br>the walls you will hit." ground="bottle" id="tier">
+      <div class="c-a prose">
+        <p class="mono-b">12 · The free tier <span class="mark" aria-label={TIER.B}>B</span></p>
+        <p>The model inside AIP is not the weak link: Opus 5.5, Opus 5 and Sonnet 5 are all served. The limit is tokens per minute. Delete the pre-installed example package to recover ontology quota. Numeric compute and storage caps are not published; they live in Control Panel under Your Plan.</p>
+      </div>
+      <Stats class="c-b" items={[
+        ['60', 'action types, hard cap'],
+        ['~5', 'users'],
+        ['0', 'client-credentials OAuth grants. Auth-code only, so no headless service user for Ontology MCP.'],
+        ['GA', 'apps only. SuperRepo, the Foundry CLI and Pilot are beta and need a support ticket.'],
+      ]} />
+    </Section>
+
+    <section class="surface flash" aria-label="Focused beats full">
+      <div class="grid">
+        <p class="c-full display slap" data-flex="cursor">Focused<br>beats full.</p>
+      </div>
+    </section>
+
+    <Section n="13" title="Long context,<br>what is measured." id="context">
+      <div class="c-a prose">
+        <p class="mono-b">13 · Long context <span class="mark" aria-label={TIER.B}>B</span></p>
+        <p>No cliff. Monotonic decay that starts early for anything that is not a keyword match. One million tokens is headroom for a large read, not permission for a day-long session. /clear between unrelated tasks. /rewind is cheaper than /compact. Front-load the whole spec in one prompt.</p>
+      </div>
+      <Stats class="c-b" items={[
+        ['76%', 'Opus 4.6 on 8-needle retrieval at one million tokens. Sonnet 4.5: 18.5%. The best public curve there is.'],
+        ['18/18', 'models did better on a 300-token focused input than on the 113,000-token full input, thinking on. Chroma, 194,480 calls.'],
+        ['−39%', 'on average, multi-turn versus single-turn, across 200,000+ simulated conversations. Mostly unreliability, a minor loss in aptitude.'],
+      ]} />
+    </Section>
+
+    <Section n="14" title="Prompt cache,<br>the arithmetic." ground="bottle" id="cache">
+      <div class="c-a prose">
+        <p class="mono-b">14 · Prompt cache <span class="mark" aria-label={TIER.B}>B</span></p>
+        <p>One /model switch on a 150K session costs about fifteen to twenty normal turns.</p>
+        <p>Pick model and effort before the first message. Connect servers before the first message. Subscriptions get a one-hour cache inside plan usage; API keys and subagents get five minutes. Anthropic's own team pages on cache-hit rate.</p>
+      </div>
+      <Rail items={[
+        ['Warm turn', 'New tokens at the write rate, plus the prefix at a tenth of the input price.'],
+        ['Cold turn', 'The whole prefix at 1.25× or 2×.'],
+        ['Breakers', 'Model switch, effort change on older models, connecting an MCP server with tool search off, enabling a plugin that ships MCP, upgrading the CLI, a skill with a model: line.'],
+        ['Harmless', 'Editing files, editing CLAUDE.md, permission modes, invoking skills, spawning subagents.'],
+      ]} />
+    </Section>
+
+    <Section n="15" title="When more agents pay,<br>and how they fail." id="agents">
+      <div class="c-a prose">
+        <p class="mono-b">15 · More agents <span class="mark" aria-label={TIER.B}>B</span></p>
+        <p>Parallelism pays for read-heavy, independent work with a cheap merge: research, review, hunting. Sequential coding wants one agent. When you do fan out: disjoint file ownership, file-based task locks, an objective verifier, results written to disk and referenced, never pasted.</p>
+      </div>
+      <Stats class="c-b" items={[
+        ['15×', "tokens for Anthropic's multi-agent research system against a chat. It bought +90% on research. Anthropic's own verdict on coding: fewer parallelizable parts."],
+        ['44%', 'of multi-agent failures trace to specification and role design. 1,642 traces, seven frameworks. Changing topology was not significant. Changing the prompt was.'],
+        ['117', 'jobs accepted out of 2.4 million requests when 80 agents shared a queue with no locks. Same study: the models that merged work owned their files.'],
+      ]} />
+    </Section>
+
+    <Section n="16" title="The permission numbers<br>nobody puts on a slide." ground="bottle" id="permissions">
+      <div class="c-a prose">
+        <p class="mono-b">16 · Permissions <span class="mark" aria-label={TIER.B}>B</span></p>
+        <p>Mods run in-process with your permissions and can override your own hooks. CLAUDE.md and memory directories reload every session, which makes them a persistence vector. Install from the vendor's URL or package, never through a directory's proxy. Two Anthropic reference servers shipped CVEs; reference is not hardened.</p>
+      </div>
+      <Stats class="c-b" items={[
+        ['93%', 'of permission prompts get approved. That is fatigue, not judgement.'],
+        ['84%', 'fewer prompts with the OS sandbox on. It is off by default.'],
+        ['17%', 'of overeager actions get past auto mode. Anthropic calls it the honest number.'],
+        ['23', 'pull requests in 74 minutes added a server that swapped its tool list after the third call to hunt credentials. August 2026.'],
+      ]} />
+    </Section>
+
+    <Section n="17" title="The Monday setup,<br>in order." id="monday">
+      <div class="c-a prose">
+        <p class="mono-b">17 · Monday</p>
+      </div>
+      <ol class="c-full steps" aria-label="The Monday setup, six steps">
+        <li><span class="num k">1</span><p>CLAUDE.md under 200 lines: build and test commands, the host names, the rules the model cannot infer. One .claude/rules file per sub-system with paths:.</p></li>
+        <li><span class="num k">2</span><p>Install the CLIs. gh, vercel, wrangler, the vendor database client. Confirm each works in Bash before any server is added.</p></li>
+        <li><span class="num k">3</span><p>Commit a .mcp.json with only what the ladder justifies, slim profiles on, tool search on. Then run /context all and read the bill.</p></li>
+        <li><span class="num k">4</span><p>Three skills with explicit trigger words: the deploy path, the review path with context: fork, the thing you do weekly and keep re-explaining.</p></li>
+        <li><span class="num k">5</span><p>Hooks for the guarantees: format on edit, block pushes to main, a Stop hook that runs the suite and greps the output down to the failures.</p></li>
+        <li><span class="num k">6</span><p>Turn the sandbox on. Pick model and effort. Then, and only then, send the first message.</p></li>
+      </ol>
+    </Section>
+
+    <Section n="18" title="Everything above<br>has a half-life." ground="bottle" id="half-life">
+      <div class="c-a prose">
+        <p class="mono-b">18 · Half-life</p>
+        <p class="beat">Every harness component is an assumption about what the model cannot do.</p>
+        <p>Anthropic's context resets, built for Sonnet 4.5, were dead weight on Opus 4.5 and removed. Their sprint contracts lasted one generation. The default effort level changed twice this year and one of the changes was a mistake they reversed.</p>
+        <p>So the setup needs a ritual, not a config: on each model release, remove one component at a time and re-run the three skills and the Stop hook. Keep what still earns its tokens. The source files behind this deck list fifteen things we could not verify, so you know where the edges are.</p>
+      </div>
+    </Section>
+
+    <Section n="19" title="Method and<br>sources." id="sources">
+      <div class="c-a prose">
+        <p class="mono-b">19 · Sources</p>
+        <p>Nineteen MCP servers booted over stdio with the official Python client, 2026-10-10, protocol 2025-11-25 on every one. Tool schemas dumped and counted with tiktoken cl100k as a proxy; Claude's tokenizer runs roughly 10 to 20% higher on JSON, so read the figures as relative. Claude Code 2.1.296 flags verified against the installed binary. Connector counts observed in a live Cowork session.</p>
+        <p>Primary sources: code.claude.com docs and changelog through 2.1.296; anthropic.com engineering and research, 2025 to 2026; palantir.com/docs Foundry, AI FDE, Palantir MCP, Ontology MCP, SuperRepo, announcements March to October 2026; modelcontextprotocol.io specification 2026-07-28; arXiv 2602.11988, 2601.20404, 2607.27250, 2503.13657, 2505.06120, 2605.12922; Chroma Context Rot; METR incident investigation; Cloud Security Alliance research notes.</p>
+        <p class="mono">Unverified and excluded from rules: changelog 2.1.279 to 2.1.286 · plugin measure command · OMCP transport · dev-tier compute quotas · tool-count accuracy on 4.5+ models · sequential-thinking benefit · Palantir MCP schema size · 8 more in the ledger</p>
+      </div>
+      <div class="c-full">
+        <p class="mono">01 to 22 as the map lists them, read in October 2026; 23 to 35 added by the sample audit of 1 Nov 2026</p>
+      </div>
+      <ol class="c-full sources">
+        {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
+      </ol>
+      <div class="c-full">
+        <p class="mono">Sample audit, 1 Nov 2026: fifteen claims checked against their sources; lines changed where a source said less. The token counts are the owner's own measurement of 10 Oct, as corrected the same day. The print is left as issued, with the first count.</p>
+      </div>
+      <div class="c-full">
+        <p class="mono">Not verified, kept out of the recommendations: Claude Code changelog 2.1.279 to 2.1.286 · the plugin measure command (documented, absent from 2.1.296) · Ontology MCP transport details · developer-tier compute and model quotas · tool-count accuracy studies on current models · any benefit from sequential-thinking servers · Palantir MCP schema size (needs an enrollment to measure)</p>
+      </div>
+    </Section>
+
+    <EditionEnd slug={ed.slug}>
+      Count tokens,<br>not tools.
+    </EditionEnd>
+  </main>
+</Base>
+
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -20%; right: -14%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 40px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover-foot { border-top-color: transparent; }
+  /* The print's tiers: one mono letter after what it grades. Malachite on Void; Flash on Bottle, where small
+     Malachite fails AA, and inside a Bottle field on a Void surface. */
+  .mark { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 700; font-size: 11px; letter-spacing: .08em; color: var(--malachite); padding-inline: .35em; vertical-align: .2em; }
+  .bottle .mark, .surface:not(.bottle) .field .mark { color: var(--flash); }
+  .bottle .field .mark { color: var(--malachite); }
+  .grid > dl.stats { align-self: start; }
+
+  /* Tables: the two in Bottle surfaces sit in Void fields; the ones on Void stand on the ground. */
+  .jobs th[scope="row"], .costs th[scope="row"], .short th[scope="row"] { min-width: 11em; }
+  .jobs td:nth-child(2) { min-width: 22em; }
+  .jobs .cost { color: var(--malachite); min-width: 12em; }
+  .costs td { min-width: 26em; }
+  .costs .first { display: block; margin-top: 6px; color: var(--malachite); }
+  .short td { min-width: 16em; }
+  .measured th.r, .measured td.r { text-align: right; padding-right: 18px; }
+  .measured .barcol { width: 34%; min-width: 8em; }
+  .measured .track { height: 8px; }
+  .measured .tot th, .measured .tot td { border-bottom-color: var(--malachite); padding-top: 14px; }
+  .measured .grp th, .catalog .grp th { padding-top: 26px; color: var(--malachite); border-bottom-color: var(--malachite); }
+  .catalog .grp .intro { display: block; margin-top: 6px; color: var(--flash); font-variation-settings: 'opsz' 14, 'wdth' 100, 'wght' 400; text-transform: none; letter-spacing: 0; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 15px; }
+  .catalog th[scope="row"] { min-width: 14em; }
+  .catalog .v { white-space: nowrap; }
+  .catalog .cst { min-width: 14em; }
+  .catalog td:last-child { min-width: 24em; }
+  .correction { display: grid; row-gap: 10px; }
+
+  /* The ladder and the Monday setup: numbered rows, the number in mono. */
+  .rungs, .steps { list-style: none; margin: 0; display: grid; row-gap: 22px; }
+  .steps { padding: 0; }
+  .rungs li, .steps li { display: grid; grid-template-columns: 2.4em 1fr; column-gap: 18px; align-items: baseline; max-width: 80ch; }
+  .rungs .k, .steps .k { font-size: 32px; color: var(--malachite); }
+  .rungs h3 { font-variation-settings: 'opsz' 36, 'wdth' 84, 'wght' 700; font-size: 24px; line-height: 1.12; margin: 0 0 8px; }
+  .rungs p, .steps p { font-size: 17px; line-height: 1.5; margin: 0; }
+
+  /* 07 · profiles: two pairs side by side. */
+  .profiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 32px clamp(24px, 4vw, 64px); }
+
+  /* 11 · the three paths, then the command. */
+  .paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: clamp(12px, 2vw, 24px); }
+  .path h3 { font-variation-settings: 'opsz' 36, 'wdth' 84, 'wght' 700; font-size: 24px; line-height: 1.12; margin: 0 0 10px; }
+  .path .meta { margin: 0 0 16px; }
+  .path p:not(.meta) { font-size: 16px; line-height: 1.5; }
+  .cmd { font-size: 13px; line-height: 1.6; letter-spacing: 0; overflow-x: auto; white-space: pre; margin: 0; text-transform: none; }
+
+  /* The slaps: the line, and on the first its quotation, Void on Flash. */
+  .flash .quote { font-size: 20px; line-height: 1.4; max-width: 46ch; margin-top: 24px; }
+</style>

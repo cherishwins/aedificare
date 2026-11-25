@@ -1,0 +1,775 @@
+---
+/**
+ * Waiting for the Tie-In, printed as Edition 08 (a 16-page carousel). Ported
+ * on 1 Nov 2026 from the finished web edition the owner wrote in another chat
+ * (source/waiting-for-the-tie-in.html), the prose verbatim, with its F, I and
+ * Q marks as inline mono labels, as The Tilt Gap keeps its print's. A DRAFT:
+ * its sources were opened on 1 Nov 2026 and the page amended where a source
+ * said less (research/waiting-for-the-tie-in/VERDICTS.md); what would not
+ * open is marked as reported or waits on the owner.
+ *
+ * The web edition has three scripted pieces, and none of their script ships,
+ * because the whole site's client budget is 6 kB and the originals are 13.
+ * Each is computed here at build from the web edition's own data, copied
+ * below as it stands, and set as static figures:
+ *   03 · the chain: 21 cards in the edition's order, each with what the piece
+ *        needs, what it enables, its years to replace, its critical path from
+ *        a standing start and what becomes impossible downstream without it,
+ *        by the same two functions the explorer ran on a click (`path`,
+ *        `dead`).
+ *   05 · the model: every input with its published default and the note its
+ *        slider carried, then the model run once at those defaults by the
+ *        explorer's own `sim`: the readout, what binds each year, two bar
+ *        figures and the year table.
+ *   08 · side by side: the four tabs as four tables, every row with its note;
+ *        a row's source is its number in section 12 where the list carries
+ *        the row's address, else the address printed as text.
+ * The two sentences in 03 and the two in 05 and 12 that told a reader to
+ * select, remove, try or move something now say what the static figure shows.
+ * One word is changed three times: "leading" (a chain piece's title, a row of
+ * section 08 and its prose, "its leading node") reads "most advanced",
+ * because tools/check-brand.cjs bans the word and cannot tell a description
+ * from praise, as Edition 01's "curated" became "selected".
+ */
+import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import RoseField from '../components/RoseField.astro';
+import Section from '../components/Section.astro';
+import Rail from '../components/Rail.astro';
+import Stats from '../components/Stats.astro';
+import EditionEnd from '../components/EditionEnd.astro';
+import Formats from '../components/Formats.astro';
+import Byline from '../components/Byline.astro';
+import FilmPlayer from '../components/FilmPlayer.astro';
+import { HOUSE } from '../lib/rose.mjs';
+import { edition, describe, seedDrift, pageTitle, numberWord } from '../lib/editions.mjs';
+import { articleGraph } from '../lib/schema.mjs';
+
+const ed = edition('waiting-for-the-tie-in');
+const DRAFT = !!ed.draft;
+
+// The cover field: the house layers at the edition's k, Malachite only, as the
+// web edition draws it. Acid on this surface is spent on one word of the title.
+const cover = HOUSE.map((L, i) => ({ ...L, k: ed.k[i], c: '#00B24F', o: [0.62, 0.34, 0.2][i] }));
+
+// The print's marks, as inline labels. Expanded for assistive tech; one letter on screen.
+const MARK = { F: 'verified fact', I: 'sourced inference', Q: 'open question' };
+
+const fmt = (n: number, d = 0) => n.toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: d });
+// A citation mark: the source's number in section 12.
+const c = (...n: number[]) => n.map((x) => `[${String(x).padStart(2, '0')}]`).join(' ');
+const pct = (v: number, max: number) => `${((100 * v) / max).toFixed(1)}%`;
+
+// Bars, each computed from the number it shows. A range is plotted at its high end and labelled in full.
+const queueBars = [['Large loads asking to connect', 474, '474'], ['Oncor requests alone', 298, '298'], ['Record peak demand, Jul 2026', 91, '91'], ['Batch Zero, conditional base load', 66, '66']] as const;
+const turbineBars = [['GE Vernova', 53, '53'], ['Siemens Energy', 69, '69'], ['Mitsubishi Power', 35, '35'], ['Global manufacturing capacity', 70, '60–70']] as const;
+
+// 09 · what did not hold, as the web edition sets it.
+const checked = [
+  ['The turbines all come from China.', 'False', 'None delivered to the US in the reporting we cite, to July 2026. The backlog is at GE Vernova, Siemens Energy and Mitsubishi Power.'],
+  ['Chips are sitting in boxes waiting for power.', 'Confirmed', 'Nadella, October 2025, on the record. Microsoft\'s CFO: short not of chips but of "the space or the power" to put them in.'],
+  ['F-35s fly with ballast in the nose because gallium export controls cut off radar supply.', 'Partly', 'Six Marine Corps F-35s were accepted without radars, confirmed to the Senate in June 2026. The cause given was a lack of APG-85 radars, whose mounts do not take the older APG-81. Neither the testimony as reported nor any official source found cites gallium; no source found mentions ballast.', [82]],
+  ['Separating a tonne of rare earths takes up to 60 GJ.', 'Unsupported', 'Neither cited source gives 60. The cited study (Deng and Kendall, 2019) puts 270 to 443 GJ into a tonne of 90%-pure mixed heavy rare-earth oxide from Chinese clays, mining through calcination; it leaves out solvent extraction and separation, so it does not measure separation.', [83, 84]],
+  ['A blink in power ruins a separation plant for months.', 'Unsupported', 'No source found. MP Materials, which makes NdPr oxide at Mountain Pass, tells investors a power outage "could temporarily delay mining, processing, and manufacturing operations" (10-K, fiscal 2025).', [83, 87]],
+  ['The US put 174 million dollars into a gallium plant in Western Australia.', 'Partly', 'A planned Department of War equity stake, estimated at $174 million and subject to exchange rates until the deal completes, announced September 2026 alongside Japan and Australia, in a plant at Alcoa\'s Wagerup refinery in Western Australia that broke ground in August. Projected: 100 tonnes a year.', [85, 149, 150]],
+  ['A Chinese dark factory makes a phone every 0.7 seconds with no humans.', 'Partly', 'Xiaomi\'s Beijing plant: capacity of up to 10 million phones a year, one every six seconds on its December 2025 tour, 81 percent automated by Xiaomi\'s count, with technicians in a control room and, by Euronews\'s count in April 2026, about 220 workers on the line.', [146, 147, 61]],
+  ['China\'s factories are the most automated.', 'Partly', 'By installations, yes: 295,000 robots in 2024, 54 percent of the world. By density, the IFR\'s revised 2024 figure puts China at 166 robots per 10,000 manufacturing employees, below the US at 307.', [53, 54]],
+  ['Power is cheaper in China.', 'Partly', 'The national industrial average is about level, 8.8 cents in 2024 against 8.6 in 2025. At Ulanqab, a western data-centre hub, Caixin\'s summary of its August feature gives 0.30 to 0.35 yuan, about 4.5 to 5.2 cents, against 9 to 10 cents for industrial power in Virginia.', [140, 50, 51, 141]],
+];
+
+// The sources, as the web edition lists them: publisher, title, date, then the address as text (block links only;
+// a sources list is not a link). Numbered in this order.
+const sources = [
+  "Data Center Dynamics. Microsoft has AI GPUs sitting in inventory because it lacks the power to install them, Nov 2025. datacenterdynamics.com/en/news/microsoft-has-ai-gpus-sitting-in-inventory-because-it-lacks-the-power-necessary-to-install-them/",
+  "Utility Dive (Robert Walton). ERCOT aims to complete Texas governor's data center audit by December, Aug 2026. utilitydive.com/news/ercot-texas-puc-data-center-audit/828472/",
+  "ERCOT. 2026 peak demand records (preliminary). ercot.com/static-assets/data/news/content/a-peak-demand/2026/all-time-records.htm",
+  "Utility Dive. Oncor weighs impact of Texas data center freeze on nearly 300-GW load pipeline, Aug 2026. utilitydive.com/news/fate-of-oncors-nearly-300-gw-load-pipeline-unclear-following-texas-data-ce/827303/",
+  "ERCOT. Batch Zero update, Board of Directors, Sep 2026. ercot.com/files/docs/2026/09/11/14-Batch-Zero-Update.pdf",
+  "Lawrence Berkeley National Laboratory. Queued Up: 2026 Edition. eta-publications.lbl.gov/publications/queued-2026-edition-characteristics",
+  "Data Center Knowledge. Data centers face seven-year wait for power hookups in Virginia, Aug 2024. datacenterknowledge.com/energy-power-supply/data-centers-face-seven-year-wait-for-power-hookups-in-virginia",
+  "PJM. PJM Capacity Auction Procures 138,318 MW of Generation Resources as Work Continues To Address Growing Electricity Demand, Jul 2026. pjm.com/-/media/DotCom/about-pjm/newsroom/2026-releases/20260714-pjm-capacity-auction-procures-138318-mw-of-generation-resources.pdf",
+  "GE Vernova. Second-quarter 2026 results, Jul 2026. gevernova.com/news/press-releases/ge-vernova-reports-second-quarter-2026-financial-results-raises-2026-financial",
+  "Utility Dive. GE Vernova gas turbine backlog climbs to 116 GW, Jul 2026. utilitydive.com/news/ge-vernova-gas-turbine-backlog-climbs-to-116-gw/826039/",
+  "Utility Dive. Siemens gas turbine backlog nears 70 GW, Aug 2026. utilitydive.com/news/siemens-gas-turbine-backlog-nears-70-gw-as-company-expands-manufacturing/827390/",
+  "Utility Dive. Mitsubishi gas turbine backlog, Aug 2026. utilitydive.com/news/mitsubishi-gas-turbine-backlog-earnings/827761/",
+  "Wood Mackenzie. Gas turbine prices soar 195% as market faces supply-demand crisis, Apr 2026. woodmac.com/press-releases/gas-turbine-prices-soar-195-as-market-faces-supply-demand-crisis/",
+  "Jiemian (Jiang Xi). Global gas turbine capacity shifts toward China as demand surges, 2026. en.jiemian.com/article/14286354.html",
+  "POWER. Transformers in 2026: shortage, scramble or self-inflicted crisis, Jan 2026. powermag.com/transformers-in-2026-shortage-scramble-or-self-inflicted-crisis",
+  "SteelOrbis. Cleveland-Cliffs GOES expansion at Butler Works, 2026. steelorbis.com/steel-news/latest-news/cleveland-cliffs-hosts-us-energy-officials-at-butler-works-to-showcase-goes-expansion-1482174.htm",
+  "People's Daily (Ding Yiting). Why Chinese transformers are in high demand globally, Mar 2026. en.people.cn/n3/2026/0320/c90000-20438192.html",
+  "Orrick. Executive Order 14421 restricts imports of bulk-power system equipment, Sep 2026. orrick.com/en/Insights/2026/09/Executive-Order-Restricts-US-Imports-of-Certain-Bulk-Power-System-Equipment",
+  "The Texas Tribune (Sneha Dey). Data center boom strains Texas homebuilders' need for electricians, Apr 2026. texastribune.org/2026/04/28/data-centers-texas-electricians-builders/",
+  "US Census Bureau. Value of Private Construction Put in Place, Seasonally Adjusted Annual Rate (rows Data center and New single family), and release CB26-158, Tables 1 and 3 (Construction Spending, August 2026), Oct 2026. census.gov/construction/c30/xls/privsatime.xlsx and census.gov/construction/c30/pdf/release.pdf",
+  "ResiClub. Lennar says the homebuilding labor market is tightening again; KB Home isn't seeing it, Sep 2026. resiclubanalytics.com/p/lennar-says-the-homebuilding-labor-market-is-tightening-again-kb-home-isn-t-seeing-it",
+  "US Bureau of Labor Statistics. Occupational Outlook Handbook: Electricians. bls.gov/ooh/Construction-and-Extraction/Electricians.htm",
+  "Construction Executive. ABC: construction must attract 349,000 workers in 2026, Jan 2026. constructionexec.com/?p=62523",
+  "NAHB Eye on Housing (Natalia Siniavskaia). Which states and construction trades depend the most on immigrant workers, Apr 2026. eyeonhousing.org/2026/04/which-states-and-construction-trades-depend-the-most-on-immigrant-workers/",
+  "Brookings (Marcela Escobari, Ian Seyal, Paul Beach). ICE enforcement and employment effects in US cities, 29 May 2026. brookings.edu/articles/ice-enforcement-employment-effects-us-cities/",
+  "USC Hamm Institute. Data center employment forecast analysis, 2025. hamminstitute.org/site-files/documents/data_center_workforce.pdf",
+  "Benzinga. Morgan Stanley on the AI power shortfall, Oct 2026 (secondary report). benzinga.com/markets/prediction-markets/26/10/62174172/nvidia-broadcom-ai-power-shortage",
+  "Cleanview. Behind-the-meter data centers, 2026. cleanview.co/reports/behind-the-meter-data-centers",
+  "Data Center Dynamics. Parker Hannifin to supply more than 1 GW of gas turbines to Stargate Abilene, Oct 2025. datacenterdynamics.com/en/news/parker-hannifin-to-supply-more-than-1gw-of-natural-gas-turbines-to-stargates-abilene-campus-in-texas/",
+  "Global Energy Monitor. Colossus 2 power station. gem.wiki/Colossus_2_power_station",
+  "Data Center Dynamics. Entergy approved to build three gas plants for Meta's Louisiana data center, Aug 2025. datacenterdynamics.com/en/news/entergy-obtains-approval-to-construct-three-gas-facilities-to-serve-metas-2gw-data-center-in-louisiana",
+  "ERCOT. Grid insights: electricity connection and transfer, May 2025. ercot.com/files/docs/2025/05/12/ERCOT-Grid-Insights-Electricity-Connection-and-Transfer.pdf",
+  "Pattern Energy. Southern Spirit Transmission. patternenergy.com/projects/southern-spirit-transmission/",
+  "Third Pole Markets. Big four 2026 AI capex guidance; two now have negative free cash flow, Sep 2026. thirdpolemarkets.com/the-big-fours-combined-2026-ai-capex-guidance-hit-700-billion-two-of-the-four-now-have-negative-free-cash-flow/",
+  "Amazon. Second-quarter 2026 results, Jul 2026. aboutamazon.com/news/company-news/amazon-earnings-q2-2026-report",
+  "Meta. Second-quarter 2026 results, Exhibit 99.1, Jul 2026. s21.q4cdn.com/399680738/files/doc_financials/2026/q2/Meta-06-30-2026-Exhibit-99-1-FINAL.pdf",
+  "Investing.com. Microsoft only US hyperscaler with positive free cash flow; Bank of America projections as reported by Yahoo Finance, Aug 2026 (AI-assisted, per the page). investing.com/news/stock-market-news/microsoft-only-us-hyperscaler-with-positive-free-cash-flow-as-ai-capex-bites-93CH-4846663",
+  "Bain and Company. $2 trillion in new revenue needed to fund AI's scaling trend, Sep 2025. prnewswire.com/news-releases/2-trillion-in-new-revenue-needed-to-fund-ais-scaling-trend---bain--companys-6th-annual-global-technology-report-302563362.html",
+  "The Decoder (Matthias Bastian). OpenAI adds 111 billion to its cash burn forecast as AI costs spiral beyond projections, Feb 2026, citing The Information (OpenAI's internal financial documents). the-decoder.com/openai-adds-111-billion-to-its-cash-burn-forecast-as-ai-costs-spiral-beyond-projections/",
+  "Structured Finance Association, citing Barclays Research (AI Infrastructure Financing: Tracking Issuance Across Asset Classes, Jun 2026, not linked). How data center ABS and CMBS fit in a broader financing ecosystem, Jul 2026. structuredfinance.org/wp-content/uploads/2026/07/SFA-Research-Corner_How-Data-Center-ABS-and-CMBS-Fit-in-a-Broader-Financing-Ecosystem.pdf",
+  "Sherwood News. Alphabet, Amazon, Microsoft, Meta plan more than $700 billion of capex this year, Apr 2026. sherwood.news/tech/alphabet-amazon-microsoft-meta-plan-more-than-700-billion-on-capex-this-year/",
+  "Renewable Energy World (Sean Wolfe). Largest clean energy project in U.S. history secures $11B in financing, starts full construction, Jan 2024. renewableenergyworld.com/news/largest-clean-energy-project-in-u-s-history-secures-11b-in-financing-starts-construction/",
+  "Grid Strategies and ACEG. Fewer New Miles, Rev. 1, Jul 2025. gridstrategiesllc.com/wp-content/uploads/ACEG_Grid-Strategies_Fewer-New-Miles-2025_Rev-1.pdf",
+  "pv magazine. China adds 315 GW of solar in 2025 (NEA), Jan 2026. pv-magazine.com/2026/01/28/china-adds-315-gw-of-solar-in-2025/",
+  "US Energy Information Administration. 2025 capacity additions, Feb 2026. eia.gov/todayinenergy/detail.php?id=67205",
+  "Ember. Global Electricity Review 2026. ember-energy.org/latest-insights/global-electricity-review-2026/major-countries-and-regions/#china",
+  "China Daily (Zheng Xin). China sure-footed in carbon peak goals, Jan 2026, citing the NEA. global.chinadaily.com.cn/a/202601/14/WS6966f6f1a310d6866eb339f0.html",
+  "pv magazine (Vincent Shaw). China added 66.43 GW of new-type energy storage in 2025 (CNESA), 2 Feb 2026. pv-magazine.com/2026/02/02/china-added-66-43-gw-of-new-type-energy-storage-in-2025/",
+  "World Nuclear Association. Plans for new reactors worldwide, Oct 2026. world-nuclear.org/information-library/current-and-future-generation/plans-for-new-reactors-worldwide",
+  "US Energy Information Administration. Short-Term Energy Outlook, electricity prices, Oct 2026. eia.gov/outlooks/steo/tables/pdf/7atab.pdf",
+  "Caixin. How a windswept city in north China became an AI powerhouse, Aug 2026. caixinglobal.com/2026-08-14/in-depth-how-a-windswept-city-in-north-china-became-an-ai-powerhouse-102474153.html",
+  "Carbon Brief (Yuan Ye). How China is managing the rising energy demand from data centres, 16 Apr 2025. carbonbrief.org/explainer-how-china-is-managing-the-rising-energy-demand-from-data-centres",
+  "International Federation of Robotics. World Robotics 2025, Sep 2025. ifr.org/news/global-robot-demand-in-factories-doubles-over-10-years",
+  "International Federation of Robotics. Robot density surges in Europe, Asia and the Americas, 8 Apr 2026. ifr.org/news/robot-density-surges-in-europe-asia-and-americas/",
+  "International Energy Agency. Global EV Outlook 2026: batteries. iea.org/reports/global-ev-outlook-2026/electric-vehicle-batteries",
+  "IEA PVPS Task 1 (Izumi Kaizuka and Junko Okazaki, RTS Corporation). Trends of PV industry, slides for the 65th Task 1 expert meeting, Berlin, 21 Oct 2025 (filed Nov 2025). iea-pvps.org/wp-content/uploads/2025/11/2025-11-11-Kaizuka.pdf",
+  "Wood Mackenzie. Chinese OEMs secure 78% of the 176 GW of wind additions in 2025, Apr 2026. woodmac.com/press-releases/chinese-oems-secure-78-of-the-176-gw-wind-additions-in-2025/",
+  "Hellenic Shipping News, carrying Global Times on MIIT data. China's three key shipbuilding indicators lead world in 2025, 5 Feb 2026. hellenicshippingnews.com/chinas-three-key-shipbuilding-indicators-lead-world-in-2025/",
+  "Tianxia Gongchang. China heavy gas turbine report, 2026 (secondary compilation). faxiangongchang.com/en/reports/china-heavy-gas-turbine-2026",
+  "Malay Mail. Inside Xiaomi's six-second phone factory, Dec 2025. malaymail.com/news/tech-gadgets/2025/12/29/from-robot-arms-to-redmi-inside-xiaomis-six-second-phone-factory/203501",
+  "Yicai Global. Xiaomi starts mass producing phones at new smart factory in Beijing, Jul 2024. yicaiglobal.com/news/xiaomi-starts-mass-producing-phones-at-new-smart-factory-in-beijing",
+  "Epoch AI (Venkat Somala). Will Huawei catch up to Nvidia by 2030?, Sep 2026, updated 24 Sep 2026. epoch.ai/publications/huaweis-roadmap-to-2031",
+  "Epoch AI (Konstantin F. Pilz, Robi Rahman, James Sanders, Lennart Heim). Trends in AI supercomputers, Apr 2025. epoch.ai/data-insights/trends-in-ai-supercomputers",
+  "Taipei Times (staff writer, with CNA). TSMC nets nearly 70% of 2025 foundry market (TrendForce), Mar 2026. taipeitimes.com/News/biz/archives/2026/03/14/2003853777",
+  "Dealroom. Goldman Sachs: China's hyperscalers trail US AI capex roughly 8 to 1, Jun 2026. app.dealroom.co/news/note/china-s-hyperscalers-trail-us-ai-capex-roughly-8-to-1-goldman-sachs-estimates",
+  "Implicator. Stanford AI Index 2026 puts US lead over China at 2.7%, Apr 2026. implicator.ai/stanfords-2026-ai-index-puts-us-lead-over-china-at-2-7-as-deepseek-v4-stalls/",
+  "Hugging Face (Avijit Ghosh, Lucie-Aimée Kaffee, Yacine Jernite, Irene Solaiman). State of Open Source on Hugging Face: Spring 2026, 17 Mar 2026. huggingface.co/blog/huggingface/state-of-os-hf-spring-2026",
+  "Bloomberg (Sankalp Phartiyal). Apple Now Makes About 25% of iPhones in India After China Pivot, 10 Mar 2026 (paywalled after the opening paragraphs). news.bgov.com/international-trade/apple-now-makes-about-25-of-iphones-in-india-after-china-pivot",
+  "International Energy Agency. Global Critical Minerals Outlook 2026. iea.blob.core.windows.net/assets/19c60aa0-ee07-4a20-a138-33c967ac5008/GlobalCriticalMineralsOutlook2026.pdf",
+  "US Geological Survey. Mineral Commodity Summaries 2026: Gallium. pubs.usgs.gov/periodicals/mcs2026/mcs2026-gallium.pdf",
+  "US Geological Survey. Mineral Commodity Summaries 2026: Rare earths. pubs.usgs.gov/periodicals/mcs2026/mcs2026-rare-earths.pdf",
+  "China Ministry of Education. National education statistics, 2021. moe.gov.cn/jyb_sjzl/moe_560/2021/quanguo/202301/t20230103_1037969.html",
+  "Society of Women Engineers. US degree attainment, 2025. swe.org/research/2025/us-degree-attainment/",
+  "CSET, Georgetown. China is fast outpacing US STEM PhD growth. cset.georgetown.edu/publication/china-is-fast-outpacing-u-s-stem-phd-growth/",
+  "Xinhua. China trains new-generation workers on vocational education boom, Mar 2024. english.news.cn/20240326/762ffa75271b458bbf4bdfbdaba0aa60/c.html",
+  "IRENA. Renewable power generation costs in 2025, Jul 2026. irena.org/-/media/Files/IRENA/Agency/Publication/2026/Jul/IRENA_TEC_RPGC_2025_Executive_summary_2026.pdf",
+  "Fragomen. United States H-1B cap is reached for FY2027. fragomen.com/insights/united-states-h-1b-cap-is-reached-for-fy-2027.html",
+  "MIT Technology Review (Caiwei Chen). China built hundreds of AI data centers to catch the AI boom. Now many stand unused, 26 Mar 2025. technologyreview.com/2025/03/26/1113802/china-ai-data-centers-unused/",
+  "Caixin. China's solar industry enters painful reset, Mar 2026. caixinglobal.com/2026-03-05/in-depth-chinas-solar-industry-enters-painful-reset-102419707.html",
+  "Caixin. Chinese automakers report shrinking profits for 2025, Apr 2026. caixinglobal.com/2026-04-15/chinese-automakers-report-shrinking-profits-for-2025-amid-brutal-price-war-102434087.html",
+  "Trading Economics. China youth unemployment, Aug 2026 (NBS). tradingeconomics.com/china/youth-unemployment-rate/news/584561",
+  "The War Zone. F-35s are now being delivered without radars, 26 Jun 2026. twz.com/air/its-official-f-35s-are-now-being-delivered-without-radars",
+  "CSIS. Developing rare earth processing hubs, Jul 2025. csis.org/analysis/developing-rare-earth-processing-hubs-analytical-approach",
+  "Huijing Deng and Alissa Kendall. Life cycle assessment with primary data on heavy rare earth oxides from ion-adsorption clays, The International Journal of Life Cycle Assessment 24(9), 2019 (accepted manuscript). escholarship.org/content/qt5x28j31d/qt5x28j31d.pdf",
+  "US Department of War. Investment in Alcoa's Wagerup gallium project, Sep 2026. war.gov/News/Releases/Release/Article/4587183/",
+  "Rare Earth Directory. China export controls timeline (secondary compilation). rareearthdirectory.com/policy/china-export-controls-timeline/",
+  "MP Materials. Form 10-K, fiscal 2025. sec.gov/Archives/edgar/data/1801368/000180136826000008/mp-20251231.htm",
+  "Creamer Media. US achieves first domestic heavy rare earth oxide output in decades, Mar 2026. newsletter-mw.creamermedia.com/article/us-achieves-first-domestic-heavy-rare-earth-oxide-output-in-decades-2026-03-26",
+  "S&P Global. Korea Zinc launches Crucible to build US critical metals smelter, Apr 2026. spglobal.com/energy/en/news-research/latest-news/metals/040226-korea-zinc-launches-crucible-zinc-to-build-us-critical-metals-smelter",
+  "S&P Global Market Intelligence (Bonakdarpour, Hoffman, Rajan). Mine development times: The US in perspective, supported by the National Mining Association, Jun 2024. cdn.ihsmarkit.com/www/pdf/0724/SPGlobal_NMA_DevelopmentTimesUSinPerspective_June_2024.pdf",
+  "Tom's Hardware (Jowi Morales), via Yahoo Finance. Microsoft CEO says the company doesn't have enough electricity to install all the AI GPUs in its inventory, Nov 2025. finance.yahoo.com/news/microsoft-ceo-says-company-doesnt-122000891.html",
+  "BG2 w/ Brad Gerstner. All things AI w @altcap @sama & @satyanadella. A Halloween Special, Oct 2025. podcasts.apple.com/us/podcast/all-things-ai-w-altcap-sama-satyanadella-a/id1727278168?i=1000734548393",
+  "Microsoft. FY26 Q1 earnings conference call, Oct 2025. microsoft.com/en-us/investor/events/fy-2026/earnings-fy-2026-q1",
+  "Entrepreneur. Nvidia becomes the first to pass $5 trillion in market value, Oct 2025. entrepreneur.com/business-news/nvidia-becomes-the-first-to-pass-5-trillion-in-market-value",
+  "ERCOT. ERCOT Update, Senate Committee on Business & Commerce (Pablo Vegas), Jul 2026. ercot.com/files/docs/2026/07/29/ERCOT-Senate-July-29-Panel-1-Assessing-The-Grid.pdf",
+  "Office of the Texas Governor. Greg Abbott, letter to Thomas Gleeson (PUCT) and Pablo Vegas (ERCOT) on data centres, Aug 2026. gov.texas.gov/uploads/files/press/Thomas_Gleeson_Pablo_Vegas_Data_Centers_Directive_Letter_to_PUCT_ERCOT_August_2026_.pdf",
+  "Carbon Direct. Carbon Direct releases new analysis of power grid interconnection queues, PJM, ERCOT, May 2026 (figures from LBNL's Queued Up 2025). relae.co/press/carbon-direct-releases-new-analysis-of-power-grid-interconnection-queues-pjm-ercot",
+  "Texas Tribune (Kate Galbraith). Texplainer: Why does Texas have its own power grid?, Feb 2011, updated Feb 2021. texastribune.org/?p=73943",
+  "Utility Dive (Diana DiGangi). Texas PUC adopts softened rules on data center interconnection, Sep 2026. utilitydive.com/news/texas-puc-adopts-data-center-interconnection-rules/830899/",
+  "Texas Legislature. Senate Bill 6, 89th Legislature, enrolled, signed Jun 2025. capitol.texas.gov/tlodocs/89R/billtext/html/SB00006F.htm",
+  "Pattern Energy. Southern Spirit Transmission fact sheet, Oct 2023. patternenergy.com/wp-content/uploads/2023/11/10112023-SST_General_Factsheet.pdf",
+  "Dominion Energy. Dominion Energy LSE 20-Year Data Center Forecast, PJM Load Analysis Subcommittee, Sep 2026. pjm.com/-/media/DotCom/committees-groups/subcommittees/las/2026/20260929/20260929-item-5ai---dominion_energy.pdf",
+  "American Electric Power. Q2 2026 Earnings Presentation, Jul 2026. docs.aep.com/docs/newsroom/resources/earnings/2026-07/2Q26EarningsReleasePresentation.pdf",
+  "Loudoun Now. Power crunch to push data center connections by 1-3 years, Sep 2024. loudounnow.com/news/power-crunch-to-push-data-center-connections-by-1-3-years/article_e122ad16-6a5a-11ef-909c-33c14c795f00.html",
+  "PJM. Over 800 New Generation Projects Seek To Connect Under PJM's Reformed Process, Apr 2026. pjm.com/-/media/DotCom/about-pjm/newsroom/2026-releases/20260429-over-800-new-generation-projects-seek-to-connect-under-pjms-reformed-process.pdf",
+  "PJM. 2028/2029 RPM Base Residual Auction Planning Period Parameters, May 2026. pjm.com/-/media/DotCom/markets-ops/rpm/rpm-auction-info/2028-2029/2028-2029-bra-report.pdf",
+  "NERC. 2025 Long-Term Reliability Assessment, Jan 2026. nerc.com/pa/RAPA/ra/Reliability%20Assessments%20DL/NERC_LTRA_2025.pdf",
+  "McGuireWoods. FERC Issues Section 206 Show Cause Orders Directing All Six RTOs/ISOs to Justify or Reform Large Load Integration Rules, Jun 2026. mcguirewoods.com/client-resources/alerts/2026/6/ferc-issues-section-206-show-cause-orders-directing-all-six-rtos-isos-to-justify-or-reform-large-load-integration-rules/",
+  "GE Vernova. 2Q 2026 Results & Outlook, call transcript, Jul 2026. gevernova.com/sites/default/files/gev_webcast_transcript_07222026.pdf",
+  "Siemens Energy. Analyst presentation Q3 FY26, Aug 2026. assets.siemens-energy.com/dam/3e846440-66dd-4a56-be75-b49d004e6741/2026-08-05_Q3_Analyst_presentation-pdf_Original%20file.pdf",
+  "Mitsubishi Heavy Industries. Q1 FY2026 Financial Results, Aug 2026. mhi.com/finance/library/result/pdf/fy20261q/presentation.pdf",
+  "Cleveland-Cliffs. Butler Works, read Nov 2026. clevelandcliffs.com/operations/steelmaking/butler-works",
+  "Deep News, via Tiger Brokers. Global Transformer Shortage Intensifies as China's Exports Surge 61% in Two Months, with US Shipments Soaring 182%, Mar 2026 (reporting a Goldman Sachs note). itiger.com/news/1112652422",
+  "Wood Mackenzie. Power transformers and distribution transformers will face supply deficits of 30% and 10% in 2025, Aug 2025. woodmac.com/press-releases/power-transformers-and-distribution-transformers-will-face-supply-deficits-of-30-and-10-in-2025/",
+  "Federal Register. Executive Order 14421 of August 26, 2026: Declaring a National Emergency To Secure the United States Bulk-Power System, 91 FR 55995, Aug 2026. govinfo.gov/content/pkg/FR-2026-08-31/pdf/2026-17843.pdf",
+  "Cornell Legal Information Institute. 22 C.F.R. 126.1, Prohibited exports, imports, and sales to or from certain countries, read Nov 2026. law.cornell.edu/cfr/text/22/126.1",
+  "Bureau of Industry and Security. Adoption and Procedures of the Section 232 Steel and Aluminum Tariff Inclusions Process, 90 FR 40326, Aug 2025. govinfo.gov/content/pkg/FR-2025-08-19/pdf/2025-15819.pdf",
+  "Xinhua, via China Daily HK. China suspends some export control measures (Announcement No. 70 of 2025), Nov 2025. chinadailyhk.com/hk/article/623198",
+  "China Ministry of Commerce. Announcement No. 72 of 2025, Nov 2025. mofcom.gov.cn/zwgk/zcfb/art/2025/art_5c68985a6b1a46778e2e8dbff1bb1601.html",
+  "China Ministry of Commerce and General Administration of Customs. Announcement No. 18 of 2025 on export control of some medium and heavy rare earth related items, Apr 2025. english.mofcom.gov.cn/Policies/AnnouncementsOrders/art/2025/art_0dd87cbee7b045bf93fabe6ab2faceee.html",
+  "US Bureau of Labor Statistics. Current Population Survey, Table 11b: Employed people by detailed occupation and age, 2025 annual averages. bls.gov/cps/cpsaat11b.htm",
+  "Brookings (Marcela Escobari, Ian Seyal, Paul Beach). Beyond arrests: How ICE enforcement depressed local employment in 2025, 4 Sep 2026. brookings.edu/articles/beyond-arrests-how-ice-enforcement-depressed-local-employment-in-2025/",
+  "US Census Bureau and HUD. Monthly New Residential Construction, August 2026 (CB26-147), Sep 2026. census.gov/construction/nrc/pdf/newresconst_202608.pdf",
+  "NAHB Eye on Housing (Robert Dietz). Builder Sentiment Falls on Higher Interest Rates and Costs, Sep 2026. eyeonhousing.org/2026/09/builder-sentiment-falls-on-higher-interest-rates-and-costs/",
+  "Mississippi Free Press (Illan Ireland). 'We Are Not Expendable': Southaven Residents Fight xAI's Plan for 41 Gas Turbines to Power Musk's Grok, Mar 2026, updated Apr 2026. mississippifreepress.org/xai-faces-fierce-opposition-over-southaven-mississippi-power-plant-permit/",
+  "WWNO (Eva Tesfaye). Entergy's plan to power new Meta data center gets regulatory approval, Aug 2025. wwno.org/coastal-desk/2025-08-20/entergys-plan-to-power-new-meta-data-center-gets-regulatory-approval",
+  "Louisiana Public Service Commission. Minutes of the Business and Executive Session, 20 Aug 2025 (docket U-37425, Ex. 5). lpsc.louisiana.gov/docs/minutes/August-20-2025-Minutes.pdf",
+  "Alphabet. Second-quarter 2026 results, Form 8-K Exhibit 99.1, Jul 2026. sec.gov/Archives/edgar/data/0001652044/000165204426000066/googexhibit991q22026.htm",
+  "Microsoft. FY26 Q4 earnings conference call, Jul 2026. microsoft.com/en-us/investor/events/fy-2026/earnings-fy-2026-q4",
+  "JLL. North America Data Center Report Midyear 2026, Aug 2026. jll.com/en-us/insights/market-dynamics/north-america-data-centers.html",
+  "US Energy Information Administration. Natural Gas Pipeline Development and Expansion, data through 2007/2008 with selected updates. eia.gov/pub/oil_gas/natural_gas/analysis_publications/ngpipeline/impex.html",
+  "SemiAnalysis. Is SMIC N+3's Metal Pitch Smaller than Intel 18A's?, Jun 2026. newsletter.semianalysis.com/p/steel-smic-n3-teardown",
+  "TSMC. Q3 2026 earnings conference call, edited transcript, 15 Oct 2026. investor.tsmc.com/english/quarterly-results/2026/q3",
+  "ASML Holding N.V. Annual Report 2025 (Form 6-K, Exhibit 99.1), Feb 2026. sec.gov/Archives/edgar/data/937966/000162828026011377/asml-2025xannualxreportx.htm",
+  "Stanford HAI. The 2026 AI Index Report: Technical Performance, Apr 2026. hai.stanford.edu/ai-index/2026-ai-index-report/technical-performance",
+  "pv magazine USA (Ryan Kennedy). U.S. adds 26.5 GW of solar in 2025 as renewables dominate new capacity (FERC data), 1 Apr 2026. pv-magazine-usa.com/2026/04/01/u-s-adds-26-5-gw-of-solar-in-2025-as-renewables-dominate-new-capacity/",
+  "Global Energy Monitor, with CREA and others. Boom and Bust Coal 2026, May 2026. globalenergymonitor.org/report/boom-and-bust-coal-2026/",
+  "World Nuclear Association. Nuclear Power in the USA, Oct 2026. world-nuclear.org/information-library/country-profiles/countries-t-z/usa-nuclear-power",
+  "Oenergetice (Erik Novotný). How much did solar power plants cost in 2025?, 16 Jul 2026. oenergetice.cz/en/renewable-energy/how-much-did-solar-power-plants-cost-in-2025",
+  "Dezan Shira & Associates (Tianyi Xiao and Qian Zhou), China Briefing. China's Industrial Power Rates 2025: A Guide for Investors, 19 May 2025 (its 8.8 credited to Statista). china-briefing.com/news/chinas-industrial-power-rates-category-electricity-usage-region-classification/",
+  "US Energy Information Administration. Electric Power Monthly, Table 5.6.B, average price of electricity by state, year to date through August 2026 and 2025. eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+  "Lawrence Berkeley National Laboratory (Shehabi et al.). 2024 United States Data Center Energy Usage Report, LBNL-2001637, Dec 2024. escholarship.org/uc/item/32d6m0d1",
+  "Board of Governors of the Federal Reserve System. H.10, Chinese yuan per US dollar (DEXCHUS, via FRED), 14 Aug 2026: 6.7412. fred.stlouisfed.org/series/DEXCHUS",
+  "Center for Strategic and International Studies (Matthew P. Funaiole, Brian Hart, Aidan Powers-Riggs). Are U.S. Policies Eroding China's Dominance in Shipbuilding?, 24 Sep 2025. csis.org/analysis/are-us-policies-eroding-chinas-dominance-shipbuilding",
+  "World Bank. World Development Indicators: Manufacturing, value added (current US$), NV.IND.MANF.CD, updated 8 Oct 2026. data.worldbank.org/indicator/NV.IND.MANF.CD",
+  "Bernama. Xiaomi's Changping smartphone factory, 28 Dec 2025. bernama.com/en/general/news.php?id=2506674",
+  "Euronews (Meruyert Zhakiyanova). Inside Xiaomi's Beijing factory: the machine behind a smartphone made every 6 seconds, 24 Apr 2026. euronews.com/next/2026/04/24/inside-xiaomis-beijing-factory-the-machine-behind-a-smartphone-made-every-6-seconds",
+  "International Federation of Robotics. Global Robot Density in Factories Doubled in Seven Years, 20 Nov 2024. ifr.org/ifr-press-releases/news/global-robot-density-in-factories-doubled-in-seven-years",
+  "defence-industry.eu. U.S. Department of War announces estimated $174 million equity investment to secure gallium supply through new Alcoa facility in Australia, 1 Sep 2026 (reporting the department's release). defence-industry.eu/u-s-department-of-war-announces-estimated-174-million-equity-investment-to-secure-gallium-supply-through-new-alcoa-facility-in-australia/",
+  "Alcoa. Australia, Japan, the United States and Alcoa Break Ground on Gallium Project in Western Australia, 24 Aug 2026. news.alcoa.com/press-releases/press-release-details/2026/Australia-Japan-the-United-States-and-Alcoa-Break-Ground-on-Gallium-Project-in-Western-Australia/default.aspx",
+  "MP Materials. First quarter 2026 results (Exhibit 99.1 to Form 8-K), 7 May 2026. sec.gov/Archives/edgar/data/1801368/000180136826000027/mpmcq12026er.htm",
+  "MP Materials. Form 10-Q, quarter ended 30 Jun 2026. sec.gov/Archives/edgar/data/0001801368/000180136826000048/mp-20260630.htm",
+  "Energy Fuels. Energy Fuels Achieves Commercial Production of On-Spec Separated Rare Earths at its White Mesa Mill in Utah, While Simultaneously Advancing Uranium Production, 10 Jun 2024. investors.energyfuels.com/2024-06-10-Energy-Fuels-Achieves-Commercial-Production-of-On-Spec-Separated-Rare-Earths-at-its-White-Mesa-Mill-in-Utah,-While-Simultaneously-Advancing-Uranium-Production",
+  "Energy Fuels. Commercial-Scale 'Heavy' Rare Earth Plant Now Under Construction in Utah, 29 Jul 2026. investors.energyfuels.com/2026-07-29-Commercial-Scale-Heavy-Rare-Earth-Plant-Now-Under-Construction-in-Utah",
+  "Rio Tinto. Rio Tinto advances gallium metal R&D project in partnership with the Government of Canada, 2 Mar 2026. riotinto.com/en/news/releases/2026/rio-tinto-advances-gallium-metal-rd-project-in-partnership-with-the-government-of-canada",
+  "Fastmarkets. Korea Zinc's JPMorgan-backed Crucible plant to focus on US material, 9 Jan 2026. fastmarkets.com/insights/korea-zincs-jpmorgan-backed-crucible-plant-to-focus-on-us-material/",
+  "National Center for Education Statistics. Digest of Education Statistics 2022, Table 322.10: Bachelor's degrees conferred by field of study, 2020-21. nces.ed.gov/programs/digest/d22/tables/dt22_322.10.asp",
+  "National Center for Science and Engineering Statistics (NSF). Doctorate Recipients from U.S. Universities: 2023 (NSF 25-300), Figure 8: Doctorate recipients on temporary visas, by trend broad field, 2003 and 2023. ncses.nsf.gov/pubs/nsf25300/figure/8",
+  "US Department of Labor, Office of Apprenticeship. Registered Apprenticeship National Results, Fiscal Year 2021. dol.gov/agencies/eta/apprenticeship/about/statistics/2021",
+  "Ogletree (Amanda R. Goodman). Federal Court Issues New Order Blocking Agency Implementation of $100,000 H-1B Fee, 2 Oct 2026. ogletree.com/insights-resources/blog-posts/federal-court-issues-new-order-blocking-agency-implementation-of-100000-h-1b-fee",
+];
+
+// The web edition's own data for its three scripted pieces, from source/waiting-for-the-tie-in.html as amended
+// by the settlements in research/waiting-for-the-tie-in/ (sources opened 1 Nov 2026, VERDICTS.md): N is the chain, C the model's inputs (id, label, min, max, step, default,
+// unit, where the number comes from), G the side-by-side rows (measure, China, US, unit, China's bar value, the
+// US's bar value, note, source address).
+const N=[
+ {id:'chips',t:'AI chips',k:'outcome',needs:['fab','hbm','shell'],yrs:0,cost:'About $700B of hyperscaler capex guided for 2026',have:'In hand. Nvidia shipped about 4.5 million accelerators in 2025.',without:'Nothing to power. The queue is moot.',src:'Epoch AI; company guidance'},
+ {id:'fab',t:'Most advanced fab',k:'supply',needs:['euv','gallium'],yrs:4,cost:'TSMC Arizona Fab 2 (N3) volume from Q3 2027',have:'TSMC held about 70% of foundry revenue in 2025; N2 in volume in Taiwan since late 2025.',without:'No frontier accelerators. SMIC is held at a 7 nm class.',src:'TrendForce; TSMC; Epoch AI'},
+ {id:'euv',t:'EUV lithography',k:'supply',needs:[],yrs:10,cost:'One supplier, ASML',have:'Export-controlled to China since 2019.',without:'No logic node denser than about 5 nm equivalent.',src:'ASML; Epoch AI'},
+ {id:'hbm',t:'HBM memory',k:'supply',needs:[],yrs:3,cost:'SK hynix, Samsung, Micron',have:'Allied supply. China’s stockpile of foreign HBM is expected to run out in 2026.',without:'Accelerators ship memory-starved.',src:'Epoch AI'},
+ {id:'shell',t:'Data-centre shell',k:'construction',needs:['tiein','electricians','xfmr'],yrs:1.5,cost:'12 to 24 months in the US, 6 to 12 in China',have:'More than 66 GW under construction in North America; vacancy about 1%.',without:'Chips stay in boxes.',src:'JLL; Caixin'},
+ {id:'tiein',t:'Grid tie-in',k:'grid',needs:['studies','firm','lines'],yrs:5,cost:'Up to 7 years in northern Virginia (2024); in Texas, new large data-centre energisations (75 MW or more) paused since August 2026',have:'474 GW asking in ERCOT. Dominion: 54 GW contracted, 4.8 GW billing.',without:'Only on-site plants can energise, and about 2 GW of those run.',src:'ERCOT; Dominion; Data Center Knowledge; Loudoun Now'},
+ {id:'studies',t:'Connection study',k:'grid',needs:['rules'],yrs:2,cost:'$100,000 study fee in Texas; 220 GW in PJM’s first cycle',have:'Batch Zero conditionally included 66 GW as base load and about 128 GW as studied load, and excluded 302 GW.',without:'No tie-in is issued at all.',src:'PUCT; ERCOT; PJM'},
+ {id:'rules',t:'Rules that settle',k:'grid',needs:[],yrs:1,cost:'Texas SB6 rule adopted Sep 2026; federal rulemaking RM26-4 still open',have:'FERC issued six show-cause orders in June instead of a rule.',without:'Studies restart every time the rule changes.',src:'PUCT; FERC'},
+ {id:'firm',t:'Firm generation',k:'power',needs:['turbines','xfmr','gas'],yrs:5,cost:'About $950 per kW for GE Vernova’s HA-class combined-cycle turbines, Q2 2026 (BNP Paribas estimate); equipment, not the plant',have:'PJM 6.8 GW short for 2028/29. NERC flags MISO, PJM and ERCOT.',without:'Tie-ins issued for load the grid cannot serve; curtailment under SB6.',src:'PJM; NERC; BNP Paribas via Utility Dive'},
+ {id:'turbines',t:'Gas turbines',k:'supply',needs:['castings'],yrs:4.5,cost:'+195% on 2019 by end 2027; GE Vernova orders today deliver 2030 to 2031',have:'Backlogs at 30 June: GE Vernova 53 GW, Siemens 69, Mitsubishi 35, plus 63 and 26 GW reserved at the first two.',without:'Turbines ordered now arrive from 2028 at Mitsubishi and from 2030 at GE Vernova; before that, restarts, on-site units and turbines already on order.',src:'GE Vernova; Siemens Energy; Mitsubishi Heavy Industries; Wood Mackenzie; Utility Dive'},
+ {id:'castings',t:'Turbine castings',k:'supply',needs:[],yrs:5,cost:'Single-crystal blades and large rotor forgings from a few global suppliers',have:'The industry’s critical bottleneck, in Wood Mackenzie’s words.',without:'OEM expansion plans slip.',src:'Wood Mackenzie; Tianxia Gongchang (secondary compilation)'},
+ {id:'gas',t:'Gas pipeline',k:'power',needs:[],yrs:3,cost:'About three years from announcement to service for an interstate pipeline project',have:'The gas exists. The pipe to the plant often does not.',without:'Turbines sit uncommissioned.',src:'EIA'},
+ {id:'xfmr',t:'Large transformers',k:'supply',needs:['goes','copper'],yrs:2.7,cost:'128 to 144 weeks (mid 2025); power transformers +77% on 2019',have:'Imports meet about 72% of US need (Goldman Sachs, as reported). Since Aug 2026, Chinese units can be barred deal by deal.',without:'No substation, no tie-in, no plant step-up.',src:'Wood Mackenzie via POWER; Goldman Sachs via Deep News; EO 14421'},
+ {id:'goes',t:'Electrical steel',k:'supply',needs:[],yrs:3,cost:'One US producer; +25% volume by 2028',have:'Since Aug 2025, a 50% tariff on non-US metal inside imported transformers (the 2025 rate, as reported).',without:'Domestic transformer output cannot rise.',src:'Cleveland-Cliffs; Federal Register; TED magazine, as reported'},
+ {id:'copper',t:'Copper and cable',k:'supply',needs:[],yrs:7,cost:'About four years for the environmental impact statement alone, the government estimates',have:'Average US mine: almost 29 years from discovery to production, 10 of the 13 counted not yet producing.',without:'Windings, cable and busbar stay import-dependent.',src:'S&P Global'},
+ {id:'lines',t:'High-voltage lines',k:'grid',needs:['xfmr','electricians'],yrs:8,cost:'536 miles a year of 345 kV and above built, 2020 to 2024',have:'SunZia: more than 17 years of permits and approvals. China: 340 GW of west-east transfer capacity in 2025.',without:'Power exists where load is not.',src:'Grid Strategies; Renewable Energy World; China Daily (NEA)'},
+ {id:'electricians',t:'Electricians',k:'construction',needs:['housing'],yrs:4,cost:'Four- to five-year apprenticeship',have:'821,000 US jobs (2025); nearly one in five 55 or older; data-centre pay about double residential in Abilene.',without:'Builds stretch; the bidding moves to housing.',src:'BLS; ABC; Texas Tribune'},
+ {id:'housing',t:'Housing starts',k:'outcome',needs:[],yrs:0,cost:'Single-family starts 918,000, Aug 2026 (first estimate)',have:'Builder sentiment in September at its lowest since September 2025.',without:'This is where the cost of the build lands.',src:'Census; NAHB'},
+ {id:'gallium',t:'Gallium',k:'minerals',needs:[],yrs:3,cost:'China refines 99%; Alcoa WA projects 100 t a year, no start date given',have:'No US primary production since 1987.',without:'GaN electronics and radar pinched. Mainstream chips mostly unaffected.',src:'USGS; IEA'},
+ {id:'magnets',t:'Rare-earth magnets',k:'minerals',needs:[],yrs:3,cost:'China: 91% of refining (IEA)',have:'MP’s Texas magnet plant, under construction, begins commissioning in 2028.',without:'Motors, wind turbines and weapons. Servers and storage use some too.',src:'IEA; MP Materials'},
+ {id:'credit',t:'Credit',k:'outcome',needs:['chips','tiein'],yrs:0,cost:'Hyperscaler FCF: +$180B in 2025 to −$186B in 2028 (BofA, as reported)',have:'Alphabet negative in the June 2026 quarter, Amazon over the twelve months to June. $61B of data-centre securitisations.',without:'Debt written on compute revenue that starts when power arrives.',src:'Bank of America; Barclays via SFA'}
+];
+const C=[
+ ['Demand and chips',[
+  ['demand','Load seeking power in 2026',10,60,1,30,'GW','Morgan Stanley’s reported 32 GW shortfall on 34% of demand implies about 94 GW sought over 2026 to 2028.'],
+  ['growth','Growth in demand a year',0,30,1,12,'%','NERC: 10-year summer peak forecast to rise 224 GW, mostly data centres.'],
+  ['chips','Chips delivered a year, as GW',5,60,1,32,'GW','Assumption scaled to 2026 capex guidance of about $700B.'],
+  ['chipcost','IT equipment cost per GW',5,40,1,20,'$B','Assumption.']]],
+ ['Tie-in throughput',[
+  ['ercot','ERCOT energisations a year',0,25,.5,6,'GW','Batch Zero: 66 GW conditional base load. Large data-centre energisations paused, Aug 2026.'],
+  ['pjm','PJM energisations a year',0,20,.5,4,'GW','Dominion: 9.4 GW in construction, 4.8 GW billing.'],
+  ['other','Rest of US a year',0,30,.5,7,'GW','AEP: 69 GW contracted by 2030, but 45 GW of it is in ERCOT and 18 GW in PJM, 6 GW in SPP. Contracts, not energisations.']]],
+ ['Firm generation',[
+  ['headroom','Spare firm capacity for new load, 2026',0,25,.5,10,'GW','Falls 2 GW a year in the model. PJM reserve 14.7% against a 20% target.'],
+  ['turb','Turbine deliveries to the US a year, to 2029',5,40,1,22,'GW','Assumption. Fixed by existing backlogs.'],
+  ['share','Share serving new data-centre load',10,100,5,50,'%','Assumption. The rest replaces coal and serves other growth.'],
+  ['turb2','Deliveries a year from 2030',5,60,1,30,'GW','Assumption. GE Vernova alone targets 30 GW a year of output worldwide in 2030.']]],
+ ['Transformers',[
+  ['xfmr','Transformer deliveries, GW served a year',5,40,1,16,'GW','Assumption. Wood Mackenzie modelled a 2025 power-transformer shortfall of about 30%, which is disputed.'],
+  ['xfmr2','Added from 2028',0,30,1,8,'GW','Plants announced in North Carolina, South Carolina and Virginia, due 2027 to 2028.']]],
+ ['On-site plants',[
+  ['btm','On-site generation running, 2026',0,15,.5,3,'GW','Cleanview: 2.8 to 3.2 GW by end 2026.'],
+  ['ramp','Added each year',0,10,.5,3,'GW','Cleanview: up to 10 GW added in 2027, if every project with a signed tenant keeps its timeline.']]],
+ ['Electricians and housing',[
+  ['pool','Electricians available to data-centre work',10,150,5,60,'k','BLS: 821,000 jobs nationally.'],
+  ['ratio','Electrician-years per GW built',200,1200,50,500,'','USC: about one peak worker per MW at hyperscale; assumption for the electrical share.'],
+  ['res','Share pulled from residential',0,100,5,40,'%','Assumption.'],
+  ['homes','Homes one electrician wires a year',2,30,1,8,'','Assumption.']]]
+];
+const G={
+'Grid':[
+ ['Generation capacity added, 2025','~540','53','GW',540,53,'China: net rise in NEA year-end totals, to 3.89 TW (+16.1%). US: EIA, capacity added to the grid, not net of retirements. Not like for like. China: 315 GW solar, 119 wind (NEA); coal 78 GW (Global Energy Monitor).','https://www.pv-magazine.com/2026/01/28/china-adds-315-gw-of-solar-in-2025/',[45, 137]],
+ ['Installed capacity, end 2025','3,890','1,353','GW',3890,1353,'NEA; FERC.','https://pv-magazine-usa.com/2026/04/01/u-s-adds-26-5-gw-of-solar-in-2025-as-renewables-dominate-new-capacity/'],
+ ['Electricity demand growth, 2025','+503','+131','TWh',503,131,'Ember. China +5%, US +3%.','https://ember-energy.org/latest-insights/global-electricity-review-2026/major-countries-and-regions/#china'],
+ ['Storage added, 2025','66.4','15','GW',66.4,15,'China: CNESA, new-type storage (not pumped hydro), user-side included. US: EIA, battery storage. Not like for like.','https://www.pv-magazine.com/2026/02/02/china-added-66-43-gw-of-new-type-energy-storage-in-2025/',[45]],
+ ['Reactors under construction','38','0','',38,0,'World Nuclear Association, Oct 2026. Vogtle 4 took over ten years, from first concrete in 2013 to the grid in 2024.','https://world-nuclear.org/information-library/current-and-future-generation/plans-for-new-reactors-worldwide',[138]],
+ ['Long-distance transmission','340 GW','536 mi/yr','',340,54,'China: west-east transfer capacity in 2025, per the NEA. US: miles of 345 kV and above built a year, 2020 to 2024. Different units; bars indicative only.','https://global.chinadaily.com.cn/a/202601/14/WS6966f6f1a310d6866eb339f0.html',[43]],
+ ['Industrial power, national average','8.8¢','8.6¢','per kWh',8.8,8.6,'China 2024, China Briefing (Statista); US 2025, EIA STEO. Years differ. About level; China slightly higher.','https://www.eia.gov/outlooks/steo/tables/pdf/7atab.pdf',[140]],
+ ['Power at the data-centre hub','4.5–5.2¢','10.1¢','per kWh',4.8,10.07,'Ulanqab, Inner Mongolia: 0.30–0.35 yuan, in Caixin’s AI-generated summary of its Aug 2026 feature, tariff class not given; at the Fed’s 14 Aug rate, 6.74 yuan to the dollar. Virginia: industrial, Jan–Aug 2026, preliminary, EIA; 9.3 in Jan–Aug 2025.','https://www.caixinglobal.com/2026-08-14/in-depth-how-a-windswept-city-in-north-china-became-an-ai-powerhouse-102474153.html',[143, 141]],
+ ['Data-centre electricity use','150–200','176','TWh',175,176,'China 2025: State Council DRC forecast, May 2024; the IEA put 2024 at 100. Both via Carbon Brief. US 2023: LBNL model estimate. Years and methods differ.','https://www.carbonbrief.org/explainer-how-china-is-managing-the-rising-energy-demand-from-data-centres',[142]],
+ ['Traditional construction cycle','6–12','12–24','months',9,18,'Caixin’s AI-generated summary of its Aug 2026 feature; speaker not shown. Europe up to 30.','https://www.caixinglobal.com/2026-08-14/in-depth-how-a-windswept-city-in-north-china-became-an-ai-powerhouse-102474153.html']],
+'Factories':[
+ ['Industrial robots installed, 2024','295,000','34,164','',295000,34164,'IFR, World Robotics 2025. China 54% of the world; 57% of China’s installations from Chinese makers. US 34,164 by industry (IFR rounds to 34,200).','https://ifr.org/news/global-robot-demand-in-factories-doubles-over-10-years'],
+ ['Robot density, 2024, per 10,000 manufacturing employees','166','307','',166,307,'IFR, Apr 2026, on updated Chinese labour statistics; it gave China 470 for 2023 in Nov 2024. China 22nd, US 8th, Korea 1,220.','https://ifr.org/news/robot-density-surges-in-europe-asia-and-americas/',[148]],
+ ['Transformers','~60%','72% imported','',60,28,'China’s share of world capacity (People’s Daily) against the share of US need met by imports (Goldman Sachs, as reported by Deep News).','https://en.people.cn/n3/2026/0320/c90000-20438192.html',[113]],
+ ['Solar modules, world share','86%','~3%','',86,3,'IEA PVPS Trends 2024 data, via Task 1 slides, Oct 2025: modules made in 2024. US 23 of 726 GW. Polysilicon 94%, wafers about 97%.','https://iea-pvps.org/wp-content/uploads/2025/11/2025-11-11-Kaizuka.pdf'],
+ ['Wind installed worldwide by OEM origin, 2025','78%','not stated','',78,0,'Wood Mackenzie, Apr 2026: Chinese OEMs 78% of the 176 GW added worldwide; the top six all Chinese. The release gives no US share; Western OEMs took 75% of installations outside China.','https://www.woodmac.com/press-releases/chinese-oems-secure-78-of-the-176-gw-wind-additions-in-2025/'],
+ ['Large gas turbine delivery cycle','14','48–60','months',14,54,'Harbin Electric–GE joint venture, HA class, from its first units in 2023, against the Big Three (GE Vernova, Siemens Energy, Mitsubishi Power) for orders today, some booked out to eight years. China’s own 300 MW F class is still in demonstration.','https://faxiangongchang.com/en/reports/china-heavy-gas-turbine-2026'],
+ ['Commercial shipbuilding, world share','>53%','0.1%','',53,.1,'CSIS, 2024, one sentence, metric not stated. MIIT gives China 56.1% of 2025 completions by deadweight tonnage.','https://www.csis.org/analysis/are-us-policies-eroding-chinas-dominance-shipbuilding',[58]],
+ ['Manufacturing value added, world share','~28%','~15%','',28,15.5,'World Bank, current dollars. China 2024; US 2021, its latest year in the series, when China was 30%. Years differ.','https://data.worldbank.org/indicator/NV.IND.MANF.CD']],
+'Chips and money':[
+ ['AI accelerators shipped, 2025','~0.8M','~4.5M','units',.8,4.5,'Huawei Ascend against Nvidia. US ahead by about six times.','https://epoch.ai/publications/huaweis-roadmap-to-2031'],
+ ['Share of tracked AI compute, Mar 2025','~15%','~75%','',15,75,'Epoch AI. US ahead.','https://epoch.ai/data-insights/trends-in-ai-supercomputers'],
+ ['Most advanced logic node in volume','7 nm class','2 nm','',2,7,'SMIC N+3 without EUV (Epoch AI) against TSMC N2 (TSMC). Smaller is ahead. US and allies ahead; bars show capability, not size.','https://epoch.ai/publications/huaweis-roadmap-to-2031'],
+ ['Big-tech AI capex, 2026','$102B','$764B','',102,764,'Goldman Sachs: China’s big four against the US big five. About 8 to 1 by 2027.','https://app.dealroom.co/news/note/china-s-hyperscalers-trail-us-ai-capex-roughly-8-to-1-goldman-sachs-estimates'],
+ ['Best model, Arena score, Mar 2026','1,464','1,503','',1464,1503,'Stanford AI Index 2026. A 2.7% gap. US ahead, narrowly.','https://hai.stanford.edu/ai-index/2026-ai-index-report/technical-performance',[66]],
+ ['Open-weight downloads, share, year to Mar 2026','~41%','under 41%','',41,0,'Hugging Face, Spring 2026: Chinese models the plurality, ahead of the US. No US share given.','https://huggingface.co/blog/huggingface/state-of-os-hf-spring-2026'],
+ ['iPhones assembled','>70%','0%','',70,0,'China against the United States, 2025. India about 25%, per people familiar with the matter (Bloomberg).','https://news.bgov.com/international-trade/apple-now-makes-about-25-of-iphones-in-india-after-china-pivot']],
+'Minerals and people':[
+ ['Primary gallium, world share','99%','0%','',99,0,'China 99% of primary low-purity production (USGS; IEA’s table, 99%). No US primary production since 1987. One New York plant refines high-purity gallium from imports and scrap.','https://iea.blob.core.windows.net/assets/19c60aa0-ee07-4a20-a138-33c967ac5008/GlobalCriticalMineralsOutlook2026.pdf',[70]],
+ ['Magnet rare-earth refining, world share','84%','~6%','',84,6,'IEA, 2025: 75 and 5 of 89 kt (neodymium, praseodymium, dysprosium, terbium). Its export-control table gives China 91% of rare-earth refining. MP Materials made 2,599 t of NdPr oxide in 2025.','https://iea.blob.core.windows.net/assets/19c60aa0-ee07-4a20-a138-33c967ac5008/GlobalCriticalMineralsOutlook2026.pdf',[87]],
+ ['Graphite refining, world share','94%','<1%','',94,0.6,'IEA, 2025: US 13 of 2,266 kt battery-grade. China’s share of refining: germanium 94%, lithium 71%, tungsten 76%.','https://iea.blob.core.windows.net/assets/19c60aa0-ee07-4a20-a138-33c967ac5008/GlobalCriticalMineralsOutlook2026.pdf'],
+ ['Engineering bachelor’s degrees a year','1.40M','126k','',1400,126,'China MoE, 2021; NCES, 2020–21, engineering alone (145k with engineering technologies and trades).','https://www.moe.gov.cn/jyb_sjzl/moe_560/2021/quanguo/202301/t20230103_1037969.html',[157, 73]],
+ ['STEM doctorates a year','~77k','~40k','',77,40,'CSET projection for 2025, made in 2021; China counts four fields, the US seven. NSF: 56% of US engineering doctorates in 2023 went to temporary-visa holders.','https://cset.georgetown.edu/publication/china-is-fast-outpacing-u-s-stem-phd-growth/',[158]],
+ ['Trade and technical graduates a year','~10M','~97k','',10000,97,'China: yearly output of secondary and higher vocational schools (Xinhua), not a graduate count. US: registered apprenticeship completions, FY2021, all occupations. Not like for like.','https://english.news.cn/20240326/762ffa75271b458bbf4bdfbdaba0aa60/c.html',[159]],
+ ['Utility solar capital cost','$497','$1,371','per kW',497,1371,'2025 estimates, Oenergetice, which names no source. IRENA: US solar LCOE close to double China’s.','https://oenergetice.cz/en/renewable-energy/how-much-did-solar-power-plants-cost-in-2025',[76]],
+ ['Construction workforce foreign-born','n/a','26%','',0,26,'NAHB, record high, 2024.','https://eyeonhousing.org/2026/04/which-states-and-construction-trades-depend-the-most-on-immigrant-workers/'],
+ ['H-1B registrations, FY2027 change','n/a','−38.5%','',0,38.5,'Fragomen, from USCIS data; registrations, not petitions. The $100,000 fee has since been blocked by district courts in Massachusetts (on appeal) and California, and extended by proclamation to Sept 2027.','https://www.fragomen.com/insights/united-states-h-1b-cap-is-reached-for-fy-2027.html',[160]]]
+};
+
+// ---------- 03 · the chain: the explorer's own two functions, run for every piece ----------
+const by = Object.fromEntries(N.map((n) => [n.id, n]));
+const deps = (id: string) => N.filter((n) => n.needs.includes(id)).map((n) => n.id);
+// What becomes impossible downstream when this one piece is removed.
+const dead = (id: string) => { const d = new Set<string>(), q = [id]; while (q.length) { const x = q.pop()!; deps(x).forEach((y) => { if (!d.has(y) && y !== id) { d.add(y); q.push(y); } }); } return [...d]; };
+// The critical path from a standing start: its own years plus the longest chain upstream.
+const path = (id: string, seen = new Set<string>()): number => { if (seen.has(id)) return 0; seen.add(id); const n = by[id]; const s = n.needs.map((x: string) => path(x, new Set(seen))); return n.yrs + (s.length ? Math.max(...s) : 0); };
+const names = (ids: string[]) => (ids.length ? ids.map((x) => by[x].t) : ['nothing']);
+const chain = N.map((n) => ({ ...n, enables: deps(n.id), gone: dead(n.id), crit: path(n.id) }));
+
+// ---------- 05 · the model: the explorer's own sim, run once at the published defaults ----------
+const YEARS = [2026, 2027, 2028, 2029, 2030, 2031, 2032];
+const rows = C.flatMap((g) => g[1]);
+const p = Object.fromEntries(rows.map((r) => [r[0], r[5]])) as Record<string, number>;
+const show = (r: any[], v: number) => (r[6] === '$B' ? '$' + v + 'B' : r[6] === '%' ? v + '%' : r[6] === 'k' ? v + 'k' : r[6] ? v + ' ' + r[6] : String(v));
+function sim(p: Record<string, number>) {
+  const out: any[] = []; let back = 0, cc = 0, cp = 0;
+  YEARS.forEach((y, i) => {
+    const demand = p.demand * Math.pow(1 + p.growth / 100, i), want = demand + back;
+    const grid = p.ercot + p.pjm + p.other;
+    const gen = Math.max(0, p.headroom - 2 * i) + ((y >= 2030 ? p.turb2 : p.turb) * p.share) / 100;
+    const xf = p.xfmr + (y >= 2028 ? p.xfmr2 : 0);
+    const caps: Record<string, number> = { grid, gen, xfmr: xf };
+    const gcap = Math.min(grid, gen, xf);
+    let bind = Object.keys(caps).reduce((a, b) => (caps[b] < caps[a] ? b : a));
+    const bcap = p.btm + p.ramp * i, lab = (p.pool * 1000) / p.ratio;
+    let g = Math.min(want, gcap), b = Math.min(Math.max(0, want - g), bcap), tot = g + b;
+    if (tot >= want - 1e-9) bind = 'demand';
+    if (tot > lab) { const s = lab / tot; g *= s; b *= s; tot = lab; bind = 'lab'; }
+    back = Math.max(0, want - tot); cc += p.chips; cp += tot;
+    const elec = tot * p.ratio;
+    out.push({ y, demand, want, g, b, tot, back, caps, bind, cc, cp, str: Math.max(0, cc - cp), elec, homes: ((elec * p.res) / 100) * p.homes });
+  });
+  return out;
+}
+const NM: Record<string, string> = { grid: 'Tie-in', gen: 'Firm power', xfmr: 'Transformers', lab: 'Electricians', demand: 'Met' };
+const R = sim(p);
+const pk = R.reduce((a, r) => (r.str > a.str ? r : a), R[0]);
+const clr = R.find((r) => r.back < 1e-6);
+const totAll = R.reduce((a, r) => a + r.tot, 0), askAll = R.reduce((a, r) => a + r.demand, 0), h28 = R[2];
+const readout: [string, string][] = [
+  [`${fmt(pk.str)} GW`, `Peak stranded compute${pk.str > 0 ? ', in ' + pk.y + '. About $' + fmt(pk.str * p.chipcost) + 'B of hardware unplugged.' : '. Power keeps up with chips.'}`],
+  [`${fmt((100 * totAll) / askAll)}%`, `Of load asked for, 2026 to 2032, that gets energised. ${fmt(R[R.length - 1].back)} GW still waiting in 2032.`],
+  [clr ? String(clr.y) : 'Never', clr ? 'First year every request is served.' : 'The queue does not clear in this range.'],
+  [`${fmt(h28.homes / 1000, 1)}k`, `Homes a year not wired in 2028, with ${fmt(h28.elec / 1000, 1)}k electricians on data-centre sites. ${fmt((100 * h28.homes) / 918000, 1)}% of single-family starts.`],
+];
+// Each year's track is the load asking for power; its fills are what the grid and the on-site plants energise, and
+// the track left over is the backlog carried into the next year.
+const askMax = Math.max(...R.map((r) => r.want));
+const strMax = Math.max(...R.map((r) => r.cc));
+
+// ---------- 08 · side by side: each row's source, by its number in section 12 where the list has it ----------
+const bare = (u: string) => u.replace(/^https?:\/\/(www2?\.)?/, '');
+const sourceOf = (url: string) => { const i = sources.findIndex((s) => s.endsWith(' ' + bare(url))); return i < 0 ? { url: bare(url) } : { n: String(i + 1).padStart(2, '0') }; };
+const compare = Object.entries(G).map(([k, list]) => ({ k, list: list.map((r) => ({ r, m: Math.max(r[4] as number, r[5] as number) || 1, src: sourceOf(r[7] as string) })) }));
+
+const graph = articleGraph(ed, { alternativeHeadline: `Printed as ${ed.print}`, sources });
+---
+<Base title={pageTitle(ed)} ogTitle={ed.seoTitle} description={describe(ed)} path={ed.path} ogImage={`/og/${ed.slug}.png`} schema={[graph]} published={ed.date} noindex={DRAFT} modified={ed.modified}>
+  <main id="main">
+    <section class="surface cover" aria-label="Cover">
+      <RoseField layers={cover} seed={seedDrift(ed.seed)} class="rose cover-rose" />
+      <Masthead right={DRAFT ? 'Draft' : undefined} />
+      <div class="grid cover-grid">
+        <h1 class="c-full display" data-flex="cursor">Waiting<br>for the<br><span class="acid">Tie-In</span>{ed.dek && <span class="dek"><span class="sr">: </span>{ed.dek}</span>}</h1>
+        <p class="c-a lede">{ed.lede}</p>
+        <Formats slug={ed.slug} />
+      </div>
+      <div class="foot mono cover-foot">
+        <Byline e={ed} />
+        <span>r = cos(kθ) · seed {ed.seed}</span>
+      </div>
+    </section>
+    <FilmPlayer slug={ed.slug} ground="bottle" />
+
+    <Section n="00" title="The chips are<br>in the building." acid id="brief">
+      <div class="c-a prose">
+        <p>At the end of October 2025 the chief executive of Microsoft said the quiet part on a podcast. "The biggest issue we are now having is not a compute glut, but it's power," Satya Nadella said. If the buildings could not be finished fast enough close to power, "you may actually have a bunch of chips sitting in inventory that I can't plug in. In fact, that is my problem today." <span class="cite">{c(92, 91)}</span> <span class="mark" aria-label={MARK.F}>F</span> His chief financial officer, Amy Hood, told analysts that for the past few years what the company lacked was not chips but "the space or the power" to put them in, and, of capacity against demand, that it had been "short now for many quarters". <span class="cite">{c(93)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>One of the three most valuable companies in the world, in the largest build-out in history, bought the hardware and could not turn all of it on. <span class="cite">{c(94)}</span></p>
+        <p class="beat">This edition is about why. Not the chips. Everything the chips wait for.</p>
+        <p class="mono-b">00 · The brief</p>
+        <p>It started with a summary that said America was stuck. Turbines come from China. Rare earths cannot be refined at home. Electricians are being bid away from housing. Banks are getting nervous. I checked every claim against primary sources. Some were wrong, and the ones that were wrong were the ones that would get the whole argument dismissed.</p>
+        <p>What survived is a queue. Chips wait for a building. The building waits for a grid connection. The connection waits for a study, the study waits for a rule, and the power behind it waits for a turbine with a 2031 delivery slot. Each wait is rational on its own. Together they stall.</p>
+        <p>Every material claim below carries one of three marks.</p>
+      </div>
+      <Rail items={[
+        ['F', '<b>Verified fact.</b> Confirmed in a primary source or credible reporting, listed at the back.'],
+        ['I', '<b>Sourced inference.</b> My reasoning from the facts. Mine to defend, yours to argue with.'],
+        ['Q', '<b>Open question.</b> Unknown, disputed, or untested.'],
+      ]} />
+    </Section>
+
+    <Section n="01" title="474 gigawatts<br>asking." ground="bottle" id="queue">
+      <div class="c-a prose">
+        <p class="mono-b">01 · The queue</p>
+        <p>Texas runs its own grid. In July 2026 its operator, ERCOT, told a Texas Senate committee that about 474 gigawatts of large loads were asking to connect, roughly nine in ten of them data centres. <span class="cite">{c(95)}</span> <span class="mark" aria-label={MARK.F}>F</span> The grid's record peak demand, set in July, is about 91 gigawatts. <span class="cite">{c(3)}</span> <span class="mark" aria-label={MARK.F}>F</span> The requests add up to more than five Texases. <span class="cite">{c(2)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>Oncor, one Dallas utility, holds nearly 300 gigawatts of requests by itself. <span class="cite">{c(4)}</span> <span class="mark" aria-label={MARK.F}>F</span> In September ERCOT provisionally sorted its first batch: 66 gigawatts conditionally included as base load and about 128 more as studied load, 302 gigawatts excluded; final decisions are due in December. <span class="cite">{c(5)}</span> <span class="mark" aria-label={MARK.F}>F</span> On 3 August the governor ordered an audit of every data centre advancing through ERCOT's interconnection process before any more are approved to move forward; ERCOT then paused energisation approvals for data centres and crypto-mining facilities of 75 megawatts or more. <span class="cite">{c(96, 5)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>The rest of the country is slower. About 2,061 gigawatts of generation and storage sat in US interconnection queues at the end of 2025, and, in the regions with data, the median project built that year took more than five years from request to operation. <span class="cite">{c(6)}</span> <span class="mark" aria-label={MARK.F}>F</span> In northern Virginia, Dominion said in 2024 that a large load could wait up to seven years. <span class="cite">{c(7, 104)}</span> <span class="mark" aria-label={MARK.F}>F</span> PJM, the grid that serves Virginia, has now cleared its capacity auction short of its reliability requirement twice running, the first times in its history that the whole region has fallen short. <span class="cite">{c(8)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>A request is not a project. <span class="cite">{c(6)}</span> Many may be speculative, experts say, filed in several places at once to hold a place in line. <span class="cite">{c(2)}</span> That is part of the problem: studying the ghosts delays the real ones. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <div class="c-b side">
+        <figure class="field bars" aria-label="ERCOT large-load requests against grid size">
+          <figcaption class="mono">ERCOT and Oncor · gigawatts · Jun to Sep 2026</figcaption>
+          {queueBars.map(([l, v, s]) => (<div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${pct(v, 474)}`}></span></span><span class="num val">{s}</span></div>))}
+        </figure>
+        <Stats class="" items={[
+          ['2,061 GW', 'In US interconnection queues, end 2025. LBNL.'],
+          ['5+ yrs', 'Median request to operation, projects built in 2025, regions with data. LBNL.'],
+          ['6,831 MW', 'PJM shortfall, 2028/29 auction. Second in a row.'],
+        ]} />
+      </div>
+    </Section>
+
+    <Section n="02" title="Sold out<br>to 2031." id="machines">
+      <div class="c-a prose">
+        <p class="mono-b">02 · The machines</p>
+        <p>Suppose the grid said yes tomorrow. The power still has to come from somewhere, and firm power in America means gas turbines.</p>
+        <p>Three companies are the main makers of the large ones. <span class="cite">{c(10)}</span> GE Vernova's backlog and slot reservations reached 116 gigawatts by the end of June, and it is now taking reservations for 2031 delivery. <span class="cite">{c(9, 109)}</span> <span class="mark" aria-label={MARK.F}>F</span> Siemens Energy holds 69 gigawatts in backlog, and its finance chief puts lead times across the company at three years or more. <span class="cite">{c(110, 11)}</span> <span class="mark" aria-label={MARK.F}>F</span> Mitsubishi Power's large-frame backlog is 35 gigawatts, up from 23 a year earlier. <span class="cite">{c(111, 12)}</span> <span class="mark" aria-label={MARK.F}>F</span> Wood Mackenzie counted about 110 gigawatts on order at the end of 2025 against 60 to 70 gigawatts of global manufacturing capacity, with prices expected to reach roughly 195 percent above 2019 by the end of 2027. <span class="cite">{c(13)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>The summary said the turbines come from China. They don't. In the reporting we cite, to July 2026, no Chinese large-frame turbine had been delivered to the United States; the first North American order, for Canada, came in March 2026. <span class="cite">{c(14, 59)}</span> Dongfang's first self-developed F-class export, its 50 megawatt G50, was shipped to Kazakhstan in late 2025. <span class="cite">{c(14, 59)}</span> <span class="mark" aria-label={MARK.F}>F</span> The bottleneck is in South Carolina, Berlin and Takasago, and those factories are sold out.</p>
+        <p>Then the transformer. Every plant and every data centre needs one to step voltage up or down. A large power transformer took about 128 weeks to arrive in mid 2025 and a generator step-up unit about 144, and power transformer prices are up 77 percent since 2019. <span class="cite">{c(15)}</span> <span class="mark" aria-label={MARK.F}>F</span> One American company, Cleveland-Cliffs by its own account, makes grain-oriented electrical steel, the steel inside them. <span class="cite">{c(112, 16)}</span> <span class="mark" aria-label={MARK.F}>F</span> China holds about 60 percent of the world's capacity to make transformers, <span class="cite">{c(17)}</span> and since 26 August 2026 an executive order lets the Energy Secretary bar new transactions in bulk-power equipment from China and other covered countries on the US grid. <span class="cite">{c(115, 116, 18)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p class="beat">An order placed today for the machine that makes the power arrives around 2030 or later at GE Vernova; Mitsubishi's latest orders are scheduled for 2028 to 2030. <span class="cite">{c(109, 12)}</span> <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <div class="c-b side">
+        <figure class="field bars" aria-label="Gas turbine backlogs by manufacturer">
+          <figcaption class="mono">Gas-turbine backlog, firm orders, 30 June 2026, against global manufacturing capacity (Wood Mackenzie, end 2025) · GW</figcaption>
+          {turbineBars.map(([l, v, s]) => (<div class="bar"><span class="mono lbl">{l}</span><span class="track"><span class="fill" style={`width:${pct(v, 70)}`}></span></span><span class="num val">{s}</span></div>))}
+          <p class="mono">GE Vernova and Siemens hold 63 and 26 GW more in slot reservations. Mitsubishi's is large frame only. {c(109, 110, 111, 13)}</p>
+        </figure>
+        <Stats class="" items={[
+          ['2031', 'Delivery slots GE Vernova is now reserving.'],
+          ['128 wk', 'Large power transformer lead time. 144 for step-up units.'],
+          ['+195%', 'Turbine price by end 2027 against 2019. Wood Mackenzie.'],
+        ]} />
+      </div>
+    </Section>
+
+    <Section n="03" title="Without this,<br>nothing." ground="bottle" id="nothing">
+      <div class="c-a prose">
+        <p class="mono-b">03 · The chain</p>
+        <p>Twenty-one pieces the build needs. Each one below shows what it needs, what it enables, how long it takes to replace from a standing start, and where the number comes from, and then what becomes impossible downstream without it.</p>
+        <p>Read the transformer first. Then read EUV lithography, one of ten pieces with nothing upstream of it, and the only one of those that takes a decade to replace.</p>
+      </div>
+      <ol class="c-full pieces" aria-label="The chain, twenty-one pieces">
+        {chain.map((c) => (
+          <li class="field piece" id={`piece-${c.id}`}>
+            <p class="mono kind">{c.k}{c.yrs ? ` · ${c.yrs} yr to replace` : ''}</p>
+            <h3 class="piece-t">{c.t}</h3>
+            <dl class="rail">
+              <dt>Status</dt><dd>{c.have}</dd>
+              <dt>Cost and time</dt><dd>{c.cost}</dd>
+              <dt>Without it</dt><dd>{c.without}</dd>
+              <dt>Source</dt><dd>{c.src}</dd>
+            </dl>
+            <dl class="links">
+              <dt class="mono">Needs</dt><dd>{names(c.needs).join(' · ')}</dd>
+              <dt class="mono">Enables</dt><dd>{names(c.enables).join(' · ')}</dd>
+            </dl>
+            <p class="mono">Critical path from a standing start</p>
+            <p class="num crit">{fmt(c.crit, 1)} yrs</p>
+            <p class="gone"><b>If removed,</b> {c.gone.length ? `${numberWord(c.gone.length)} ${c.gone.length === 1 ? 'piece becomes' : 'pieces become'} impossible: ${names(c.gone).join(', ')}.` : 'nothing downstream depends on it.'}</p>
+          </li>
+        ))}
+      </ol>
+    </Section>
+
+    <Section n="04" title="Thirty-five<br>dollars, or twenty." id="hands">
+      <div class="c-a prose">
+        <p class="mono-b">04 · The hands</p>
+        <p>Somebody has to wire it.</p>
+        <p>In Abilene, Texas, where the first Stargate campus is going up, a local electrical contractor who wires new homes says data-centre electricians earn about 35 dollars an hour plus overtime and per diem. He pays about 20, and has lost five workers to the data centres. <span class="cite">{c(19)}</span> <span class="mark" aria-label={MARK.F}>F</span> An Abilene builder told the Texas Tribune his houses now take two months longer than before the data centres came. <span class="cite">{c(19)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>It shows in the national numbers. Spending on data-centre construction ran at an annualised 85 billion dollars in August 2026, up 73 percent in a year. New single-family construction spending was 3.5 percent lower than a year earlier, within the survey's margin of error. <span class="cite">{c(20)}</span> <span class="mark" aria-label={MARK.F}>F</span> Lennar's chief executive told investors in September that "immigration enforcement and enthusiastic data center construction continue to create tightness in certain geographies." <span class="cite">{c(21)}</span> <span class="mark" aria-label={MARK.F}>F</span> KB Home said the same month it had not had a lot of issues getting labour to its sites. <span class="cite">{c(21)}</span> <span class="mark" aria-label={MARK.F}>F</span> Both can be true in different places.</p>
+        <p>Electricians held about 821,000 jobs in the US in 2025, and nearly one in five electricians is 55 or older. <span class="cite">{c(22, 121)}</span> <span class="mark" aria-label={MARK.F}>F</span> In 2024 immigrants were 26 percent of the construction workforce, a record, <span class="cite">{c(24)}</span> and a Brookings study in May estimated that enforcement surges left construction employment about 2 percent below its expected path in the 86 metros hit hardest, an estimate its authors' September update does not repeat. <span class="cite">{c(25, 122)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p class="mono-b">04 · Where the answer is less dramatic</p>
+        <p>A hyperscale site needs roughly one peak worker per megawatt. <span class="mark" aria-label={MARK.F}>F</span> At that ratio, even the 66 gigawatts ERCOT conditionally included as base load would occupy a small share of American electrician jobs at any one time. <span class="mark" aria-label={MARK.I}>I</span> Labour is not what caps the data centres. It is where their cost lands: in wages a homebuilder cannot match, and in houses that take longer to finish. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <Stats class="c-b" items={[
+        ['$85B', 'Data-centre construction, annualised, Aug 2026. Up 73% in a year. Census.'],
+        ['−3.5%', 'New single-family construction spending, against Aug 2025.'],
+        ['821k', 'US electrician jobs, 2025. Nearly one in five 55 or older.'],
+        ['+2 mo', 'Added to an Abilene builder\'s houses since the data centres came.'],
+      ]} />
+    </Section>
+
+    <Section n="05" title="Move the<br>numbers." ground="bottle" id="model">
+      <div class="c-a prose">
+        <p class="mono-b">05 · The model</p>
+        <p>Each year, data-centre load asks for power. It can get it through a grid tie-in or by building its own plant. The grid path is capped by whichever is smallest that year: interconnection throughput, firm generation free for new load, or transformer deliveries. Both paths draw on the same electricians. Chips keep arriving regardless.</p>
+        <p>Some defaults are set from the published figures above; the rest are my own choices. Every input carries a note, with the published figure nearest to it where there is one.</p>
+        <p>At the defaults, transformers bind first, then the tie-in, then firm generation from 2029, as spare capacity dwindles before the new turbine slots open in 2030; in 2028 and 2030 the two are level. The queue never clears. Stranded compute peaks at about 34 gigawatts. <span class="mark" aria-label={MARK.I}>I</span> The 2028 backlog in the model, about 34 gigawatts, sits close to Morgan Stanley's reported estimate of a 32 gigawatt shortfall through 2028. <span class="cite">{c(27)}</span> <span class="mark" aria-label={MARK.F}>F</span> The model's demand default cites the same estimate, so the two are not independent.</p>
+      </div>
+      <div class="c-full field scroll inputs" tabindex="0" role="region" aria-label="The model's inputs">
+        <table>
+          <caption class="sr">The model's inputs, each with its published default and where the number comes from.</caption>
+          <thead><tr><th scope="col">Input</th><th scope="col">Default</th><th scope="col">Where the number comes from</th></tr></thead>
+          {C.map(([g, list]) => (
+            <tbody>
+              <tr class="grp"><th scope="rowgroup" colspan="3" class="mono-b">{g}</th></tr>
+              {list.map((r) => (<tr><th scope="row">{r[1]}</th><td class="n">{show(r, r[5] as number)}</td><td>{r[7]}</td></tr>))}
+            </tbody>
+          ))}
+        </table>
+      </div>
+      <div class="c-full field run">
+        <p class="mono run-h">The model at those defaults, 2026 to 2032</p>
+        <Stats class="readout" items={readout} />
+        <div class="binds">
+          <p class="mono">Binds on</p>
+          <ol>{R.map((r) => (<li><span class="mono yr">{r.y}</span><span class="st">{NM[r.bind]}</span></li>))}</ol>
+        </div>
+        <figure class="bars flow" aria-label="Load asking for power against load energised, by year">
+          <figcaption class="mono">Load asking for power against load energised · GW a year</figcaption>
+          <p class="mono key"><span class="sw g"></span>Grid tie-in <span class="sw b"></span>On-site plant <span class="sw a"></span>Load asking, the rest carried as backlog</p>
+          {R.map((r) => (
+            <div class="bar">
+              <span class="mono lbl">{r.y}</span>
+              <span class="track" style={`width:${pct(r.want, askMax)}`}><span class="fill g" style={`width:${pct(r.g, r.want)}`}></span><span class="fill b" style={`width:${pct(r.b, r.want)}`}></span></span>
+              <span class="num val">{fmt(r.tot)} of {fmt(r.want)}</span>
+            </div>
+          ))}
+        </figure>
+        <figure class="bars flow" aria-label="Chips delivered against chips powered, cumulative">
+          <figcaption class="mono">Chips delivered against chips powered · cumulative GW</figcaption>
+          <p class="mono key"><span class="sw g"></span>Powered <span class="sw a"></span>Delivered, the rest stranded</p>
+          {R.map((r) => (
+            <div class="bar">
+              <span class="mono lbl">{r.y}</span>
+              <span class="track" style={`width:${pct(r.cc, strMax)}`}><span class="fill g" style={`width:${pct(r.cp, r.cc)}`}></span></span>
+              <span class="num val">{fmt(r.str)} stranded</span>
+            </div>
+          ))}
+        </figure>
+        <div class="scroll" tabindex="0" role="region" aria-label="The model, year by year">
+          <table>
+            <caption class="sr">The model at its published defaults, year by year, in gigawatts.</caption>
+            <thead><tr><th scope="col">Year</th><th scope="col">Asks</th><th scope="col">Tie-in cap</th><th scope="col">Firm cap</th><th scope="col">Transformer cap</th><th scope="col">Grid</th><th scope="col">On-site</th><th scope="col">Backlog</th><th scope="col">Stranded</th><th scope="col">Binds on</th></tr></thead>
+            <tbody>
+              {R.map((r) => (<tr><th scope="row">{r.y}</th><td class="n">{fmt(r.want)}</td><td class="n">{fmt(r.caps.grid)}</td><td class="n">{fmt(r.caps.gen)}</td><td class="n">{fmt(r.caps.xfmr)}</td><td class="n">{fmt(r.g)}</td><td class="n">{fmt(r.b)}</td><td class="n">{fmt(r.back)}</td><td class="n">{fmt(r.str)}</td><td class="n">{NM[r.bind]}</td></tr>))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </Section>
+
+    <Section n="06" title="Build your<br>own plant." id="bypass">
+      <div class="c-a prose">
+        <p class="mono-b">06 · The bypass</p>
+        <p>The fastest way around the queue is to leave it. Cleanview counts about 90 gigawatts of on-site generation announced at 59 US data centres, more than a quarter of planned data-centre capacity. About 2 gigawatts of it was running as of mid-2026. <span class="cite">{c(28)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>xAI's Memphis-area campuses ran about 1.5 gigawatts of gas turbines in mid-2026, Cleanview counts, a total that grew as xAI added dozens of temporary mobile turbines at Southaven, Mississippi. <span class="cite">{c(28)}</span> <span class="mark" aria-label={MARK.F}>F</span> Mississippi's regulator lets those run without a permit, reading federal rules as exempting temporary-mobile turbines for up to a year; environmental groups dispute that reading. <span class="cite">{c(125)}</span> <span class="mark" aria-label={MARK.F}>F</span> Under a settlement Louisiana's regulator approved in August 2025, Meta has agreed to cover the full cost of three new Entergy gas plants for fifteen years, though not of the transmission line. <span class="cite">{c(126, 127)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>This is the turbine queue again, in a smaller size. Aeroderivative and reciprocating units come from a different, faster factory pool than the large frames, which is why they are being bought. <span class="mark" aria-label={MARK.I}>I</span></p>
+        <p class="mono-b">06 · Three grids, barely touching</p>
+        <p>Texas keeps its own interconnection to stay outside federal transmission rules. <span class="cite">{c(98)}</span> Its generators reach connection agreements faster than the national average, and when it runs short, the help it can draw from its neighbours is small. <span class="cite">{c(97, 32)}</span> Its direct-current ties to the rest of the country total 820 megawatts, plus 400 to Mexico, about 1.3 percent of its peak. <span class="cite">{c(32, 3)}</span> <span class="mark" aria-label={MARK.F}>F</span> A 3 gigawatt line to Mississippi, Southern Spirit, is scheduled for service somewhere between 2029 and 2032, depending on which of its own documents you read. <span class="cite">{c(101, 33)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+      </div>
+      <Stats class="c-b" items={[
+        ['90 GW', 'On-site generation announced at US data centres.'],
+        ['~2 GW', 'Of it running. Cleanview, mid 2026.'],
+        ['1.3%', 'Texas tie capacity as a share of its peak.'],
+      ]} />
+    </Section>
+
+    <Section n="07" title="Negative<br>free cash flow." ground="bottle" id="money">
+      <div class="c-a prose">
+        <p class="mono-b">07 · The money</p>
+        <p>The hyperscalers can afford this. Can't they?</p>
+        <p>In the second quarter of 2026 Alphabet reported negative free cash flow: minus 5.9 billion dollars, on 44.9 billion of capital spending. <span class="cite">{c(128, 34)}</span> <span class="mark" aria-label={MARK.F}>F</span> Amazon's free cash flow over the trailing twelve months went to minus 7.6 billion. <span class="cite">{c(35)}</span> <span class="mark" aria-label={MARK.F}>F</span> Meta's second-quarter free cash flow was 784 million dollars on 31 billion of capital spending. <span class="cite">{c(36)}</span> <span class="mark" aria-label={MARK.F}>F</span> In the June quarter, Microsoft is the only one of the four still clearly positive. <span class="cite">{c(129)}</span> <span class="mark" aria-label={MARK.F}>F</span> Bank of America reportedly projects the eight largest global hyperscalers move from 180 billion dollars of combined free cash flow in 2025 to minus 64 billion this year and minus 186 billion in 2028. <span class="cite">{c(37)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>These are still among the most profitable companies ever built. The profit comes from search, advertising, cloud and software. The spending goes to AI. What has not been shown is that the second pays back the first. <span class="mark" aria-label={MARK.I}>I</span> Bain estimates AI needs about 2 trillion dollars a year of revenue by 2030 to fund the build and, even counting AI savings, puts the annual shortfall at 800 billion. <span class="cite">{c(38)}</span> <span class="mark" aria-label={MARK.F}>F</span> OpenAI reportedly expects to burn about 25 billion dollars this year. <span class="cite">{c(39)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>The rest is borrowed. Data-centre securitisations outstanding reached about 61 billion dollars in 2026, from 4 billion in 2020, by Barclays' count. <span class="cite">{c(40)}</span> <span class="mark" aria-label={MARK.F}>F</span> That debt is written against compute revenue that starts when the power comes on. Every month the tie-in slips is a month of interest with nothing to pay it. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+      <div class="c-b">
+        <p class="mono">Eight largest global hyperscalers · combined free cash flow · 2028 · Bank of America, as reported</p>
+        <p class="num figure fig-m">−$186B</p>
+      </div>
+    </Section>
+
+    <Section n="08" title="The other<br>side." id="china">
+      <div class="c-a prose">
+        <p class="mono-b">08 · Side by side</p>
+        <p>Pairs, each row with one linked source; the row notes name a second source or a different year where a row has one, and n/a marks a row with no Chinese figure. Where China is behind, the row says so. Bars are proportional within each pair.</p>
+      </div>
+      <div class="c-full cmp">
+        {compare.map(({ k, list }) => (
+          <div class="scroll" tabindex="0" role="region" aria-label={`Side by side · ${k}`}>
+            <table>
+              <caption class="mono-b cmp-h">{k}</caption>
+              <thead><tr><th scope="col">Measure</th><th scope="col">China</th><th scope="col">United States</th><th scope="col">Note and source</th></tr></thead>
+              <tbody>
+                {list.map(({ r, m, src }) => (
+                  <tr>
+                    <th scope="row">{r[0]}{r[3] && <span class="mono unit">{r[3]}</span>}</th>
+                    <td class="v"><span class="num">{r[1]}</span><span class="track" aria-hidden="true"><span class="fill" style={`width:${pct(r[4] as number, m)}`}></span></span></td>
+                    <td class="v"><span class="num">{r[2]}</span><span class="track" aria-hidden="true"><span class="fill us" style={`width:${pct(r[5] as number, m)}`}></span></span></td>
+                    <td class="note">{r[6]} {src.n ? <span class="cite">[{src.n}]{r[8] ? ' ' + c(...(r[8] as number[])) : ''}</span> : <span class="mono url">{src.url}</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+      <div class="c-a prose">
+        <p class="mono-b">08 · China's own queue</p>
+        <p>The comparison is not a scoreboard. In March 2025 MIT Technology Review relayed reports by the local outlets Jiazi Guangnian and 36Kr that up to 80 percent of China's newly built computing resources remained unused. <span class="cite">{c(78)}</span> <span class="mark" aria-label={MARK.F}>F</span> Huawei shipped about 800,000 Ascend accelerators in 2025 against roughly 4.5 million from Nvidia, the most advanced node it can use is held at a 7 nanometre class without EUV, <span class="cite">{c(62, 132)}</span> and its stockpile of foreign high-bandwidth memory is expected to run out this year. <span class="cite">{c(62)}</span> <span class="mark" aria-label={MARK.F}>F</span> Listed solar makers' combined losses for 2025 were estimated in March at more than 50 billion yuan, and the car industry's average margin fell to a record low of 4.1 percent in 2025, then to 2.9 percent in January and February 2026. <span class="cite">{c(79, 80)}</span> <span class="mark" aria-label={MARK.F}>F</span> Youth unemployment was 18.9 percent in August. <span class="cite">{c(81)}</span> <span class="mark" aria-label={MARK.F}>F</span></p>
+        <p>China builds faster and overbuilds. America plans more and builds less. Each is paying for its habit. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+    </Section>
+
+    <Section n="09" title="Nine claims,<br>checked." ground="bottle" id="checked">
+      <div class="c-a prose">
+        <p class="mono-b">09 · What did not hold</p>
+        <p>The claims that started this, and a few that travel with them, against the record.</p>
+      </div>
+      <div class="c-full scroll" tabindex="0" role="region" aria-label="Nine claims, checked">
+        <table class="verdicts">
+          <caption class="sr">Nine claims, each with its verdict and what the record shows.</caption>
+          <thead><tr><th scope="col">Claim</th><th scope="col">Verdict</th><th scope="col">What the record shows</th></tr></thead>
+          <tbody>
+            {checked.map(([q, v, w, s]) => (<tr><th scope="row">{q}</th><td class="n">{v}</td><td>{w}{s && <span class="cite">{' ' + c(...(s as number[]))}</span>}</td></tr>))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+
+    <Section n="10" title="Magnets,<br>not megawatts." id="minerals">
+      <div class="c-a prose">
+        <p class="mono-b">10 · The other queue</p>
+        <p>Rare earths and gallium are a real chokepoint, but they choke a different line. They gate permanent magnets, gallium-nitride power electronics and radar. <span class="cite">{c(69)}</span> <span class="mark" aria-label={MARK.F}>F</span> A gas turbine uses rare earths too, in the coatings on its hottest parts. <span class="cite">{c(69)}</span> <span class="mark" aria-label={MARK.F}>F</span> But the turbines and transformers that hold up the data centres wait mainly on steel, copper and factory slots. <span class="mark" aria-label={MARK.I}>I</span></p>
+        <p>China refines 91 percent of the world's rare earths, 99 percent of its gallium and 94 percent of its germanium. <span class="cite">{c(69)}</span> <span class="mark" aria-label={MARK.F}>F</span> The United States has produced no primary gallium since 1987. <span class="cite">{c(70)}</span> <span class="mark" aria-label={MARK.F}>F</span> Six of China's October 2025 export-control announcements are suspended until 10 November 2026, <span class="cite">{c(118, 86)}</span> and its US-only curbs on gallium and germanium until 27 November. <span class="cite">{c(119)}</span> Its April 2025 licensing of seven medium and heavy rare earths has no end date and was left out of the suspension. <span class="cite">{c(120, 118)}</span> <span class="mark" aria-label={MARK.F}>F</span> Whether the suspensions are extended is the open question of the next six weeks. <span class="mark" aria-label={MARK.Q}>Q</span></p>
+      </div>
+      <dl class="c-b dates">
+        <dt class="mono-b">2026</dt><dd>MP Materials expects to commission its heavy rare-earth plant at Mountain Pass; in May it said commissioning was "set to begin imminently". <span class="cite">{c(87, 151)}</span> Alcoa's Wagerup gallium plant breaks ground. <span class="cite">{c(150)}</span></dd>
+        <dt class="mono-b">2027</dt><dd>Energy Fuels' terbium and dysprosium circuits at White Mesa, Utah, due by year end. It first made NdPr commercially in June 2024, up to 1,000 tonnes a year. <span class="cite">{c(153, 154)}</span> Rio Tinto's gallium pilot plant in Saguenay, Quebec, due to operate; a demonstration plant of up to 4 tonnes a year is planned beside it. <span class="cite">{c(155)}</span></dd>
+        <dt class="mono-b">2028</dt><dd>MP's magnet plant in Northlake, Texas, begins commissioning; 7,000 tonnes a year once scaled. <span class="cite">{c(87, 152)}</span> First production APG-85 radars for the F-35. <span class="cite">{c(82)}</span></dd>
+        <dt class="mono-b">2029</dt><dd>Korea Zinc's Tennessee smelter due for completion and commissioning; 54 tonnes of gallium and 44 of germanium a year planned from 2030. <span class="cite">{c(156, 89)}</span></dd>
+        <dt class="mono-b">29 yrs</dt><dd>Average discovery to production for a US mine, if the 10 of 13 in S&amp;P Global's sample not yet producing start by 2030. <span class="cite">{c(90)}</span></dd>
+      </dl>
+    </Section>
+
+    <Section n="11" title="The order<br>of things." ground="bottle" id="order">
+      <div class="c-a prose">
+        <p class="mono-b">11 · What it would take</p>
+        <p>Money is not the binding constraint. Between them, the four have guided over 700 billion dollars of capital spending for this year. <span class="cite">{c(34, 41, 129)}</span> <span class="mark" aria-label={MARK.F}>F</span> The constraints are things money buys slowly: a factory slot, a permit, a study, an apprentice who takes four or five years to qualify.</p>
+        <p>In my view, three changes would move the dates. Queue rules that make speculative requests cost something, so the ghosts leave and the studies speed up. Transformer and turbine factory capacity committed now, since anything ordered today lands around 2030. And transmission permitting measured in years, not decades, because SunZia spent more than seventeen years in permits and approvals. <span class="cite">{c(42)}</span> <span class="mark" aria-label={MARK.I}>I</span></p>
+        <p>None of this is a technology problem. Every piece in the chain is a solved engineering problem with a waiting list. <span class="mark" aria-label={MARK.I}>I</span></p>
+        <p class="beat mal">The chips are the fast part.</p>
+      </div>
+    </Section>
+
+    <Section n="12" title="Sources" id="sources">
+      <div class="c-full">
+        <p class="mono">Read in October 2026; checked 1 Nov 2026</p>
+      </div>
+      <ol class="c-full sources">
+        {sources.map((s, i) => (<li><span class="mono-b n">{String(i + 1).padStart(2, '0')}</span><span>{s}</span></li>))}
+      </ol>
+      <div class="c-full">
+        <p class="mono">Checked 1 Nov 2026: every source opened that would open; lines changed where a source said less; the rest are marked as reported or wait on the owner. The print is left as issued.</p>
+      </div>
+      <div class="c-a prose">
+        <p>Several 2026 figures rest on a single source or on reporting that cites unnamed people, OpenAI's burn and Morgan Stanley's shortfall estimate in particular; they are reported, not established. ERCOT's July peak is preliminary. Input values marked as assumptions are mine. None of this is investment advice. <span class="mark" aria-label={MARK.I}>I</span></p>
+      </div>
+    </Section>
+
+    <EditionEnd slug={ed.slug}>
+      The chips are<br>the fast part.
+    </EditionEnd>
+  </main>
+</Base>
+
+<style is:global>
+  .cover { min-height: 100svh; display: flex; flex-direction: column; padding-block: 0; }
+  .cover-rose { width: max(70vw, 70vh); height: max(70vw, 70vh); top: -20%; right: -14%; }
+  .cover .mast, .cover-grid, .cover-foot { position: relative; z-index: 2; }
+  .cover-grid { margin-top: auto; row-gap: 40px; padding-bottom: 48px; }
+  .cover h1 { font-size: var(--fs-cover); margin-left: -.04em; }
+  .cover-foot { border-top-color: transparent; }
+  /* The print's marks: one mono letter after the sentence it grades. Malachite on Void; Flash on Bottle, where
+     small Malachite fails AA. */
+  .mark { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 700; font-size: 11px; letter-spacing: .08em; color: var(--malachite); padding-inline: .35em; vertical-align: .2em; }
+  .bottle .mark { color: var(--flash); }
+  .cite { font-family: 'Martian Mono', ui-monospace, monospace; font-variation-settings: 'wdth' 75, 'wght' 500; font-size: 12px; letter-spacing: .04em; white-space: nowrap; }
+  /* A side column of a figure and its stats, kept to its own height. */
+  .grid > .side, .grid > dl.stats, .grid > dl.dates { align-self: start; }
+  .side { display: grid; row-gap: 32px; }
+  .dates { display: grid; grid-template-columns: max-content 1fr; column-gap: 20px; row-gap: 14px; margin: 0; }
+  .dates dd { margin: 0; font-size: 16px; line-height: 1.45; }
+
+  /* 03 · the chain: one card a piece, in the web edition's order. On Bottle, so each card is a Void field. */
+  .pieces { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: clamp(12px, 2vw, 24px); }
+  .piece { display: flex; flex-direction: column; }
+  .piece .kind { color: var(--malachite); }
+  .piece-t { font-variation-settings: 'opsz' 36, 'wdth' 84, 'wght' 700; font-size: 24px; line-height: 1.12; margin: 6px 0 18px; }
+  .piece .rail dd { font-size: 15px; margin-bottom: 14px; }
+  .piece .links { display: grid; grid-template-columns: max-content 1fr; column-gap: 14px; row-gap: 8px; margin: 18px 0; align-items: baseline; }
+  .piece .links dd { margin: 0; font-size: 15px; line-height: 1.45; }
+  .piece .crit { font-size: 32px; line-height: 1; margin: 8px 0 16px; }
+  .piece .gone { font-size: 15px; line-height: 1.45; margin-top: auto; }
+  .piece .gone b { font-variation-settings: 'opsz' 14, 'wdth' 100, 'wght' 700; }
+
+  /* 05 · the model: its inputs, then one run at the defaults. On Bottle, so both are Void fields. */
+  .inputs .grp th { padding-top: 22px; color: var(--malachite); border-bottom-color: var(--malachite); }
+  .inputs tbody:first-of-type .grp th { padding-top: 10px; }
+  .inputs tbody th[scope="row"] { min-width: 14em; }
+  .inputs td:last-child { min-width: 22em; }
+  .run { display: grid; row-gap: 36px; }
+  .run .run-h { color: var(--malachite); }
+  .readout dt { color: var(--flash); }
+  .binds ol { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5em, 1fr)); gap: 10px; }
+  .binds li { display: grid; row-gap: 4px; border-top: 2px solid var(--malachite); padding-top: 8px; }
+  .binds .yr { color: var(--malachite); }
+  .binds .st { font-size: 16px; }
+  .flow .bar { grid-template-columns: 4em 1fr minmax(8.5em, max-content); }
+  .flow .track { display: flex; }
+  .flow .fill { flex: none; }
+  .flow .fill.b { background: var(--flash); }
+  .flow .key { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 8px; }
+  .sw { display: inline-block; width: 12px; height: 12px; }
+  .sw.g { background: var(--malachite); }
+  .sw.b { background: var(--flash); }
+  .sw.a { background: rgba(0, 178, 79, .18); }
+  .sw + .sw, .key .sw:not(:first-child) { margin-left: 8px; }
+
+  /* 08 · side by side: the four tabs as four tables. Each value carries its bar, proportional within its pair. */
+  .cmp { display: grid; row-gap: 44px; }
+  .cmp caption { text-align: left; caption-side: top; color: var(--malachite); padding-bottom: 10px; }
+  .cmp th[scope="row"] { min-width: 13em; }
+  .cmp .unit { display: block; margin-top: 4px; color: var(--malachite); }
+  .cmp td.v { white-space: nowrap; min-width: 8em; }
+  .cmp td.v .num { display: block; font-size: 18px; line-height: 1.1; }
+  .cmp td.v .track { height: 6px; max-width: 9em; margin-top: 8px; }
+  .cmp .fill.us { background: var(--flash); }
+  .cmp td.note { min-width: 22em; font-size: 14px; }
+  .cmp .url { font-size: 11px; letter-spacing: .04em; text-transform: none; overflow-wrap: anywhere; }
+
+  /* 09 · the verdicts. */
+  .verdicts th[scope="row"] { min-width: 16em; }
+  .verdicts td:last-child { min-width: 24em; }
+</style>

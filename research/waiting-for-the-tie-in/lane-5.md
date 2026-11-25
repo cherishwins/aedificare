@@ -1,0 +1,49 @@
+# Lane 5 · "Waiting for the Tie-In" (15 Oct 2026)
+
+## 5.1. [01 · The queue] PJM, the grid that serves Virginia, has now cleared its capacity auction short of its reliability requirement three times running, the first shortfalls in its history. (attributed to PJM) (cites 08)
+Verdict: wrong
+Primary: PJM Inside Lines, "PJM Capacity Auction Procures 138,318 MW of Generation Resources..." (2028/29 BRA), 14 Jul 2026. https://insidelines.pjm.com/pjm-capacity-auction-procures-138318-mw-of-generation-resources-as-work-continues-to-address-growing-electricity-demand/ (page returned empty on fetch; PJM PDF release at https://www.pjm.com/-/media/DotCom/about-pjm/newsroom/2026-releases/20260714-pjm-capacity-auction-procures-138318-mw-of-generation-resources.pdf returned binary with no readable text). Secondary: POWER magazine, Sonal C. Patel, 17 Jul 2026, https://www.powermag.com/pjms-2028-2029-capacity-auction-falls-short-of-reliability-standard-for-second-straight-year/
+Read: 2026-11-01
+Quote: POWER (Patel, 17 Jul 2026): "PJM Interconnection's capacity market fell short of its reliability requirement for the second consecutive" ... "the roughly 6,500 MW gap the market posted seven months earlier in the auction for the 2027/2028 delivery year."
+True as: PJM's 2028/29 capacity auction, held July 2026, cleared 6,831 MW short of its reliability requirement. That is the second straight shortfall, after the 2027/28 auction (about 6,600 MW short, held December 2025). The 2026/27 auction met the requirement.
+Notes: The "three times running" count is not supported. The 2026/27 auction (held July 2025) met the requirement by about 139 MW per PJM's press release as reported by a search summary; PJM's auction report has one line that seems to conflict, unresolved. The 2027/28 auction was the first RTO-wide shortfall (per a search summary of PJM's Dec 2025 release, not opened directly). The 6,831 MW figure is confirmed only through secondary summaries because PJM's pages could not be read as text. "Clears at price cap for third time" (OPIS headline) is about price, not shortfall; likely the source of the "three" count.
+
+## 5.2. [03 · The chain (Connection study)] 220 GW in PJM's first cycle (attributed to chain source: ERCOT; PJM) (cites none in list)
+Verdict: overstated
+Primary: PJM news release, "Over 800 New Generation Projects Seek To Connect Under PJM's Reformed Process", 29 Apr 2026. Not readable: https://www.pjm.com/-/media/DotCom/about-pjm/newsroom/2026-releases/20260429-over-800-new-generation-projects-seek-to-connect-under-pjms-reformed-process.pdf (binary) and https://insidelines.pjm.com/over-800-new-generation-projects-seek-to-connect-under-pjms-reformed-process/ (empty). Secondary: POWER magazine, Sonal C. Patel, "PJM's first reformed queue cycle draws 811 projects, 220 GW", 30 Apr 2026. https://www.powermag.com/pjms-first-reformed-queue-cycle-draws-811-projects-220-gw/
+Read: 2026-11-01
+Quote: POWER: "has attracted 811 new generation projects representing roughly 220 GW of nameplate capacity." Caption: "total 811 projects and 220,222 MW of proposed capacity."
+True as: PJM's first reformed interconnection cycle drew 811 generation projects totalling about 220 GW of proposed nameplate capacity.
+Notes: Scope: the 220 GW is proposed generation (gas about 105.8 GW, storage about 66.5 GW per POWER), not load and not data-centre demand. Any reading as data-centre load would be wrong. A later PJM subcommittee slide (26 Jun 2026, search summary) lists 220,227 MW of generator requests as of 15 May 2026; small difference, not a conflict. Cycle status conflicts (Phase I start 28 Jul vs 28 Sep 2026) are not relevant to the figure.
+
+## 5.3. [05 · The model (slider)] PJM reserve 14.7% against a 20% target. (attributed to PJM) (cites none in list)
+Verdict: overstated
+Primary: PJM 2028/29 BRA results (14 Jul 2026), not readable on fetch (see 5.1). Secondary: POWER magazine, Patel, 17 Jul 2026, https://www.powermag.com/pjms-2028-2029-capacity-auction-falls-short-of-reliability-standard-for-second-straight-year/
+Read: 2026-11-01
+Quote: POWER: "PJM's Total Reserve Margin, including FRR, came in at 14.7%." and "The RPM Reserve Margin came in at 14.4%." and "Both fell below the 20.6% Installed Reserve Margin (IRM) target embedded in the reliability requirement."
+True as: PJM's total reserve margin, including fixed-resource-requirement capacity, came in at 14.7% against an installed reserve margin target of about 20%.
+Notes: Two scope points. (1) 14.7% includes FRR; the RPM-only margin was 14.4%. (2) The target is the installed reserve margin, which POWER gives as 20.6%; other outlets say 20%. "20%" is a rounding that the sources use; the edition should say "installed reserve margin target of about 20%" or give 20.6%. POWER's 20.6% is unattributed narration; PJM's own report was not readable.
+
+## 5.4. [03 · The chain (Firm generation)] NERC flags MISO, PJM and ERCOT. (attributed to chain source: NERC) (cites none in list)
+Verdict: holds
+Primary: NERC, 2025 Long-Term Reliability Assessment, released 29 Jan 2026. NERC's PDF was returned as unreadable binary (https://www.nerc.com/pa/RAPA/ra/Reliability%20Assessments%20DL/NERC_LTRA_2025.pdf); the NERC LTRA index page returned 404. Read instead through POWER magazine, Sonal C. Patel, "NERC Warns Long-Term Grid Reliability Risks Mounting from Surging Demand, Lagging Resources", 29 Jan 2026. https://www.powermag.com/nerc-warns-long-term-grid-reliability-risks-mounting-from-surging-demand-lagging-resources (secondary, author's summary of NERC's report).
+Read: 2026-11-01
+Quote: POWER: "By 2030, at least five regions could face "high risk": the Midcontinent Independent System Operator (MISO)," ... "PJM Interconnection (PJM), the Electric Reliability Council of Texas (ERCOT), and the Western Electricity" ... "Coordinating Council's (WECC's) Basin and Northwest subregions." Figure caption: "High-risk regions (red) include MISO, PJM, Texas RE-ERCOT, WECC-Northwest, WECC-Basin, and SERC-Central,"
+True as: NERC's 2025 long-term assessment flags MISO, PJM and ERCOT as elevated or high risk, with each reaching high risk by 2028 to 2029. (Table per POWER: PJM "Elevated (2026–2028); high beginning 2029"; ERCOT "Elevated (2026–2028); high beginning 2029"; MISO "Normal (2026); elevated (2027); high beginning winter 2028.")
+Notes: The claim holds, but the edition should not read it as "high risk now". MISO's rating is contested: a search summary reports the MISO Independent Market Monitor disputing it and NERC saying it used mismatched data and would revise (not opened directly; treat as open). The POWER caption also names SERC-Central and WECC subregions, which the claim does not need.
+
+## 5.5. [05 · The model (slider)] NERC: 10-year summer peak up 224 GW, mostly data centres. (attributed to NERC) (cites none in list)
+Verdict: overstated
+Primary: as 5.4. POWER magazine, 29 Jan 2026, https://www.powermag.com/nerc-warns-long-term-grid-reliability-risks-mounting-from-surging-demand-lagging-resources (secondary; NERC PDF not readable).
+Read: 2026-11-01
+Quote: POWER: "projects that summer peak demand could surge by 224 GW—69% more than the 132 GW projected in the previous" ... "Artificial intelligence data centers and the digital economy account for most of the projected load growth," ... "The annual 10-year reliability assessment" ... "a snapshot of adequacy for 2026–2035."
+True as: NERC's 2025 10-year assessment projects summer peak demand could rise by 224 GW over 2026 to 2035, and attributes most of the projected load growth to AI data centers and the digital economy.
+Notes: Three scope fixes. (1) "could" is a projection, not an observed rise. (2) "10-year" is right: the report covers 2026–2035. (3) "mostly data centres" narrows NERC's wording: NERC names "artificial intelligence data centers and the digital economy" together, and also lists large industrial facilities, electrified transport, cryptomining, heat pumps and demographics as drivers. The 224 GW is summer peak; winter is about 245 GW per a search summary.
+
+## 5.6. [03 · The chain (Rules that settle)] federal rule RM26-4 still open (attributed to chain source: PUCT; FERC) (cites none in list)
+Verdict: overstated
+Primary: FERC, Docket RM26-4-000 (large-load interconnection), page at https://www.ferc.gov/RM26-4 and news item at https://ferc.gov/news-events/news/ferc-act-large-load-interconnection-docket-june-2026 (both returned 403 Forbidden; not read). Secondary: McGuireWoods alert, published 22 Jun 2026, https://www.mcguirewoods.com/client-resources/alerts/2026/6/ferc-issues-section-206-show-cause-orders-directing-all-six-rtos-isos-to-justify-or-reform-large-load-integration-rules/ ; GCN, Hugo Rojas, 27 Jul 2026, https://gcn.com/?p=20146
+Read: 2026-11-01
+Quote: McGuireWoods: "FERC issued show cause orders to each of the six RTOs/ISOs and their transmission owners," (orders dated 18 Jun 2026) and "FERC is leaving the existing rulemaking docket (Docket No. RM26-4-000) open". GCN: "FERC will leave the generic RM26-4 proceeding open to potentially address non-RTO utilities in the future." and "FERC requires responses to the show cause orders by August 17, 2026"
+True as: FERC has not issued a final rule in docket RM26-4 on large-load interconnection. In June 2026 it kept the rulemaking docket open and acted through show-cause orders to the six RTOs/ISOs, with responses due 17 August 2026.
+Notes: "Federal rule" is the wrong noun: the docket is an open rulemaking proceeding with no final rule found in the sources. "Still open" is supported only as of the latest source found (27 Jul 2026); I could not open the FERC docket (403) or search its eLibrary, so I did not confirm status on 1 Nov 2026. The PUCT attribution was not checked; no PUCT source was opened. The DOE origin (Secretary Wright directive, 23 Oct 2025) and the April 2026 order of intent are from a search summary, not opened.

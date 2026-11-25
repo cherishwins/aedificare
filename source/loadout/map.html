@@ -1,0 +1,414 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>LOADOUT Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Martian+Mono:wdth,wght@75..112.5,300..700&display=swap">
+<style>
+/* Layout: one dark field, full-bleed sections cut by colour, a hard 12-col grid; the builder is the one loud move. */
+:root{
+  --void:#050A06; --bottle:#063B22; --deep:#0a2a18; --mal:#00B24F; --acid:#CCFF00; --flash:#FFFFFF; --rose:#FF1F5A;
+  --mint:#9ad8b3; --dim:#1d6b43; --line:#0f4d2c;
+  --display:"Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --mono:"Martian Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--void);color:var(--flash)}
+body{font-family:var(--display);font-size:17px;line-height:1.5;margin:0}
+a{color:var(--mal);text-underline-offset:3px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--acid);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:clamp(16px,4vw,48px)}
+.mono{font-family:var(--mono);font-stretch:85%;letter-spacing:.02em}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mal);font-stretch:85%}
+h1,h2,h3{margin:0;text-wrap:balance}
+h2{font-size:clamp(34px,6vw,64px);line-height:.95;font-weight:800;font-stretch:78%;letter-spacing:-.02em}
+h3{font-size:22px;font-weight:800;font-stretch:82%}
+p{margin:0}
+section{padding-block:clamp(48px,8vw,96px)}
+.bottle{background:var(--bottle)}
+.lede{font-size:clamp(18px,2.2vw,22px);font-weight:300;max-width:62ch;color:var(--mint)}
+.tier{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;border:1px solid currentColor;padding:1px 6px;color:var(--mal);vertical-align:2px}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;padding-block:clamp(56px,10vw,120px) clamp(40px,6vw,72px)}
+#rose{position:absolute;right:-12vw;top:-6vw;width:min(780px,95vw);height:min(780px,95vw);pointer-events:none;opacity:.55}
+.hero h1{position:relative;font-size:clamp(84px,19vw,240px);line-height:.82;font-weight:800;font-stretch:75%;letter-spacing:-.04em;margin-left:-.04em}
+.hero .lede{position:relative;margin-top:28px}
+.hero .facts{position:relative;display:flex;flex-wrap:wrap;gap:12px 36px;margin-top:40px}
+.fact b{display:block;font-family:var(--mono);font-size:clamp(30px,5vw,48px);font-weight:700;font-stretch:78%;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fact span{font-family:var(--mono);font-size:12px;color:var(--mint);letter-spacing:.06em}
+
+/* JOBS */
+.jobs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0;margin-top:40px;border-top:1px solid var(--mal)}
+.job{padding:22px 20px 26px 0;border-bottom:1px solid var(--line)}
+.job h3{font-size:24px}
+.job .what{font-family:var(--mono);font-size:13px;color:var(--mal);margin:6px 0 10px}
+.job p{color:var(--mint);font-size:15px;max-width:34ch}
+
+/* BUILDER */
+.builder{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;margin-top:40px;align-items:start}
+@media (max-width:900px){.builder{grid-template-columns:minmax(0,1fr)}}
+.cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px}
+.cat{font-family:var(--mono);font-size:12px;letter-spacing:.06em;background:transparent;color:var(--mint);border:1px solid var(--dim);padding:7px 11px;cursor:pointer;border-radius:0}
+.cat[aria-pressed="true"]{background:var(--mal);color:var(--void);border-color:var(--mal)}
+.cat .ct{opacity:.7;margin-left:6px}
+.catintro{margin-bottom:16px;color:var(--mint);max-width:62ch}
+.catintro b{color:var(--flash)}
+.items{border-top:1px solid var(--mal)}
+.item{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:14px;align-items:start;padding:16px 0;border-bottom:1px solid var(--line)}
+.item input{appearance:none;width:22px;height:22px;border:1.5px solid var(--mal);margin:3px 0 0;cursor:pointer;border-radius:0;background:transparent}
+.item input:checked{background:var(--mal);box-shadow:inset 0 0 0 4px var(--void)}
+.item input:disabled{border-color:var(--dim);cursor:default;opacity:.5}
+.item .nm{font-size:19px;font-weight:800;font-stretch:82%}
+.item .note{color:var(--mint);font-size:15px;margin-top:2px}
+.item .meta{font-family:var(--mono);font-size:12px;color:var(--mal);margin-top:6px;letter-spacing:.02em}
+.verdict{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:3px 7px;white-space:nowrap;align-self:start}
+.v-use{background:var(--mal);color:var(--void)}
+.v-alt{border:1px solid var(--mal);color:var(--mal)}
+.v-situ{border:1px dashed var(--mint);color:var(--mint)}
+.v-avoid{border:1px solid var(--rose);color:var(--rose)}
+.bar{height:6px;background:var(--line);margin-top:8px;max-width:420px}
+.bar i{display:block;height:6px;background:var(--mal)}
+
+.panel{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);background:var(--deep);padding:24px}
+@media (max-width:900px){.panel{position:static}}
+.panel .big{font-family:var(--mono);font-size:56px;font-weight:700;font-stretch:76%;letter-spacing:-.03em;line-height:1;color:var(--acid);font-variant-numeric:tabular-nums;margin-top:8px}
+.panel .small{font-family:var(--mono);font-size:26px;font-weight:700;font-stretch:78%;font-variant-numeric:tabular-nums;margin-top:6px}
+.panel .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mint);margin-top:18px}
+.panel .lbl:first-child{margin-top:0}
+.meter{height:10px;background:var(--line);margin-top:10px;position:relative}
+.meter i{position:absolute;inset:0 auto 0 0;background:var(--mal)}
+.meter b{position:absolute;inset:0 auto 0 0;background:var(--acid)}
+.warns{margin-top:18px;display:grid;gap:8px}
+.warn{font-size:14px;line-height:1.35;padding-left:12px;border-left:2px solid var(--rose);color:var(--flash)}
+.ok{font-size:14px;color:var(--mint)}
+.panel button{margin-top:18px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;background:transparent;color:var(--mint);border:1px solid var(--dim);padding:8px 12px;cursor:pointer;border-radius:0}
+.panel .fine{font-size:12px;color:var(--mint);margin-top:14px;line-height:1.45}
+
+/* LADDER */
+.ladder{margin-top:36px;border-left:3px solid var(--void);border-right:3px solid var(--void)}
+.rung{display:grid;grid-template-columns:64px minmax(0,1fr);gap:16px;padding:18px 18px;border-bottom:2px solid var(--void)}
+.rung:first-child{border-top:5px solid var(--void)}
+.rung .k{font-family:var(--mono);font-size:34px;font-weight:700;font-stretch:78%;line-height:1}
+.rung h3{color:var(--void)} .rung p{color:#0b3d24;font-size:15px}
+.flash{background:var(--flash);color:var(--void)}
+.flash .eyebrow{color:var(--bottle)}
+.flash h2{color:var(--void)}
+.flash .lede{color:#0b3d24}
+
+/* FOUNDRY */
+.paths{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:32px;margin-top:40px}
+.path h3{font-size:26px}
+.path .mono{font-size:12px;color:var(--mal);margin:6px 0 12px;display:block}
+.path p{color:var(--mint);font-size:15px}
+.wall{margin-top:40px;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.wall b{font-size:clamp(40px,8vw,88px);font-weight:800;font-stretch:76%;letter-spacing:-.02em;line-height:.95;color:var(--rose)}
+.cmd{margin-top:32px;display:flex;gap:0;align-items:stretch;max-width:100%}
+.cmd pre{margin:0;flex:1;min-width:0;overflow-x:auto;background:var(--void);padding:16px;font-family:var(--mono);font-size:13px;line-height:1.5;color:var(--flash);white-space:pre}
+.cmd button{font-family:var(--mono);font-size:12px;letter-spacing:.08em;background:var(--mal);color:var(--void);border:0;padding:0 16px;cursor:pointer;border-radius:0}
+#flow{width:100%;height:auto;margin-top:36px;max-width:900px;display:block}
+
+/* TABLE */
+.tablewrap{overflow-x:auto;margin-top:32px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:10px 12px 10px 0;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mal);font-weight:400}
+td.n{font-family:var(--mono);text-align:right;padding-right:16px}
+td .tb{height:8px;background:var(--mal);min-width:2px}
+tr.hl td .tb{background:var(--acid)}
+.correction{margin-top:28px;padding-left:16px;border-left:2px solid var(--acid);max-width:70ch;color:var(--mint)}
+.correction b{color:var(--flash)}
+
+/* SOURCES */
+.src{columns:2 320px;column-gap:40px;margin-top:28px;font-size:14px}
+.src a{display:block;margin-bottom:8px;break-inside:avoid;overflow-wrap:anywhere}
+.unver{margin-top:28px;font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--mint);max-width:80ch}
+
+footer{padding-block:72px 96px;position:relative;overflow:hidden}
+#dove{display:block;width:min(560px,100%);height:auto;margin-top:12px}
+footer .mono{font-size:12px;color:var(--mal);letter-spacing:.14em}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="hero">
+  <canvas id="rose" width="780" height="780" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow">Aedificare · Edition 07 · Interactive map</div>
+    <h1>LOAD<br>OUT</h1>
+    <p class="lede">Build a Claude Code setup here and see what it costs before you type a word. Every token figure was measured in a sandbox on 10 October 2026; every recommendation carries how we know it.</p>
+    <div class="facts">
+      <div class="fact"><b>19</b><span>MCP servers measured</span></div>
+      <div class="fact"><b>209</b><span>tools counted</span></div>
+      <div class="fact"><b>52,409</b><span>tokens if all load upfront</span></div>
+      <div class="fact"><b>2,165</b><span>tokens, names only</span></div>
+    </div>
+  </div>
+</header>
+
+<section class="bottle" id="jobs">
+  <div class="wrap">
+    <div class="eyebrow">Step one</div>
+    <h2>Six jobs. Pick the job before the tool.</h2>
+    <p class="lede" style="margin-top:18px">Most bloated setups are two tools fighting over one job. These are the six jobs a Claude Code setup has to do, and what Claude Code already gives you for each.</p>
+    <div class="jobs">
+      <div class="job"><h3>Always on</h3><div class="what">CLAUDE.md · rules without paths</div><p>Loads every turn. Keep it under 200 lines and only write what the model can't guess. <span class="tier">B</span></p></div>
+      <div class="job"><h3>On demand</h3><div class="what">Skills</div><p>Name and description always, body only when called. Model-triggered skills fire unreliably; use explicit trigger words. <span class="tier">B</span></p></div>
+      <div class="job"><h3>Guarantee</h3><div class="what">Hooks · 33 events</div><p>The only layer that enforces. Format on edit, block pushes to main, run tests on stop. <span class="tier">B</span></p></div>
+      <div class="job"><h3>Isolation</h3><div class="what">Subagents · worktrees</div><p>Fresh context window, summary back. Use for investigation and review, not for sequential coding. <span class="tier">B</span></p></div>
+      <div class="job"><h3>Outside world</h3><div class="what">CLI · MCP servers</div><p>Everything below. CLI first, MCP when the CLI is weak or auth matters. <span class="tier">B</span></p></div>
+      <div class="job"><h3>Proof</h3><div class="what">Stop hook · reviewer subagent</div><p>A test the model can't talk its way past. The cheapest tokens you will spend. <span class="tier">B</span></p></div>
+    </div>
+  </div>
+</section>
+
+<section id="builder">
+  <div class="wrap">
+    <div class="eyebrow">Step two</div>
+    <h2>Build your outside-world loadout.</h2>
+    <p class="lede" style="margin-top:18px">Tick what you would install. The panel shows what Claude Code loads at startup (names only, with tool search on, the default) and what you would pay if every definition loaded upfront.</p>
+    <div class="builder">
+      <div>
+        <div class="cats" id="cats" role="group" aria-label="Job category"></div>
+        <p class="catintro" id="catintro"></p>
+        <div class="items" id="items"></div>
+      </div>
+      <aside class="panel" aria-live="polite">
+        <div class="lbl">At startup, names only</div>
+        <div class="big" id="namesTotal">0</div>
+        <div class="lbl">If every definition loads upfront</div>
+        <div class="small" id="fullTotal">0</div>
+        <div class="meter" aria-hidden="true"><i id="mFull"></i><b id="mNames"></b></div>
+        <div class="lbl">Selected</div>
+        <div class="small" id="selCount" style="font-size:18px">0 servers</div>
+        <div class="warns" id="warns"></div>
+        <button type="button" id="reset">Reset to the shortlist</button>
+        <p class="fine">Tokens counted with an open tokenizer (cl100k) as a proxy; Claude's runs a little higher. Servers we did not measure count as zero and are flagged. Server instructions load at connect regardless of tool search.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="flash" id="ladder">
+  <div class="wrap">
+    <div class="eyebrow">The ladder</div>
+    <h2>CLI first.</h2>
+    <p class="lede" style="margin-top:18px">"CLI tools are the most context-efficient way to interact with external services." Anthropic, Claude Code best practices.</p>
+    <div class="ladder">
+      <div class="rung"><div class="k">1</div><div><h3>CLI in Bash</h3><p>gh, vercel, wrangler, psql, git, npx @osdk/cli. No tool listing at all; output goes wherever you pipe it.</p></div></div>
+      <div class="rung"><div class="k">2</div><div><h3>Code-mode MCP</h3><p>A few tools front a whole API. Cloudflare's three-tool server: about 244,000 tokens of naive tools becomes about 1,100. Palantir MCP's tool search starts with one tool.</p></div></div>
+      <div class="rung"><div class="k">3</div><div><h3>Remote MCP with OAuth</h3><p>Where the CLI is weak or scoped auth matters: Figma, Notion, Linear, Supabase read-only, Vercel. Stateless HTTP; the 2026-07-28 spec removed sessions.</p></div></div>
+      <div class="rung"><div class="k">4</div><div><h3>Local stdio MCP</h3><p>Only when nothing above exists. Reference servers are not hardened: the filesystem and git servers both shipped CVEs.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="bottle" id="foundry">
+  <div class="wrap">
+    <div class="eyebrow">Palantir Foundry</div>
+    <h2>The plan was two AIs talking.</h2>
+    <p class="lede" style="margin-top:18px">Claude Code in the terminal writing the app, Palantir's AI FDE inside Foundry building the data platform, coordinating agent to agent.</p>
+    <div class="wall"><b>AI FDE has no API.</b><p class="lede">It is a chat window. No MCP tool, no CLI, no endpoint. The one hook is a browser link that pre-fills a prompt, and a human still approves. <span class="tier">B</span></p></div>
+    <svg id="flow" viewBox="0 0 900 300" role="img" aria-label="Claude Code reaches Foundry through Palantir MCP for build work and Ontology MCP for data and actions; a Foundry-hosted agent built from the Claude Agent SDK template is triggered by an action."></svg>
+    <div class="paths">
+      <div class="path"><h3>Palantir MCP</h3><span class="mono">GA 2026-06-25 · about 90 tools · stdio · user token</span><p>Claude Code does the build work from your IDE: object, link and action types on a branch, proposals, Python transform repos, dataset builds, OSDK versions. It cannot write ontology data and has no merge tool; you approve proposals in the UI. <span class="tier">B</span></p></div>
+      <div class="path"><h3>Ontology MCP</h3><span class="mono">GA 2026-06-25 · per Developer Console app · HTTP · OAuth</span><p>The consumer side: object types as a SQL tool, every action type as its own tool, query functions as tools. The only MCP route that writes data or triggers logic inside Foundry. <span class="tier">B</span></p></div>
+      <div class="path"><h3>Your own agent</h3><span class="mono">Claude Agent SDK template · publish with a git tag</span><p>The real agent-to-agent path. A Foundry-hosted agent pre-wired to OSDK, Ontology MCP and Palantir MCP with scoped permissions. Wrap it in an action; Claude Code fires the action and reads results back from objects. <span class="tier">B</span></p></div>
+    </div>
+    <div class="cmd">
+      <pre id="cmdtext">claude mcp add palantir-mcp --scope project \
+  -e FOUNDRY_TOKEN='${FOUNDRY_TOKEN}' \
+  -- npx -y palantir-mcp --foundry-api-url https://$FOUNDRY_HOST --tool-search</pre>
+      <button type="button" id="copy">Copy</button>
+    </div>
+    <p class="lede" style="margin-top:24px;font-size:16px">Free developer tier: 60 action types, about 5 users, no client-credentials OAuth (so no headless service user), and beta apps such as the Foundry CLI need a support ticket. <span class="tier">B</span></p>
+  </div>
+</section>
+
+<section id="data">
+  <div class="wrap">
+    <div class="eyebrow">The measurements</div>
+    <h2>Tokens a model reads, per server.</h2>
+    <p class="lede" style="margin-top:18px">Name, description and input schema for every tool, which is what Claude's tool format carries. Booted over stdio with the official MCP Python client; every server negotiated protocol 2025-11-25. <span class="tier">A</span></p>
+    <div class="tablewrap"><table id="tbl"><thead><tr><th>Server</th><th style="text-align:right">Tools</th><th style="text-align:right">Model-visible</th><th style="text-align:right">Names only</th><th style="width:34%"></th></tr></thead><tbody></tbody></table></div>
+    <div class="correction"><b>Correction, same day.</b> Our first count included each tool's output schema, title and annotations. The model never sees those, so the first deck overstated several servers; Brave's place-search tool looked like 21,462 tokens and the model reads 1,518 of it. Every figure on this page is the corrected count.</div>
+  </div>
+</section>
+
+<section class="bottle" id="sources">
+  <div class="wrap">
+    <div class="eyebrow">How we know</div>
+    <h2>Sources.</h2>
+    <p class="lede" style="margin-top:18px"><span class="tier">A</span> we ran or observed it. <span class="tier">B</span> verified in primary documentation plus an independent signal. Anything we could not verify is listed below and kept out of the recommendations.</p>
+    <div class="src">
+      <a href="https://code.claude.com/docs/en/mcp">Claude Code docs: MCP, tool search, output limits</a>
+      <a href="https://code.claude.com/docs/en/best-practices">Claude Code docs: best practices</a>
+      <a href="https://code.claude.com/docs/en/memory">Claude Code docs: CLAUDE.md and memory</a>
+      <a href="https://code.claude.com/docs/en/hooks">Claude Code docs: hooks</a>
+      <a href="https://code.claude.com/docs/en/prompt-caching">Claude Code docs: prompt caching</a>
+      <a href="https://www.anthropic.com/engineering/advanced-tool-use">Anthropic: Introducing advanced tool use</a>
+      <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Anthropic: Effective context engineering</a>
+      <a href="https://www.anthropic.com/engineering/how-we-contain-claude">Anthropic: How we contain Claude</a>
+      <a href="https://www.anthropic.com/engineering/claude-code-auto-mode">Anthropic: How we built auto mode</a>
+      <a href="https://www.anthropic.com/engineering/harness-design-long-running-apps">Anthropic: Harness design for long-running apps</a>
+      <a href="https://www.palantir.com/docs/foundry/ai-fde/overview">Palantir: AI FDE overview</a>
+      <a href="https://palantir.com/docs/foundry/ai-fde/prefill-sessions/">Palantir: AI FDE pre-fill sessions</a>
+      <a href="https://www.palantir.com/docs/foundry/palantir-mcp/available-tools/">Palantir: Palantir MCP available tools</a>
+      <a href="https://palantir.com/docs/foundry/palantir-mcp/installation/">Palantir: Palantir MCP installation</a>
+      <a href="https://palantir.com/docs/foundry/ontology-mcp/overview/">Palantir: Ontology MCP overview</a>
+      <a href="https://www.palantir.com/docs/foundry/agents/agent-templates">Palantir: agent templates</a>
+      <a href="https://modelcontextprotocol.io/specification/2026-07-28/changelog">MCP specification 2026-07-28 changelog</a>
+      <a href="https://github.com/cloudflare/mcp">Cloudflare code-mode MCP server</a>
+      <a href="https://www.trychroma.com/research/context-rot">Chroma: Context Rot</a>
+      <a href="https://arxiv.org/abs/2602.11988">Evaluating AGENTS.md (arXiv 2602.11988)</a>
+      <a href="https://arxiv.org/abs/2503.13657">Why do multi-agent LLM systems fail? (MAST)</a>
+      <a href="https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals">Vercel: AGENTS.md outperforms skills</a>
+    </div>
+    <p class="unver">NOT VERIFIED, KEPT OUT OF THE RECOMMENDATIONS: Claude Code changelog 2.1.279 to 2.1.286 · the plugin measure command (documented, absent from 2.1.296) · Ontology MCP transport details · developer-tier compute and model quotas · tool-count accuracy studies on current models · any benefit from sequential-thinking servers · Palantir MCP schema size (needs an enrollment to measure)</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <canvas id="dove" width="1120" height="640" aria-hidden="true"></canvas>
+    <div class="mono">AEDIFICARE · EDITION 07 · SEED 20261010</div>
+  </div>
+</footer>
+
+<script>
+// ---------- data ----------
+const M={ // measured 2026-10-10: [model-visible tokens, tools, prefixed-name tokens]
+ 'filesystem':[1638,14,121],'git':[1085,12,103],'memory':[871,9,75],'sequential-thinking':[861,1,10],'fetch':[234,1,8],
+ 'chrome-devtools-slim':[174,3,35],'chrome-devtools':[5414,30,311],'playwright':[3688,25,271],'playwright-allcaps':[7988,71,870],
+ 'context7':[1078,2,21],'exa':[414,2,23],'tavily':[1612,5,63],'firecrawl':[12585,28,320],'brave':[8230,8,91],'perplexity':[1329,4,50],
+ 'basic-memory':[6994,23,209],'codebase-memory':[3510,17,181],'postgres-mcp-pro':[1156,9,125],'motherduck':[384,4,38],'dbhub':[265,2,19],'everything':[1061,13,126]
+};
+const CATS=[
+ {id:'repo',name:'Repo & files',intro:'<b>Default: Claude Code built-ins.</b> Read, Edit, Grep and Bash are already there, permissioned and sandboxable.',items:[
+  {id:'builtin-fs',name:'Claude Code built-ins',kind:'native',v:'use',note:'Already installed. Nothing to add.',tier:'A'},
+  {id:'filesystem',name:'filesystem (reference MCP)',m:'filesystem',v:'avoid',note:'Duplicates the built-ins. Shipped two path-bypass CVEs in 2025.',tier:'A'}]},
+ {id:'github',name:'GitHub & git',intro:'<b>Default: the gh CLI.</b> Anthropic recommends it by name for context efficiency.',items:[
+  {id:'gh',name:'gh CLI',kind:'native',v:'use',note:'Zero tool listing. Install and authenticate once.',tier:'B'},
+  {id:'github-mcp',name:'GitHub MCP (official)',v:'situ',note:'86 tools, about 14K tokens by a third-party count. Worth it only for scoped read-only access or remote-only toolsets.',tier:'B',unmeasured:true},
+  {id:'git',name:'git (reference MCP)',m:'git',v:'avoid',note:'Duplicates git in Bash. Shipped three CVEs in January 2026.',tier:'A'}]},
+ {id:'browser',name:'Browser',intro:'<b>Pick one browser server.</b> Three of them in one setup is the most common redundancy we see.',items:[
+  {id:'chrome-devtools-slim',name:'Chrome DevTools MCP, --slim',m:'chrome-devtools-slim',v:'use',note:'Three tools. Start here.',tier:'A',group:'browser'},
+  {id:'chrome-devtools',name:'Chrome DevTools MCP, full',m:'chrome-devtools',v:'alt',note:'Escalate when you need performance traces, network or memory panels. 31 times the slim cost.',tier:'A',group:'browser'},
+  {id:'playwright',name:'Playwright MCP',m:'playwright',v:'alt',note:'Accessibility-tree automation. Install alongside playwright-core; bare npx failed in our run.',tier:'A',group:'browser'},
+  {id:'playwright-allcaps',name:'Playwright MCP, every capability',m:'playwright-allcaps',v:'avoid',note:'71 tools. Turn on only the capability you need.',tier:'A',group:'browser'},
+  {id:'claude-chrome',name:'Claude in Chrome',v:'situ',note:'22 tools that drive your real, logged-in browser. Use when the task needs your sessions.',tier:'A',group:'browser',unmeasured:true}]},
+ {id:'docs',name:'Docs',intro:'<b>Default: WebFetch on a site\'s llms.txt.</b> Zero schema cost. Add a docs server only if that falls short.',items:[
+  {id:'llms',name:'WebFetch + llms.txt',kind:'native',v:'use',note:'Built in. Claude Code, MCP and Vercel docs all publish llms.txt.',tier:'B'},
+  {id:'context7',name:'Context7',m:'context7',v:'use',note:'Two tools for current library docs. Free key recommended for rate limits.',tier:'A'},
+  {id:'deepwiki',name:'DeepWiki',v:'alt',note:'Three tools, no auth, for reading other people\'s public repos.',tier:'B',unmeasured:true}]},
+ {id:'search',name:'Web search',intro:'<b>Default: the built-in WebSearch and WebFetch.</b> Add a vendor for crawling, filters or non-US results.',items:[
+  {id:'websearch',name:'Built-in WebSearch / WebFetch',kind:'native',v:'use',note:'Already there.',tier:'A'},
+  {id:'exa',name:'Exa',m:'exa',v:'alt',note:'The cheapest vendor add in our set. Two tools.',tier:'A',group:'search'},
+  {id:'tavily',name:'Tavily',m:'tavily',v:'alt',note:'Search, extract, map, crawl. Pick one search vendor, not two.',tier:'A',group:'search'},
+  {id:'perplexity',name:'Perplexity',m:'perplexity',v:'situ',note:'Its reasoning tool duplicates the model you already run.',tier:'A',group:'search'},
+  {id:'firecrawl',name:'Firecrawl',m:'firecrawl',v:'situ',note:'Largest server we measured. Its search tool alone equals the 35 cheapest tools combined. Use for crawl and monitor only.',tier:'A',group:'search'},
+  {id:'brave',name:'Brave Search',m:'brave',v:'situ',note:'Eight tools that cost more than Playwright\'s seventy-one. Keep tool search on.',tier:'A',group:'search'}]},
+ {id:'db',name:'Database',intro:'<b>Default: psql or your vendor\'s CLI.</b> If you want MCP, start with the smallest that does the job.',items:[
+  {id:'psql',name:'psql / vendor CLI',kind:'native',v:'use',note:'No listing cost.',tier:'B'},
+  {id:'dbhub',name:'DBHub',m:'dbhub',v:'use',note:'Two tools. The server Claude Code\'s own docs use as the Postgres example.',tier:'A',group:'db'},
+  {id:'postgres-mcp-pro',name:'Postgres MCP Pro',m:'postgres-mcp-pro',v:'avoid',note:'Would not start on a fresh machine: it never pinned the MCP Python SDK below 2.x. Works with uvx --with "mcp<2".',tier:'A',group:'db'},
+  {id:'motherduck',name:'MotherDuck / DuckDB',m:'motherduck',v:'alt',note:'Four tools for ad-hoc analytics on CSV and Parquet. In-memory needs --read-write.',tier:'A'},
+  {id:'supabase',name:'Supabase (remote)',v:'situ',note:'Use read_only=true and project scoping. A 2025 exfiltration via a support ticket is the canonical warning.',tier:'B',unmeasured:true}]},
+ {id:'deploy',name:'Deploy',intro:'<b>Default: vercel and wrangler CLIs.</b> Vendor MCP servers here are the largest in any setup.',items:[
+  {id:'vercel-cli',name:'vercel + wrangler CLIs',kind:'native',v:'use',note:'No listing cost.',tier:'B'},
+  {id:'cf-code',name:'Cloudflare code-mode MCP',v:'alt',note:'Three tools run JavaScript against the API spec. Vendor figure: about 1,100 tokens versus about 244,000 for naive tools.',tier:'B',unmeasured:true},
+  {id:'vercel-mcp',name:'Vercel MCP',v:'situ',note:'About 330 tools observed in our session (213 on the docs page). Can deploy and buy domains. Deferred or not at all.',tier:'A',unmeasured:true}]},
+ {id:'memory',name:'Memory',intro:'<b>Default: CLAUDE.md plus auto memory.</b> Both are built in and re-injected after compaction.',items:[
+  {id:'claudemd',name:'CLAUDE.md + auto memory',kind:'native',v:'use',note:'Already there.',tier:'B'},
+  {id:'basic-memory',name:'Basic Memory',m:'basic-memory',v:'alt',note:'Local Markdown you can read yourself. 23 tools.',tier:'A'},
+  {id:'codebase-memory',name:'codebase-memory',m:'codebase-memory',v:'situ',note:'Call-graph questions on big repos. Known blind spots in Next.js and TypeScript.',tier:'A'},
+  {id:'memory',name:'memory (reference MCP)',m:'memory',v:'avoid',note:'A toy knowledge graph in a JSON file. Duplicates what is built in.',tier:'A'},
+  {id:'sequential-thinking',name:'sequential-thinking',m:'sequential-thinking',v:'avoid',note:'No measured benefit on current models. Its description runs past the old 2,048-character limit.',tier:'A'}]},
+ {id:'foundry',name:'Palantir Foundry',intro:'<b>Default: Palantir MCP with tool search, plus Ontology MCP per app.</b> AI FDE is not reachable from outside the browser.',items:[
+  {id:'palantir-mcp',name:'Palantir MCP',v:'use',note:'About 90 tools, starts with one when --tool-search is on. Build work only; humans merge.',tier:'B',unmeasured:true},
+  {id:'omcp',name:'Ontology MCP',v:'use',note:'Per Developer Console app. Reads data, runs actions and query functions. Auth-code OAuth only on the free tier.',tier:'B',unmeasured:true},
+  {id:'osdk-cli',name:'@osdk/cli',kind:'native',v:'use',note:'Deploys your front end to a Foundry-hosted site from the terminal.',tier:'B'},
+  {id:'ai-fde',name:'AI FDE',v:'avoid',note:'Chat window only. No API, MCP tool or CLI. Use it in the browser, not from Claude Code.',tier:'B',unmeasured:true,locked:true}]}
+];
+const SHORTLIST=['builtin-fs','gh','chrome-devtools-slim','llms','context7','websearch','psql','vercel-cli','claudemd','palantir-mcp','omcp','osdk-cli'];
+const ITEMS=Object.fromEntries(CATS.flatMap(c=>c.items.map(i=>[i.id,{...i,cat:c.id,catName:c.name}])));
+const VL={use:'Use',alt:'Alternative',situ:'Situational',avoid:'Avoid'};
+const MAXV=12585;
+
+// ---------- state ----------
+let sel=new Set(SHORTLIST), cur='browser';
+try{const s=JSON.parse(localStorage.getItem('loadout-sel')||'null');if(Array.isArray(s))sel=new Set(s.filter(id=>ITEMS[id]));const c=localStorage.getItem('loadout-cat');if(c&&CATS.some(x=>x.id===c))cur=c;}catch(e){}
+const save=()=>{try{localStorage.setItem('loadout-sel',JSON.stringify([...sel]));localStorage.setItem('loadout-cat',cur);}catch(e){}};
+const fmt=n=>n.toLocaleString('en-US');
+const $=id=>document.getElementById(id);
+
+function renderCats(){
+  $('cats').innerHTML=CATS.map(c=>{const n=c.items.filter(i=>sel.has(i.id)).length;return `<button type="button" class="cat" data-c="${c.id}" aria-pressed="${c.id===cur}">${c.name}<span class="ct">${n}</span></button>`;}).join('');
+  $('cats').querySelectorAll('.cat').forEach(b=>b.onclick=()=>{cur=b.dataset.c;save();render();});
+}
+function renderItems(){
+  const c=CATS.find(x=>x.id===cur);$('catintro').innerHTML=c.intro;
+  $('items').innerHTML=c.items.map(i=>{const m=i.m?M[i.m]:null;
+    const meta=m?`${fmt(m[0])} tokens · ${m[1]} tools · ${fmt(m[2])} names-only`:(i.kind==='native'?'built in or CLI · no tool listing':'not measured by us');
+    return `<label class="item"><input type="checkbox" id="t-${i.id}" data-id="${i.id}" ${sel.has(i.id)?'checked':''} ${i.locked?'disabled':''} aria-describedby="n-${i.id}">
+      <div style="min-width:0"><div class="nm">${i.name} <span class="tier">${i.tier}</span></div><div class="note" id="n-${i.id}">${i.note}</div><div class="meta">${meta}</div>${m?`<div class="bar"><i style="width:${Math.max(1,m[0]/MAXV*100)}%"></i></div>`:''}</div>
+      <span class="verdict v-${i.v}">${VL[i.v]}</span></label>`;}).join('');
+  $('items').querySelectorAll('input').forEach(x=>x.onchange=()=>{x.checked?sel.add(x.dataset.id):sel.delete(x.dataset.id);save();renderPanel();renderCats();});
+}
+function renderPanel(){
+  let full=0,names=0,servers=0,unm=[];const groups={};const warns=[];
+  sel.forEach(id=>{const i=ITEMS[id];if(!i)return;if(i.kind==='native')return;servers++;
+    if(i.m){full+=M[i.m][0];names+=M[i.m][2];}else unm.push(i.name);
+    if(i.group){(groups[i.group]=groups[i.group]||[]).push(i.name);}
+    if(i.v==='avoid')warns.push(`<b>${i.name}</b>: ${i.note}`);});
+  Object.entries(groups).forEach(([g,list])=>{if(list.length>1)warns.unshift(`<b>${list.length} tools in one job (${g})</b>: ${list.join(', ')}. Keep the one that does what the others can't.`);});
+  $('namesTotal').textContent=fmt(names);$('fullTotal').textContent=fmt(full);
+  $('selCount').textContent=servers+(servers===1?' server':' servers')+(unm.length?` · ${unm.length} not measured`:'');
+  const scale=Math.max(full,20000);$('mFull').style.width=(full/scale*100)+'%';$('mNames').style.width=(names/scale*100)+'%';
+  $('warns').innerHTML=warns.length?warns.map(w=>`<div class="warn">${w}</div>`).join(''):'<div class="ok">No overlaps and nothing on the avoid list.</div>';
+}
+function render(){renderCats();renderItems();renderPanel();}
+$('reset').onclick=()=>{sel=new Set(SHORTLIST);save();render();};
+render();
+
+// ---------- copy ----------
+$('copy').onclick=async()=>{const t=$('cmdtext').textContent;try{await navigator.clipboard.writeText(t);$('copy').textContent='Copied';}catch(e){const r=document.createRange();r.selectNodeContents($('cmdtext'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('copy').textContent='Selected';}setTimeout(()=>$('copy').textContent='Copy',1600);};
+
+// ---------- measurement table ----------
+(()=>{const rows=[['firecrawl',...M['firecrawl']],['brave-search',...M['brave']],['basic-memory',...M['basic-memory']],['chrome-devtools',...M['chrome-devtools']],['playwright',...M['playwright']],['codebase-memory',...M['codebase-memory']],['filesystem',...M['filesystem']],['tavily',...M['tavily']],['perplexity',...M['perplexity']],['postgres-mcp-pro',...M['postgres-mcp-pro']],['git',...M['git']],['context7',...M['context7']],['everything',...M['everything']],['memory',...M['memory']],['sequential-thinking',...M['sequential-thinking']],['exa',...M['exa']],['motherduck',...M['motherduck']],['dbhub',...M['dbhub']],['fetch',...M['fetch']]];
+  document.querySelector('#tbl tbody').innerHTML=rows.map(r=>`<tr class="${r[0]==='firecrawl'?'hl':''}"><td class="mono">${r[0]}</td><td class="n">${r[2]}</td><td class="n">${fmt(r[1])}</td><td class="n">${fmt(r[3])}</td><td><div class="tb" style="width:${r[1]/MAXV*100}%"></div></td></tr>`).join('')
+  +`<tr><td class="mono"><b>19 servers</b></td><td class="n"><b>209</b></td><td class="n"><b>52,409</b></td><td class="n"><b>2,165</b></td><td></td></tr>`;})();
+
+// ---------- Foundry flow ----------
+(()=>{const s=$('flow');const t=(x,y,str,o={})=>`<text x="${x}" y="${y}" fill="${o.f||'#FFFFFF'}" font-family="${o.mono?'Martian Mono, monospace':'Bricolage Grotesque, sans-serif'}" font-size="${o.s||18}" font-weight="${o.w||400}" text-anchor="${o.a||'start'}">${str}</text>`;
+  const d=(x,y,c)=>`<circle cx="${x}" cy="${y}" r="9" fill="${c}"/>`;const l=(a,b,c,e,o={})=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${e}" stroke="${o.c||'#00B24F'}" stroke-width="${o.w||2.5}" ${o.d?`stroke-dasharray="${o.d}"`:''}/>`;
+  let o='';o+=d(40,150,'#CCFF00')+t(40,120,'CLAUDE CODE',{w:800,s:20})+t(40,190,'your IDE',{mono:1,s:12,f:'#9ad8b3'});
+  o+=l(50,150,330,70)+l(50,150,330,230);
+  o+=d(340,70,'#00B24F')+t(360,64,'PALANTIR MCP',{w:800})+t(360,86,'build: types, repos, OSDK',{mono:1,s:11,f:'#9ad8b3'});
+  o+=d(340,230,'#00B24F')+t(360,224,'ONTOLOGY MCP',{w:800})+t(360,246,'data, actions, queries',{mono:1,s:11,f:'#9ad8b3'});
+  o+=l(350,70,640,70)+d(650,70,'#FFFFFF')+t(670,64,'FOUNDRY',{w:800})+t(670,86,'you merge proposals',{mono:1,s:11,f:'#9ad8b3'});
+  o+=l(350,230,640,230)+d(650,230,'#FFFFFF')+t(670,224,'YOUR AGENT',{w:800})+t(670,246,'Claude Agent SDK, in Foundry',{mono:1,s:11,f:'#9ad8b3'});
+  o+=l(650,240,650,282,{d:'4 6'})+t(660,290,'writes results to objects',{mono:1,s:11,f:'#9ad8b3'});
+  o+=t(40,286,'AI FDE: browser only',{mono:1,s:12,f:'#FF1F5A'});
+  s.innerHTML=o;})();
+
+// ---------- rhodonea field, k drifting ----------
+(()=>{const c=$('rose'),g=c.getContext('2d'),W=c.width,H=c.height,cx=W/2,cy=H/2,R=W*.46;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const curves=[[5,1,'#CCFF00',.3],[7,.78,'#00B24F',1.7],[3,.54,'#FF1F5A',3.1]];
+  function draw(tm){g.clearRect(0,0,W,H);g.lineWidth=1.1;
+    curves.forEach(([k,f,col,ph],i)=>{const kk=k+(reduce?0:Math.sin(tm/5600+i*1.3)*.45);g.strokeStyle=col;g.beginPath();
+      for(let t=0;t<=Math.PI*4;t+=.006){const r=Math.cos(kk*t)*R*f,x=cx+r*Math.cos(t+ph),y=cy+r*Math.sin(t+ph);t===0?g.moveTo(x,y):g.lineTo(x,y);}g.stroke();});
+    if(!reduce)requestAnimationFrame(draw);}
+  draw(0);})();
+
+// ---------- the dove: once, at the end ----------
+(()=>{const c=$('dove'),g=c.getContext('2d'),W=c.width,H=c.height;let s=20261010;const r=()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};
+  const cx=W*.47,cy=H*.6,R=H*.6;g.fillStyle='#FFFFFF';const p=(x,y,a,z=1.6)=>{g.globalAlpha=a;g.fillRect(x,y,z,z);};
+  for(let i=0;i<16000;i++){const t=r()*Math.PI*2,rr=Math.cos(2*t)*R*(.5+.5*Math.sqrt(r()));const x=cx+rr*Math.cos(t+Math.PI/4),y=cy+rr*Math.sin(t+Math.PI/4);if(y>cy-10)continue;p(x,y,.2+.8*Math.pow(1-Math.abs(rr)/R,1.6));}
+  for(let i=0;i<3000;i++){const t=r()*Math.PI*2,q=Math.sqrt(r());p(cx+40+q*230*Math.cos(t),cy+30+q*62*Math.sin(t),.35+.5*(1-q));}
+  for(let i=0;i<800;i++){const t=r()*Math.PI*2,q=Math.sqrt(r());p(cx+300+q*58*Math.cos(t),cy-20+q*50*Math.sin(t),.4+.5*(1-q));}
+  for(let i=0;i<260;i++){const t=r()*Math.PI*2,q=Math.sqrt(r());p(cx+372+q*34*Math.cos(t),cy-16+q*9*Math.sin(t),.6,1.2);}
+  for(let i=0;i<1800;i++){const u=r(),v=r()-.5;p(cx-190-u*230,cy+40+v*(40+u*150),.25+.45*(1-u));}
+  g.globalAlpha=1;})();
+</script>
+
+</body></html>
